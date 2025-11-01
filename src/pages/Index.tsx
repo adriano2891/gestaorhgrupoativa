@@ -1,3 +1,4 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Briefcase, BarChart3, Clock, FileText, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -10,92 +11,93 @@ const Index = () => {
   const modules = [
     {
       title: "Funcionários",
-      description: "Listar e gerenciar equipe",
+      description: "Gestão de colaboradores",
       icon: Users,
       path: "/funcionarios",
+      color: "text-blue-500",
+      bgColor: "bg-blue-50 dark:bg-blue-950",
     },
     {
       title: "Banco de Talentos",
-      description: "Gerenciar e buscar currículos",
+      description: "Candidatos e recrutamento",
       icon: Briefcase,
       path: "/banco-talentos",
+      color: "text-purple-500",
+      bgColor: "bg-purple-50 dark:bg-purple-950",
     },
     {
       title: "Relatórios",
       description: "Análises e indicadores",
       icon: BarChart3,
       path: "/relatorios",
+      color: "text-green-500",
+      bgColor: "bg-green-50 dark:bg-green-950",
     },
     {
       title: "Folha de Ponto",
-      description: "Visualizar registros de ponto",
+      description: "Controle de jornada",
       icon: Clock,
       path: "/folha-ponto",
+      color: "text-orange-500",
+      bgColor: "bg-orange-50 dark:bg-orange-950",
     },
     {
       title: "Holerites",
-      description: "Consultar recibos de pagamento",
+      description: "Gestão de pagamentos",
       icon: FileText,
       path: "/holerites",
+      color: "text-cyan-500",
+      bgColor: "bg-cyan-50 dark:bg-cyan-950",
     },
   ];
 
   // Adicionar Gerenciar Admins apenas para admins
   if (isAdmin) {
     modules.push({
-      title: "Gerenciar Administradores",
-      description: "Adicionar ou remover acessos",
+      title: "Gerenciar Admins",
+      description: "Controle de administradores",
       icon: Shield,
       path: "/admins",
+      color: "text-red-500",
+      bgColor: "bg-red-50 dark:bg-red-950",
     });
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[hsl(174,72%,56%)] to-[hsl(186,85%,45%)] px-4 py-12">
-      <div className="w-full max-w-7xl mx-auto space-y-12">
-        {/* Título */}
-        <div className="text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-white drop-shadow-lg">
-            Acesso Rápido
-          </h1>
+    <div className="min-h-[calc(100vh-180px)] px-4 py-8">
+      <div className="w-full max-w-7xl mx-auto space-y-8">
+        {/* Cabeçalho */}
+        <div className="text-center space-y-2">
+          <h1 className="text-4xl md:text-5xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-lg text-muted-foreground">
+            Acesso rápido aos módulos do sistema
+          </p>
         </div>
 
         {/* Grid de Módulos */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {modules.map((module) => (
-            <div
+            <Card
               key={module.path}
+              className="cursor-pointer hover:shadow-lg transition-all duration-300 border-2 hover:border-primary group"
               onClick={() => navigate(module.path)}
-              className="group cursor-pointer"
             >
-              <div className="relative bg-[hsl(174,45%,20%)]/40 backdrop-blur-sm rounded-3xl p-8 
-                            shadow-[0_8px_32px_rgba(0,0,0,0.3)] 
-                            hover:shadow-[0_12px_48px_rgba(0,0,0,0.4)]
-                            hover:bg-[hsl(174,45%,20%)]/50
-                            transition-all duration-300 
-                            border border-white/10
-                            hover:scale-[1.02]
-                            flex flex-col items-center justify-center text-center space-y-6
-                            min-h-[280px]">
-                {/* Ícone */}
-                <div className="relative">
-                  <div className="absolute inset-0 bg-[hsl(174,72%,56%)] blur-2xl opacity-30 rounded-full" />
-                  <module.icon className="w-24 h-24 text-[hsl(174,72%,66%)] relative z-10 
-                                        group-hover:scale-110 transition-transform duration-300" 
-                              strokeWidth={1.5} />
+              <CardHeader className="space-y-4">
+                <div
+                  className={`w-16 h-16 rounded-lg ${module.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform`}
+                >
+                  <module.icon className={`w-8 h-8 ${module.color}`} />
                 </div>
-
-                {/* Texto */}
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-white">
+                <div>
+                  <CardTitle className="text-xl group-hover:text-primary transition-colors">
                     {module.title}
-                  </h3>
-                  <p className="text-base text-white/80">
+                  </CardTitle>
+                  <CardDescription className="mt-2">
                     {module.description}
-                  </p>
+                  </CardDescription>
                 </div>
-              </div>
-            </div>
+              </CardHeader>
+            </Card>
           ))}
         </div>
       </div>
