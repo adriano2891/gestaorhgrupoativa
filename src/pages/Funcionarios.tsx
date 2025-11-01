@@ -149,6 +149,7 @@ const Funcionarios = () => {
           id,
           nome,
           email,
+          telefone,
           cargo,
           departamento,
           created_at,
@@ -171,10 +172,10 @@ const Funcionarios = () => {
         id: profile.id,
         name: profile.nome,
         email: profile.email,
-        phone: "(00) 00000-0000", // Placeholder - adicione campo phone na tabela se necessário
+        phone: profile.telefone || "Não informado",
         position: profile.cargo || "Não informado",
         department: profile.departamento || "Não informado",
-        status: "ativo" as const, // Placeholder - adicione campo status se necessário
+        status: "ativo" as const,
         admissionDate: new Date(profile.created_at).toISOString().split('T')[0],
       }));
 
@@ -319,6 +320,7 @@ const Funcionarios = () => {
         const updateData: any = {
           nome: editingEmployee.name,
           email: editingEmployee.email,
+          telefone: editingEmployee.phone,
           cargo: editingEmployee.position,
           departamento: editingEmployee.department,
         };
@@ -648,15 +650,13 @@ const Funcionarios = () => {
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1 text-sm">
-                      <div className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        <span className="text-muted-foreground">E-mail</span>
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs">{employee.email}</span>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <Phone className="h-3 w-3" />
-                        <span className="text-muted-foreground">
-                          {employee.phone}
-                        </span>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-3 w-3 text-muted-foreground" />
+                        <span className="text-xs">{employee.phone}</span>
                       </div>
                     </div>
                   </TableCell>
