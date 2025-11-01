@@ -206,6 +206,7 @@ export type Database = {
           salario: number | null
           telefone: string | null
           updated_at: string | null
+          usuario: string | null
         }
         Insert: {
           cargo?: string | null
@@ -218,6 +219,7 @@ export type Database = {
           salario?: number | null
           telefone?: string | null
           updated_at?: string | null
+          usuario?: string | null
         }
         Update: {
           cargo?: string | null
@@ -230,6 +232,7 @@ export type Database = {
           salario?: number | null
           telefone?: string | null
           updated_at?: string | null
+          usuario?: string | null
         }
         Relationships: []
       }
@@ -430,6 +433,13 @@ export type Database = {
       }
       get_email_by_cpf: {
         Args: { cpf_input: string }
+        Returns: {
+          email: string
+          user_id: string
+        }[]
+      }
+      get_email_by_username: {
+        Args: { username_input: string }
         Returns: {
           email: string
           user_id: string

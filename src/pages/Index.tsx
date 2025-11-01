@@ -1,75 +1,104 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Users, FileText, TrendingUp } from "lucide-react";
+import { Users, Briefcase, BarChart3, Clock, FileText, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const Index = () => {
-  const stats = [
+  const navigate = useNavigate();
+  const { roles } = useAuth();
+  const isAdmin = roles.includes("admin") || roles.includes("rh") || roles.includes("gestor");
+
+  const modules = [
     {
-      title: "Total de Funcionários",
-      value: "234",
+      title: "Funcionários",
+      description: "Listar e gerenciar equipe",
       icon: Users,
-      description: "+12 este mês",
+      path: "/funcionarios",
     },
     {
-      title: "Holerites Gerados",
-      value: "198",
+      title: "Banco de Talentos",
+      description: "Gerenciar e buscar currículos",
+      icon: Briefcase,
+      path: "/banco-talentos",
+    },
+    {
+      title: "Relatórios",
+      description: "Análises e indicadores",
+      icon: BarChart3,
+      path: "/relatorios",
+    },
+    {
+      title: "Folha de Ponto",
+      description: "Visualizar registros de ponto",
+      icon: Clock,
+      path: "/folha-ponto",
+    },
+    {
+      title: "Holerites",
+      description: "Consultar recibos de pagamento",
       icon: FileText,
-      description: "Outubro 2025",
-    },
-    {
-      title: "Taxa de Retenção",
-      value: "94%",
-      icon: TrendingUp,
-      description: "+2% vs mês anterior",
-    },
-    {
-      title: "Departamentos",
-      value: "8",
-      icon: Building2,
-      description: "Ativos",
+      path: "/holerites",
     },
   ];
 
+  // Adicionar Gerenciar Admins apenas para admins
+  if (isAdmin) {
+    modules.push({
+      title: "Gerenciar Administradores",
+      description: "Adicionar ou remover acessos",
+      icon: Shield,
+      path: "/admins",
+    });
+  }
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-primary-foreground">Dashboard</h1>
-        <p className="text-primary-foreground/80 mt-1">
-          Visão geral do sistema de gestão de recursos humanos
-        </p>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-[hsl(174,72%,56%)] to-[hsl(186,85%,45%)] px-4 py-12">
+      <div className="w-full max-w-7xl mx-auto space-y-12">
+        {/* Título */}
+        <div className="text-center">
+          <h1 className="text-5xl md:text-6xl font-bold text-white drop-shadow-lg">
+            Acesso Rápido
+          </h1>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+        {/* Grid de Módulos */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {modules.map((module) => (
+            <div
+              key={module.path}
+              onClick={() => navigate(module.path)}
+              className="group cursor-pointer"
+            >
+              <div className="relative bg-[hsl(174,45%,20%)]/40 backdrop-blur-sm rounded-3xl p-8 
+                            shadow-[0_8px_32px_rgba(0,0,0,0.3)] 
+                            hover:shadow-[0_12px_48px_rgba(0,0,0,0.4)]
+                            hover:bg-[hsl(174,45%,20%)]/50
+                            transition-all duration-300 
+                            border border-white/10
+                            hover:scale-[1.02]
+                            flex flex-col items-center justify-center text-center space-y-6
+                            min-h-[280px]">
+                {/* Ícone */}
+                <div className="relative">
+                  <div className="absolute inset-0 bg-[hsl(174,72%,56%)] blur-2xl opacity-30 rounded-full" />
+                  <module.icon className="w-24 h-24 text-[hsl(174,72%,66%)] relative z-10 
+                                        group-hover:scale-110 transition-transform duration-300" 
+                              strokeWidth={1.5} />
+                </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Bem-vindo ao AtivaRH</CardTitle>
-          <CardDescription>
-            Sistema completo de gestão de recursos humanos
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Utilize o menu de navegação acima para acessar as diferentes funcionalidades do sistema.
-            O módulo de Holerites está pronto para uso!
-          </p>
-        </CardContent>
-      </Card>
+                {/* Texto */}
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-bold text-white">
+                    {module.title}
+                  </h3>
+                  <p className="text-base text-white/80">
+                    {module.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };
