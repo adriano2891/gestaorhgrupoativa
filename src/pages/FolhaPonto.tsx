@@ -236,69 +236,102 @@ const FolhaPonto = () => {
 
   const exportToPDF = () => {
     const doc = new jsPDF('l', 'mm', 'a4'); // landscape
+    let yPos = 20;
     
-    // Título
-    doc.setFontSize(18);
-    doc.text(`Folha de Ponto - ${selectedMonth}/${selectedYear}`, 14, 20);
-    
-    // Data de geração
-    doc.setFontSize(10);
-    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
-    
-    // Estatísticas
-    doc.setFontSize(12);
-    doc.text("Resumo do Período:", 14, 38);
-    doc.setFontSize(10);
-    doc.text(`Total de Funcionários: ${stats.total_funcionarios}`, 14, 44);
-    doc.text(`Média Horas/Dia: ${stats.media_horas_dia}h`, 14, 49);
-    doc.text(`Total Horas Extras: ${stats.total_horas_extras}h`, 14, 54);
-    doc.text(`Total Ausências: ${stats.total_ausencias}`, 14, 59);
-    
-    // Tabela de dados
-    if (monthRecords.length > 0) {
-      const tableData = monthRecords.map(record => [
-        record.employee_name,
-        record.departamento || '-',
-        `${record.total_horas_mes.toFixed(1)}h`,
-        `${record.total_horas_extras.toFixed(1)}h`,
-        record.total_faltas.toString(),
-        record.status === 'completo' ? 'Completo' : 'Incompleto'
+    monthRecords.forEach((record, index) => {
+      if (index > 0) {
+        doc.addPage();
+        yPos = 20;
+      }
+      
+      // Cabeçalho do funcionário
+      doc.setFontSize(16);
+      doc.text(`${record.employee_name}`, 14, yPos);
+      yPos += 6;
+      
+      doc.setFontSize(10);
+      doc.text(`Departamento: ${record.departamento || '-'} | Período: ${selectedMonth}/${selectedYear}`, 14, yPos);
+      yPos += 8;
+      
+      // Resumo do funcionário
+      doc.setFontSize(9);
+      doc.text(`Total Horas: ${record.total_horas_mes.toFixed(1)}h | Horas Extras: ${record.total_horas_extras.toFixed(1)}h | Faltas: ${record.total_faltas}`, 14, yPos);
+      yPos += 5;
+      
+      // Tabela detalhada
+      const tableData = record.days.map(day => [
+        day.day.toString().padStart(2, '0'),
+        day.entrada || '-',
+        day.saida_almoco || '-',
+        day.retorno_almoco || '-',
+        day.saida || '-',
+        day.total_horas || '-',
+        day.horas_extras || '-',
+        day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : 'Ausente'
       ]);
       
       autoTable(doc, {
-        startY: 65,
-        head: [['Funcionário', 'Departamento', 'Total Horas', 'Horas Extras', 'Faltas', 'Status']],
+        startY: yPos,
+        head: [['Dia', 'Entrada', 'Saída Almoço', 'Retorno Almoço', 'Saída', 'Total Horas', 'HE', 'Status']],
         body: tableData,
         theme: 'grid',
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [17, 188, 183] }
+        styles: { fontSize: 7 },
+        headStyles: { fillColor: [17, 188, 183] },
+        columnStyles: {
+          0: { cellWidth: 12 },
+          1: { cellWidth: 20 },
+          2: { cellWidth: 25 },
+          3: { cellWidth: 25 },
+          4: { cellWidth: 20 },
+          5: { cellWidth: 25 },
+          6: { cellWidth: 20 },
+          7: { cellWidth: 25 }
+        }
       });
-    }
+    });
     
-    const fileName = `folha-ponto-${selectedMonth}-${selectedYear}.pdf`;
+    const fileName = `folha-ponto-detalhada-${selectedMonth}-${selectedYear}.pdf`;
     doc.save(fileName);
     
-    toast.success("PDF exportado com sucesso!");
+    toast.success("PDF detalhado exportado com sucesso!");
   };
 
   const exportToExcel = () => {
-    const data = monthRecords.map(record => ({
-      'Funcionário': record.employee_name,
-      'Departamento': record.departamento || '-',
-      'Total Horas Mês': `${record.total_horas_mes.toFixed(1)}h`,
-      'Horas Extras': `${record.total_horas_extras.toFixed(1)}h`,
-      'Faltas': record.total_faltas,
-      'Status': record.status === 'completo' ? 'Completo' : 'Incompleto'
-    }));
-    
-    const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Folha de Ponto");
     
-    const fileName = `folha-ponto-${selectedMonth}-${selectedYear}.xlsx`;
+    monthRecords.forEach(record => {
+      const data = record.days.map(day => ({
+        'Dia': day.day.toString().padStart(2, '0'),
+        'Entrada': day.entrada || '-',
+        'Saída Almoço': day.saida_almoco || '-',
+        'Retorno Almoço': day.retorno_almoco || '-',
+        'Saída': day.saida || '-',
+        'Total Horas': day.total_horas || '-',
+        'Horas Extras': day.horas_extras || '-',
+        'Status': day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : 'Ausente'
+      }));
+      
+      // Adicionar linha de resumo no início
+      data.unshift({
+        'Dia': 'RESUMO',
+        'Entrada': `Total: ${record.total_horas_mes.toFixed(1)}h`,
+        'Saída Almoço': `HE: ${record.total_horas_extras.toFixed(1)}h`,
+        'Retorno Almoço': `Faltas: ${record.total_faltas}`,
+        'Saída': `Depto: ${record.departamento || '-'}`,
+        'Total Horas': '',
+        'Horas Extras': '',
+        'Status': ''
+      });
+      
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const sheetName = record.employee_name.substring(0, 31); // Excel limita a 31 caracteres
+      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+    });
+    
+    const fileName = `folha-ponto-detalhada-${selectedMonth}-${selectedYear}.xlsx`;
     XLSX.writeFile(workbook, fileName);
     
-    toast.success("Excel exportado com sucesso!");
+    toast.success("Excel detalhado exportado com sucesso!");
   };
 
   // Calcular estatísticas
