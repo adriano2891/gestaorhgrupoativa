@@ -750,9 +750,14 @@ const Funcionarios = () => {
                         setEditSalary(valorFormatado);
                       }}
                       placeholder="0,00"
-                      className="h-9 pl-10"
+                      className="h-9 pl-10 font-medium"
                     />
                   </div>
+                  {editSalary && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Valor atual: R$ {editSalary}
+                    </p>
+                  )}
                 </div>
               </div>
               
