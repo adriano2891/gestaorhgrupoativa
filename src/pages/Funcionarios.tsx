@@ -215,12 +215,13 @@ const Funcionarios = () => {
       
       if (profileData) {
         setEditCpf(profileData.cpf || "");
-        // Formatar salário se existir
+        // Formatar salário no padrão brasileiro
         if (profileData.salario) {
-          setEditSalary(profileData.salario.toLocaleString('pt-BR', {
+          const salarioFormatado = parseFloat(profileData.salario.toString()).toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
-          }));
+          });
+          setEditSalary(salarioFormatado);
         } else {
           setEditSalary("");
         }
@@ -728,24 +729,30 @@ const Funcionarios = () => {
                       type="text"
                       value={editSalary}
                       onChange={(e) => {
-                        // Remover tudo exceto números e vírgula/ponto
-                        let value = e.target.value.replace(/[^\d,]/g, '');
-                        // Garantir apenas uma vírgula
-                        const parts = value.split(',');
-                        if (parts.length > 2) {
-                          value = parts[0] + ',' + parts.slice(1).join('');
+                        // Remover tudo exceto números
+                        const apenasNumeros = e.target.value.replace(/\D/g, '');
+                        
+                        if (apenasNumeros === '') {
+                          setEditSalary('');
+                          return;
                         }
-                        setEditSalary(value);
+                        
+                        // Converter para centavos e depois para reais
+                        const valorEmCentavos = parseInt(apenasNumeros);
+                        const valorEmReais = valorEmCentavos / 100;
+                        
+                        // Formatar no padrão brasileiro
+                        const valorFormatado = valorEmReais.toLocaleString('pt-BR', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        });
+                        
+                        setEditSalary(valorFormatado);
                       }}
                       placeholder="0,00"
                       className="h-9 pl-10"
                     />
                   </div>
-                  {editSalary && (
-                    <p className="text-xs text-muted-foreground">
-                      Valor: R$ {editSalary}
-                    </p>
-                  )}
                 </div>
               </div>
               
