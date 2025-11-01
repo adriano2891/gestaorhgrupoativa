@@ -228,6 +228,17 @@ const Funcionarios = () => {
       
       const cpfNumeros = newEmployee.cpf.replace(/\D/g, "");
       
+      // Verificar se o email já existe
+      const { data: existingEmail } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", newEmployee.email)
+        .maybeSingle();
+
+      if (existingEmail) {
+        throw new Error("E-mail já cadastrado no sistema");
+      }
+      
       // Verificar se o CPF já existe
       const { data: existingProfile } = await supabase
         .from("profiles")
@@ -255,6 +266,10 @@ const Funcionarios = () => {
       });
 
       if (authError) {
+        // Tratar erro de usuário já existente
+        if (authError.message.includes("already registered") || authError.message.includes("already exists")) {
+          throw new Error("E-mail já cadastrado no sistema de autenticação");
+        }
         throw new Error(`Erro ao criar usuário: ${authError.message}`);
       }
 
