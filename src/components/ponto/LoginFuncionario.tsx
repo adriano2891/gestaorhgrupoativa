@@ -1,0 +1,174 @@
+import { useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import { Clock, LogIn, Eye, EyeOff } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+
+export const LoginFuncionario = () => {
+  const [cpf, setCpf] = useState("");
+  const [senha, setSenha] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const { signIn } = useAuth();
+
+  const formatCPF = (value: string) => {
+    const numbers = value.replace(/\D/g, "");
+    if (numbers.length <= 11) {
+      return numbers
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+    }
+    return numbers.slice(0, 11);
+  };
+
+  const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatCPF(e.target.value);
+    setCpf(formatted);
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const cpfNumeros = cpf.replace(/\D/g, "");
+      
+      if (cpfNumeros.length !== 11) {
+        toast.error("CPF inválido", {
+          description: "Por favor, insira um CPF válido com 11 dígitos"
+        });
+        return;
+      }
+
+      // Buscar o email associado ao CPF
+      const { data: profile, error: profileError } = await (supabase as any)
+        .from("profiles")
+        .select("email")
+        .eq("cpf", cpfNumeros)
+        .single();
+
+      if (profileError || !profile) {
+        toast.error("CPF não encontrado", {
+          description: "Não encontramos um funcionário com esse CPF. Verifique os dados e tente novamente."
+        });
+        return;
+      }
+
+      // Fazer login com email e senha
+      await signIn(profile.email, senha);
+      
+      toast.success("Login realizado com sucesso!", {
+        description: "Bem-vindo ao Portal do Funcionário"
+      });
+    } catch (error: any) {
+      console.error("Erro ao fazer login:", error);
+      toast.error("Erro ao fazer login", {
+        description: error.message || "Verifique suas credenciais e tente novamente"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-primary via-primary to-primary-dark flex items-center justify-center p-4">
+      <div className="w-full max-w-md animate-fade-in">
+        {/* Logo e Título */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-4 border-2 border-white/20">
+            <Clock className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-white mb-2">Portal do Funcionário</h1>
+          <p className="text-white/80">Sistema de Registro de Ponto</p>
+        </div>
+
+        {/* Card de Login */}
+        <Card className="border-0 shadow-2xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl">Fazer Login</CardTitle>
+            <CardDescription>
+              Entre com seu CPF e senha para acessar o sistema
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="cpf">CPF</Label>
+                <Input
+                  id="cpf"
+                  type="text"
+                  placeholder="000.000.000-00"
+                  value={cpf}
+                  onChange={handleCPFChange}
+                  maxLength={14}
+                  required
+                  className="text-lg"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="senha">Senha</Label>
+                <div className="relative">
+                  <Input
+                    id="senha"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Digite sua senha"
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)}
+                    required
+                    className="text-lg pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <Button 
+                type="submit" 
+                className="w-full text-lg h-12"
+                disabled={loading}
+              >
+                {loading ? (
+                  "Entrando..."
+                ) : (
+                  <>
+                    <LogIn className="mr-2 h-5 w-5" />
+                    Entrar
+                  </>
+                )}
+              </Button>
+
+              <div className="text-center">
+                <button
+                  type="button"
+                  className="text-sm text-primary hover:underline"
+                  onClick={() => toast.info("Entre em contato com o RH para recuperar sua senha")}
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+
+        <p className="text-center text-white/60 text-sm mt-6">
+          © {new Date().getFullYear()} Sistema de RH - Todos os direitos reservados
+        </p>
+      </div>
+    </div>
+  );
+};
