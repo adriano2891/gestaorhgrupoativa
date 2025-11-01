@@ -77,7 +77,20 @@ Deno.serve(async (req) => {
 
     if (profileError) {
       console.error('Error creating profile:', profileError);
-      // Continue anyway, as the user is created
+      // Delete the created user if profile creation fails
+      await supabaseAdmin.auth.admin.deleteUser(userData.user.id);
+      
+      const errorMsg = profileError.code === '23505' 
+        ? 'Usuário já existe. Escolha outro nome de usuário.'
+        : profileError.message;
+      
+      return new Response(
+        JSON.stringify({ error: errorMsg }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          status: 400 
+        }
+      );
     }
 
     // Assign role

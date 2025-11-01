@@ -74,25 +74,22 @@ export const useCreateAdmin = () => {
       cargo?: string;
       role: "admin" | "gestor" | "rh";
     }) => {
-      // Chamar edge function para criar admin
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-admin-user`,
+      const { data: result, error } = await supabase.functions.invoke(
+        "create-admin-user",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify(data),
+          body: data,
         }
       );
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || "Erro ao criar administrador");
+      if (error) {
+        throw new Error(error.message || "Erro ao criar administrador");
       }
 
-      return response.json();
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admins"] });
