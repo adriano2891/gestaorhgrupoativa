@@ -19,6 +19,10 @@ import { MetricCard } from "@/components/relatorios/MetricCard";
 import { ReportCard } from "@/components/relatorios/ReportCard";
 import { TendenciaChart } from "@/components/relatorios/TendenciaChart";
 import { ComparativoChart } from "@/components/relatorios/ComparativoChart";
+import { ExportOptions } from "@/components/relatorios/ExportOptions";
+import { ScheduleReport } from "@/components/relatorios/ScheduleReport";
+import { SavedFilters } from "@/components/relatorios/SavedFilters";
+import { AdvancedMetrics } from "@/components/relatorios/AdvancedMetrics";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -26,6 +30,8 @@ const Relatorios = () => {
   const { data: metricas, isLoading } = useMetricas(1);
   const metricaAtual = metricas?.[0];
   const [favoritos, setFavoritos] = useState<string[]>([]);
+  const [showScheduleDialog, setShowScheduleDialog] = useState(false);
+  const [currentFilters, setCurrentFilters] = useState<any>({});
 
   const reports = [
     {
@@ -127,8 +133,14 @@ const Relatorios = () => {
   ];
 
   const handleFilter = (filtros: any) => {
+    setCurrentFilters(filtros);
     console.log("Filtros aplicados:", filtros);
     // Aqui seria implementada a filtragem real
+  };
+
+  const handleLoadFilters = (filters: any) => {
+    setCurrentFilters(filters);
+    handleFilter(filters);
   };
 
   if (isLoading) {
@@ -241,28 +253,30 @@ const Relatorios = () => {
 
       {/* Tabs para diferentes visões */}
       <Tabs defaultValue="metricas" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="metricas">Métricas</TabsTrigger>
           <TabsTrigger value="relatorios">Relatórios</TabsTrigger>
           <TabsTrigger value="graficos">Gráficos</TabsTrigger>
+          <TabsTrigger value="filtros">Filtros Salvos</TabsTrigger>
         </TabsList>
 
         <TabsContent value="metricas" className="space-y-6">
-          {/* Métricas Principais */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {metrics.map((metric) => (
-              <MetricCard
-                key={metric.title}
-                title={metric.title}
-                value={metric.value}
-                description={metric.description}
-                icon={metric.icon}
-                color={metric.color}
-                trend={metric.trend}
-                trendValue={metric.trendValue}
-              />
-            ))}
+          {/* Botões de Ação */}
+          <div className="flex justify-end gap-2 mb-4">
+            <ExportOptions
+              data={metrics.map(m => ({ métrica: m.title, valor: m.value, descrição: m.description }))}
+              reportTitle="Métricas Principais"
+              metrics={metrics.map(m => ({ title: m.title, value: m.value }))}
+            />
           </div>
+
+          {/* Métricas Principais com novo componente */}
+          <AdvancedMetrics
+            metrics={metrics.map(m => ({
+              ...m,
+              icon: <m.icon className="h-6 w-6" />
+            }))}
+          />
 
           {/* Resumo Financeiro */}
           <Card>
@@ -363,6 +377,14 @@ const Relatorios = () => {
         </TabsContent>
 
         <TabsContent value="graficos" className="space-y-6">
+          {/* Botões de Ação */}
+          <div className="flex justify-end gap-2 mb-4">
+            <ExportOptions
+              data={[...tendenciaData, ...comparativoData]}
+              reportTitle="Gráficos e Análises"
+            />
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <TendenciaChart
               title="Tendência de Taxa de Presença"
@@ -376,7 +398,21 @@ const Relatorios = () => {
             />
           </div>
         </TabsContent>
+
+        <TabsContent value="filtros" className="space-y-6">
+          <SavedFilters
+            currentFilters={currentFilters}
+            onLoadFilters={handleLoadFilters}
+          />
+        </TabsContent>
       </Tabs>
+
+      {/* Dialog de Agendamento */}
+      <ScheduleReport
+        open={showScheduleDialog}
+        onOpenChange={setShowScheduleDialog}
+        reportTitle="Relatório Selecionado"
+      />
     </div>
   );
 };
