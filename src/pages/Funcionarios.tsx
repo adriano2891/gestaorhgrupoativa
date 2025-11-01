@@ -905,71 +905,71 @@ const Funcionarios = () => {
 
       {/* Dialog de Adicionar Funcionário */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
+        <DialogContent className="max-w-[95vw] sm:max-w-[450px] max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Adicionar Funcionário</DialogTitle>
             <DialogDescription>
               Preencha os dados do novo funcionário
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="new-name">Nome *</Label>
+          <div className="grid gap-3 overflow-y-auto pr-2 -mr-2" style={{ maxHeight: 'calc(85vh - 150px)' }}>
+            <div className="grid gap-1.5">
+              <Label htmlFor="new-name" className="text-sm">Nome *</Label>
               <Input
                 id="new-name"
                 value={newEmployee.name}
                 onChange={(e) => updateNewEmployee('name', e.target.value)}
-                className={validationErrors.name ? "border-destructive" : ""}
+                className={validationErrors.name ? "border-destructive h-9" : "h-9"}
               />
               {validationErrors.name && (
-                <p className="text-sm text-destructive">{validationErrors.name}</p>
+                <p className="text-xs text-destructive">{validationErrors.name}</p>
               )}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="new-email">E-mail *</Label>
+            <div className="grid gap-1.5">
+              <Label htmlFor="new-email" className="text-sm">E-mail *</Label>
               <Input
                 id="new-email"
                 type="email"
                 value={newEmployee.email}
                 onChange={(e) => updateNewEmployee('email', e.target.value)}
-                className={validationErrors.email ? "border-destructive" : ""}
+                className={validationErrors.email ? "border-destructive h-9" : "h-9"}
               />
               {validationErrors.email && (
-                <p className="text-sm text-destructive">{validationErrors.email}</p>
+                <p className="text-xs text-destructive">{validationErrors.email}</p>
               )}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="new-phone">Telefone *</Label>
+            <div className="grid gap-1.5">
+              <Label htmlFor="new-phone" className="text-sm">Telefone *</Label>
               <Input
                 id="new-phone"
                 value={newEmployee.phone}
                 onChange={(e) => updateNewEmployee('phone', e.target.value)}
                 placeholder="(11) 98765-4321"
-                className={validationErrors.phone ? "border-destructive" : ""}
+                className={validationErrors.phone ? "border-destructive h-9" : "h-9"}
               />
               {validationErrors.phone && (
-                <p className="text-sm text-destructive">{validationErrors.phone}</p>
+                <p className="text-xs text-destructive">{validationErrors.phone}</p>
               )}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="new-position">Cargo *</Label>
+            <div className="grid gap-1.5">
+              <Label htmlFor="new-position" className="text-sm">Cargo *</Label>
               <Input
                 id="new-position"
                 value={newEmployee.position}
                 onChange={(e) => updateNewEmployee('position', e.target.value)}
-                className={validationErrors.position ? "border-destructive" : ""}
+                className={validationErrors.position ? "border-destructive h-9" : "h-9"}
               />
               {validationErrors.position && (
-                <p className="text-sm text-destructive">{validationErrors.position}</p>
+                <p className="text-xs text-destructive">{validationErrors.position}</p>
               )}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="new-department">Departamento *</Label>
+            <div className="grid gap-1.5">
+              <Label htmlFor="new-department" className="text-sm">Departamento *</Label>
               <Select
                 value={newEmployee.department}
                 onValueChange={(value) => updateNewEmployee('department', value)}
               >
-                <SelectTrigger className={validationErrors.department ? "border-destructive" : ""}>
+                <SelectTrigger className={validationErrors.department ? "border-destructive h-9" : "h-9"}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -981,13 +981,13 @@ const Funcionarios = () => {
                 </SelectContent>
               </Select>
               {validationErrors.department && (
-                <p className="text-sm text-destructive">{validationErrors.department}</p>
+                <p className="text-xs text-destructive">{validationErrors.department}</p>
               )}
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="new-salary">Salário</Label>
+            <div className="grid gap-1.5">
+              <Label htmlFor="new-salary" className="text-sm">Salário</Label>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
                   R$
                 </span>
                 <Input
@@ -1013,12 +1013,12 @@ const Funcionarios = () => {
                     updateNewEmployee('salario', valorFormatado);
                   }}
                   placeholder="0,00"
-                  className="pl-10"
+                  className="pl-10 h-9"
                 />
               </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="new-cpf">CPF *</Label>
+            <div className="grid gap-1.5">
+              <Label htmlFor="new-cpf" className="text-sm">CPF *</Label>
               <Input
                 id="new-cpf"
                 value={newEmployee.cpf}
@@ -1032,39 +1032,39 @@ const Funcionarios = () => {
                 }}
                 placeholder="000.000.000-00"
                 maxLength={14}
-                className={validationErrors.cpf ? "border-destructive" : ""}
+                className={validationErrors.cpf ? "border-destructive h-9" : "h-9"}
               />
               {validationErrors.cpf && (
-                <p className="text-sm text-destructive">{validationErrors.cpf}</p>
+                <p className="text-xs text-destructive">{validationErrors.cpf}</p>
               )}
               <p className="text-xs text-muted-foreground">
                 O CPF será usado para login no Portal do Funcionário
               </p>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="new-password">Senha *</Label>
+            <div className="grid gap-1.5">
+              <Label htmlFor="new-password" className="text-sm">Senha *</Label>
               <Input
                 id="new-password"
                 type="password"
                 value={newEmployee.password}
                 onChange={(e) => updateNewEmployee('password', e.target.value)}
                 placeholder="Mínimo 6 caracteres"
-                className={validationErrors.password ? "border-destructive" : ""}
+                className={validationErrors.password ? "border-destructive h-9" : "h-9"}
               />
               {validationErrors.password && (
-                <p className="text-sm text-destructive">{validationErrors.password}</p>
+                <p className="text-xs text-destructive">{validationErrors.password}</p>
               )}
               <p className="text-xs text-muted-foreground">
                 A senha será usada para login no Portal do Funcionário
               </p>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="new-status">Status</Label>
+            <div className="grid gap-1.5">
+              <Label htmlFor="new-status" className="text-sm">Status</Label>
               <Select
                 value={newEmployee.status}
                 onValueChange={(value) => updateNewEmployee('status', value)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1075,11 +1075,11 @@ const Funcionarios = () => {
               </Select>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+          <DialogFooter className="flex-shrink-0 mt-3">
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="h-9">
               Cancelar
             </Button>
-            <Button onClick={handleSaveNewEmployee}>Adicionar Funcionário</Button>
+            <Button onClick={handleSaveNewEmployee} className="h-9">Adicionar Funcionário</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
