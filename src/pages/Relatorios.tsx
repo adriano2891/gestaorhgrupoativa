@@ -215,28 +215,39 @@ const Relatorios = () => {
   };
 
   return (
-    <div className="min-h-screen bg-primary">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-white mb-2">
+    <div className="min-h-screen bg-gradient-to-br from-primary via-primary to-primary-dark">
+      <div className="container mx-auto px-4 py-12">
+        <div className="mb-12 text-center animate-fade-in">
+          <div className="inline-block mb-4">
+            <div className="w-20 h-1 bg-white/40 rounded-full mx-auto"></div>
+          </div>
+          <h1 className="text-5xl font-bold text-white mb-3 tracking-tight">
             Relatórios e Análises de RH
           </h1>
-          <p className="text-primary-foreground/90">
-            Escolha o relatório desejado para análise detalhada
+          <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
+            Escolha o relatório desejado para análise detalhada e insights estratégicos
           </p>
+          <div className="mt-6 flex items-center justify-center gap-2">
+            <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
+            <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+            <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+          </div>
         </div>
 
         {!selectedReport ? (
           <ReportSelector reports={reportTypes} onSelectReport={handleSelectReport} />
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-fade-in">
             <div className="flex items-center justify-between">
               <Button 
                 variant="secondary"
                 onClick={() => setSelectedReport(null)}
-                className="bg-white/90 hover:bg-white text-primary"
+                className="bg-white/95 hover:bg-white text-primary shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
               >
-                ← Voltar aos relatórios
+                <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Voltar aos relatórios
               </Button>
               {reportData && (
                 <ExportOptions
@@ -246,19 +257,30 @@ const Relatorios = () => {
               )}
             </div>
 
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="mb-6">
-                <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+            <div className="bg-white rounded-2xl shadow-2xl p-8">
+              <div className="mb-8">
+                <div className="flex items-center gap-4 mb-2">
                   {reportTypes.find(r => r.id === selectedReport)?.icon && (
-                    <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
-                      {(() => {
-                        const Icon = reportTypes.find(r => r.id === selectedReport)!.icon;
-                        return <Icon className="h-5 w-5 text-destructive" />;
-                      })()}
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-destructive/20 rounded-full blur-lg"></div>
+                      <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-destructive/10 to-destructive/5 flex items-center justify-center shadow-lg">
+                        {(() => {
+                          const Icon = reportTypes.find(r => r.id === selectedReport)!.icon;
+                          return <Icon className="h-7 w-7 text-destructive" />;
+                        })()}
+                      </div>
                     </div>
                   )}
-                  {reportTypes.find(r => r.id === selectedReport)?.name}
-                </h2>
+                  <div>
+                    <h2 className="text-3xl font-bold text-foreground">
+                      {reportTypes.find(r => r.id === selectedReport)?.name}
+                    </h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {reportTypes.find(r => r.id === selectedReport)?.description}
+                    </p>
+                  </div>
+                </div>
+                <div className="h-1 w-full bg-gradient-to-r from-primary via-destructive/20 to-transparent rounded-full"></div>
               </div>
               
               <div className="space-y-6">
