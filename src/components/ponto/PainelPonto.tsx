@@ -2,27 +2,16 @@ import { useState, useEffect } from "react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut, Clock } from "lucide-react";
-import { toast } from "sonner";
+import { ArrowLeft, Clock } from "lucide-react";
 import { BotoesPonto } from "./BotoesPonto";
 import { TabelaPontoDia } from "./TabelaPontoDia";
 import { HistoricoPonto } from "./HistoricoPonto";
 import { supabase } from "@/integrations/supabase/client";
 
 export const PainelPonto = () => {
-  const { profile, signOut } = usePortalAuth();
+  const { profile } = usePortalAuth();
   const [registroHoje, setRegistroHoje] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
 
   const loadRegistroHoje = async () => {
     if (!profile?.id) return;
@@ -54,48 +43,19 @@ export const PainelPonto = () => {
     loadRegistroHoje();
   }, [profile?.id]);
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast.success("Logout realizado com sucesso");
-    } catch (error) {
-      toast.error("Erro ao fazer logout");
-    }
+  const handleBack = () => {
+    window.history.back();
   };
-
-  const dataAtual = new Date().toLocaleDateString("pt-BR", {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/50">
       {/* Cabeçalho */}
-      <header className="bg-white border-b shadow-sm sticky top-0 z-10">
+      <header className="bg-card border-b shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-12 w-12 border-2 border-primary">
-                <AvatarFallback className="bg-primary text-primary-foreground">
-                  {profile?.nome ? getInitials(profile.nome) : "FN"}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h2 className="text-xl font-bold text-foreground">
-                  {profile?.nome || "Funcionário"}
-                </h2>
-                <p className="text-sm text-muted-foreground capitalize">
-                  {dataAtual}
-                </p>
-              </div>
-            </div>
-            <Button variant="outline" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair
-            </Button>
-          </div>
+          <Button variant="ghost" onClick={handleBack}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Voltar
+          </Button>
         </div>
       </header>
 
