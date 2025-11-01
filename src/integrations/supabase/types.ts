@@ -14,16 +14,392 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      candidates: {
+        Row: {
+          applied_date: string
+          created_at: string
+          email: string
+          experience: string
+          id: string
+          name: string
+          phone: string
+          position: string
+          resume_url: string | null
+          skills: string[]
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          applied_date?: string
+          created_at?: string
+          email: string
+          experience: string
+          id?: string
+          name: string
+          phone: string
+          position: string
+          resume_url?: string | null
+          skills?: string[]
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          applied_date?: string
+          created_at?: string
+          email?: string
+          experience?: string
+          id?: string
+          name?: string
+          phone?: string
+          position?: string
+          resume_url?: string | null
+          skills?: string[]
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      logs_relatorios: {
+        Row: {
+          acao: string
+          created_at: string | null
+          id: string
+          relatorio_id: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string | null
+          id?: string
+          relatorio_id?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string | null
+          id?: string
+          relatorio_id?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logs_relatorios_relatorio_id_fkey"
+            columns: ["relatorio_id"]
+            isOneToOne: false
+            referencedRelation: "relatorios_gerados"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logs_relatorios_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      metricas: {
+        Row: {
+          created_at: string | null
+          custo_beneficios: number | null
+          custo_medio_funcionario: number | null
+          horas_extras_percentual: number | null
+          id: string
+          indice_absenteismo: number | null
+          indice_eficiencia: number | null
+          periodo: string
+          produtividade_equipe: number | null
+          satisfacao_gestor: number | null
+          satisfacao_interna: number | null
+          taxa_presenca: number | null
+          taxa_retencao: number | null
+          tempo_medio_contratacao: number | null
+          total_encargos: number | null
+          total_folha_pagamento: number | null
+          updated_at: string | null
+          variacao_mensal: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          custo_beneficios?: number | null
+          custo_medio_funcionario?: number | null
+          horas_extras_percentual?: number | null
+          id?: string
+          indice_absenteismo?: number | null
+          indice_eficiencia?: number | null
+          periodo: string
+          produtividade_equipe?: number | null
+          satisfacao_gestor?: number | null
+          satisfacao_interna?: number | null
+          taxa_presenca?: number | null
+          taxa_retencao?: number | null
+          tempo_medio_contratacao?: number | null
+          total_encargos?: number | null
+          total_folha_pagamento?: number | null
+          updated_at?: string | null
+          variacao_mensal?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          custo_beneficios?: number | null
+          custo_medio_funcionario?: number | null
+          horas_extras_percentual?: number | null
+          id?: string
+          indice_absenteismo?: number | null
+          indice_eficiencia?: number | null
+          periodo?: string
+          produtividade_equipe?: number | null
+          satisfacao_gestor?: number | null
+          satisfacao_interna?: number | null
+          taxa_presenca?: number | null
+          taxa_retencao?: number | null
+          tempo_medio_contratacao?: number | null
+          total_encargos?: number | null
+          total_folha_pagamento?: number | null
+          updated_at?: string | null
+          variacao_mensal?: number | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          cargo: string | null
+          cpf: string | null
+          created_at: string | null
+          departamento: string | null
+          email: string
+          id: string
+          nome: string
+          updated_at: string | null
+        }
+        Insert: {
+          cargo?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          departamento?: string | null
+          email: string
+          id: string
+          nome: string
+          updated_at?: string | null
+        }
+        Update: {
+          cargo?: string | null
+          cpf?: string | null
+          created_at?: string | null
+          departamento?: string | null
+          email?: string
+          id?: string
+          nome?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      registros_ponto: {
+        Row: {
+          created_at: string
+          data: string
+          entrada: string | null
+          fim_he: string | null
+          horas_extras: unknown
+          id: string
+          inicio_he: string | null
+          retorno_almoco: string | null
+          retorno_pausa_1: string | null
+          retorno_pausa_2: string | null
+          saida: string | null
+          saida_almoco: string | null
+          saida_pausa_1: string | null
+          saida_pausa_2: string | null
+          total_horas: unknown
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data?: string
+          entrada?: string | null
+          fim_he?: string | null
+          horas_extras?: unknown
+          id?: string
+          inicio_he?: string | null
+          retorno_almoco?: string | null
+          retorno_pausa_1?: string | null
+          retorno_pausa_2?: string | null
+          saida?: string | null
+          saida_almoco?: string | null
+          saida_pausa_1?: string | null
+          saida_pausa_2?: string | null
+          total_horas?: unknown
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          entrada?: string | null
+          fim_he?: string | null
+          horas_extras?: unknown
+          id?: string
+          inicio_he?: string | null
+          retorno_almoco?: string | null
+          retorno_pausa_1?: string | null
+          retorno_pausa_2?: string | null
+          saida?: string | null
+          saida_almoco?: string | null
+          saida_pausa_1?: string | null
+          saida_pausa_2?: string | null
+          total_horas?: unknown
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registros_ponto_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      relatorios_customizados: {
+        Row: {
+          created_at: string | null
+          descricao: string | null
+          favorito: boolean | null
+          filtros: Json | null
+          id: string
+          nome: string
+          tipo: string
+          updated_at: string | null
+          usuario_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          descricao?: string | null
+          favorito?: boolean | null
+          filtros?: Json | null
+          id?: string
+          nome: string
+          tipo: string
+          updated_at?: string | null
+          usuario_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          descricao?: string | null
+          favorito?: boolean | null
+          filtros?: Json | null
+          id?: string
+          nome?: string
+          tipo?: string
+          updated_at?: string | null
+          usuario_id?: string | null
+        }
+        Relationships: []
+      }
+      relatorios_gerados: {
+        Row: {
+          created_at: string | null
+          departamento: string | null
+          formato: string
+          gerado_por: string | null
+          id: string
+          periodo_fim: string
+          periodo_inicio: string
+          tipo: string
+          url_arquivo: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          departamento?: string | null
+          formato: string
+          gerado_por?: string | null
+          id?: string
+          periodo_fim: string
+          periodo_inicio: string
+          tipo: string
+          url_arquivo?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          departamento?: string | null
+          formato?: string
+          gerado_por?: string | null
+          id?: string
+          periodo_fim?: string
+          periodo_inicio?: string
+          tipo?: string
+          url_arquivo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "relatorios_gerados_gerado_por_fkey"
+            columns: ["gerado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calcular_horas_trabalhadas: {
+        Args: {
+          p_entrada: string
+          p_retorno_almoco: string
+          p_retorno_pausa_1: string
+          p_retorno_pausa_2: string
+          p_saida: string
+          p_saida_almoco: string
+          p_saida_pausa_1: string
+          p_saida_pausa_2: string
+        }
+        Returns: unknown
+      }
+      get_user_departamento: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "gestor" | "rh" | "funcionario"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +526,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "gestor", "rh", "funcionario"],
+    },
   },
 } as const
