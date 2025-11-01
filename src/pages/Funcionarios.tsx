@@ -626,132 +626,153 @@ const Funcionarios = () => {
 
       {/* Dialog de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
+        <DialogContent className="max-w-[90vw] sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Editar Funcionário</DialogTitle>
             <DialogDescription>
               Atualize as informações do funcionário
             </DialogDescription>
           </DialogHeader>
           {editingEmployee && (
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Nome</Label>
-                <Input
-                  id="name"
-                  value={editingEmployee.name}
-                  onChange={(e) => updateEditingEmployee('name', e.target.value)}
-                />
+            <div className="grid gap-3 overflow-y-auto pr-2 -mr-2"
+                 style={{ maxHeight: 'calc(90vh - 180px)' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="name" className="text-sm">Nome</Label>
+                  <Input
+                    id="name"
+                    value={editingEmployee.name}
+                    onChange={(e) => updateEditingEmployee('name', e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="cpf" className="text-sm">CPF</Label>
+                  <Input
+                    id="cpf"
+                    value={editCpf}
+                    disabled
+                    className="bg-muted cursor-not-allowed h-9"
+                  />
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="cpf">CPF</Label>
-                <Input
-                  id="cpf"
-                  value={editCpf}
-                  disabled
-                  className="bg-muted cursor-not-allowed"
-                />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-sm">E-mail</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={editingEmployee.email}
+                    onChange={(e) => updateEditingEmployee('email', e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="phone" className="text-sm">Telefone</Label>
+                  <Input
+                    id="phone"
+                    value={editingEmployee.phone}
+                    onChange={(e) => updateEditingEmployee('phone', e.target.value)}
+                    placeholder="(00) 00000-0000"
+                    className="h-9"
+                  />
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">E-mail</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={editingEmployee.email}
-                  onChange={(e) => updateEditingEmployee('email', e.target.value)}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Telefone</Label>
-                <Input
-                  id="phone"
-                  value={editingEmployee.phone}
-                  onChange={(e) => updateEditingEmployee('phone', e.target.value)}
-                  placeholder="(00) 00000-0000"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="password">Nova Senha</Label>
+              
+              <div className="space-y-1.5">
+                <Label htmlFor="password" className="text-sm">Nova Senha</Label>
                 <Input
                   id="password"
                   type="password"
                   value={editPassword}
                   onChange={(e) => setEditPassword(e.target.value)}
                   placeholder="Deixe em branco para não alterar"
+                  className="h-9"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Mínimo de 6 caracteres. Deixe em branco se não quiser alterar.
+                  Mínimo de 6 caracteres
                 </p>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="position">Cargo</Label>
-                <Input
-                  id="position"
-                  value={editingEmployee.position}
-                  onChange={(e) => updateEditingEmployee('position', e.target.value)}
-                />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="position" className="text-sm">Cargo</Label>
+                  <Input
+                    id="position"
+                    value={editingEmployee.position}
+                    onChange={(e) => updateEditingEmployee('position', e.target.value)}
+                    className="h-9"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="salary" className="text-sm">Salário</Label>
+                  <Input
+                    id="salary"
+                    type="number"
+                    step="0.01"
+                    value={editSalary}
+                    onChange={(e) => setEditSalary(e.target.value)}
+                    placeholder="R$ 0,00"
+                    className="h-9"
+                  />
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="salary">Salário</Label>
-                <Input
-                  id="salary"
-                  type="number"
-                  step="0.01"
-                  value={editSalary}
-                  onChange={(e) => setEditSalary(e.target.value)}
-                  placeholder="R$ 0,00"
-                />
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="department" className="text-sm">Departamento</Label>
+                  <Select
+                    value={editingEmployee.department}
+                    onValueChange={(value) => updateEditingEmployee('department', value)}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Tecnologia">Tecnologia</SelectItem>
+                      <SelectItem value="Recursos Humanos">Recursos Humanos</SelectItem>
+                      <SelectItem value="Comercial">Comercial</SelectItem>
+                      <SelectItem value="Financeiro">Financeiro</SelectItem>
+                      <SelectItem value="Operações">Operações</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="status" className="text-sm">Status</Label>
+                  <Select
+                    value={editingEmployee.status}
+                    onValueChange={(value) => updateEditingEmployee('status', value)}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ativo">Ativo</SelectItem>
+                      <SelectItem value="afastado">Afastado</SelectItem>
+                      <SelectItem value="demitido">Demitido</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <div className="grid gap-2">
-                <Label htmlFor="department">Departamento</Label>
-                <Select
-                  value={editingEmployee.department}
-                  onValueChange={(value) => updateEditingEmployee('department', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Tecnologia">Tecnologia</SelectItem>
-                    <SelectItem value="Recursos Humanos">Recursos Humanos</SelectItem>
-                    <SelectItem value="Comercial">Comercial</SelectItem>
-                    <SelectItem value="Financeiro">Financeiro</SelectItem>
-                    <SelectItem value="Operações">Operações</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="admissionDate">Data de Admissão</Label>
+              
+              <div className="space-y-1.5">
+                <Label htmlFor="admissionDate" className="text-sm">Data de Admissão</Label>
                 <Input
                   id="admissionDate"
                   type="date"
                   value={editAdmissionDate}
                   onChange={(e) => setEditAdmissionDate(e.target.value)}
+                  className="h-9"
                 />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={editingEmployee.status}
-                  onValueChange={(value) => updateEditingEmployee('status', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ativo">Ativo</SelectItem>
-                    <SelectItem value="afastado">Afastado</SelectItem>
-                    <SelectItem value="demitido">Demitido</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
             </div>
           )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+          <DialogFooter className="flex-shrink-0 mt-4">
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="h-9">
               Cancelar
             </Button>
-            <Button onClick={handleSaveEdit}>Salvar Alterações</Button>
+            <Button onClick={handleSaveEdit} className="h-9">Salvar Alterações</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
