@@ -89,25 +89,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
-    let loginEmail = email;
-    
-    // Se não for um email válido, buscar o email pelo username
-    if (!email.includes('@')) {
-      // Converter "admin" para o email correto
-      if (email === "admin") {
-        loginEmail = "admin@sistema.com";
-      } else {
-        // Buscar email pelo username usando função segura
-        const { data: emailData, error: emailError } = await supabase
-          .rpc("get_email_by_username", { username_input: email });
-        
-        if (emailError || !emailData || emailData.length === 0) {
-          throw new Error("Usuário não encontrado");
-        }
-        
-        loginEmail = emailData[0].email;
-      }
-    }
+    // Converter "admin" para o email correto
+    const loginEmail = email === "admin" ? "admin@sistema.com" : email;
     
     const { error } = await supabase.auth.signInWithPassword({
       email: loginEmail,
