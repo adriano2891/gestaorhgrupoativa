@@ -80,7 +80,7 @@ const Index = () => {
                 {/* Ícone */}
                 <div className="relative">
                   <div className="absolute inset-0 bg-[hsl(174,72%,56%)] blur-2xl opacity-30 rounded-full" />
-                  <module.icon className="w-24 h-24 text-[hsl(174,72%,66%)] relative z-10 
+                  <module.icon className="w-16 h-16 text-[hsl(174,72%,66%)] relative z-10 
                                         group-hover:scale-110 transition-transform duration-300" 
                               strokeWidth={1.5} />
                 </div>
