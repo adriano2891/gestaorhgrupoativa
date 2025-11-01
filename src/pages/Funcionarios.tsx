@@ -236,6 +236,7 @@ const Funcionarios = () => {
           data: {
             nome: newEmployee.name,
           },
+          emailRedirectTo: `${window.location.origin}/`,
         },
       });
 
@@ -261,6 +262,20 @@ const Funcionarios = () => {
         throw new Error(`Erro ao atualizar perfil: ${profileError.message}`);
       }
 
+      // Adicionar o novo funcionário à lista local
+      const novoFuncionario = {
+        id: authData.user.id,
+        name: newEmployee.name,
+        email: newEmployee.email,
+        phone: newEmployee.phone,
+        position: newEmployee.position,
+        department: newEmployee.department,
+        status: newEmployee.status,
+        admissionDate: new Date().toISOString().split('T')[0],
+      };
+
+      setEmployees([...employees, novoFuncionario]);
+
       toast({
         title: "Funcionário adicionado com sucesso!",
         description: `${newEmployee.name} foi cadastrado e pode acessar o Portal do Funcionário com CPF e senha.`,
@@ -268,9 +283,6 @@ const Funcionarios = () => {
       
       setIsAddDialogOpen(false);
       setValidationErrors({});
-      
-      // Recarregar a lista de funcionários (em produção, isso viria de uma query ao banco)
-      window.location.reload();
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors: Record<string, string> = {};
