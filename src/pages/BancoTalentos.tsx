@@ -546,14 +546,18 @@ const BancoTalentos = () => {
                         size="sm" 
                         className="flex-1"
                         onClick={() => handleViewResume(candidate.resume_url)}
+                        disabled={!candidate.resume_url}
+                        title={!candidate.resume_url ? "Currículo não cadastrado" : "Visualizar currículo"}
                       >
                         <Eye className="h-4 w-4 mr-2" />
-                        Ver Currículo
+                        {candidate.resume_url ? "Ver Currículo" : "Sem Currículo"}
                       </Button>
                       <Button 
                         variant="outline" 
                         size="sm"
                         onClick={() => handleDownloadResume(candidate.resume_url, candidate.name)}
+                        disabled={!candidate.resume_url}
+                        title={!candidate.resume_url ? "Currículo não cadastrado" : "Baixar currículo"}
                       >
                         <Download className="h-4 w-4" />
                       </Button>
@@ -561,6 +565,7 @@ const BancoTalentos = () => {
                         variant="ghost" 
                         size="sm"
                         onClick={() => handleDelete(candidate.id)}
+                        title="Excluir candidato"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
