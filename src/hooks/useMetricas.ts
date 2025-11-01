@@ -24,7 +24,7 @@ export const useMetricas = (limit = 1) => {
   return useQuery({
     queryKey: ["metricas", limit],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("metricas")
         .select("*")
         .order("periodo", { ascending: false })

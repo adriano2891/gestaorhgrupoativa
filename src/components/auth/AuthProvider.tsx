@@ -64,23 +64,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loadUserData = async (userId: string) => {
     try {
       // Carregar perfil
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await (supabase as any)
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
 
       if (profileError) throw profileError;
-      setProfile(profileData);
+      setProfile(profileData as Profile);
 
       // Carregar roles
-      const { data: rolesData, error: rolesError } = await supabase
+      const { data: rolesData, error: rolesError } = await (supabase as any)
         .from("user_roles")
         .select("role")
         .eq("user_id", userId);
 
       if (rolesError) throw rolesError;
-      setRoles(rolesData.map((r) => r.role as UserRole));
+      setRoles((rolesData as any[])?.map((r: any) => r.role as UserRole) || []);
     } catch (error) {
       console.error("Erro ao carregar dados do usuário:", error);
     } finally {
