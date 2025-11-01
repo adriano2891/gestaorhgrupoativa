@@ -59,6 +59,39 @@ export type Database = {
         }
         Relationships: []
       }
+      historico_salarios: {
+        Row: {
+          alterado_por: string | null
+          created_at: string
+          data_alteracao: string
+          id: string
+          motivo: string | null
+          salario_anterior: number | null
+          salario_novo: number
+          user_id: string
+        }
+        Insert: {
+          alterado_por?: string | null
+          created_at?: string
+          data_alteracao?: string
+          id?: string
+          motivo?: string | null
+          salario_anterior?: number | null
+          salario_novo: number
+          user_id: string
+        }
+        Update: {
+          alterado_por?: string | null
+          created_at?: string
+          data_alteracao?: string
+          id?: string
+          motivo?: string | null
+          salario_anterior?: number | null
+          salario_novo?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       logs_relatorios: {
         Row: {
           acao: string

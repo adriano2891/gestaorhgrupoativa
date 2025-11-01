@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Mail, Phone, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Mail, Phone, Edit, Trash2, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -118,6 +118,7 @@ const Funcionarios = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("Todos");
   const [employees, setEmployees] = useState<typeof mockEmployees>([]);
+  const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }>>({});
   const [editingEmployee, setEditingEmployee] = useState<typeof mockEmployees[0] | null>(null);
   const [deletingEmployeeId, setDeletingEmployeeId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -182,6 +183,45 @@ const Funcionarios = () => {
 
     fetchEmployees();
   }, [toast]);
+
+  // Buscar salários e histórico de alterações
+  useEffect(() => {
+    const fetchSalaries = async () => {
+      if (employees.length === 0) return;
+
+      const salaries: Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }> = {};
+
+      for (const emp of employees) {
+        // Buscar salário atual
+        const { data: profileData } = await supabase
+          .from("profiles")
+          .select("salario")
+          .eq("id", emp.id)
+          .maybeSingle();
+
+        // Buscar última alteração de salário
+        const { data: historicoData } = await supabase
+          .from("historico_salarios")
+          .select("salario_novo, data_alteracao")
+          .eq("user_id", emp.id)
+          .order("data_alteracao", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        salaries[emp.id] = {
+          salario: profileData?.salario || null,
+          ultimaAlteracao: historicoData ? {
+            valor: historicoData.salario_novo,
+            data: new Date(historicoData.data_alteracao).toLocaleDateString('pt-BR')
+          } : undefined
+        };
+      }
+
+      setEmployeeSalaries(salaries);
+    };
+
+    fetchSalaries();
+  }, [employees]);
 
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
@@ -549,6 +589,7 @@ const Funcionarios = () => {
                 <TableHead>Funcionário</TableHead>
                 <TableHead>Cargo</TableHead>
                 <TableHead>Departamento</TableHead>
+                <TableHead>Salário Atual</TableHead>
                 <TableHead>Contato</TableHead>
                 <TableHead>Admissão</TableHead>
                 <TableHead>Status</TableHead>
@@ -575,6 +616,36 @@ const Funcionarios = () => {
                   </TableCell>
                   <TableCell>{employee.position}</TableCell>
                   <TableCell>{employee.department}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-1">
+                      {employeeSalaries[employee.id]?.salario ? (
+                        <>
+                          <div className="font-medium">
+                            R$ {employeeSalaries[employee.id].salario!.toLocaleString('pt-BR', {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2
+                            })}
+                          </div>
+                          {employeeSalaries[employee.id].ultimaAlteracao && (
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              <TrendingUp className="h-3 w-3" />
+                              <span>
+                                Última alteração: R$ {employeeSalaries[employee.id].ultimaAlteracao!.valor.toLocaleString('pt-BR', {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2
+                                })}
+                              </span>
+                              <span className="text-xs">
+                                ({employeeSalaries[employee.id].ultimaAlteracao!.data})
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Não informado</span>
+                      )}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-col gap-1 text-sm">
                       <div className="flex items-center gap-1">
