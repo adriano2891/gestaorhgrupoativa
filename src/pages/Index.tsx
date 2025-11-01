@@ -129,8 +129,11 @@ const Dashboard = () => {
   }
 
   return (
-    // Adicionada classe dark mode e cores de texto para melhor compatibilidade
-    <div className="min-h-[calc(100vh-180px)] px-4 py-8 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+    // Cor de fundo personalizada e classe dark mode
+    <div
+      className="min-h-[calc(100vh-180px)] px-4 py-8 dark:bg-gray-900"
+      style={{ backgroundColor: "#46e1d1" }} // Cor de fundo aplicada
+    >
       <div className="w-full max-w-7xl mx-auto space-y-8">
         {/* Cabeçalho */}
         <div className="text-center space-y-2">
