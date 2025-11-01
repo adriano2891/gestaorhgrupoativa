@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,15 +12,32 @@ import {
 } from "@/components/ui/card";
 import { toast } from "sonner";
 import { LogIn } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const { signIn } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [setupDone, setSetupDone] = useState(false);
 
   const [loginData, setLoginData] = useState({
     email: "admin",
     password: "",
   });
+
+  // Configurar usuário admin na primeira execução
+  useEffect(() => {
+    const setupAdmin = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('setup-admin');
+        if (!error) {
+          setSetupDone(true);
+        }
+      } catch (error) {
+        console.error('Erro ao configurar admin:', error);
+      }
+    };
+    setupAdmin();
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
