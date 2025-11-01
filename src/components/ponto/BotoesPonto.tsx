@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { usePortalAuth } from "./PortalAuthProvider";
 
 interface BotoesPontoProps {
   registroHoje: any;
@@ -19,7 +19,7 @@ interface BotoesPontoProps {
 }
 
 export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoProps) => {
-  const { profile } = useAuth();
+  const { profile } = usePortalAuth();
   const [loading, setLoading] = useState<string | null>(null);
 
   const registrarPonto = async (campo: string, label: string) => {

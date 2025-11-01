@@ -5,10 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Calendar } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { usePortalAuth } from "./PortalAuthProvider";
 
 export const HistoricoPonto = () => {
-  const { profile } = useAuth();
+  const { profile } = usePortalAuth();
   const [registros, setRegistros] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

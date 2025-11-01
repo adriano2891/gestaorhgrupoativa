@@ -1,19 +1,18 @@
 import { useState } from "react";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { usePortalAuth } from "./PortalAuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Clock, LogIn, Eye, EyeOff } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 
 export const LoginFuncionario = () => {
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const { signIn } = useAuth();
+  const { signInWithCPF } = usePortalAuth();
 
   const formatCPF = (value: string) => {
     const numbers = value.replace(/\D/g, "");
@@ -45,22 +44,7 @@ export const LoginFuncionario = () => {
         return;
       }
 
-      // Buscar o email associado ao CPF
-      const { data: profile, error: profileError } = await (supabase as any)
-        .from("profiles")
-        .select("email")
-        .eq("cpf", cpfNumeros)
-        .single();
-
-      if (profileError || !profile) {
-        toast.error("CPF não encontrado", {
-          description: "Não encontramos um funcionário com esse CPF. Verifique os dados e tente novamente."
-        });
-        return;
-      }
-
-      // Fazer login com email e senha
-      await signIn(profile.email, senha);
+      await signInWithCPF(cpf, senha);
       
       toast.success("Login realizado com sucesso!", {
         description: "Bem-vindo ao Portal do Funcionário"

@@ -1,12 +1,10 @@
-import { useState, useEffect } from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { PortalAuthProvider, usePortalAuth } from "@/components/ponto/PortalAuthProvider";
 import { LoginFuncionario } from "@/components/ponto/LoginFuncionario";
 import { PainelPonto } from "@/components/ponto/PainelPonto";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const PortalFuncionario = () => {
-  const { user, loading } = useAuth();
+const PortalContent = () => {
+  const { user, loading } = usePortalAuth();
 
   if (loading) {
     return (
@@ -26,6 +24,14 @@ const PortalFuncionario = () => {
 
   // Se não estiver logado, mostra tela de login
   return <LoginFuncionario />;
+};
+
+const PortalFuncionario = () => {
+  return (
+    <PortalAuthProvider>
+      <PortalContent />
+    </PortalAuthProvider>
+  );
 };
 
 export default PortalFuncionario;

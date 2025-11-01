@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useAuth } from "@/components/auth/AuthProvider";
+import { usePortalAuth } from "./PortalAuthProvider";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -11,7 +11,7 @@ import { HistoricoPonto } from "./HistoricoPonto";
 import { supabase } from "@/integrations/supabase/client";
 
 export const PainelPonto = () => {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut } = usePortalAuth();
   const [registroHoje, setRegistroHoje] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
