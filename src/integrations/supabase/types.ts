@@ -438,13 +438,6 @@ export type Database = {
           user_id: string
         }[]
       }
-      get_email_by_username: {
-        Args: { username_input: string }
-        Returns: {
-          email: string
-          user_id: string
-        }[]
-      }
       get_user_departamento: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
