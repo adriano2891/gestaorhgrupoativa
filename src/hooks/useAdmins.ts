@@ -74,22 +74,33 @@ export const useCreateAdmin = () => {
       cargo?: string;
       role: "admin" | "gestor" | "rh";
     }) => {
-      const { data: result, error } = await supabase.functions.invoke(
-        "create-admin-user",
-        {
-          body: data,
+      try {
+        const { data: result, error } = await supabase.functions.invoke(
+          "create-admin-user",
+          {
+            body: data,
+          }
+        );
+
+        // Check for edge function errors
+        if (error) {
+          console.error("Edge function error:", error);
+          throw new Error(error.message || "Erro ao criar administrador");
         }
-      );
 
-      if (error) {
-        throw new Error(error.message || "Erro ao criar administrador");
+        // Check for application-level errors in the response
+        if (result?.error) {
+          throw new Error(result.error);
+        }
+
+        return result;
+      } catch (error: any) {
+        // Extract the error message from the response
+        if (error?.context?.body?.error) {
+          throw new Error(error.context.body.error);
+        }
+        throw error;
       }
-
-      if (result?.error) {
-        throw new Error(result.error);
-      }
-
-      return result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admins"] });
