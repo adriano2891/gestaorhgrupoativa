@@ -96,7 +96,9 @@ export const useCreateAdmin = () => {
       toast.success("Administrador criado com sucesso!");
     },
     onError: (error: Error) => {
-      toast.error(error.message || "Erro ao criar administrador");
+      console.error("Error creating admin:", error);
+      const errorMessage = error.message || "Erro ao criar administrador";
+      toast.error(errorMessage);
     },
   });
 };
