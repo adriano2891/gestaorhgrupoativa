@@ -611,9 +611,6 @@ const Funcionarios = () => {
                       </Avatar>
                       <div>
                         <div className="font-medium">{employee.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {employee.email}
-                        </div>
                       </div>
                     </div>
                   </TableCell>
