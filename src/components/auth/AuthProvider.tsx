@@ -89,8 +89,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signIn = async (email: string, password: string) => {
+    // Converter "admin" para o email correto
+    const loginEmail = email === "admin" ? "admin@sistema.com" : email;
+    
     const { error } = await supabase.auth.signInWithPassword({
-      email,
+      email: loginEmail,
       password,
     });
     if (error) throw error;
