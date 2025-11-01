@@ -1,53 +1,62 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Briefcase, BarChart3, Clock, FileText, Shield } from "lucide-react";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { Icon3D } from "@/components/dashboard/Icon3D";
 
 const Index = () => {
   const navigate = useNavigate();
   const { roles } = useAuth();
   const isAdmin = roles.includes("admin") || roles.includes("rh") || roles.includes("gestor");
 
-  const modules = [
+  type ModuleShape = "box" | "sphere" | "torus" | "cone" | "octahedron" | "dodecahedron";
+  
+  const modules: Array<{
+    title: string;
+    description: string;
+    shape: ModuleShape;
+    path: string;
+    color: string;
+    gradient: string;
+  }> = [
     {
       title: "Funcionários",
       description: "Gestão de colaboradores",
-      icon: Users,
+      shape: "sphere",
       path: "/funcionarios",
-      color: "text-blue-500",
-      bgColor: "bg-blue-50 dark:bg-blue-950",
+      color: "#3b82f6",
+      gradient: "from-blue-400 to-blue-600",
     },
     {
       title: "Banco de Talentos",
       description: "Candidatos e recrutamento",
-      icon: Briefcase,
+      shape: "dodecahedron",
       path: "/banco-talentos",
-      color: "text-purple-500",
-      bgColor: "bg-purple-50 dark:bg-purple-950",
+      color: "#a855f7",
+      gradient: "from-purple-400 to-purple-600",
     },
     {
       title: "Relatórios",
       description: "Análises e indicadores",
-      icon: BarChart3,
+      shape: "octahedron",
       path: "/relatorios",
-      color: "text-green-500",
-      bgColor: "bg-green-50 dark:bg-green-950",
+      color: "#10b981",
+      gradient: "from-green-400 to-green-600",
     },
     {
       title: "Folha de Ponto",
       description: "Controle de jornada",
-      icon: Clock,
+      shape: "torus",
       path: "/folha-ponto",
-      color: "text-orange-500",
-      bgColor: "bg-orange-50 dark:bg-orange-950",
+      color: "#f97316",
+      gradient: "from-orange-400 to-orange-600",
     },
     {
       title: "Holerites",
       description: "Gestão de pagamentos",
-      icon: FileText,
+      shape: "box",
       path: "/holerites",
-      color: "text-cyan-500",
-      bgColor: "bg-cyan-50 dark:bg-cyan-950",
+      color: "#06b6d4",
+      gradient: "from-cyan-400 to-cyan-600",
     },
   ];
 
@@ -56,10 +65,10 @@ const Index = () => {
     modules.push({
       title: "Gerenciar Admins",
       description: "Controle de administradores",
-      icon: Shield,
+      shape: "cone",
       path: "/admins",
-      color: "text-red-500",
-      bgColor: "bg-red-50 dark:bg-red-950",
+      color: "#ef4444",
+      gradient: "from-red-400 to-red-600",
     });
   }
 
@@ -79,20 +88,25 @@ const Index = () => {
           {modules.map((module) => (
             <Card
               key={module.path}
-              className="cursor-pointer hover:shadow-lg transition-all duration-300 border-2 hover:border-primary group"
+              className="cursor-pointer hover:shadow-2xl transition-all duration-500 border-2 hover:border-primary group relative overflow-hidden"
               onClick={() => navigate(module.path)}
             >
-              <CardHeader className="space-y-4">
-                <div
-                  className={`w-16 h-16 rounded-lg ${module.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform`}
-                >
-                  <module.icon className={`w-8 h-8 ${module.color}`} />
+              {/* Gradient Background */}
+              <div
+                className={`absolute inset-0 bg-gradient-to-br ${module.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`}
+              />
+
+              <CardHeader className="space-y-4 relative z-10">
+                {/* 3D Icon Container */}
+                <div className="w-32 h-32 mx-auto group-hover:scale-110 transition-transform duration-500">
+                  <Icon3D color={module.color} shape={module.shape} />
                 </div>
-                <div>
-                  <CardTitle className="text-xl group-hover:text-primary transition-colors">
+
+                <div className="text-center">
+                  <CardTitle className="text-2xl font-bold group-hover:text-primary transition-colors duration-300">
                     {module.title}
                   </CardTitle>
-                  <CardDescription className="mt-2">
+                  <CardDescription className="mt-2 text-base">
                     {module.description}
                   </CardDescription>
                 </div>
