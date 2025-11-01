@@ -49,13 +49,17 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
 
   const loadUserData = async (userId: string) => {
     try {
-      const { data: profileData, error: profileError } = await (supabase as any)
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (profileError) throw profileError;
+      
+      if (!profileData) {
+        throw new Error("Perfil não encontrado");
+      }
       
       setProfile(profileData as Profile);
       
@@ -72,11 +76,11 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
       const cpfNumeros = cpf.replace(/\D/g, "");
       
       // Buscar o email associado ao CPF
-      const { data: profileData, error: profileError } = await (supabase as any)
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("email, id")
         .eq("cpf", cpfNumeros)
-        .single();
+        .maybeSingle();
 
       if (profileError || !profileData) {
         throw new Error("CPF não encontrado");
@@ -88,7 +92,12 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
         password,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          throw new Error("Senha incorreta");
+        }
+        throw error;
+      }
 
       if (data.user) {
         await loadUserData(data.user.id);
