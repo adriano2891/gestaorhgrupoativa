@@ -75,43 +75,32 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
     try {
       const cpfNumeros = cpf.replace(/\D/g, "");
       
-      console.log("Tentando login com CPF:", cpfNumeros);
-      
-      // Buscar o email associado ao CPF
+      // Buscar o email associado ao CPF usando função segura
       const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("email, id")
-        .eq("cpf", cpfNumeros)
-        .maybeSingle();
-
-      console.log("Resultado da busca:", { profileData, profileError });
+        .rpc("get_email_by_cpf", { cpf_input: cpfNumeros });
 
       if (profileError) {
-        console.error("Erro ao buscar perfil:", profileError);
+        console.error("Erro ao buscar CPF:", profileError);
         throw new Error("Erro ao buscar CPF no sistema");
       }
       
-      if (!profileData) {
-        console.error("CPF não encontrado:", cpfNumeros);
+      if (!profileData || profileData.length === 0) {
         throw new Error("CPF não encontrado");
       }
 
-      console.log("Email encontrado:", profileData.email);
+      const userEmail = profileData[0].email;
 
       // Fazer login com email e senha
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: profileData.email,
+        email: userEmail,
         password,
       });
 
-      console.log("Resultado do login:", { success: !!data.user, error });
-
       if (error) {
-        console.error("Erro ao fazer login:", error);
         if (error.message.includes("Invalid login credentials")) {
           throw new Error("Senha incorreta");
         }
-        throw new Error(error.message);
+        throw error;
       }
 
       if (data.user) {
@@ -124,7 +113,6 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
         }));
       }
     } catch (error) {
-      console.error("Erro no signInWithCPF:", error);
       throw error;
     }
   };

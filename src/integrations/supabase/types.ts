@@ -389,6 +389,13 @@ export type Database = {
         }
         Returns: unknown
       }
+      get_email_by_cpf: {
+        Args: { cpf_input: string }
+        Returns: {
+          email: string
+          user_id: string
+        }[]
+      }
       get_user_departamento: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
