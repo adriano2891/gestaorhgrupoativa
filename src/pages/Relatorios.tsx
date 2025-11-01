@@ -215,64 +215,71 @@ const Relatorios = () => {
   };
 
   return (
-    <div className="space-y-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground">
-          Relatórios e Análises de RH
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Sistema completo de relatórios com 13 tipos de análises
-        </p>
-      </div>
+    <div className="min-h-screen bg-primary">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-8 text-center">
+          <h1 className="text-4xl font-bold text-white mb-2">
+            Relatórios e Análises de RH
+          </h1>
+          <p className="text-primary-foreground/90">
+            Escolha o relatório desejado para análise detalhada
+          </p>
+        </div>
 
-      {!selectedReport ? (
-        <ReportSelector reports={reportTypes} onSelectReport={handleSelectReport} />
-      ) : (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <Button variant="outline" onClick={() => setSelectedReport(null)}>
-              ← Voltar para seleção
-            </Button>
-            {reportData && (
-              <ExportOptions
-                data={reportData.details || []}
-                reportTitle={reportTypes.find(r => r.id === selectedReport)?.name || "Relatório"}
-              />
-            )}
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                {reportTypes.find(r => r.id === selectedReport)?.icon && (
-                  <span className="text-primary">
-                    {(() => {
-                      const Icon = reportTypes.find(r => r.id === selectedReport)!.icon;
-                      return <Icon className="h-6 w-6" />;
-                    })()}
-                  </span>
-                )}
-                {reportTypes.find(r => r.id === selectedReport)?.name}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <ReportFilters
-                reportType={selectedReport}
-                filters={filters}
-                onFilterChange={handleFilterChange}
-                onGenerate={handleGenerateReport}
-              />
-
+        {!selectedReport ? (
+          <ReportSelector reports={reportTypes} onSelectReport={handleSelectReport} />
+        ) : (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <Button 
+                variant="secondary"
+                onClick={() => setSelectedReport(null)}
+                className="bg-white/90 hover:bg-white text-primary"
+              >
+                ← Voltar aos relatórios
+              </Button>
               {reportData && (
-                <ReportViewer
-                  reportType={selectedReport}
-                  data={reportData}
+                <ExportOptions
+                  data={reportData.details || []}
+                  reportTitle={reportTypes.find(r => r.id === selectedReport)?.name || "Relatório"}
                 />
               )}
-            </CardContent>
-          </Card>
-        </div>
-      )}
+            </div>
+
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <div className="mb-6">
+                <h2 className="text-2xl font-bold text-foreground flex items-center gap-3">
+                  {reportTypes.find(r => r.id === selectedReport)?.icon && (
+                    <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                      {(() => {
+                        const Icon = reportTypes.find(r => r.id === selectedReport)!.icon;
+                        return <Icon className="h-5 w-5 text-destructive" />;
+                      })()}
+                    </div>
+                  )}
+                  {reportTypes.find(r => r.id === selectedReport)?.name}
+                </h2>
+              </div>
+              
+              <div className="space-y-6">
+                <ReportFilters
+                  reportType={selectedReport}
+                  filters={filters}
+                  onFilterChange={handleFilterChange}
+                  onGenerate={handleGenerateReport}
+                />
+
+                {reportData && (
+                  <ReportViewer
+                    reportType={selectedReport}
+                    data={reportData}
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

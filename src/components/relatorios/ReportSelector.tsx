@@ -1,4 +1,3 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { LucideIcon } from "lucide-react";
 
 interface Report {
@@ -18,39 +17,35 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
   const categories = Array.from(new Set(reports.map(r => r.category)));
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {categories.map(category => (
         <div key={category}>
-          <h3 className="text-lg font-semibold text-foreground mb-4">{category}</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <h3 className="text-lg font-semibold text-white mb-4 px-2">{category}</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {reports
               .filter(r => r.category === category)
               .map(report => {
                 const Icon = report.icon;
                 return (
-                  <Card
+                  <button
                     key={report.id}
-                    className="cursor-pointer hover:shadow-lg transition-all duration-300 hover:scale-105"
                     onClick={() => onSelectReport(report.id)}
+                    className="bg-white rounded-lg p-4 shadow-md hover:shadow-xl transition-all duration-200 hover:scale-[1.02] text-left group"
                   >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 rounded-lg bg-primary/10">
-                          <Icon className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <CardTitle className="text-sm font-semibold">
-                            {report.name}
-                          </CardTitle>
-                        </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0 group-hover:bg-destructive/20 transition-colors">
+                        <Icon className="h-5 w-5 text-destructive" />
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <CardDescription className="text-xs">
-                        {report.description}
-                      </CardDescription>
-                    </CardContent>
-                  </Card>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                          {report.name}
+                        </h4>
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {report.description}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
                 );
               })}
           </div>
