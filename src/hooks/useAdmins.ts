@@ -17,43 +17,43 @@ export const useAdmins = () => {
   return useQuery({
     queryKey: ["admins"],
     queryFn: async () => {
-      // Buscar perfis com seus roles
+      // Buscar perfis que tenham roles administrativos
+      const { data: userRoles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id, role")
+        .in("role", ["admin", "gestor", "rh"]);
+
+      if (rolesError) throw rolesError;
+
+      if (!userRoles || userRoles.length === 0) {
+        return [];
+      }
+
+      // Agrupar roles por user_id
+      const rolesByUser = userRoles.reduce((acc, ur) => {
+        if (!acc[ur.user_id]) {
+          acc[ur.user_id] = [];
+        }
+        acc[ur.user_id].push(ur.role);
+        return acc;
+      }, {} as Record<string, string[]>);
+
+      const userIds = Object.keys(rolesByUser);
+
+      // Buscar perfis dos usuários
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select(`
-          id,
-          nome,
-          email,
-          departamento,
-          cargo,
-          created_at,
-          updated_at
-        `)
+        .select("id, nome, email, departamento, cargo, created_at, updated_at")
+        .in("id", userIds)
         .order("nome", { ascending: true });
 
       if (profilesError) throw profilesError;
 
-      // Buscar roles de cada perfil
-      const profilesWithRoles = await Promise.all(
-        profiles.map(async (profile) => {
-          const { data: roles, error: rolesError } = await supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", profile.id);
-
-          if (rolesError) throw rolesError;
-
-          return {
-            ...profile,
-            roles: roles.map((r) => r.role),
-          };
-        })
-      );
-
-      // Filtrar apenas usuários que têm role de admin, gestor ou rh
-      const admins = profilesWithRoles.filter((profile) =>
-        profile.roles.some((role) => ["admin", "gestor", "rh"].includes(role))
-      );
+      // Combinar perfis com seus roles
+      const admins = profiles.map((profile) => ({
+        ...profile,
+        roles: rolesByUser[profile.id] || [],
+      }));
 
       return admins as Admin[];
     },
