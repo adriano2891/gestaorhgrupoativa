@@ -228,13 +228,27 @@ const Funcionarios = () => {
       
       const cpfNumeros = newEmployee.cpf.replace(/\D/g, "");
       
-      // Criar usuário no sistema de autenticação
+      // Verificar se o CPF já existe
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("cpf", cpfNumeros)
+        .maybeSingle();
+
+      if (existingProfile) {
+        throw new Error("CPF já cadastrado no sistema");
+      }
+      
+      // Criar usuário no sistema de autenticação com todos os dados
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: newEmployee.email,
         password: newEmployee.password,
         options: {
           data: {
             nome: newEmployee.name,
+            cpf: cpfNumeros,
+            cargo: newEmployee.position,
+            departamento: newEmployee.department,
           },
           emailRedirectTo: `${window.location.origin}/`,
         },
@@ -246,20 +260,6 @@ const Funcionarios = () => {
 
       if (!authData.user) {
         throw new Error("Falha ao criar usuário");
-      }
-
-      // Atualizar perfil com CPF, cargo e departamento
-      const { error: profileError } = await (supabase as any)
-        .from("profiles")
-        .update({
-          cpf: cpfNumeros,
-          cargo: newEmployee.position,
-          departamento: newEmployee.department,
-        })
-        .eq("id", authData.user.id);
-
-      if (profileError) {
-        throw new Error(`Erro ao atualizar perfil: ${profileError.message}`);
       }
 
       // Adicionar o novo funcionário à lista local
