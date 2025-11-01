@@ -97,18 +97,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (email === "admin") {
         loginEmail = "admin@sistema.com";
       } else {
-        // Buscar email pelo username na tabela profiles
-        const { data: profileData, error: profileError } = await supabase
-          .from("profiles")
-          .select("email")
-          .eq("usuario", email)
-          .single();
+        // Buscar email pelo username usando função segura
+        const { data: emailData, error: emailError } = await supabase
+          .rpc("get_email_by_username", { username_input: email });
         
-        if (profileError || !profileData) {
+        if (emailError || !emailData || emailData.length === 0) {
           throw new Error("Usuário não encontrado");
         }
         
-        loginEmail = profileData.email;
+        loginEmail = emailData[0].email;
       }
     }
     
