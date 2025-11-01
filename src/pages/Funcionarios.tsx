@@ -362,6 +362,18 @@ const Funcionarios = () => {
         description: `${newEmployee.name} foi cadastrado e pode acessar o Portal do Funcionário com CPF e senha.`,
       });
       
+      // Limpar o formulário
+      setNewEmployee({
+        name: "",
+        email: "",
+        phone: "",
+        position: "",
+        department: "Tecnologia",
+        status: "ativo" as const,
+        cpf: "",
+        password: "",
+      });
+      
       setIsAddDialogOpen(false);
       setValidationErrors({});
     } catch (error) {
