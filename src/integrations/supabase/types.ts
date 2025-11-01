@@ -206,6 +206,7 @@ export type Database = {
           salario: number | null
           telefone: string | null
           updated_at: string | null
+          usuario: string | null
         }
         Insert: {
           cargo?: string | null
@@ -218,6 +219,7 @@ export type Database = {
           salario?: number | null
           telefone?: string | null
           updated_at?: string | null
+          usuario?: string | null
         }
         Update: {
           cargo?: string | null
@@ -230,6 +232,7 @@ export type Database = {
           salario?: number | null
           telefone?: string | null
           updated_at?: string | null
+          usuario?: string | null
         }
         Relationships: []
       }

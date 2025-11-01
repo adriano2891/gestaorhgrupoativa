@@ -31,6 +31,11 @@ import { Admin, useCreateAdmin, useUpdateAdmin } from "@/hooks/useAdmins";
 
 const adminSchema = z.object({
   nome: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
+  usuario: z
+    .string()
+    .min(3, "Usuário deve ter no mínimo 3 caracteres")
+    .max(50, "Usuário deve ter no máximo 50 caracteres")
+    .regex(/^[a-zA-Z0-9_.-]+$/, "Usuário deve conter apenas letras, números, ponto, hífen ou underscore"),
   email: z.string().email("Email inválido"),
   password: z
     .string()
@@ -61,6 +66,7 @@ export const AdminDialog = ({ open, onOpenChange, admin }: AdminDialogProps) => 
     resolver: zodResolver(adminSchema),
     defaultValues: {
       nome: admin?.nome || "",
+      usuario: admin?.usuario || "",
       email: admin?.email || "",
       password: "",
       departamento: admin?.departamento || "",
@@ -74,6 +80,7 @@ export const AdminDialog = ({ open, onOpenChange, admin }: AdminDialogProps) => 
       await updateAdmin.mutateAsync({
         id: admin.id,
         nome: data.nome,
+        usuario: data.usuario,
         departamento: data.departamento,
         cargo: data.cargo,
         role: data.role,
@@ -89,6 +96,7 @@ export const AdminDialog = ({ open, onOpenChange, admin }: AdminDialogProps) => 
         email: data.email,
         password: data.password,
         nome: data.nome,
+        usuario: data.usuario,
         departamento: data.departamento,
         cargo: data.cargo,
         role: data.role,
@@ -122,6 +130,24 @@ export const AdminDialog = ({ open, onOpenChange, admin }: AdminDialogProps) => 
                   <FormLabel>Nome Completo</FormLabel>
                   <FormControl>
                     <Input placeholder="João Silva" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="usuario"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Usuário</FormLabel>
+                  <FormControl>
+                    <Input 
+                      placeholder="joao.silva" 
+                      {...field}
+                      disabled={isEditing}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

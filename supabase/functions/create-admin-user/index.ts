@@ -26,11 +26,11 @@ Deno.serve(async (req) => {
       }
     );
 
-    const { email, password, nome } = await req.json();
+    const { email, password, nome, usuario, departamento, cargo, role } = await req.json();
 
-    if (!email || !password) {
+    if (!email || !password || !usuario) {
       return new Response(
-        JSON.stringify({ error: 'Email e senha são obrigatórios' }),
+        JSON.stringify({ error: 'Email, senha e usuário são obrigatórios' }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
           status: 400 
@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log(`Creating user with email: ${email}`);
+    console.log(`Creating user with email: ${email} and username: ${usuario}`);
 
     // Create the user
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.createUser({
@@ -69,7 +69,10 @@ Deno.serve(async (req) => {
       .upsert({
         id: userData.user.id,
         nome: nome || 'Administrador',
+        usuario: usuario,
         email: email,
+        departamento: departamento || null,
+        cargo: cargo || null,
       });
 
     if (profileError) {
@@ -77,12 +80,12 @@ Deno.serve(async (req) => {
       // Continue anyway, as the user is created
     }
 
-    // Assign admin role
+    // Assign role
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
       .insert({
         user_id: userData.user.id,
-        role: 'admin',
+        role: role || 'admin',
       });
 
     if (roleError) {

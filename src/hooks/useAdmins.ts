@@ -5,6 +5,7 @@ import { toast } from "sonner";
 export interface Admin {
   id: string;
   nome: string;
+  usuario?: string;
   email: string;
   departamento?: string;
   cargo?: string;
@@ -43,7 +44,7 @@ export const useAdmins = () => {
       // Buscar perfis dos usuários
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("id, nome, email, departamento, cargo, created_at, updated_at")
+        .select("id, nome, usuario, email, departamento, cargo, created_at, updated_at")
         .in("id", userIds)
         .order("nome", { ascending: true });
 
@@ -68,6 +69,7 @@ export const useCreateAdmin = () => {
       email: string;
       password: string;
       nome: string;
+      usuario: string;
       departamento?: string;
       cargo?: string;
       role: "admin" | "gestor" | "rh";
@@ -109,6 +111,7 @@ export const useUpdateAdmin = () => {
     mutationFn: async (data: {
       id: string;
       nome?: string;
+      usuario?: string;
       departamento?: string;
       cargo?: string;
       role?: "admin" | "gestor" | "rh";
