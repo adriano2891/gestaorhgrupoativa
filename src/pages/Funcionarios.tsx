@@ -209,16 +209,16 @@ const Funcionarios = () => {
       // Buscar dados completos do banco
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("cpf")
+        .select("cpf, salario")
         .eq("id", employeeId)
         .maybeSingle();
       
       if (profileData) {
         setEditCpf(profileData.cpf || "");
+        setEditSalary(profileData.salario ? profileData.salario.toString() : "");
       }
       
       setEditPassword("");
-      setEditSalary("");
       setEditAdmissionDate(employee.admissionDate);
       setIsEditDialogOpen(true);
     }
@@ -266,15 +266,23 @@ const Funcionarios = () => {
   const handleSaveEdit = async () => {
     if (editingEmployee) {
       try {
+        // Preparar dados para atualização
+        const updateData: any = {
+          nome: editingEmployee.name,
+          email: editingEmployee.email,
+          cargo: editingEmployee.position,
+          departamento: editingEmployee.department,
+        };
+
+        // Adicionar salário se foi fornecido
+        if (editSalary && parseFloat(editSalary) > 0) {
+          updateData.salario = parseFloat(editSalary);
+        }
+
         // Atualizar dados no perfil
         const { error: profileError } = await supabase
           .from("profiles")
-          .update({
-            nome: editingEmployee.name,
-            email: editingEmployee.email,
-            cargo: editingEmployee.position,
-            departamento: editingEmployee.department,
-          })
+          .update(updateData)
           .eq("id", editingEmployee.id);
 
         if (profileError) throw profileError;
