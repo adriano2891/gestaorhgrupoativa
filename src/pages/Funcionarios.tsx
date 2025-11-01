@@ -58,6 +58,7 @@ const employeeSchema = z.object({
   status: z.enum(["ativo", "afastado", "demitido"]),
   cpf: z.string().trim().min(11, "CPF deve ter 11 dígitos").max(14, "CPF inválido"),
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres").max(50, "Senha deve ter no máximo 50 caracteres"),
+  salario: z.string().optional(),
 });
 
 const mockEmployees = [
@@ -137,6 +138,7 @@ const Funcionarios = () => {
     status: "ativo" as const,
     cpf: "",
     password: "",
+    salario: "",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -400,6 +402,7 @@ const Funcionarios = () => {
       status: "ativo",
       cpf: "",
       password: "",
+      salario: "",
     });
     setValidationErrors({});
     setIsAddDialogOpen(true);
@@ -470,6 +473,17 @@ const Funcionarios = () => {
         throw new Error("Falha ao criar usuário");
       }
 
+      // Se houver salário, atualizar no perfil
+      if (newEmployee.salario) {
+        const salarioNumero = parseFloat(newEmployee.salario.replace(/\./g, '').replace(',', '.'));
+        if (!isNaN(salarioNumero) && salarioNumero > 0) {
+          await supabase
+            .from("profiles")
+            .update({ salario: salarioNumero })
+            .eq("id", authData.user.id);
+        }
+      }
+
       // Adicionar o novo funcionário à lista local
       const novoFuncionario = {
         id: authData.user.id,
@@ -498,6 +512,7 @@ const Funcionarios = () => {
         department: "Tecnologia",
         status: "ativo" as const,
         cpf: "",
+        salario: "",
         password: "",
       });
       
@@ -968,6 +983,39 @@ const Funcionarios = () => {
               {validationErrors.department && (
                 <p className="text-sm text-destructive">{validationErrors.department}</p>
               )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="new-salary">Salário</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                  R$
+                </span>
+                <Input
+                  id="new-salary"
+                  type="text"
+                  value={newEmployee.salario}
+                  onChange={(e) => {
+                    const apenasNumeros = e.target.value.replace(/\D/g, '');
+                    
+                    if (apenasNumeros === '') {
+                      updateNewEmployee('salario', '');
+                      return;
+                    }
+                    
+                    const valorEmCentavos = parseInt(apenasNumeros);
+                    const valorEmReais = valorEmCentavos / 100;
+                    
+                    const valorFormatado = valorEmReais.toLocaleString('pt-BR', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    });
+                    
+                    updateNewEmployee('salario', valorFormatado);
+                  }}
+                  placeholder="0,00"
+                  className="pl-10"
+                />
+              </div>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="new-cpf">CPF *</Label>
