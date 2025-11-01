@@ -186,7 +186,7 @@ const App = () => {
           --muted-foreground: 215.4 16.3% 46.9%;
           --foreground: 222.2 84% 4.9%;
           --border: 214.3 31.8% 91.4%;
-          --primary: 221.2 83.2% 53.3%;
+          --primary: 173 71% 58%; /* Cor alterada para #46e1d1 */
         }
         
         .dark {
