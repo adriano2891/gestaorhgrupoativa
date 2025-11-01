@@ -450,6 +450,7 @@ const Funcionarios = () => {
           data: {
             nome: newEmployee.name,
             cpf: cpfNumeros,
+            telefone: newEmployee.phone,
             cargo: newEmployee.position,
             departamento: newEmployee.department,
           },
