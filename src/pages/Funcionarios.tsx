@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -55,6 +56,8 @@ const employeeSchema = z.object({
   position: z.string().trim().min(1, "Cargo é obrigatório").max(100, "Cargo deve ter no máximo 100 caracteres"),
   department: z.string().min(1, "Departamento é obrigatório"),
   status: z.enum(["ativo", "afastado", "demitido"]),
+  cpf: z.string().trim().min(11, "CPF deve ter 11 dígitos").max(14, "CPF inválido"),
+  password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres").max(50, "Senha deve ter no máximo 50 caracteres"),
 });
 
 const mockEmployees = [
@@ -127,6 +130,8 @@ const Funcionarios = () => {
     position: "",
     department: "Tecnologia",
     status: "ativo" as const,
+    cpf: "",
+    password: "",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -201,6 +206,8 @@ const Funcionarios = () => {
       position: "",
       department: "Tecnologia",
       status: "ativo",
+      cpf: "",
+      password: "",
     });
     setValidationErrors({});
     setIsAddDialogOpen(true);
@@ -214,32 +221,56 @@ const Funcionarios = () => {
     }
   };
 
-  const handleSaveNewEmployee = () => {
+  const handleSaveNewEmployee = async () => {
     try {
       // Validate input
       employeeSchema.parse(newEmployee);
       
-      // Generate new ID
-      const maxId = Math.max(...employees.map(emp => parseInt(emp.id)), 0);
-      const newId = (maxId + 1).toString();
+      const cpfNumeros = newEmployee.cpf.replace(/\D/g, "");
       
-      // Create new employee object
-      const employeeToAdd = {
-        ...newEmployee,
-        id: newId,
-        admissionDate: new Date().toISOString().split('T')[0],
-      };
-      
-      // Add to employees list
-      setEmployees([...employees, employeeToAdd]);
-      
+      // Criar usuário no sistema de autenticação
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: newEmployee.email,
+        password: newEmployee.password,
+        options: {
+          data: {
+            nome: newEmployee.name,
+          },
+        },
+      });
+
+      if (authError) {
+        throw new Error(`Erro ao criar usuário: ${authError.message}`);
+      }
+
+      if (!authData.user) {
+        throw new Error("Falha ao criar usuário");
+      }
+
+      // Atualizar perfil com CPF, cargo e departamento
+      const { error: profileError } = await (supabase as any)
+        .from("profiles")
+        .update({
+          cpf: cpfNumeros,
+          cargo: newEmployee.position,
+          departamento: newEmployee.department,
+        })
+        .eq("id", authData.user.id);
+
+      if (profileError) {
+        throw new Error(`Erro ao atualizar perfil: ${profileError.message}`);
+      }
+
       toast({
-        title: "Funcionário adicionado",
-        description: "O novo funcionário foi cadastrado com sucesso.",
+        title: "Funcionário adicionado com sucesso!",
+        description: `${newEmployee.name} foi cadastrado e pode acessar o Portal do Funcionário com CPF e senha.`,
       });
       
       setIsAddDialogOpen(false);
       setValidationErrors({});
+      
+      // Recarregar a lista de funcionários (em produção, isso viria de uma query ao banco)
+      window.location.reload();
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors: Record<string, string> = {};
@@ -252,6 +283,13 @@ const Funcionarios = () => {
         toast({
           title: "Erro de validação",
           description: "Por favor, corrija os erros no formulário.",
+          variant: "destructive",
+        });
+      } else {
+        console.error("Erro ao adicionar funcionário:", error);
+        toast({
+          title: "Erro ao adicionar funcionário",
+          description: error instanceof Error ? error.message : "Ocorreu um erro inesperado",
           variant: "destructive",
         });
       }
@@ -579,6 +617,47 @@ const Funcionarios = () => {
               {validationErrors.department && (
                 <p className="text-sm text-destructive">{validationErrors.department}</p>
               )}
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="new-cpf">CPF *</Label>
+              <Input
+                id="new-cpf"
+                value={newEmployee.cpf}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  const formatted = value
+                    .replace(/(\d{3})(\d)/, "$1.$2")
+                    .replace(/(\d{3})(\d)/, "$1.$2")
+                    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+                  updateNewEmployee('cpf', formatted);
+                }}
+                placeholder="000.000.000-00"
+                maxLength={14}
+                className={validationErrors.cpf ? "border-destructive" : ""}
+              />
+              {validationErrors.cpf && (
+                <p className="text-sm text-destructive">{validationErrors.cpf}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                O CPF será usado para login no Portal do Funcionário
+              </p>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="new-password">Senha *</Label>
+              <Input
+                id="new-password"
+                type="password"
+                value={newEmployee.password}
+                onChange={(e) => updateNewEmployee('password', e.target.value)}
+                placeholder="Mínimo 6 caracteres"
+                className={validationErrors.password ? "border-destructive" : ""}
+              />
+              {validationErrors.password && (
+                <p className="text-sm text-destructive">{validationErrors.password}</p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                A senha será usada para login no Portal do Funcionário
+              </p>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="new-status">Status</Label>
