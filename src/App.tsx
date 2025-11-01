@@ -19,7 +19,6 @@ import Relatorios from "./pages/Relatorios";
 import FolhaPonto from "./pages/FolhaPonto";
 import GerenciarAdmins from "./pages/GerenciarAdmins";
 import PortalFuncionario from "./pages/PortalFuncionario";
-import CreateAdmin from "./pages/CreateAdmin";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -30,7 +29,6 @@ const App = () => (
         <AuthProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
-            <Route path="/criar-admin" element={<CreateAdmin />} />
             <Route path="/portal-funcionario" element={<PortalFuncionario />} />
             <Route
               path="/"

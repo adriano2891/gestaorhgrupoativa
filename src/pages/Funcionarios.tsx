@@ -58,7 +58,6 @@ const employeeSchema = z.object({
   status: z.enum(["ativo", "afastado", "demitido"]),
   cpf: z.string().trim().min(11, "CPF deve ter 11 dígitos").max(14, "CPF inválido"),
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres").max(50, "Senha deve ter no máximo 50 caracteres"),
-  salario: z.string().optional(),
 });
 
 const mockEmployees = [
@@ -138,7 +137,6 @@ const Funcionarios = () => {
     status: "ativo" as const,
     cpf: "",
     password: "",
-    salario: "",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -402,7 +400,6 @@ const Funcionarios = () => {
       status: "ativo",
       cpf: "",
       password: "",
-      salario: "",
     });
     setValidationErrors({});
     setIsAddDialogOpen(true);
@@ -453,7 +450,6 @@ const Funcionarios = () => {
           data: {
             nome: newEmployee.name,
             cpf: cpfNumeros,
-            telefone: newEmployee.phone,
             cargo: newEmployee.position,
             departamento: newEmployee.department,
           },
@@ -471,17 +467,6 @@ const Funcionarios = () => {
 
       if (!authData.user) {
         throw new Error("Falha ao criar usuário");
-      }
-
-      // Se houver salário, atualizar no perfil
-      if (newEmployee.salario) {
-        const salarioNumero = parseFloat(newEmployee.salario.replace(/\./g, '').replace(',', '.'));
-        if (!isNaN(salarioNumero) && salarioNumero > 0) {
-          await supabase
-            .from("profiles")
-            .update({ salario: salarioNumero })
-            .eq("id", authData.user.id);
-        }
       }
 
       // Adicionar o novo funcionário à lista local
@@ -512,7 +497,6 @@ const Funcionarios = () => {
         department: "Tecnologia",
         status: "ativo" as const,
         cpf: "",
-        salario: "",
         password: "",
       });
       
@@ -626,6 +610,9 @@ const Funcionarios = () => {
                       </Avatar>
                       <div>
                         <div className="font-medium">{employee.name}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {employee.email}
+                        </div>
                       </div>
                     </div>
                   </TableCell>
@@ -905,71 +892,71 @@ const Funcionarios = () => {
 
       {/* Dialog de Adicionar Funcionário */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-[450px] max-h-[85vh] overflow-hidden flex flex-col">
-          <DialogHeader className="flex-shrink-0">
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
             <DialogTitle>Adicionar Funcionário</DialogTitle>
             <DialogDescription>
               Preencha os dados do novo funcionário
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-3 overflow-y-auto pr-2 -mr-2" style={{ maxHeight: 'calc(85vh - 150px)' }}>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-name" className="text-sm">Nome *</Label>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="new-name">Nome *</Label>
               <Input
                 id="new-name"
                 value={newEmployee.name}
                 onChange={(e) => updateNewEmployee('name', e.target.value)}
-                className={validationErrors.name ? "border-destructive h-9" : "h-9"}
+                className={validationErrors.name ? "border-destructive" : ""}
               />
               {validationErrors.name && (
-                <p className="text-xs text-destructive">{validationErrors.name}</p>
+                <p className="text-sm text-destructive">{validationErrors.name}</p>
               )}
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-email" className="text-sm">E-mail *</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="new-email">E-mail *</Label>
               <Input
                 id="new-email"
                 type="email"
                 value={newEmployee.email}
                 onChange={(e) => updateNewEmployee('email', e.target.value)}
-                className={validationErrors.email ? "border-destructive h-9" : "h-9"}
+                className={validationErrors.email ? "border-destructive" : ""}
               />
               {validationErrors.email && (
-                <p className="text-xs text-destructive">{validationErrors.email}</p>
+                <p className="text-sm text-destructive">{validationErrors.email}</p>
               )}
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-phone" className="text-sm">Telefone *</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="new-phone">Telefone *</Label>
               <Input
                 id="new-phone"
                 value={newEmployee.phone}
                 onChange={(e) => updateNewEmployee('phone', e.target.value)}
                 placeholder="(11) 98765-4321"
-                className={validationErrors.phone ? "border-destructive h-9" : "h-9"}
+                className={validationErrors.phone ? "border-destructive" : ""}
               />
               {validationErrors.phone && (
-                <p className="text-xs text-destructive">{validationErrors.phone}</p>
+                <p className="text-sm text-destructive">{validationErrors.phone}</p>
               )}
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-position" className="text-sm">Cargo *</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="new-position">Cargo *</Label>
               <Input
                 id="new-position"
                 value={newEmployee.position}
                 onChange={(e) => updateNewEmployee('position', e.target.value)}
-                className={validationErrors.position ? "border-destructive h-9" : "h-9"}
+                className={validationErrors.position ? "border-destructive" : ""}
               />
               {validationErrors.position && (
-                <p className="text-xs text-destructive">{validationErrors.position}</p>
+                <p className="text-sm text-destructive">{validationErrors.position}</p>
               )}
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-department" className="text-sm">Departamento *</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="new-department">Departamento *</Label>
               <Select
                 value={newEmployee.department}
                 onValueChange={(value) => updateNewEmployee('department', value)}
               >
-                <SelectTrigger className={validationErrors.department ? "border-destructive h-9" : "h-9"}>
+                <SelectTrigger className={validationErrors.department ? "border-destructive" : ""}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -981,44 +968,11 @@ const Funcionarios = () => {
                 </SelectContent>
               </Select>
               {validationErrors.department && (
-                <p className="text-xs text-destructive">{validationErrors.department}</p>
+                <p className="text-sm text-destructive">{validationErrors.department}</p>
               )}
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-salary" className="text-sm">Salário</Label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">
-                  R$
-                </span>
-                <Input
-                  id="new-salary"
-                  type="text"
-                  value={newEmployee.salario}
-                  onChange={(e) => {
-                    const apenasNumeros = e.target.value.replace(/\D/g, '');
-                    
-                    if (apenasNumeros === '') {
-                      updateNewEmployee('salario', '');
-                      return;
-                    }
-                    
-                    const valorEmCentavos = parseInt(apenasNumeros);
-                    const valorEmReais = valorEmCentavos / 100;
-                    
-                    const valorFormatado = valorEmReais.toLocaleString('pt-BR', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    });
-                    
-                    updateNewEmployee('salario', valorFormatado);
-                  }}
-                  placeholder="0,00"
-                  className="pl-10 h-9"
-                />
-              </div>
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-cpf" className="text-sm">CPF *</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="new-cpf">CPF *</Label>
               <Input
                 id="new-cpf"
                 value={newEmployee.cpf}
@@ -1032,39 +986,39 @@ const Funcionarios = () => {
                 }}
                 placeholder="000.000.000-00"
                 maxLength={14}
-                className={validationErrors.cpf ? "border-destructive h-9" : "h-9"}
+                className={validationErrors.cpf ? "border-destructive" : ""}
               />
               {validationErrors.cpf && (
-                <p className="text-xs text-destructive">{validationErrors.cpf}</p>
+                <p className="text-sm text-destructive">{validationErrors.cpf}</p>
               )}
               <p className="text-xs text-muted-foreground">
                 O CPF será usado para login no Portal do Funcionário
               </p>
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-password" className="text-sm">Senha *</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="new-password">Senha *</Label>
               <Input
                 id="new-password"
                 type="password"
                 value={newEmployee.password}
                 onChange={(e) => updateNewEmployee('password', e.target.value)}
                 placeholder="Mínimo 6 caracteres"
-                className={validationErrors.password ? "border-destructive h-9" : "h-9"}
+                className={validationErrors.password ? "border-destructive" : ""}
               />
               {validationErrors.password && (
-                <p className="text-xs text-destructive">{validationErrors.password}</p>
+                <p className="text-sm text-destructive">{validationErrors.password}</p>
               )}
               <p className="text-xs text-muted-foreground">
                 A senha será usada para login no Portal do Funcionário
               </p>
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-status" className="text-sm">Status</Label>
+            <div className="grid gap-2">
+              <Label htmlFor="new-status">Status</Label>
               <Select
                 value={newEmployee.status}
                 onValueChange={(value) => updateNewEmployee('status', value)}
               >
-                <SelectTrigger className="h-9">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -1075,11 +1029,11 @@ const Funcionarios = () => {
               </Select>
             </div>
           </div>
-          <DialogFooter className="flex-shrink-0 mt-3">
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="h-9">
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveNewEmployee} className="h-9">Adicionar Funcionário</Button>
+            <Button onClick={handleSaveNewEmployee}>Adicionar Funcionário</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

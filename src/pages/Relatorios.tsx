@@ -23,22 +23,11 @@ import { ReportSelector } from "@/components/relatorios/ReportSelector";
 import { ReportFilters } from "@/components/relatorios/ReportFilters";
 import { ReportViewer } from "@/components/relatorios/ReportViewer";
 import { ExportOptions } from "@/components/relatorios/ExportOptions";
-import { useFuncionarios, useFuncionariosPorDepartamento } from "@/hooks/useFuncionarios";
-import { useRegistrosPonto, useAbsenteismoPorDepartamento } from "@/hooks/useRegistrosPonto";
-import { useMetricas } from "@/hooks/useMetricas";
-import { format } from "date-fns";
 
 const Relatorios = () => {
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
   const [filters, setFilters] = useState<any>({});
   const [reportData, setReportData] = useState<any>(null);
-
-  // Hooks para buscar dados reais
-  const { data: funcionarios, isLoading: loadingFuncionarios } = useFuncionarios();
-  const { data: funcionariosPorDept } = useFuncionariosPorDepartamento();
-  const { data: registrosPonto } = useRegistrosPonto();
-  const { data: absenteismoDept } = useAbsenteismoPorDepartamento();
-  const { data: metricas } = useMetricas(1);
 
   const reportTypes = [
     {
@@ -145,11 +134,14 @@ const Relatorios = () => {
   };
 
   const handleGenerateReport = () => {
-    const data = generateReportData(selectedReport, filters);
-    setReportData(data);
+    // Gerar dados mockados baseados no tipo de relatório
+    const mockData = generateMockData(selectedReport, filters);
+    setReportData(mockData);
   };
 
-  const generateReportData = (reportType: string | null, filters: any) => {
+  const generateMockData = (reportType: string | null, filters: any) => {
+    // Aqui você implementaria a lógica real de busca de dados
+    // Por enquanto, retornamos dados mockados
     const baseData = {
       reportType,
       filters,
@@ -161,104 +153,58 @@ const Relatorios = () => {
 
     switch (reportType) {
       case "funcionarios":
-        if (!funcionarios) return baseData;
-        
         return {
           ...baseData,
           summary: {
-            total: funcionarios.length,
-            departamentos: new Set(funcionarios.map(f => f.departamento || "Sem Departamento")).size,
-            cargos: new Set(funcionarios.map(f => f.cargo || "Sem Cargo")).size,
+            total: 234,
+            ativos: 210,
+            afastados: 15,
+            desligados: 9,
           },
-          details: funcionarios.map(f => ({
-            nome: f.nome,
-            email: f.email,
-            telefone: f.telefone || "Não informado",
-            cargo: f.cargo || "Não informado",
-            departamento: f.departamento || "Não informado",
-            cpf: f.cpf || "Não informado",
-            salario: f.salario ? `R$ ${f.salario.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "Não informado",
-            admissao: format(new Date(f.created_at), "dd/MM/yyyy"),
-          })),
-          charts: funcionariosPorDept ? [
-            {
-              type: "bar",
-              title: "Funcionários por Departamento",
-              data: funcionariosPorDept.map(d => ({
-                departamento: d.departamento,
-                valor: d.funcionarios,
-              })),
-            },
-          ] : [],
-        };
-
-      case "pontos":
-        if (!registrosPonto) return baseData;
-        
-        return {
-          ...baseData,
-          summary: {
-            totalRegistros: registrosPonto.length,
-            comPresenca: registrosPonto.filter(r => r.entrada).length,
-            semPresenca: registrosPonto.filter(r => !r.entrada).length,
-          },
-          details: registrosPonto.slice(0, 50).map(r => ({
-            nome: r.profiles?.nome || "Não informado",
-            departamento: r.profiles?.departamento || "Não informado",
-            data: format(new Date(r.data), "dd/MM/yyyy"),
-            entrada: r.entrada ? format(new Date(r.entrada), "HH:mm") : "Não registrado",
-            saida: r.saida ? format(new Date(r.saida), "HH:mm") : "Não registrado",
-            totalHoras: r.total_horas || "0h",
-            horasExtras: r.horas_extras || "0h",
+          details: Array.from({ length: 10 }, (_, i) => ({
+            id: i + 1,
+            nome: `Colaborador ${i + 1}`,
+            cargo: ["Analista", "Gerente", "Coordenador"][i % 3],
+            departamento: ["TI", "RH", "Financeiro", "Comercial"][i % 4],
+            status: ["Ativo", "Férias", "Afastado"][i % 3],
+            admissao: "01/01/2020",
+            email: `colaborador${i + 1}@empresa.com`,
           })),
         };
 
       case "kpis":
-        const metrica = metricas?.[0];
-        if (!metrica) return baseData;
-
         return {
           ...baseData,
           summary: {
-            "Taxa de Presença": `${metrica.taxa_presenca?.toFixed(1) || 0}%`,
-            "Taxa de Retenção": `${metrica.taxa_retencao?.toFixed(1) || 0}%`,
-            "Satisfação Interna": `${metrica.satisfacao_interna?.toFixed(1) || 0}/10`,
-            "Absenteísmo": `${metrica.indice_absenteismo?.toFixed(1) || 0}%`,
-            "Horas Extras": `${metrica.horas_extras_percentual?.toFixed(1) || 0}%`,
-            "Índice de Eficiência": `${metrica.indice_eficiencia?.toFixed(1) || 0}%`,
+            absenteismo: 3.2,
+            turnover: 8.5,
+            horasExtras: 12.4,
+            tempoMedio: 3.5,
+            produtividade: 87.3,
+            custoMedio: 8450,
           },
-          charts: absenteismoDept ? [
+          charts: [
+            {
+              type: "line",
+              title: "Evolução do Turnover",
+              data: [
+                { mes: "Jan", valor: 7.2 },
+                { mes: "Fev", valor: 8.1 },
+                { mes: "Mar", valor: 8.5 },
+                { mes: "Abr", valor: 9.2 },
+                { mes: "Mai", valor: 8.8 },
+                { mes: "Jun", valor: 8.5 },
+              ],
+            },
             {
               type: "bar",
               title: "Absenteísmo por Departamento",
-              data: absenteismoDept.map(d => ({
-                departamento: d.departamento,
-                valor: parseFloat(d.taxa as string),
-              })),
-            },
-          ] : [],
-        };
-
-      case "absenteismo":
-        if (!absenteismoDept) return baseData;
-        
-        return {
-          ...baseData,
-          summary: {
-            "Taxa Média": `${absenteismoDept.reduce((acc, d) => acc + parseFloat(d.taxa as string), 0) / absenteismoDept.length || 0}%`,
-          },
-          details: absenteismoDept.map(d => ({
-            departamento: d.departamento,
-            taxaAbsenteismo: `${d.taxa}%`,
-          })),
-          charts: [
-            {
-              type: "bar",
-              title: "Taxa de Absenteísmo por Departamento",
-              data: absenteismoDept.map(d => ({
-                departamento: d.departamento,
-                valor: parseFloat(d.taxa as string),
-              })),
+              data: [
+                { departamento: "TI", valor: 2.8 },
+                { departamento: "RH", valor: 3.5 },
+                { departamento: "Financeiro", valor: 2.9 },
+                { departamento: "Comercial", valor: 4.1 },
+              ],
             },
           ],
         };

@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { Shield, UserPlus, Edit, Trash2, Mail, Loader2 } from "lucide-react";
-import { useAdmins, useDeleteAdmin, type Admin } from "@/hooks/useAdmins";
-import { AdminDialog } from "@/components/admins/AdminDialog";
+import { Shield, UserPlus, Edit, Trash2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,11 +30,47 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 
+const mockAdmins = [
+  {
+    id: "1",
+    name: "Carlos Silva",
+    email: "carlos.silva@ativarh.com",
+    role: "super-admin" as const,
+    department: "TI",
+    lastAccess: "2025-10-30 14:30",
+    status: "active" as const,
+  },
+  {
+    id: "2",
+    name: "Patrícia Oliveira",
+    email: "patricia.oliveira@ativarh.com",
+    role: "admin-rh" as const,
+    department: "Recursos Humanos",
+    lastAccess: "2025-10-30 10:15",
+    status: "active" as const,
+  },
+  {
+    id: "3",
+    name: "Roberto Mendes",
+    email: "roberto.mendes@ativarh.com",
+    role: "admin-financeiro" as const,
+    department: "Financeiro",
+    lastAccess: "2025-10-29 16:45",
+    status: "active" as const,
+  },
+  {
+    id: "4",
+    name: "Juliana Costa",
+    email: "juliana.costa@ativarh.com",
+    role: "admin-rh" as const,
+    department: "Recursos Humanos",
+    lastAccess: "2025-10-28 11:20",
+    status: "inactive" as const,
+  },
+];
+
 const GerenciarAdmins = () => {
-  const { data: admins = [], isLoading } = useAdmins();
-  const deleteAdmin = useDeleteAdmin();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedAdmin, setSelectedAdmin] = useState<Admin | undefined>();
+  const [admins] = useState(mockAdmins);
 
   const getInitials = (name: string) => {
     return name
@@ -49,34 +83,20 @@ const GerenciarAdmins = () => {
 
   const getRoleLabel = (role: string) => {
     const labels = {
-      admin: "Super Admin",
-      rh: "Admin RH",
-      gestor: "Gestor",
+      "super-admin": "Super Admin",
+      "admin-rh": "Admin RH",
+      "admin-financeiro": "Admin Financeiro",
     };
     return labels[role as keyof typeof labels] || role;
   };
 
   const getRoleColor = (role: string) => {
     const colors = {
-      admin: "bg-red-100 text-red-700",
-      rh: "bg-blue-100 text-blue-700",
-      gestor: "bg-green-100 text-green-700",
+      "super-admin": "bg-red-100 text-red-700",
+      "admin-rh": "bg-blue-100 text-blue-700",
+      "admin-financeiro": "bg-green-100 text-green-700",
     };
     return colors[role as keyof typeof colors] || "";
-  };
-
-  const handleAddAdmin = () => {
-    setSelectedAdmin(undefined);
-    setDialogOpen(true);
-  };
-
-  const handleEditAdmin = (admin: Admin) => {
-    setSelectedAdmin(admin);
-    setDialogOpen(true);
-  };
-
-  const handleDeleteAdmin = async (userId: string) => {
-    await deleteAdmin.mutateAsync(userId);
   };
 
   const permissions = [
@@ -123,33 +143,23 @@ const GerenciarAdmins = () => {
             Gerencie administradores e suas permissões
           </p>
         </div>
-        <Button onClick={handleAddAdmin}>
+        <Button>
           <UserPlus className="h-4 w-4 mr-2" />
           Adicionar Admin
         </Button>
       </div>
-
-      <AdminDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        admin={selectedAdmin}
-      />
 
       {/* Tabela de Admins */}
       <Card>
         <CardHeader>
           <CardTitle>Administradores Ativos</CardTitle>
           <CardDescription>
-            {admins.length} administrador(es) ativo(s)
+            {admins.filter((a) => a.status === "active").length}{" "}
+            administrador(es) ativo(s)
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            </div>
-          ) : (
-            <Table>
+          <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Administrador</TableHead>
@@ -167,11 +177,11 @@ const GerenciarAdmins = () => {
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarFallback className="bg-primary text-primary-foreground">
-                          {getInitials(admin.nome)}
+                          {getInitials(admin.name)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <div className="font-medium">{admin.nome}</div>
+                        <div className="font-medium">{admin.name}</div>
                         <div className="text-sm text-muted-foreground flex items-center gap-1">
                           <Mail className="h-3 w-3" />
                           {admin.email}
@@ -180,25 +190,25 @@ const GerenciarAdmins = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className={getRoleColor(admin.roles[0])}>
+                    <Badge className={getRoleColor(admin.role)}>
                       <Shield className="h-3 w-3 mr-1" />
-                      {getRoleLabel(admin.roles[0])}
+                      {getRoleLabel(admin.role)}
                     </Badge>
                   </TableCell>
-                  <TableCell>{admin.departamento || "-"}</TableCell>
+                  <TableCell>{admin.department}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
-                    {new Date(admin.updated_at).toLocaleString("pt-BR")}
+                    {admin.lastAccess}
                   </TableCell>
                   <TableCell>
-                    <Badge variant="default">Ativo</Badge>
+                    <Badge
+                      variant={admin.status === "active" ? "default" : "secondary"}
+                    >
+                      {admin.status === "active" ? "Ativo" : "Inativo"}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditAdmin(admin)}
-                      >
+                      <Button variant="ghost" size="icon">
                         <Edit className="h-4 w-4" />
                       </Button>
                       <AlertDialog>
@@ -213,18 +223,13 @@ const GerenciarAdmins = () => {
                               Remover Administrador?
                             </AlertDialogTitle>
                             <AlertDialogDescription>
-                              Esta ação removerá as permissões administrativas de{" "}
-                              {admin.nome}. O usuário continuará no sistema como
-                              funcionário.
+                              Esta ação não pode ser desfeita. O administrador{" "}
+                              {admin.name} perderá todos os acessos ao sistema.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                            <AlertDialogAction
-                              onClick={() => handleDeleteAdmin(admin.id)}
-                            >
-                              Confirmar
-                            </AlertDialogAction>
+                            <AlertDialogAction>Confirmar</AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
                       </AlertDialog>
@@ -234,7 +239,6 @@ const GerenciarAdmins = () => {
               ))}
             </TableBody>
           </Table>
-          )}
         </CardContent>
       </Card>
 
