@@ -215,7 +215,15 @@ const Funcionarios = () => {
       
       if (profileData) {
         setEditCpf(profileData.cpf || "");
-        setEditSalary(profileData.salario ? profileData.salario.toString() : "");
+        // Formatar salário se existir
+        if (profileData.salario) {
+          setEditSalary(profileData.salario.toLocaleString('pt-BR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          }));
+        } else {
+          setEditSalary("");
+        }
       }
       
       setEditPassword("");
@@ -274,9 +282,13 @@ const Funcionarios = () => {
           departamento: editingEmployee.department,
         };
 
-        // Adicionar salário se foi fornecido
-        if (editSalary && parseFloat(editSalary) > 0) {
-          updateData.salario = parseFloat(editSalary);
+        // Converter salário formatado para número
+        if (editSalary) {
+          // Remover pontos de milhar e trocar vírgula por ponto
+          const salarioNumero = parseFloat(editSalary.replace(/\./g, '').replace(',', '.'));
+          if (!isNaN(salarioNumero) && salarioNumero > 0) {
+            updateData.salario = salarioNumero;
+          }
         }
 
         // Atualizar dados no perfil
@@ -707,15 +719,33 @@ const Funcionarios = () => {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="salary" className="text-sm">Salário</Label>
-                  <Input
-                    id="salary"
-                    type="number"
-                    step="0.01"
-                    value={editSalary}
-                    onChange={(e) => setEditSalary(e.target.value)}
-                    placeholder="R$ 0,00"
-                    className="h-9"
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
+                      R$
+                    </span>
+                    <Input
+                      id="salary"
+                      type="text"
+                      value={editSalary}
+                      onChange={(e) => {
+                        // Remover tudo exceto números e vírgula/ponto
+                        let value = e.target.value.replace(/[^\d,]/g, '');
+                        // Garantir apenas uma vírgula
+                        const parts = value.split(',');
+                        if (parts.length > 2) {
+                          value = parts[0] + ',' + parts.slice(1).join('');
+                        }
+                        setEditSalary(value);
+                      }}
+                      placeholder="0,00"
+                      className="h-9 pl-10"
+                    />
+                  </div>
+                  {editSalary && (
+                    <p className="text-xs text-muted-foreground">
+                      Valor: R$ {editSalary}
+                    </p>
+                  )}
                 </div>
               </div>
               
