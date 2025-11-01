@@ -352,7 +352,7 @@ const FolhaPonto = () => {
       const date = `${selectedYear}-${selectedMonth}-${editingCell.day.toString().padStart(2, '0')}`;
       
       if (editingCell.field === 'status') {
-        // Atualizar status não é direto no banco, apenas visual
+        // Atualizar status localmente e recalcular totais
         const updatedRecords = monthRecords.map(r => {
           if (r.employee_id === editingCell.empId) {
             const newDays = [...r.days];
@@ -360,7 +360,17 @@ const FolhaPonto = () => {
               ...newDays[editingCell.day - 1],
               status: editValue as any
             };
-            return { ...r, days: newDays };
+            
+            // Recalcular totais
+            const total_faltas = newDays.filter(d => d.status === "ausente" || d.status === "falta").length;
+            const completos = newDays.filter(d => d.status === "completo").length;
+            
+            return { 
+              ...r, 
+              days: newDays,
+              total_faltas,
+              status: (completos > 0 ? "completo" : "incompleto") as "completo" | "incompleto"
+            };
           }
           return r;
         });
@@ -375,7 +385,7 @@ const FolhaPonto = () => {
         
         if (error) throw error;
         
-        // Atualizar localmente
+        // Atualizar localmente e recalcular totais
         const updatedRecords = monthRecords.map(r => {
           if (r.employee_id === editingCell.empId) {
             const newDays = [...r.days];
@@ -383,7 +393,23 @@ const FolhaPonto = () => {
               ...newDays[editingCell.day - 1],
               horas_extras: editValue
             };
-            return { ...r, days: newDays };
+            
+            // Recalcular total de horas extras
+            let total_horas_extras = 0;
+            newDays.forEach(day => {
+              if (day.horas_extras) {
+                const match = day.horas_extras.match(/(\d+)h\s*(\d+)min/);
+                if (match) {
+                  total_horas_extras += parseInt(match[1]) + parseInt(match[2]) / 60;
+                }
+              }
+            });
+            
+            return { 
+              ...r, 
+              days: newDays,
+              total_horas_extras
+            };
           }
           return r;
         });
