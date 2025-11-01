@@ -76,6 +76,8 @@ const FolhaPonto = () => {
   const [monthRecords, setMonthRecords] = useState<EmployeeMonthRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [editingCell, setEditingCell] = useState<{empId: string, day: number, field: 'status' | 'horas_extras'} | null>(null);
+  const [editValue, setEditValue] = useState("");
 
   useEffect(() => {
     loadEmployees();
@@ -332,6 +334,74 @@ const FolhaPonto = () => {
     XLSX.writeFile(workbook, fileName);
     
     toast.success("Excel detalhado exportado com sucesso!");
+  };
+
+  const handleEditCell = (empId: string, day: number, field: 'status' | 'horas_extras', currentValue: string) => {
+    setEditingCell({ empId, day, field });
+    setEditValue(currentValue);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingCell) return;
+    
+    try {
+      const record = monthRecords.find(r => r.employee_id === editingCell.empId);
+      if (!record) return;
+      
+      const dayData = record.days[editingCell.day - 1];
+      const date = `${selectedYear}-${selectedMonth}-${editingCell.day.toString().padStart(2, '0')}`;
+      
+      if (editingCell.field === 'status') {
+        // Atualizar status não é direto no banco, apenas visual
+        const updatedRecords = monthRecords.map(r => {
+          if (r.employee_id === editingCell.empId) {
+            const newDays = [...r.days];
+            newDays[editingCell.day - 1] = {
+              ...newDays[editingCell.day - 1],
+              status: editValue as any
+            };
+            return { ...r, days: newDays };
+          }
+          return r;
+        });
+        setMonthRecords(updatedRecords);
+      } else if (editingCell.field === 'horas_extras') {
+        // Atualizar horas extras no banco
+        const { error } = await supabase
+          .from("registros_ponto")
+          .update({ horas_extras: editValue })
+          .eq("user_id", editingCell.empId)
+          .eq("data", date);
+        
+        if (error) throw error;
+        
+        // Atualizar localmente
+        const updatedRecords = monthRecords.map(r => {
+          if (r.employee_id === editingCell.empId) {
+            const newDays = [...r.days];
+            newDays[editingCell.day - 1] = {
+              ...newDays[editingCell.day - 1],
+              horas_extras: editValue
+            };
+            return { ...r, days: newDays };
+          }
+          return r;
+        });
+        setMonthRecords(updatedRecords);
+      }
+      
+      toast.success("Registro atualizado com sucesso!");
+      setEditingCell(null);
+      setEditValue("");
+    } catch (error) {
+      console.error("Erro ao salvar edição:", error);
+      toast.error("Erro ao salvar alteração");
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingCell(null);
+    setEditValue("");
   };
 
   // Calcular estatísticas
@@ -600,7 +670,7 @@ const FolhaPonto = () => {
                 <CardContent>
                   <div className="overflow-x-auto">
                     <Table>
-                      <TableHeader>
+                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-16">Dia</TableHead>
                           <TableHead>Entrada</TableHead>
@@ -610,6 +680,7 @@ const FolhaPonto = () => {
                           <TableHead>Total</TableHead>
                           <TableHead>HE</TableHead>
                           <TableHead>Status</TableHead>
+                          <TableHead className="w-20">Ações</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -621,14 +692,79 @@ const FolhaPonto = () => {
                             <TableCell className="text-sm">{day.retorno_almoco || "-"}</TableCell>
                             <TableCell className="text-sm">{day.saida || "-"}</TableCell>
                             <TableCell className="text-sm font-medium">{day.total_horas || "-"}</TableCell>
-                            <TableCell className="text-sm text-yellow-600">{day.horas_extras || "-"}</TableCell>
+                            <TableCell className="text-sm">
+                              {editingCell?.empId === record.employee_id && editingCell?.day === day.day && editingCell?.field === 'horas_extras' ? (
+                                <div className="flex gap-1 items-center">
+                                  <Input
+                                    value={editValue}
+                                    onChange={(e) => setEditValue(e.target.value)}
+                                    className="h-7 w-24 text-xs"
+                                    placeholder="0h 0min"
+                                  />
+                                  <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleSaveEdit}>
+                                    <CheckCircle className="h-3 w-3" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleCancelEdit}>
+                                    <XCircle className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <span className="text-yellow-600">{day.horas_extras || "-"}</span>
+                              )}
+                            </TableCell>
                             <TableCell>
-                              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(day.status)}`}>
-                                {day.status === "completo" && <CheckCircle className="h-3 w-3" />}
-                                {day.status === "incompleto" && <AlertTriangle className="h-3 w-3" />}
-                                {day.status === "ausente" && <XCircle className="h-3 w-3" />}
-                                {day.status}
-                              </div>
+                              {editingCell?.empId === record.employee_id && editingCell?.day === day.day && editingCell?.field === 'status' ? (
+                                <div className="flex gap-1 items-center">
+                                  <Select value={editValue} onValueChange={setEditValue}>
+                                    <SelectTrigger className="h-7 w-32 text-xs">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="completo">Completo</SelectItem>
+                                      <SelectItem value="incompleto">Incompleto</SelectItem>
+                                      <SelectItem value="ausente">Ausente</SelectItem>
+                                      <SelectItem value="falta">Falta</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                  <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleSaveEdit}>
+                                    <CheckCircle className="h-3 w-3" />
+                                  </Button>
+                                  <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleCancelEdit}>
+                                    <XCircle className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(day.status)}`}>
+                                  {day.status === "completo" && <CheckCircle className="h-3 w-3" />}
+                                  {day.status === "incompleto" && <AlertTriangle className="h-3 w-3" />}
+                                  {day.status === "ausente" && <XCircle className="h-3 w-3" />}
+                                  {day.status}
+                                </div>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {!editingCell && (
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 w-7 p-0"
+                                    onClick={() => handleEditCell(record.employee_id, day.day, 'horas_extras', day.horas_extras || '0h 0min')}
+                                    title="Editar HE"
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-7 w-7 p-0"
+                                    onClick={() => handleEditCell(record.employee_id, day.day, 'status', day.status)}
+                                    title="Editar Status"
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}
