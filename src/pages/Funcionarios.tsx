@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Search, Mail, Phone, Edit, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -117,7 +117,7 @@ const Funcionarios = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("Todos");
-  const [employees, setEmployees] = useState(mockEmployees);
+  const [employees, setEmployees] = useState<typeof mockEmployees>([]);
   const [editingEmployee, setEditingEmployee] = useState<typeof mockEmployees[0] | null>(null);
   const [deletingEmployeeId, setDeletingEmployeeId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -134,6 +134,50 @@ const Funcionarios = () => {
     password: "",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Buscar funcionários do banco de dados
+  useEffect(() => {
+    const fetchEmployees = async () => {
+      const { data: profilesData, error } = await supabase
+        .from("profiles")
+        .select(`
+          id,
+          nome,
+          email,
+          cargo,
+          departamento,
+          created_at,
+          user_roles!inner(role)
+        `)
+        .eq("user_roles.role", "funcionario");
+
+      if (error) {
+        console.error("Erro ao buscar funcionários:", error);
+        toast({
+          title: "Erro ao carregar funcionários",
+          description: "Não foi possível carregar a lista de funcionários.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Transformar dados do banco para o formato usado na interface
+      const formattedEmployees = profilesData.map((profile: any) => ({
+        id: profile.id,
+        name: profile.nome,
+        email: profile.email,
+        phone: "(00) 00000-0000", // Placeholder - adicione campo phone na tabela se necessário
+        position: profile.cargo || "Não informado",
+        department: profile.departamento || "Não informado",
+        status: "ativo" as const, // Placeholder - adicione campo status se necessário
+        admissionDate: new Date(profile.created_at).toISOString().split('T')[0],
+      }));
+
+      setEmployees(formattedEmployees);
+    };
+
+    fetchEmployees();
+  }, [toast]);
 
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
@@ -166,15 +210,33 @@ const Funcionarios = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (deletingEmployeeId) {
-      setEmployees(employees.filter(emp => emp.id !== deletingEmployeeId));
-      toast({
-        title: "Funcionário excluído",
-        description: "O funcionário foi removido com sucesso.",
-      });
-      setDeletingEmployeeId(null);
-      setIsDeleteDialogOpen(false);
+      try {
+        // Deletar do banco de dados
+        const { error } = await supabase.auth.admin.deleteUser(deletingEmployeeId);
+        
+        if (error) {
+          throw error;
+        }
+
+        // Remover da lista local
+        setEmployees(employees.filter(emp => emp.id !== deletingEmployeeId));
+        
+        toast({
+          title: "Funcionário excluído",
+          description: "O funcionário foi removido com sucesso.",
+        });
+      } catch (error: any) {
+        toast({
+          title: "Erro ao excluir funcionário",
+          description: error.message || "Não foi possível excluir o funcionário.",
+          variant: "destructive",
+        });
+      } finally {
+        setDeletingEmployeeId(null);
+        setIsDeleteDialogOpen(false);
+      }
     }
   };
 
