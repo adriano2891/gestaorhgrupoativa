@@ -123,6 +123,10 @@ const Funcionarios = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [editPassword, setEditPassword] = useState("");
+  const [editSalary, setEditSalary] = useState("");
+  const [editCpf, setEditCpf] = useState("");
+  const [editAdmissionDate, setEditAdmissionDate] = useState("");
   const [newEmployee, setNewEmployee] = useState({
     name: "",
     email: "",
@@ -197,10 +201,25 @@ const Funcionarios = () => {
       .slice(0, 2);
   };
 
-  const handleEdit = (employeeId: string) => {
+  const handleEdit = async (employeeId: string) => {
     const employee = employees.find(emp => emp.id === employeeId);
     if (employee) {
       setEditingEmployee({ ...employee });
+      
+      // Buscar dados completos do banco
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("cpf")
+        .eq("id", employeeId)
+        .maybeSingle();
+      
+      if (profileData) {
+        setEditCpf(profileData.cpf || "");
+      }
+      
+      setEditPassword("");
+      setEditSalary("");
+      setEditAdmissionDate(employee.admissionDate);
       setIsEditDialogOpen(true);
     }
   };
@@ -244,17 +263,61 @@ const Funcionarios = () => {
     }
   };
 
-  const handleSaveEdit = () => {
+  const handleSaveEdit = async () => {
     if (editingEmployee) {
-      setEmployees(employees.map(emp => 
-        emp.id === editingEmployee.id ? editingEmployee : emp
-      ));
-      toast({
-        title: "Funcionário atualizado",
-        description: "Os dados do funcionário foram atualizados com sucesso.",
-      });
-      setIsEditDialogOpen(false);
-      setEditingEmployee(null);
+      try {
+        // Atualizar dados no perfil
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .update({
+            nome: editingEmployee.name,
+            email: editingEmployee.email,
+            cargo: editingEmployee.position,
+            departamento: editingEmployee.department,
+          })
+          .eq("id", editingEmployee.id);
+
+        if (profileError) throw profileError;
+
+        // Se senha foi fornecida, atualizar no auth
+        if (editPassword && editPassword.length >= 6) {
+          const { error: passwordError } = await supabase.auth.admin.updateUserById(
+            editingEmployee.id,
+            { password: editPassword }
+          );
+          
+          if (passwordError) {
+            console.error("Erro ao atualizar senha:", passwordError);
+            toast({
+              title: "Atenção",
+              description: "Dados atualizados, mas não foi possível alterar a senha.",
+              variant: "destructive",
+            });
+          }
+        }
+
+        // Atualizar lista local
+        setEmployees(employees.map(emp => 
+          emp.id === editingEmployee.id ? editingEmployee : emp
+        ));
+        
+        toast({
+          title: "Funcionário atualizado",
+          description: "Os dados do funcionário foram atualizados com sucesso.",
+        });
+        
+        setIsEditDialogOpen(false);
+        setEditingEmployee(null);
+        setEditPassword("");
+        setEditSalary("");
+      } catch (error: any) {
+        console.error("Erro ao atualizar funcionário:", error);
+        toast({
+          title: "Erro ao atualizar",
+          description: error.message || "Não foi possível atualizar os dados.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -573,6 +636,15 @@ const Funcionarios = () => {
                 />
               </div>
               <div className="grid gap-2">
+                <Label htmlFor="cpf">CPF</Label>
+                <Input
+                  id="cpf"
+                  value={editCpf}
+                  disabled
+                  className="bg-muted cursor-not-allowed"
+                />
+              </div>
+              <div className="grid gap-2">
                 <Label htmlFor="email">E-mail</Label>
                 <Input
                   id="email"
@@ -587,7 +659,21 @@ const Funcionarios = () => {
                   id="phone"
                   value={editingEmployee.phone}
                   onChange={(e) => updateEditingEmployee('phone', e.target.value)}
+                  placeholder="(00) 00000-0000"
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password">Nova Senha</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={editPassword}
+                  onChange={(e) => setEditPassword(e.target.value)}
+                  placeholder="Deixe em branco para não alterar"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Mínimo de 6 caracteres. Deixe em branco se não quiser alterar.
+                </p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="position">Cargo</Label>
@@ -595,6 +681,17 @@ const Funcionarios = () => {
                   id="position"
                   value={editingEmployee.position}
                   onChange={(e) => updateEditingEmployee('position', e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="salary">Salário</Label>
+                <Input
+                  id="salary"
+                  type="number"
+                  step="0.01"
+                  value={editSalary}
+                  onChange={(e) => setEditSalary(e.target.value)}
+                  placeholder="R$ 0,00"
                 />
               </div>
               <div className="grid gap-2">
@@ -614,6 +711,15 @@ const Funcionarios = () => {
                     <SelectItem value="Operações">Operações</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="admissionDate">Data de Admissão</Label>
+                <Input
+                  id="admissionDate"
+                  type="date"
+                  value={editAdmissionDate}
+                  onChange={(e) => setEditAdmissionDate(e.target.value)}
+                />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="status">Status</Label>
