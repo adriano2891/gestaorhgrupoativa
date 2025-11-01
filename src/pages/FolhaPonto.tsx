@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Calendar, Clock, Download, Filter } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Calendar, Clock, Download, Filter, AlertTriangle, CheckCircle, XCircle, FileText, Eye, FileSpreadsheet, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -25,74 +25,192 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
-const mockTimeRecords = [
-  {
-    id: "1",
-    employeeName: "João Silva",
-    date: "2025-10-30",
-    checkIn: "08:45",
-    lunchOut: "12:00",
-    lunchIn: "13:00",
-    checkOut: "18:15",
-    totalHours: "8h 30min",
-    status: "completo" as const,
-  },
-  {
-    id: "2",
-    employeeName: "Maria Santos",
-    date: "2025-10-30",
-    checkIn: "08:50",
-    lunchOut: "12:15",
-    lunchIn: "13:15",
-    checkOut: "18:00",
-    totalHours: "8h 00min",
-    status: "completo" as const,
-  },
-  {
-    id: "3",
-    employeeName: "Pedro Oliveira",
-    date: "2025-10-30",
-    checkIn: "09:10",
-    lunchOut: "12:30",
-    lunchIn: "13:30",
-    checkOut: "-",
-    totalHours: "-",
-    status: "em-andamento" as const,
-  },
-  {
-    id: "4",
-    employeeName: "Ana Costa",
-    date: "2025-10-30",
-    checkIn: "-",
-    lunchOut: "-",
-    lunchIn: "-",
-    checkOut: "-",
-    totalHours: "-",
-    status: "ausente" as const,
-  },
-  {
-    id: "5",
-    employeeName: "Carlos Ferreira",
-    date: "2025-10-30",
-    checkIn: "08:55",
-    lunchOut: "12:00",
-    lunchIn: "13:00",
-    checkOut: "18:10",
-    totalHours: "8h 15min",
-    status: "completo" as const,
-  },
-];
+interface DayRecord {
+  day: number;
+  entrada?: string;
+  saida?: string;
+  saida_almoco?: string;
+  retorno_almoco?: string;
+  total_horas?: string;
+  horas_extras?: string;
+  status: "completo" | "incompleto" | "ausente" | "falta";
+}
+
+interface EmployeeMonthRecord {
+  employee_id: string;
+  employee_name: string;
+  departamento?: string;
+  days: DayRecord[];
+  total_horas_mes: number;
+  total_horas_extras: number;
+  total_faltas: number;
+  status: "completo" | "incompleto";
+}
 
 const FolhaPonto = () => {
-  const [selectedDate, setSelectedDate] = useState("2025-10-30");
-  const [selectedStatus, setSelectedStatus] = useState("Todos");
+  const currentDate = new Date();
+  const [selectedMonth, setSelectedMonth] = useState((currentDate.getMonth() + 1).toString().padStart(2, '0'));
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
+  const [selectedEmployee, setSelectedEmployee] = useState("todos");
+  const [selectedDepartamento, setSelectedDepartamento] = useState("todos");
+  const [viewMode, setViewMode] = useState<"resumo" | "detalhado">("detalhado");
+  const [employees, setEmployees] = useState<any[]>([]);
+  const [departamentos, setDepartamentos] = useState<string[]>([]);
+  const [monthRecords, setMonthRecords] = useState<EmployeeMonthRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
 
-  const filteredRecords = mockTimeRecords.filter((record) => {
-    const matchesStatus =
-      selectedStatus === "Todos" || record.status === selectedStatus;
-    return matchesStatus;
-  });
+  useEffect(() => {
+    loadEmployees();
+    loadMonthRecords();
+  }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento]);
+
+  const loadEmployees = async () => {
+    const { data, error } = await supabase
+      .from("profiles")
+      .select("id, nome, departamento");
+    
+    if (data) {
+      setEmployees(data);
+      const depts = [...new Set(data.map(e => e.departamento).filter(Boolean))];
+      setDepartamentos(depts as string[]);
+    }
+  };
+
+  const loadMonthRecords = async () => {
+    setLoading(true);
+    try {
+      const startDate = `${selectedYear}-${selectedMonth}-01`;
+      const daysInMonth = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0).getDate();
+      const endDate = `${selectedYear}-${selectedMonth}-${daysInMonth}`;
+
+      let query = supabase
+        .from("registros_ponto")
+        .select("*, profiles!inner(nome, departamento)")
+        .gte("data", startDate)
+        .lte("data", endDate);
+
+      if (selectedEmployee !== "todos") {
+        query = query.eq("user_id", selectedEmployee);
+      }
+
+      const { data: registros, error } = await query;
+
+      if (error) throw error;
+
+      // Agrupar por funcionário
+      const employeeMap = new Map<string, EmployeeMonthRecord>();
+
+      // Obter lista de funcionários para o filtro
+      let employeeList = employees;
+      if (selectedEmployee !== "todos") {
+        employeeList = employees.filter(e => e.id === selectedEmployee);
+      }
+      if (selectedDepartamento !== "todos") {
+        employeeList = employeeList.filter(e => e.departamento === selectedDepartamento);
+      }
+
+      employeeList.forEach(emp => {
+        const days: DayRecord[] = [];
+        for (let day = 1; day <= daysInMonth; day++) {
+          days.push({
+            day,
+            status: "ausente"
+          });
+        }
+
+        employeeMap.set(emp.id, {
+          employee_id: emp.id,
+          employee_name: emp.nome,
+          departamento: emp.departamento,
+          days,
+          total_horas_mes: 0,
+          total_horas_extras: 0,
+          total_faltas: 0,
+          status: "incompleto"
+        });
+      });
+
+      // Preencher com registros reais
+      registros?.forEach((reg: any) => {
+        const empRecord = employeeMap.get(reg.user_id);
+        if (empRecord) {
+          const day = new Date(reg.data).getDate();
+          const dayIndex = day - 1;
+
+          const formatTime = (timestamp: string | null) => {
+            if (!timestamp) return undefined;
+            return new Date(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+          };
+
+          const formatInterval = (interval: string | null) => {
+            if (!interval) return "0h 0min";
+            const match = interval.match(/(\d+):(\d+):(\d+)/);
+            if (match) {
+              const hours = parseInt(match[1]);
+              const minutes = parseInt(match[2]);
+              return `${hours}h ${minutes}min`;
+            }
+            return "0h 0min";
+          };
+
+          empRecord.days[dayIndex] = {
+            day,
+            entrada: formatTime(reg.entrada),
+            saida: formatTime(reg.saida),
+            saida_almoco: formatTime(reg.saida_almoco),
+            retorno_almoco: formatTime(reg.retorno_almoco),
+            total_horas: formatInterval(reg.total_horas),
+            horas_extras: formatInterval(reg.horas_extras),
+            status: reg.entrada && reg.saida ? "completo" : reg.entrada ? "incompleto" : "ausente"
+          };
+
+          // Calcular totais
+          if (reg.total_horas) {
+            const match = reg.total_horas.match(/(\d+):(\d+):(\d+)/);
+            if (match) {
+              empRecord.total_horas_mes += parseInt(match[1]) + parseInt(match[2]) / 60;
+            }
+          }
+
+          if (reg.horas_extras) {
+            const match = reg.horas_extras.match(/(\d+):(\d+):(\d+)/);
+            if (match) {
+              empRecord.total_horas_extras += parseInt(match[1]) + parseInt(match[2]) / 60;
+            }
+          }
+        }
+      });
+
+      // Calcular faltas e status final
+      employeeMap.forEach(record => {
+        record.total_faltas = record.days.filter(d => d.status === "ausente").length;
+        const completos = record.days.filter(d => d.status === "completo").length;
+        record.status = completos > 0 ? "completo" : "incompleto";
+      });
+
+      setMonthRecords(Array.from(employeeMap.values()));
+    } catch (error) {
+      console.error("Erro ao carregar registros:", error);
+      toast.error("Erro ao carregar registros do mês");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -103,186 +221,408 @@ const FolhaPonto = () => {
       .slice(0, 2);
   };
 
-  const getStatusLabel = (status: string) => {
-    const labels = {
-      completo: "Completo",
-      "em-andamento": "Em Andamento",
-      ausente: "Ausente",
-    };
-    return labels[status as keyof typeof labels] || status;
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "completo": return "bg-green-500/10 text-green-700 dark:text-green-400";
+      case "incompleto": return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
+      case "ausente": return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
+      case "falta": return "bg-red-500/10 text-red-700 dark:text-red-400";
+      default: return "";
+    }
   };
 
-  const getStatusVariant = (status: string) => {
-    const variants = {
-      completo: "default",
-      "em-andamento": "secondary",
-      ausente: "destructive",
-    };
-    return variants[status as keyof typeof variants] || "default";
+  const exportToPDF = () => {
+    toast.success("Exportação para PDF iniciada");
+    // Implementação futura
   };
 
-  const stats = [
-    {
-      title: "Presentes",
-      value: "3",
-      description: "Funcionários no momento",
-      icon: "👥",
-    },
-    {
-      title: "Ausentes",
-      value: "1",
-      description: "Sem registro hoje",
-      icon: "❌",
-    },
-    {
-      title: "Média de Horas",
-      value: "8h 15min",
-      description: "Tempo médio trabalhado",
-      icon: "⏱️",
-    },
-    {
-      title: "Horas Extras",
-      value: "2h 30min",
-      description: "Total do dia",
-      icon: "⚡",
-    },
-  ];
+  const exportToExcel = () => {
+    toast.success("Exportação para Excel iniciada");
+    // Implementação futura
+  };
+
+  // Calcular estatísticas
+  const stats = {
+    total_funcionarios: monthRecords.length,
+    media_horas_dia: monthRecords.length > 0 
+      ? (monthRecords.reduce((sum, r) => sum + r.total_horas_mes, 0) / monthRecords.length / new Date(parseInt(selectedYear), parseInt(selectedMonth), 0).getDate()).toFixed(1)
+      : "0",
+    total_horas_extras: monthRecords.reduce((sum, r) => sum + r.total_horas_extras, 0).toFixed(1),
+    total_ausencias: monthRecords.reduce((sum, r) => sum + r.total_faltas, 0),
+    alertas: monthRecords.filter(r => r.total_horas_extras > 20 || r.total_faltas > 3).length
+  };
 
   return (
     <div className="space-y-6">
+      {/* Cabeçalho */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-primary-foreground">
+          <h1 className="text-3xl font-bold text-foreground">
             Folha de Ponto
           </h1>
-          <p className="text-primary-foreground/80 mt-1">
-            Controle de ponto e horas trabalhadas
+          <p className="text-muted-foreground mt-1">
+            Controle mensal de ponto e horas trabalhadas
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
-            <Filter className="h-4 w-4 mr-2" />
-            Filtros
+          <Dialog open={showFilters} onOpenChange={setShowFilters}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Filter className="h-4 w-4 mr-2" />
+                Filtros
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Filtros Avançados</DialogTitle>
+                <DialogDescription>
+                  Configure os filtros para visualizar a folha de ponto
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Mês</Label>
+                    <Select value={selectedMonth} onValueChange={setSelectedMonth}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="01">Janeiro</SelectItem>
+                        <SelectItem value="02">Fevereiro</SelectItem>
+                        <SelectItem value="03">Março</SelectItem>
+                        <SelectItem value="04">Abril</SelectItem>
+                        <SelectItem value="05">Maio</SelectItem>
+                        <SelectItem value="06">Junho</SelectItem>
+                        <SelectItem value="07">Julho</SelectItem>
+                        <SelectItem value="08">Agosto</SelectItem>
+                        <SelectItem value="09">Setembro</SelectItem>
+                        <SelectItem value="10">Outubro</SelectItem>
+                        <SelectItem value="11">Novembro</SelectItem>
+                        <SelectItem value="12">Dezembro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Ano</Label>
+                    <Select value={selectedYear} onValueChange={setSelectedYear}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="2024">2024</SelectItem>
+                        <SelectItem value="2025">2025</SelectItem>
+                        <SelectItem value="2026">2026</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Funcionário</Label>
+                  <Select value={selectedEmployee} onValueChange={setSelectedEmployee}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos os funcionários</SelectItem>
+                      {employees.map(emp => (
+                        <SelectItem key={emp.id} value={emp.id}>
+                          {emp.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Departamento</Label>
+                  <Select value={selectedDepartamento} onValueChange={setSelectedDepartamento}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos os departamentos</SelectItem>
+                      {departamentos.map(dept => (
+                        <SelectItem key={dept} value={dept}>
+                          {dept}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+          <Button variant="outline" onClick={exportToExcel}>
+            <FileSpreadsheet className="h-4 w-4 mr-2" />
+            Excel
           </Button>
-          <Button>
-            <Download className="h-4 w-4 mr-2" />
-            Exportar
+          <Button onClick={exportToPDF}>
+            <FileText className="h-4 w-4 mr-2" />
+            PDF
           </Button>
         </div>
       </div>
 
-      {/* Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-              <span className="text-2xl">{stat.icon}</span>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stat.description}
+      {/* Resumo Mensal */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total de Funcionários
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="h-5 w-5 text-primary" />
+              <span className="text-2xl font-bold">{stats.total_funcionarios}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Média Horas/Dia
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Clock className="h-5 w-5 text-blue-500" />
+              <span className="text-2xl font-bold">{stats.media_horas_dia}h</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Horas Extras Total
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-yellow-500" />
+              <span className="text-2xl font-bold">{stats.total_horas_extras}h</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total de Ausências
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-red-500" />
+              <span className="text-2xl font-bold">{stats.total_ausencias}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className={stats.alertas > 0 ? "border-yellow-500" : ""}>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Alertas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className={`h-5 w-5 ${stats.alertas > 0 ? "text-yellow-500" : "text-gray-400"}`} />
+              <span className="text-2xl font-bold">{stats.alertas}</span>
+            </div>
+            {stats.alertas > 0 && (
+              <p className="text-xs text-yellow-600 dark:text-yellow-400 mt-1">
+                HE ou faltas acima do normal
               </p>
-            </CardContent>
-          </Card>
-        ))}
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Tabela de Registros */}
-      <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <CardTitle>Registros de Ponto</CardTitle>
-              <CardDescription>
-                {filteredRecords.length} registro(s) encontrado(s)
-              </CardDescription>
-            </div>
-            <div className="flex gap-2">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm font-medium">
-                  {new Date(selectedDate).toLocaleDateString("pt-BR", {
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </span>
-              </div>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Todos">Todos</SelectItem>
-                  <SelectItem value="completo">Completo</SelectItem>
-                  <SelectItem value="em-andamento">Em Andamento</SelectItem>
-                  <SelectItem value="ausente">Ausente</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Funcionário</TableHead>
-                <TableHead>Entrada</TableHead>
-                <TableHead>Saída Almoço</TableHead>
-                <TableHead>Retorno Almoço</TableHead>
-                <TableHead>Saída</TableHead>
-                <TableHead>Total</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredRecords.map((record) => (
-                <TableRow key={record.id}>
-                  <TableCell>
+      {/* Tabs Resumo/Detalhado */}
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as any)}>
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="detalhado">
+            <Eye className="h-4 w-4 mr-2" />
+            Visão Detalhada
+          </TabsTrigger>
+          <TabsTrigger value="resumo">
+            <FileText className="h-4 w-4 mr-2" />
+            Visão Resumida
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Visão Detalhada */}
+        <TabsContent value="detalhado" className="space-y-4">
+          {loading ? (
+            <Card>
+              <CardContent className="py-12">
+                <div className="text-center text-muted-foreground">
+                  Carregando registros...
+                </div>
+              </CardContent>
+            </Card>
+          ) : monthRecords.length === 0 ? (
+            <Card>
+              <CardContent className="py-12">
+                <div className="text-center text-muted-foreground">
+                  Nenhum registro encontrado para o período selecionado
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            monthRecords.map((record) => (
+              <Card key={record.employee_id}>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-primary text-primary-foreground text-xs">
-                          {getInitials(record.employeeName)}
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          {getInitials(record.employee_name)}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="font-medium">
-                        {record.employeeName}
-                      </span>
+                      <div>
+                        <CardTitle className="text-lg">{record.employee_name}</CardTitle>
+                        <CardDescription>{record.departamento || "Sem departamento"}</CardDescription>
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-3 w-3 text-muted-foreground" />
-                      {record.checkIn}
+                    <div className="flex items-center gap-4 text-sm">
+                      <div className="text-center">
+                        <div className="text-muted-foreground">Total Horas</div>
+                        <div className="font-bold">{record.total_horas_mes.toFixed(1)}h</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-muted-foreground">Horas Extras</div>
+                        <div className="font-bold text-yellow-600">{record.total_horas_extras.toFixed(1)}h</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-muted-foreground">Faltas</div>
+                        <div className="font-bold text-red-600">{record.total_faltas}</div>
+                      </div>
                     </div>
-                  </TableCell>
-                  <TableCell>{record.lunchOut}</TableCell>
-                  <TableCell>{record.lunchIn}</TableCell>
-                  <TableCell>{record.checkOut}</TableCell>
-                  <TableCell>
-                    <span className="font-medium">{record.totalHours}</span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusVariant(record.status) as any}>
-                      {getStatusLabel(record.status)}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {filteredRecords.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">
-                Nenhum registro encontrado com os filtros selecionados.
-              </p>
-            </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-16">Dia</TableHead>
+                          <TableHead>Entrada</TableHead>
+                          <TableHead>Saída Almoço</TableHead>
+                          <TableHead>Retorno Almoço</TableHead>
+                          <TableHead>Saída</TableHead>
+                          <TableHead>Total</TableHead>
+                          <TableHead>HE</TableHead>
+                          <TableHead>Status</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {record.days.map((day) => (
+                          <TableRow key={day.day} className={day.status === "falta" ? "bg-red-50 dark:bg-red-950/20" : ""}>
+                            <TableCell className="font-medium">{day.day}</TableCell>
+                            <TableCell className="text-sm">{day.entrada || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.saida_almoco || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.retorno_almoco || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.saida || "-"}</TableCell>
+                            <TableCell className="text-sm font-medium">{day.total_horas || "-"}</TableCell>
+                            <TableCell className="text-sm text-yellow-600">{day.horas_extras || "-"}</TableCell>
+                            <TableCell>
+                              <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(day.status)}`}>
+                                {day.status === "completo" && <CheckCircle className="h-3 w-3" />}
+                                {day.status === "incompleto" && <AlertTriangle className="h-3 w-3" />}
+                                {day.status === "ausente" && <XCircle className="h-3 w-3" />}
+                                {day.status}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
           )}
-        </CardContent>
-      </Card>
+        </TabsContent>
+
+        {/* Visão Resumida */}
+        <TabsContent value="resumo">
+          <Card>
+            <CardHeader>
+              <CardTitle>Resumo do Mês</CardTitle>
+              <CardDescription>
+                Período: {selectedMonth}/{selectedYear}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Funcionário</TableHead>
+                    <TableHead>Departamento</TableHead>
+                    <TableHead className="text-right">Total Horas</TableHead>
+                    <TableHead className="text-right">Horas Extras</TableHead>
+                    <TableHead className="text-right">Faltas</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8">
+                        Carregando...
+                      </TableCell>
+                    </TableRow>
+                  ) : monthRecords.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                        Nenhum registro encontrado
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    monthRecords.map((record) => (
+                      <TableRow key={record.employee_id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-8 w-8">
+                              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                                {getInitials(record.employee_name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium">{record.employee_name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{record.departamento || "-"}</TableCell>
+                        <TableCell className="text-right font-medium">
+                          {record.total_horas_mes.toFixed(1)}h
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className={record.total_horas_extras > 20 ? "text-yellow-600 font-bold" : ""}>
+                            {record.total_horas_extras.toFixed(1)}h
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className={record.total_faltas > 3 ? "text-red-600 font-bold" : ""}>
+                            {record.total_faltas}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={record.status === "completo" ? "default" : "secondary"}>
+                            {record.status}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
