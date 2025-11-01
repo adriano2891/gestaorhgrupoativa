@@ -213,8 +213,12 @@ const Funcionarios = () => {
   const confirmDelete = async () => {
     if (deletingEmployeeId) {
       try {
-        // Deletar do banco de dados
-        const { error } = await supabase.auth.admin.deleteUser(deletingEmployeeId);
+        // Deletar role do funcionário (isso vai cascatear para outras tabelas)
+        const { error } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", deletingEmployeeId)
+          .eq("role", "funcionario");
         
         if (error) {
           throw error;
