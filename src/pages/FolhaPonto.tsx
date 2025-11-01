@@ -1,5 +1,8 @@
 import { useState, useEffect } from "react";
 import { Calendar, Clock, Download, Filter, AlertTriangle, CheckCircle, XCircle, FileText, Eye, FileSpreadsheet, Pencil } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -232,13 +235,70 @@ const FolhaPonto = () => {
   };
 
   const exportToPDF = () => {
-    toast.success("Exportação para PDF iniciada");
-    // Implementação futura
+    const doc = new jsPDF('l', 'mm', 'a4'); // landscape
+    
+    // Título
+    doc.setFontSize(18);
+    doc.text(`Folha de Ponto - ${selectedMonth}/${selectedYear}`, 14, 20);
+    
+    // Data de geração
+    doc.setFontSize(10);
+    doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, 14, 28);
+    
+    // Estatísticas
+    doc.setFontSize(12);
+    doc.text("Resumo do Período:", 14, 38);
+    doc.setFontSize(10);
+    doc.text(`Total de Funcionários: ${stats.total_funcionarios}`, 14, 44);
+    doc.text(`Média Horas/Dia: ${stats.media_horas_dia}h`, 14, 49);
+    doc.text(`Total Horas Extras: ${stats.total_horas_extras}h`, 14, 54);
+    doc.text(`Total Ausências: ${stats.total_ausencias}`, 14, 59);
+    
+    // Tabela de dados
+    if (monthRecords.length > 0) {
+      const tableData = monthRecords.map(record => [
+        record.employee_name,
+        record.departamento || '-',
+        `${record.total_horas_mes.toFixed(1)}h`,
+        `${record.total_horas_extras.toFixed(1)}h`,
+        record.total_faltas.toString(),
+        record.status === 'completo' ? 'Completo' : 'Incompleto'
+      ]);
+      
+      autoTable(doc, {
+        startY: 65,
+        head: [['Funcionário', 'Departamento', 'Total Horas', 'Horas Extras', 'Faltas', 'Status']],
+        body: tableData,
+        theme: 'grid',
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [17, 188, 183] }
+      });
+    }
+    
+    const fileName = `folha-ponto-${selectedMonth}-${selectedYear}.pdf`;
+    doc.save(fileName);
+    
+    toast.success("PDF exportado com sucesso!");
   };
 
   const exportToExcel = () => {
-    toast.success("Exportação para Excel iniciada");
-    // Implementação futura
+    const data = monthRecords.map(record => ({
+      'Funcionário': record.employee_name,
+      'Departamento': record.departamento || '-',
+      'Total Horas Mês': `${record.total_horas_mes.toFixed(1)}h`,
+      'Horas Extras': `${record.total_horas_extras.toFixed(1)}h`,
+      'Faltas': record.total_faltas,
+      'Status': record.status === 'completo' ? 'Completo' : 'Incompleto'
+    }));
+    
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Folha de Ponto");
+    
+    const fileName = `folha-ponto-${selectedMonth}-${selectedYear}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
+    
+    toast.success("Excel exportado com sucesso!");
   };
 
   // Calcular estatísticas
