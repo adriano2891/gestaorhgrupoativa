@@ -11,9 +11,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { toast } from "sonner";
-import { LogIn, UserPlus } from "lucide-react";
+import { LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Link } from "react-router-dom";
 
 const Login = () => {
   const { signIn } = useAuth();
@@ -93,15 +92,6 @@ const Login = () => {
               <LogIn className="mr-2 h-4 w-4" />
               {loading ? "Entrando..." : "Entrar"}
             </Button>
-            
-            <div className="mt-4 text-center">
-              <Link to="/criar-admin">
-                <Button type="button" variant="outline" className="w-full">
-                  <UserPlus className="mr-2 h-4 w-4" />
-                  Criar novo administrador
-                </Button>
-              </Link>
-            </div>
           </form>
         </CardContent>
       </Card>
