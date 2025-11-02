@@ -35,7 +35,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // Verificar sessão inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      // Se houver erro de token inválido, fazer logout
+      if (error?.message?.includes("Refresh Token")) {
+        console.log("Token inválido detectado, fazendo logout...");
+        supabase.auth.signOut();
+        setUser(null);
+        setProfile(null);
+        setRoles([]);
+        setLoading(false);
+        return;
+      }
+
       setUser(session?.user ?? null);
       if (session?.user) {
         loadUserData(session.user.id);
@@ -47,7 +58,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Escutar mudanças de autenticação
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      // Se houver erro de token, fazer logout
+      if (event === "TOKEN_REFRESHED" && !session) {
+        console.log("Falha ao renovar token, fazendo logout...");
+        supabase.auth.signOut();
+      }
+
       setUser(session?.user ?? null);
       if (session?.user) {
         loadUserData(session.user.id);
