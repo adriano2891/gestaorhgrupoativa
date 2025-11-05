@@ -1,16 +1,14 @@
+import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Layout } from "./components/Layout";
+import { AuthProvider } from "./components/auth/AuthProvider";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
-
-const queryClient = new QueryClient();
-
-import { Layout } from "./components/Layout";
-import { AuthProvider } from "./components/auth/AuthProvider";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import Holerites from "./pages/Holerites";
 import Funcionarios from "./pages/Funcionarios";
@@ -21,6 +19,8 @@ import GerenciarAdmins from "./pages/GerenciarAdmins";
 import PortalFuncionario from "./pages/PortalFuncionario";
 import CreateAdmin from "./pages/CreateAdmin";
 import ControleFerias from "./pages/ControleFerias";
+
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
