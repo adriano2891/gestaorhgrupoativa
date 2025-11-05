@@ -1,0 +1,64 @@
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Search } from "lucide-react";
+
+interface FiltrosFeriasProps {
+  searchTerm: string;
+  setSearchTerm: (value: string) => void;
+  statusFilter: string;
+  setStatusFilter: (value: string) => void;
+  departamentoFilter: string;
+  setDepartamentoFilter: (value: string) => void;
+}
+
+export const FiltrosFerias = ({
+  searchTerm,
+  setSearchTerm,
+  statusFilter,
+  setStatusFilter,
+  departamentoFilter,
+  setDepartamentoFilter,
+}: FiltrosFeriasProps) => {
+  return (
+    <div className="flex flex-col md:flex-row gap-4">
+      <div className="relative flex-1">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+        <Input
+          placeholder="Buscar por nome..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <SelectTrigger className="w-full md:w-48">
+          <SelectValue placeholder="Status" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="todos">Todos os Status</SelectItem>
+          <SelectItem value="pendente">Pendente</SelectItem>
+          <SelectItem value="aprovado">Aprovado</SelectItem>
+          <SelectItem value="em_andamento">Em Andamento</SelectItem>
+          <SelectItem value="reprovado">Reprovado</SelectItem>
+          <SelectItem value="concluido">Concluído</SelectItem>
+          <SelectItem value="cancelado">Cancelado</SelectItem>
+        </SelectContent>
+      </Select>
+
+      <Select value={departamentoFilter} onValueChange={setDepartamentoFilter}>
+        <SelectTrigger className="w-full md:w-48">
+          <SelectValue placeholder="Departamento" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="todos">Todos os Setores</SelectItem>
+          <SelectItem value="Administrativo">Administrativo</SelectItem>
+          <SelectItem value="Comercial">Comercial</SelectItem>
+          <SelectItem value="Financeiro">Financeiro</SelectItem>
+          <SelectItem value="TI">TI</SelectItem>
+          <SelectItem value="RH">RH</SelectItem>
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};

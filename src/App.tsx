@@ -20,6 +20,7 @@ import FolhaPonto from "./pages/FolhaPonto";
 import GerenciarAdmins from "./pages/GerenciarAdmins";
 import PortalFuncionario from "./pages/PortalFuncionario";
 import CreateAdmin from "./pages/CreateAdmin";
+import ControleFerias from "./pages/ControleFerias";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -98,6 +99,16 @@ const App = () => (
                 <ProtectedRoute>
                   <Layout>
                     <GerenciarAdmins />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/controle-ferias"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ControleFerias />
                   </Layout>
                 </ProtectedRoute>
               }

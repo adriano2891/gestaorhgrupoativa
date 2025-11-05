@@ -59,6 +59,64 @@ export type Database = {
         }
         Relationships: []
       }
+      historico_ferias: {
+        Row: {
+          acao: string
+          created_at: string
+          id: string
+          observacao: string | null
+          realizado_por: string | null
+          solicitacao_id: string
+          status_anterior: string | null
+          status_novo: string | null
+          user_id: string
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          realizado_por?: string | null
+          solicitacao_id: string
+          status_anterior?: string | null
+          status_novo?: string | null
+          user_id: string
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          id?: string
+          observacao?: string | null
+          realizado_por?: string | null
+          solicitacao_id?: string
+          status_anterior?: string | null
+          status_novo?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_ferias_realizado_por_fkey"
+            columns: ["realizado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_ferias_solicitacao_id_fkey"
+            columns: ["solicitacao_id"]
+            isOneToOne: false
+            referencedRelation: "solicitacoes_ferias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historico_ferias_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       historico_salarios: {
         Row: {
           alterado_por: string | null
@@ -193,6 +251,50 @@ export type Database = {
           variacao_mensal?: number | null
         }
         Relationships: []
+      }
+      periodos_aquisitivos: {
+        Row: {
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          dias_direito: number
+          dias_disponiveis: number | null
+          dias_usados: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          dias_direito?: number
+          dias_disponiveis?: number | null
+          dias_usados?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          dias_direito?: number
+          dias_disponiveis?: number | null
+          dias_usados?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "periodos_aquisitivos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -378,6 +480,82 @@ export type Database = {
           {
             foreignKeyName: "relatorios_gerados_gerado_por_fkey"
             columns: ["gerado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      solicitacoes_ferias: {
+        Row: {
+          aprovado_por: string | null
+          created_at: string
+          data_aprovacao: string | null
+          data_fim: string
+          data_inicio: string
+          dias_solicitados: number
+          id: string
+          motivo_reprovacao: string | null
+          notificado_em: string | null
+          observacao: string | null
+          periodo_aquisitivo_id: string
+          status: string
+          tipo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aprovado_por?: string | null
+          created_at?: string
+          data_aprovacao?: string | null
+          data_fim: string
+          data_inicio: string
+          dias_solicitados: number
+          id?: string
+          motivo_reprovacao?: string | null
+          notificado_em?: string | null
+          observacao?: string | null
+          periodo_aquisitivo_id: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aprovado_por?: string | null
+          created_at?: string
+          data_aprovacao?: string | null
+          data_fim?: string
+          data_inicio?: string
+          dias_solicitados?: number
+          id?: string
+          motivo_reprovacao?: string | null
+          notificado_em?: string | null
+          observacao?: string | null
+          periodo_aquisitivo_id?: string
+          status?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_ferias_aprovado_por_fkey"
+            columns: ["aprovado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_ferias_periodo_aquisitivo_id_fkey"
+            columns: ["periodo_aquisitivo_id"]
+            isOneToOne: false
+            referencedRelation: "periodos_aquisitivos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "solicitacoes_ferias_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
