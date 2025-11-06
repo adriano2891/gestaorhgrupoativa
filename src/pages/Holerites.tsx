@@ -7,50 +7,8 @@ import { HoleriteViewer } from "@/components/holerites/HoleriteViewer";
 import { HoleriteFilters } from "@/components/holerites/HoleriteFilters";
 import { UploadHolerite } from "@/components/holerites/UploadHolerite";
 import { useToast } from "@/hooks/use-toast";
-
-// Mock data
-const mockEmployees = [
-  {
-    id: "1",
-    name: "João Silva",
-    position: "Desenvolvedor Sênior",
-    department: "Tecnologia",
-    status: "active" as const,
-    hasPayslip: true,
-  },
-  {
-    id: "2",
-    name: "Maria Santos",
-    position: "Analista de RH",
-    department: "Recursos Humanos",
-    status: "active" as const,
-    hasPayslip: true,
-  },
-  {
-    id: "3",
-    name: "Pedro Oliveira",
-    position: "Gerente Comercial",
-    department: "Comercial",
-    status: "active" as const,
-    hasPayslip: true,
-  },
-  {
-    id: "4",
-    name: "Ana Costa",
-    position: "Coordenadora Financeira",
-    department: "Financeiro",
-    status: "active" as const,
-    hasPayslip: false,
-  },
-  {
-    id: "5",
-    name: "Carlos Ferreira",
-    position: "Assistente de Operações",
-    department: "Operações",
-    status: "inactive" as const,
-    hasPayslip: true,
-  },
-];
+import { useFuncionarios } from "@/hooks/useFuncionarios";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const mockPayslipData = {
   employeeName: "João Silva",
@@ -76,22 +34,23 @@ const Holerites = () => {
   const [uploadOpen, setUploadOpen] = useState(false);
   const [selectedPayslip, setSelectedPayslip] = useState<typeof mockPayslipData | null>(null);
   const { toast } = useToast();
+  const { data: funcionarios, isLoading } = useFuncionarios();
 
-  const filteredEmployees = mockEmployees.filter((emp) => {
-    const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDepartment = selectedDepartment === "Todos" || emp.department === selectedDepartment;
-    const matchesPosition = selectedPosition === "Todos" || emp.position.includes(selectedPosition);
+  const filteredEmployees = (funcionarios || []).filter((emp) => {
+    const matchesSearch = emp.nome.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesDepartment = selectedDepartment === "Todos" || emp.departamento === selectedDepartment;
+    const matchesPosition = selectedPosition === "Todos" || (emp.cargo && emp.cargo.includes(selectedPosition));
     return matchesSearch && matchesDepartment && matchesPosition;
   });
 
   const handleViewPayslip = (id: string) => {
-    const employee = mockEmployees.find((emp) => emp.id === id);
+    const employee = funcionarios?.find((emp) => emp.id === id);
     if (employee) {
       setSelectedPayslip({
         ...mockPayslipData,
-        employeeName: employee.name,
-        position: employee.position,
-        department: employee.department,
+        employeeName: employee.nome,
+        position: employee.cargo || "Não informado",
+        department: employee.departamento || "Não informado",
       });
       setViewerOpen(true);
     }
@@ -114,6 +73,34 @@ const Holerites = () => {
   const handleUpload = (employeeId: string, file: File, month: string, year: string) => {
     console.log("Upload:", { employeeId, file, month, year });
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-primary-foreground">Holerites (Visão ADM)</h1>
+            <p className="text-primary-foreground/80 mt-1">
+              Gerencie e visualize os holerites de todos os funcionários
+            </p>
+          </div>
+          <Button disabled>
+            <UploadIcon className="h-4 w-4 mr-2" />
+            Upload de Holerite
+          </Button>
+        </div>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Skeleton key={i} className="h-40" />
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -180,7 +167,7 @@ const Holerites = () => {
       <UploadHolerite
         open={uploadOpen}
         onOpenChange={setUploadOpen}
-        employees={mockEmployees.map((emp) => ({ id: emp.id, name: emp.name }))}
+        employees={(funcionarios || []).map((emp) => ({ id: emp.id, name: emp.nome }))}
         onUpload={handleUpload}
       />
     </div>

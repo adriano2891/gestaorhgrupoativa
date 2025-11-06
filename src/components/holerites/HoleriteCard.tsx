@@ -8,18 +8,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-
-interface Employee {
-  id: string;
-  name: string;
-  position: string;
-  department: string;
-  status: "active" | "inactive";
-  hasPayslip: boolean;
-}
+import { Funcionario } from "@/hooks/useFuncionarios";
 
 interface HoleriteCardProps {
-  employee: Employee;
+  employee: Funcionario;
   onView: (id: string) => void;
   onDownload: (id: string) => void;
   onSendEmail: (id: string) => void;
@@ -31,24 +23,25 @@ export const HoleriteCard = ({
   onDownload,
   onSendEmail,
 }: HoleriteCardProps) => {
+  // Por enquanto, considera que todos os funcionários têm holerite disponível
+  const hasPayslip = true;
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg">{employee.name}</CardTitle>
+            <CardTitle className="text-lg">{employee.nome}</CardTitle>
             <CardDescription>
-              {employee.position} • {employee.department}
+              {employee.cargo || "Cargo não informado"} • {employee.departamento || "Departamento não informado"}
             </CardDescription>
           </div>
-          <Badge variant={employee.status === "active" ? "default" : "secondary"}>
-            {employee.status === "active" ? "Ativo" : "Inativo"}
-          </Badge>
+          <Badge variant="default">Ativo</Badge>
         </div>
       </CardHeader>
       <CardContent>
         <div className="flex gap-2">
-          {employee.hasPayslip ? (
+          {hasPayslip ? (
             <>
               <Button
                 variant="default"
