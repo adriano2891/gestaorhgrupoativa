@@ -1,7 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-import { useEffect } from "react";
 
 export interface PeriodoAquisitivo {
   id: string;
@@ -38,43 +37,6 @@ export interface SolicitacaoFerias {
     departamento?: string;
   };
 }
-
-// Hook para configurar realtime updates
-export const useFeriasRealtime = () => {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const channel = supabase
-      .channel('solicitacoes-ferias-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'solicitacoes_ferias'
-        },
-        (payload) => {
-          console.log('Realtime update:', payload);
-          // Invalidar cache para atualizar automaticamente
-          queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
-          queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
-          
-          // Mostrar notificação para novas solicitações
-          if (payload.eventType === 'INSERT') {
-            toast({
-              title: "Nova solicitação de férias",
-              description: "Um funcionário enviou uma nova solicitação",
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
-};
 
 export const useSolicitacoesFerias = (filters?: {
   status?: string;
