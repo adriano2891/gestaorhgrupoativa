@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 export interface PeriodoAquisitivo {
   id: string;
@@ -28,6 +29,7 @@ export interface SolicitacaoFerias {
   data_aprovacao?: string;
   motivo_reprovacao?: string;
   notificado_em?: string;
+  visualizada_admin: boolean;
   created_at: string;
   updated_at: string;
   profiles?: {
@@ -42,8 +44,11 @@ export const useSolicitacoesFerias = (filters?: {
   departamento?: string;
   dataInicio?: string;
   dataFim?: string;
+  apenasNovas?: boolean;
 }) => {
-  return useQuery({
+  const queryClient = useQueryClient();
+
+  const query = useQuery({
     queryKey: ["solicitacoes-ferias", filters],
     queryFn: async () => {
       let query = supabase
@@ -70,6 +75,10 @@ export const useSolicitacoesFerias = (filters?: {
         query = query.lte("data_fim", filters.dataFim);
       }
 
+      if (filters?.apenasNovas) {
+        query = query.eq("visualizada_admin", false);
+      }
+
       const { data, error } = await query;
 
       if (error) throw error;
@@ -86,6 +95,41 @@ export const useSolicitacoesFerias = (filters?: {
       return filteredData;
     },
   });
+
+  // Configurar realtime updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('solicitacoes-ferias-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'solicitacoes_ferias'
+        },
+        (payload) => {
+          console.log('Realtime update:', payload);
+          // Invalidar cache para atualizar automaticamente
+          queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
+          queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+          
+          // Mostrar notificação para novas solicitações
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "Nova solicitação de férias",
+              description: "Um funcionário enviou uma nova solicitação",
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  return query;
 };
 
 export const useMetricasFerias = () => {
@@ -218,6 +262,28 @@ export const useNotificarFuncionario = () => {
         description: "Erro ao enviar notificação: " + error.message,
         variant: "destructive",
       });
+    },
+  });
+};
+
+export const useMarcarComoVisualizada = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (solicitacaoId: string) => {
+      const { data, error } = await supabase
+        .from("solicitacoes_ferias")
+        .update({ visualizada_admin: true })
+        .eq("id", solicitacaoId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
+      queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
     },
   });
 };

@@ -12,10 +12,12 @@ const ControleFerias = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [departamentoFilter, setDepartamentoFilter] = useState("todos");
+  const [apenasNovas, setApenasNovas] = useState(false);
 
   const { data: solicitacoes, isLoading } = useSolicitacoesFerias({
     status: statusFilter !== "todos" ? statusFilter : undefined,
     departamento: departamentoFilter !== "todos" ? departamentoFilter : undefined,
+    apenasNovas,
   });
 
   const solicitacoesFiltradas = useMemo(() => {
@@ -78,6 +80,8 @@ const ControleFerias = () => {
                 setStatusFilter={setStatusFilter}
                 departamentoFilter={departamentoFilter}
                 setDepartamentoFilter={setDepartamentoFilter}
+                apenasNovas={apenasNovas}
+                setApenasNovas={setApenasNovas}
               />
 
               {isLoading ? (

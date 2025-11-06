@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, CheckCircle, XCircle, Edit, Trash2 } from "lucide-react";
-import { SolicitacaoFerias, useAtualizarSolicitacao, useNotificarFuncionario } from "@/hooks/useFerias";
+import { Bell, CheckCircle, XCircle, Edit, Trash2, Mail } from "lucide-react";
+import { SolicitacaoFerias, useAtualizarSolicitacao, useNotificarFuncionario, useMarcarComoVisualizada } from "@/hooks/useFerias";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -30,6 +30,13 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
 
   const atualizarMutation = useAtualizarSolicitacao();
   const notificarMutation = useNotificarFuncionario();
+  const marcarVisualizadaMutation = useMarcarComoVisualizada();
+
+  const handleVisualizarDetalhes = (solicitacao: SolicitacaoFerias) => {
+    if (!solicitacao.visualizada_admin) {
+      marcarVisualizadaMutation.mutate(solicitacao.id);
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     const variants: Record<string, { variant: any; label: string; color: string }> = {
@@ -128,8 +135,30 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
               </TableRow>
             ) : (
               solicitacoes.map((solicitacao) => (
-                <TableRow key={solicitacao.id}>
-                  <TableCell className="font-medium">{solicitacao.profiles?.nome}</TableCell>
+                <TableRow 
+                  key={solicitacao.id}
+                  className="cursor-pointer"
+                  onClick={() => handleVisualizarDetalhes(solicitacao)}
+                >
+                  <TableCell className="font-medium">
+                    <div className="flex items-center gap-2">
+                      {!solicitacao.visualizada_admin && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge variant="default" className="bg-red-500 hover:bg-red-600 px-2 py-1">
+                                <Mail className="h-3 w-3" />
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Nova solicitação</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                      {solicitacao.profiles?.nome}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <div className="text-sm">
                       <div>{solicitacao.profiles?.cargo || "-"}</div>

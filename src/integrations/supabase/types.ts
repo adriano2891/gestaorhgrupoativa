@@ -503,6 +503,7 @@ export type Database = {
           tipo: string
           updated_at: string
           user_id: string
+          visualizada_admin: boolean
         }
         Insert: {
           aprovado_por?: string | null
@@ -520,6 +521,7 @@ export type Database = {
           tipo?: string
           updated_at?: string
           user_id: string
+          visualizada_admin?: boolean
         }
         Update: {
           aprovado_por?: string | null
@@ -537,6 +539,7 @@ export type Database = {
           tipo?: string
           updated_at?: string
           user_id?: string
+          visualizada_admin?: boolean
         }
         Relationships: [
           {
