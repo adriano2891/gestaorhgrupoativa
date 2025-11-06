@@ -48,7 +48,40 @@ export const useSolicitacoesFerias = (filters?: {
 }) => {
   const queryClient = useQueryClient();
 
-  const query = useQuery({
+  // Configurar realtime updates no nível superior do hook
+  useEffect(() => {
+    const channel = supabase
+      .channel('solicitacoes-ferias-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'solicitacoes_ferias'
+        },
+        (payload) => {
+          console.log('Realtime update:', payload);
+          // Invalidar cache para atualizar automaticamente
+          queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
+          queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+          
+          // Mostrar notificação para novas solicitações
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "Nova solicitação de férias",
+              description: "Um funcionário enviou uma nova solicitação",
+            });
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
+  return useQuery({
     queryKey: ["solicitacoes-ferias", filters],
     queryFn: async () => {
       let query = supabase
@@ -95,41 +128,6 @@ export const useSolicitacoesFerias = (filters?: {
       return filteredData;
     },
   });
-
-  // Configurar realtime updates
-  useEffect(() => {
-    const channel = supabase
-      .channel('solicitacoes-ferias-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'solicitacoes_ferias'
-        },
-        (payload) => {
-          console.log('Realtime update:', payload);
-          // Invalidar cache para atualizar automaticamente
-          queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
-          queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
-          
-          // Mostrar notificação para novas solicitações
-          if (payload.eventType === 'INSERT') {
-            toast({
-              title: "Nova solicitação de férias",
-              description: "Um funcionário enviou uma nova solicitação",
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [queryClient]);
-
-  return query;
 };
 
 export const useMetricasFerias = () => {
