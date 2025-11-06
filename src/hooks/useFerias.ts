@@ -39,16 +39,10 @@ export interface SolicitacaoFerias {
   };
 }
 
-export const useSolicitacoesFerias = (filters?: {
-  status?: string;
-  departamento?: string;
-  dataInicio?: string;
-  dataFim?: string;
-  apenasNovas?: boolean;
-}) => {
+// Hook para configurar realtime updates
+export const useFeriasRealtime = () => {
   const queryClient = useQueryClient();
 
-  // Configurar realtime updates no nível superior do hook
   useEffect(() => {
     const channel = supabase
       .channel('solicitacoes-ferias-changes')
@@ -80,7 +74,15 @@ export const useSolicitacoesFerias = (filters?: {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
+};
 
+export const useSolicitacoesFerias = (filters?: {
+  status?: string;
+  departamento?: string;
+  dataInicio?: string;
+  dataFim?: string;
+  apenasNovas?: boolean;
+}) => {
   return useQuery({
     queryKey: ["solicitacoes-ferias", filters],
     queryFn: async () => {

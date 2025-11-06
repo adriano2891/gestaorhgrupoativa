@@ -5,7 +5,7 @@ import { Calendar, Download, FileText } from "lucide-react";
 import { MetricasFerias } from "@/components/ferias/MetricasFerias";
 import { FiltrosFerias } from "@/components/ferias/FiltrosFerias";
 import { TabelaFerias } from "@/components/ferias/TabelaFerias";
-import { useSolicitacoesFerias } from "@/hooks/useFerias";
+import { useSolicitacoesFerias, useFeriasRealtime } from "@/hooks/useFerias";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const ControleFerias = () => {
@@ -13,6 +13,9 @@ const ControleFerias = () => {
   const [statusFilter, setStatusFilter] = useState("todos");
   const [departamentoFilter, setDepartamentoFilter] = useState("todos");
   const [apenasNovas, setApenasNovas] = useState(false);
+
+  // Ativar realtime updates
+  useFeriasRealtime();
 
   const { data: solicitacoes, isLoading } = useSolicitacoesFerias({
     status: statusFilter !== "todos" ? statusFilter : undefined,
