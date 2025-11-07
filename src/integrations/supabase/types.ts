@@ -59,6 +59,77 @@ export type Database = {
         }
         Relationships: []
       }
+      comunicados: {
+        Row: {
+          ativo: boolean
+          conteudo: string
+          created_at: string
+          criado_por: string | null
+          data_expiracao: string | null
+          destinatarios: string[] | null
+          id: string
+          prioridade: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          conteudo: string
+          created_at?: string
+          criado_por?: string | null
+          data_expiracao?: string | null
+          destinatarios?: string[] | null
+          id?: string
+          prioridade?: string
+          tipo?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          conteudo?: string
+          created_at?: string
+          criado_por?: string | null
+          data_expiracao?: string | null
+          destinatarios?: string[] | null
+          id?: string
+          prioridade?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      comunicados_lidos: {
+        Row: {
+          comunicado_id: string
+          id: string
+          lido_em: string
+          user_id: string
+        }
+        Insert: {
+          comunicado_id: string
+          id?: string
+          lido_em?: string
+          user_id: string
+        }
+        Update: {
+          comunicado_id?: string
+          id?: string
+          lido_em?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comunicados_lidos_comunicado_id_fkey"
+            columns: ["comunicado_id"]
+            isOneToOne: false
+            referencedRelation: "comunicados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       historico_ferias: {
         Row: {
           acao: string
@@ -146,6 +217,45 @@ export type Database = {
           motivo?: string | null
           salario_anterior?: number | null
           salario_novo?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      holerites: {
+        Row: {
+          ano: number
+          arquivo_url: string | null
+          created_at: string
+          descontos: number | null
+          id: string
+          mes: number
+          salario_bruto: number
+          salario_liquido: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ano: number
+          arquivo_url?: string | null
+          created_at?: string
+          descontos?: number | null
+          id?: string
+          mes: number
+          salario_bruto: number
+          salario_liquido: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ano?: number
+          arquivo_url?: string | null
+          created_at?: string
+          descontos?: number | null
+          id?: string
+          mes?: number
+          salario_bruto?: number
+          salario_liquido?: number
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

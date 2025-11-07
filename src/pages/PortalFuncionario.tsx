@@ -11,10 +11,16 @@ import { PortalBeneficios } from "@/components/ponto/PortalBeneficios";
 import { PortalTreinamentos } from "@/components/ponto/PortalTreinamentos";
 import { PortalSuporte } from "@/components/ponto/PortalSuporte";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useHoleritesRealtime, useComunicadosRealtime, useFeriasRealtime } from "@/hooks/useRealtimeUpdates";
 
 const PortalContent = () => {
   const { user, loading } = usePortalAuth();
   const [currentSection, setCurrentSection] = useState<string>("dashboard");
+
+  // Habilitar atualizações em tempo real para o portal
+  useHoleritesRealtime();
+  useComunicadosRealtime();
+  useFeriasRealtime();
 
   if (loading) {
     return (

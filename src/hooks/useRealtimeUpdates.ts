@@ -210,3 +210,69 @@ export const useMetricasRealtime = () => {
     };
   }, [queryClient]);
 };
+
+/**
+ * Hook para gerenciar atualizações em tempo real de holerites
+ */
+export const useHoleritesRealtime = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('holerites-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'holerites'
+        },
+        (payload) => {
+          console.log('Holerite atualizado:', payload);
+          queryClient.invalidateQueries({ queryKey: ["holerites"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+};
+
+/**
+ * Hook para gerenciar atualizações em tempo real de comunicados
+ */
+export const useComunicadosRealtime = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel('comunicados-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'comunicados'
+        },
+        (payload) => {
+          console.log('Comunicado atualizado:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            toast({
+              title: "Novo comunicado",
+              description: "Um novo comunicado foi publicado.",
+            });
+          }
+          
+          queryClient.invalidateQueries({ queryKey: ["comunicados"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+};
