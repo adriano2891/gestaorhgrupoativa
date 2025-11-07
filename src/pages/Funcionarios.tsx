@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, Mail, Phone, Edit, Trash2, TrendingUp } from "lucide-react";
+import { useFuncionariosRealtime } from "@/hooks/useRealtimeUpdates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -116,6 +117,7 @@ const mockEmployees = [
 
 const Funcionarios = () => {
   const { toast } = useToast();
+  useFuncionariosRealtime();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("Todos");
   const [employees, setEmployees] = useState<typeof mockEmployees>([]);

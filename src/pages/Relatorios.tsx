@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useFuncionariosRealtime, usePontoRealtime, useMetricasRealtime } from "@/hooks/useRealtimeUpdates";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,9 @@ import { useMetricas } from "@/hooks/useMetricas";
 import { format } from "date-fns";
 
 const Relatorios = () => {
+  useFuncionariosRealtime();
+  usePontoRealtime();
+  useMetricasRealtime();
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
   const [filters, setFilters] = useState<any>({});
   const [reportData, setReportData] = useState<any>(null);

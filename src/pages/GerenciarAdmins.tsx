@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Shield, UserPlus, Edit, Trash2, Mail, Loader2 } from "lucide-react";
 import { useAdmins, useDeleteAdmin, type Admin } from "@/hooks/useAdmins";
+import { useAdminsRealtime } from "@/hooks/useRealtimeUpdates";
 import { AdminDialog } from "@/components/admins/AdminDialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -35,6 +36,7 @@ import {
 const GerenciarAdmins = () => {
   const { data: admins = [], isLoading } = useAdmins();
   const deleteAdmin = useDeleteAdmin();
+  useAdminsRealtime();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | undefined>();
 

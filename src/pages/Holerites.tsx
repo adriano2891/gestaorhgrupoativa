@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Upload as UploadIcon } from "lucide-react";
+import { useFuncionariosRealtime } from "@/hooks/useRealtimeUpdates";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { HoleriteCard } from "@/components/holerites/HoleriteCard";
@@ -26,6 +27,7 @@ const mockPayslipData = {
 };
 
 const Holerites = () => {
+  useFuncionariosRealtime();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("10");
   const [selectedDepartment, setSelectedDepartment] = useState("Todos");

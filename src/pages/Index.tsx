@@ -2,10 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Users, Briefcase, BarChart3, Clock, FileText, Shield, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useMetricasRealtime } from "@/hooks/useRealtimeUpdates";
 
 const Index = () => {
   const navigate = useNavigate();
   const { roles } = useAuth();
+  useMetricasRealtime();
   const isAdmin = roles.includes("admin") || roles.includes("rh") || roles.includes("gestor");
 
   const modules = [

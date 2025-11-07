@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Calendar, Clock, Download, Filter, AlertTriangle, CheckCircle, XCircle, FileText, Eye, FileSpreadsheet, Pencil } from "lucide-react";
+import { usePontoRealtime } from "@/hooks/useRealtimeUpdates";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -65,6 +66,7 @@ interface EmployeeMonthRecord {
 }
 
 const FolhaPonto = () => {
+  usePontoRealtime();
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState((currentDate.getMonth() + 1).toString().padStart(2, '0'));
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());

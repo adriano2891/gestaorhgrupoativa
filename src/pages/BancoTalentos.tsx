@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, UserPlus, Download, Eye, Trash2 } from "lucide-react";
+import { useCandidatosRealtime } from "@/hooks/useRealtimeUpdates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -66,6 +67,7 @@ type Candidate = {
 
 const BancoTalentos = () => {
   const { toast } = useToast();
+  useCandidatosRealtime();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("Todos");
   const [candidates, setCandidates] = useState<Candidate[]>([]);

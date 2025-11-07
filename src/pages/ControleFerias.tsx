@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { useFeriasRealtime } from "@/hooks/useRealtimeUpdates";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Download, FileText } from "lucide-react";
 import { MetricasFerias } from "@/components/ferias/MetricasFerias";
@@ -9,6 +10,7 @@ import { useSolicitacoesFerias } from "@/hooks/useFerias";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const ControleFerias = () => {
+  useFeriasRealtime();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [departamentoFilter, setDepartamentoFilter] = useState("todos");
