@@ -7,9 +7,12 @@ import { HoleriteCard } from "@/components/holerites/HoleriteCard";
 import { HoleriteViewer } from "@/components/holerites/HoleriteViewer";
 import { HoleriteFilters } from "@/components/holerites/HoleriteFilters";
 import { UploadHolerite } from "@/components/holerites/UploadHolerite";
+import { SendHoleriteDialog } from "@/components/holerites/SendHoleriteDialog";
 import { useToast } from "@/hooks/use-toast";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useEnviarHolerite } from "@/hooks/useLogsEnvioHolerites";
+import { useHolerites } from "@/hooks/useHolerites";
 
 const mockPayslipData = {
   employeeName: "João Silva",
@@ -34,9 +37,12 @@ const Holerites = () => {
   const [selectedPosition, setSelectedPosition] = useState("Todos");
   const [viewerOpen, setViewerOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [sendDialogOpen, setSendDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<{ id: string; nome: string; email?: string } | null>(null);
   const [selectedPayslip, setSelectedPayslip] = useState<typeof mockPayslipData | null>(null);
   const { toast } = useToast();
   const { data: funcionarios, isLoading } = useFuncionarios();
+  const enviarHolerite = useEnviarHolerite();
 
   const filteredEmployees = (funcionarios || []).filter((emp) => {
     const matchesSearch = emp.nome.toLowerCase().includes(searchTerm.toLowerCase());
@@ -66,10 +72,15 @@ const Holerites = () => {
   };
 
   const handleSendEmail = (id: string) => {
-    toast({
-      title: "E-mail enviado",
-      description: "O holerite foi enviado para o e-mail do funcionário.",
-    });
+    const employee = funcionarios?.find((emp) => emp.id === id);
+    if (employee) {
+      setSelectedEmployee({
+        id: employee.id,
+        nome: employee.nome,
+        email: employee.email,
+      });
+      setSendDialogOpen(true);
+    }
   };
 
   const handleUpload = (employeeId: string, file: File, month: string, year: string) => {
@@ -172,6 +183,14 @@ const Holerites = () => {
         employees={(funcionarios || []).map((emp) => ({ id: emp.id, name: emp.nome }))}
         onUpload={handleUpload}
       />
+
+      {selectedEmployee && (
+        <SendHoleriteDialog
+          open={sendDialogOpen}
+          onOpenChange={setSendDialogOpen}
+          employee={selectedEmployee}
+        />
+      )}
     </div>
   );
 };

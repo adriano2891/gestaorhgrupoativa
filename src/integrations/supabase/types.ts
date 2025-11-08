@@ -260,6 +260,53 @@ export type Database = {
         }
         Relationships: []
       }
+      logs_envio_holerites: {
+        Row: {
+          created_at: string
+          email_destino: string
+          enviado_por: string | null
+          holerite_id: string
+          id: string
+          mensagem_erro: string | null
+          status: string
+          tentativas: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_destino: string
+          enviado_por?: string | null
+          holerite_id: string
+          id?: string
+          mensagem_erro?: string | null
+          status: string
+          tentativas?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_destino?: string
+          enviado_por?: string | null
+          holerite_id?: string
+          id?: string
+          mensagem_erro?: string | null
+          status?: string
+          tentativas?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logs_envio_holerites_holerite_id_fkey"
+            columns: ["holerite_id"]
+            isOneToOne: false
+            referencedRelation: "holerites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       logs_relatorios: {
         Row: {
           acao: string
