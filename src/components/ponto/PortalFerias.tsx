@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { SolicitarFeriasDialog } from "./SolicitarFeriasDialog";
 
 interface PortalFeriasProps {
   onBack: () => void;
@@ -114,7 +115,10 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
                       </CardContent>
                     </Card>
                   </div>
-                  <Button className="w-full">Solicitar Férias</Button>
+                  
+                  {periodos && periodos.length > 0 && (
+                    <SolicitarFeriasDialog periodos={periodos} />
+                  )}
                   
                   {solicitacoes && solicitacoes.length > 0 && (
                     <div className="mt-6">

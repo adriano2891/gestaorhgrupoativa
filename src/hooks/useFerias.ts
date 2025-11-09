@@ -249,3 +249,64 @@ export const useMarcarComoVisualizada = () => {
     },
   });
 };
+
+export const useCriarSolicitacaoFerias = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      periodo_aquisitivo_id,
+      data_inicio,
+      data_fim,
+      dias_solicitados,
+      tipo = 'ferias',
+      observacao,
+    }: {
+      periodo_aquisitivo_id: string;
+      data_inicio: string;
+      data_fim: string;
+      dias_solicitados: number;
+      tipo?: 'ferias' | 'ferias_coletivas' | 'abono_pecuniario';
+      observacao?: string;
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) throw new Error("Usuário não autenticado");
+
+      const { data, error } = await supabase
+        .from("solicitacoes_ferias")
+        .insert({
+          user_id: user.id,
+          periodo_aquisitivo_id,
+          data_inicio,
+          data_fim,
+          dias_solicitados,
+          tipo,
+          observacao,
+          status: 'pendente',
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
+      queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias-portal"] });
+      queryClient.invalidateQueries({ queryKey: ["periodos-aquisitivos-portal"] });
+      queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+      toast({
+        title: "Solicitação enviada",
+        description: "Sua solicitação de férias foi enviada para aprovação",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erro",
+        description: "Erro ao solicitar férias: " + error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
