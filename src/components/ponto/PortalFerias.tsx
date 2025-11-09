@@ -116,9 +116,7 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
                     </Card>
                   </div>
                   
-                  {periodos && periodos.length > 0 && (
-                    <SolicitarFeriasDialog periodos={periodos} />
-                  )}
+                  <SolicitarFeriasDialog periodos={periodos || []} />
                   
                   {solicitacoes && solicitacoes.length > 0 && (
                     <div className="mt-6">

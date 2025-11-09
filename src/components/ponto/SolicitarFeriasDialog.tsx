@@ -72,24 +72,38 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
         <DialogHeader>
           <DialogTitle>Solicitar Férias</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="periodo">Período Aquisitivo</Label>
-            <Select value={periodoSelecionado} onValueChange={setPeriodoSelecionado}>
-              <SelectTrigger id="periodo">
-                <SelectValue placeholder="Selecione o período" />
-              </SelectTrigger>
-              <SelectContent>
-                {periodos.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {format(new Date(p.data_inicio), "dd/MM/yyyy", { locale: ptBR })} -{" "}
-                    {format(new Date(p.data_fim), "dd/MM/yyyy", { locale: ptBR })} ({p.dias_disponiveis}{" "}
-                    dias disponíveis)
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        
+        {periodos.length === 0 ? (
+          <div className="py-8 text-center space-y-4">
+            <p className="text-muted-foreground">
+              Você ainda não possui períodos aquisitivos cadastrados.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Entre em contato com o RH para cadastrar seus períodos de férias.
+            </p>
+            <Button onClick={() => setOpen(false)} className="w-full">
+              Entendi
+            </Button>
           </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="periodo">Período Aquisitivo</Label>
+              <Select value={periodoSelecionado} onValueChange={setPeriodoSelecionado}>
+                <SelectTrigger id="periodo">
+                  <SelectValue placeholder="Selecione o período" />
+                </SelectTrigger>
+                <SelectContent>
+                  {periodos.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {format(new Date(p.data_inicio), "dd/MM/yyyy", { locale: ptBR })} -{" "}
+                      {format(new Date(p.data_fim), "dd/MM/yyyy", { locale: ptBR })} ({p.dias_disponiveis}{" "}
+                      dias disponíveis)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
           <div className="space-y-2">
             <Label htmlFor="tipo">Tipo</Label>
@@ -183,25 +197,26 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
             />
           </div>
 
-          <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              className="flex-1"
-              disabled={
-                !periodoSelecionado ||
-                !dataInicio ||
-                !dataFim ||
-                (periodo ? diasSolicitados > periodo.dias_disponiveis : false) ||
-                criarSolicitacao.isPending
-              }
-            >
-              {criarSolicitacao.isPending ? "Enviando..." : "Solicitar"}
-            </Button>
-          </div>
-        </form>
+            <div className="flex gap-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1"
+                disabled={
+                  !periodoSelecionado ||
+                  !dataInicio ||
+                  !dataFim ||
+                  (periodo ? diasSolicitados > periodo.dias_disponiveis : false) ||
+                  criarSolicitacao.isPending
+                }
+              >
+                {criarSolicitacao.isPending ? "Enviando..." : "Solicitar"}
+              </Button>
+            </div>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );
