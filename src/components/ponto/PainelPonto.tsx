@@ -6,6 +6,8 @@ import { ArrowLeft, Clock } from "lucide-react";
 import { BotoesPonto } from "./BotoesPonto";
 import { TabelaPontoDia } from "./TabelaPontoDia";
 import { HistoricoPonto } from "./HistoricoPonto";
+import { RelogioTurno } from "./RelogioTurno";
+import { CronometroPausa } from "./CronometroPausa";
 import { supabase } from "@/integrations/supabase/client";
 
 export const PainelPonto = () => {
@@ -76,6 +78,12 @@ export const PainelPonto = () => {
               </div>
             </CardHeader>
           </Card>
+
+          {/* Relógios e Cronômetros */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <RelogioTurno registroHoje={registroHoje} />
+            <CronometroPausa registroHoje={registroHoje} />
+          </div>
 
           {/* Botões de Marcação */}
           <BotoesPonto 
