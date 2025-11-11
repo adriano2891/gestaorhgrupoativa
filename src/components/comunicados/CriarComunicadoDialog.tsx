@@ -57,12 +57,19 @@ export const CriarComunicadoDialog = ({
         ? ["todos"]
         : departamentosSelecionados;
 
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("Usuário não autenticado");
+      }
+
       const { error } = await supabase.from("comunicados").insert({
         titulo,
         conteudo,
         tipo,
         prioridade,
         destinatarios,
+        criado_por: user.id,
         data_expiracao: dataExpiracao?.toISOString() || null,
         ativo: true,
       });
