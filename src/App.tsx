@@ -19,6 +19,7 @@ import GerenciarAdmins from "./pages/GerenciarAdmins";
 import PortalFuncionario from "./pages/PortalFuncionario";
 import CreateAdmin from "./pages/CreateAdmin";
 import ControleFerias from "./pages/ControleFerias";
+import Comunicados from "./pages/Comunicados";
 
 const queryClient = new QueryClient();
 
@@ -109,6 +110,16 @@ const App = () => (
                 <ProtectedRoute>
                   <Layout>
                     <ControleFerias />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/comunicados"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Comunicados />
                   </Layout>
                 </ProtectedRoute>
               }
