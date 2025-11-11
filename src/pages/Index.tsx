@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Briefcase, BarChart3, Clock, FileText, Shield, Calendar } from "lucide-react";
+import { Users, Briefcase, BarChart3, Clock, FileText, Shield, Calendar, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useMetricasRealtime } from "@/hooks/useRealtimeUpdates";
@@ -58,6 +58,14 @@ const Index = () => {
       path: "/controle-ferias",
       color: "text-pink-500",
       bgColor: "bg-pink-50 dark:bg-pink-950",
+    },
+    {
+      title: "Comunicados",
+      description: "Avisos e notificações internas",
+      icon: Bell,
+      path: "/comunicados",
+      color: "text-yellow-500",
+      bgColor: "bg-yellow-50 dark:bg-yellow-950",
     },
   ];
 
