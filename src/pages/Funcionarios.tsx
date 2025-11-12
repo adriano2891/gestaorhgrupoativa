@@ -187,6 +187,27 @@ const Funcionarios = () => {
     };
 
     fetchEmployees();
+
+    // Subscrever a mudanças em tempo real na tabela profiles
+    const channel = supabase
+      .channel('profiles-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        () => {
+          // Recarregar funcionários quando houver mudanças
+          fetchEmployees();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [toast]);
 
   // Buscar salários e histórico de alterações
@@ -226,6 +247,27 @@ const Funcionarios = () => {
     };
 
     fetchSalaries();
+
+    // Subscrever a mudanças em tempo real no histórico de salários
+    const channel = supabase
+      .channel('salary-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'historico_salarios'
+        },
+        () => {
+          // Recarregar salários quando houver mudanças no histórico
+          fetchSalaries();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [employees]);
 
   const filteredEmployees = employees.filter((emp) => {
