@@ -2,12 +2,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Users, Briefcase, BarChart3, Clock, FileText, Shield, Calendar, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { useMetricasRealtime } from "@/hooks/useRealtimeUpdates";
+import { 
+  useMetricasRealtime, 
+  useFuncionariosRealtime, 
+  useComunicadosRealtime 
+} from "@/hooks/useRealtimeUpdates";
 
 const Index = () => {
   const navigate = useNavigate();
   const { roles } = useAuth();
+  
+  // Sincronização em tempo real para todos os módulos
   useMetricasRealtime();
+  useFuncionariosRealtime();
+  useComunicadosRealtime();
   const isAdmin = roles.includes("admin") || roles.includes("rh") || roles.includes("gestor");
 
   const modules = [
