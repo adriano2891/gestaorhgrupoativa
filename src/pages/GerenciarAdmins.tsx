@@ -3,7 +3,6 @@ import { Shield, UserPlus, Edit, Trash2, Mail, Loader2 } from "lucide-react";
 import { useAdmins, useDeleteAdmin, type Admin } from "@/hooks/useAdmins";
 import { useAdminsRealtime } from "@/hooks/useRealtimeUpdates";
 import { AdminDialog } from "@/components/admins/AdminDialog";
-import { DeleteAllUsersDialog } from "@/components/admins/DeleteAllUsersDialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -126,13 +125,10 @@ const GerenciarAdmins = () => {
             Gerencie administradores e suas permissões
           </p>
         </div>
-        <div className="flex gap-2">
-          <DeleteAllUsersDialog />
-          <Button onClick={handleAddAdmin}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Adicionar Admin
-          </Button>
-        </div>
+        <Button onClick={handleAddAdmin}>
+          <UserPlus className="h-4 w-4 mr-2" />
+          Adicionar Admin
+        </Button>
       </div>
 
       <AdminDialog
