@@ -55,16 +55,32 @@ const Comunicados = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("comunicados").delete().eq("id", id);
-      if (error) throw error;
+      console.log("Tentando excluir comunicado:", id);
+      
+      const { data, error } = await supabase
+        .from("comunicados")
+        .delete()
+        .eq("id", id)
+        .select();
+      
+      if (error) {
+        console.error("Erro ao excluir comunicado:", error);
+        throw error;
+      }
+      
+      console.log("Comunicado excluído com sucesso:", data);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comunicados-admin"] });
       toast.success("Comunicado excluído com sucesso");
       setDeleteDialogOpen(false);
+      setSelectedComunicado(null);
     },
-    onError: () => {
-      toast.error("Erro ao excluir comunicado");
+    onError: (error: any) => {
+      console.error("Erro na mutation de exclusão:", error);
+      toast.error(error.message || "Erro ao excluir comunicado");
+      setDeleteDialogOpen(false);
     },
   });
 

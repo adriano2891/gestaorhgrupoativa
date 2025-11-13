@@ -63,7 +63,7 @@ export const CriarComunicadoDialog = ({
         throw new Error("Usuário não autenticado");
       }
 
-      const { error } = await supabase.from("comunicados").insert({
+      console.log("Criando comunicado com dados:", {
         titulo,
         conteudo,
         tipo,
@@ -74,15 +74,33 @@ export const CriarComunicadoDialog = ({
         ativo: true,
       });
 
-      if (error) throw error;
+      const { data, error } = await supabase.from("comunicados").insert({
+        titulo,
+        conteudo,
+        tipo,
+        prioridade,
+        destinatarios,
+        criado_por: user.id,
+        data_expiracao: dataExpiracao?.toISOString() || null,
+        ativo: true,
+      }).select();
+
+      if (error) {
+        console.error("Erro ao criar comunicado:", error);
+        throw error;
+      }
+      
+      console.log("Comunicado criado com sucesso:", data);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comunicados-admin"] });
       toast.success("Comunicado criado com sucesso");
       handleClose();
     },
-    onError: () => {
-      toast.error("Erro ao criar comunicado");
+    onError: (error: any) => {
+      console.error("Erro na mutation:", error);
+      toast.error(error.message || "Erro ao criar comunicado");
     },
   });
 
