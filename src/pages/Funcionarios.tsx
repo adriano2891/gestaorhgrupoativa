@@ -213,37 +213,64 @@ const Funcionarios = () => {
   // Buscar salários e histórico de alterações
   useEffect(() => {
     const fetchSalaries = async () => {
-      if (employees.length === 0) return;
-
-      const salaries: Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }> = {};
-
-      for (const emp of employees) {
-        // Buscar salário atual
-        const { data: profileData } = await supabase
-          .from("profiles")
-          .select("salario")
-          .eq("id", emp.id)
-          .maybeSingle();
-
-        // Buscar última alteração de salário
-        const { data: historicoData } = await supabase
-          .from("historico_salarios")
-          .select("salario_novo, data_alteracao")
-          .eq("user_id", emp.id)
-          .order("data_alteracao", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        salaries[emp.id] = {
-          salario: profileData?.salario || null,
-          ultimaAlteracao: historicoData ? {
-            valor: historicoData.salario_novo,
-            data: new Date(historicoData.data_alteracao).toLocaleDateString('pt-BR')
-          } : undefined
-        };
+      if (employees.length === 0) {
+        setEmployeeSalaries({});
+        return;
       }
 
-      setEmployeeSalaries(salaries);
+      try {
+        console.log("Buscando salários para", employees.length, "funcionários");
+        
+        // Buscar todos os salários de uma vez
+        const employeeIds = employees.map(emp => emp.id);
+        
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, salario")
+          .in("id", employeeIds);
+
+        if (profilesError) {
+          console.error("Erro ao buscar salários:", profilesError);
+          return;
+        }
+
+        // Buscar histórico de salários de uma vez
+        const { data: historicoData, error: historicoError } = await supabase
+          .from("historico_salarios")
+          .select("user_id, salario_novo, data_alteracao")
+          .in("user_id", employeeIds)
+          .order("data_alteracao", { ascending: false });
+
+        if (historicoError) {
+          console.error("Erro ao buscar histórico:", historicoError);
+        }
+
+        // Criar mapa de históricos (pegar apenas o mais recente de cada usuário)
+        const historicoMap = new Map<string, { valor: number, data: string }>();
+        historicoData?.forEach(hist => {
+          if (!historicoMap.has(hist.user_id)) {
+            historicoMap.set(hist.user_id, {
+              valor: hist.salario_novo,
+              data: new Date(hist.data_alteracao).toLocaleDateString('pt-BR')
+            });
+          }
+        });
+
+        // Montar objeto de salários
+        const salaries: Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }> = {};
+        
+        profilesData?.forEach(profile => {
+          salaries[profile.id] = {
+            salario: profile.salario,
+            ultimaAlteracao: historicoMap.get(profile.id)
+          };
+        });
+
+        console.log("Salários carregados:", salaries);
+        setEmployeeSalaries(salaries);
+      } catch (error) {
+        console.error("Erro ao buscar salários:", error);
+      }
     };
 
     fetchSalaries();
