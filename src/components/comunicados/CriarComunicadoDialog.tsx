@@ -15,6 +15,8 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface CriarComunicadoDialogProps {
   open: boolean;
@@ -29,8 +31,9 @@ export const CriarComunicadoDialog = ({
   const [conteudo, setConteudo] = useState("");
   const [tipo, setTipo] = useState("informativo");
   const [prioridade, setPrioridade] = useState("normal");
-  const [destinatariosTodos, setDestinatariosTodos] = useState(true);
+  const [tipoDestinatario, setTipoDestinatario] = useState<"todos" | "departamentos" | "funcionarios">("todos");
   const [departamentosSelecionados, setDepartamentosSelecionados] = useState<string[]>([]);
+  const [funcionariosSelecionados, setFuncionariosSelecionados] = useState<string[]>([]);
   const [dataExpiracao, setDataExpiracao] = useState<Date | undefined>();
   const queryClient = useQueryClient();
 
@@ -51,11 +54,30 @@ export const CriarComunicadoDialog = ({
     },
   });
 
+  const { data: funcionarios } = useQuery({
+    queryKey: ["funcionarios-comunicados"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, nome, email, departamento")
+        .order("nome", { ascending: true });
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const createMutation = useMutation({
     mutationFn: async () => {
-      const destinatarios = destinatariosTodos
-        ? ["todos"]
-        : departamentosSelecionados;
+      let destinatarios: string[] = [];
+      
+      if (tipoDestinatario === "todos") {
+        destinatarios = ["todos"];
+      } else if (tipoDestinatario === "departamentos") {
+        destinatarios = departamentosSelecionados;
+      } else if (tipoDestinatario === "funcionarios") {
+        destinatarios = funcionariosSelecionados;
+      }
 
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -109,8 +131,9 @@ export const CriarComunicadoDialog = ({
     setConteudo("");
     setTipo("informativo");
     setPrioridade("normal");
-    setDestinatariosTodos(true);
+    setTipoDestinatario("todos");
     setDepartamentosSelecionados([]);
+    setFuncionariosSelecionados([]);
     setDataExpiracao(undefined);
     onOpenChange(false);
   };
@@ -127,6 +150,12 @@ export const CriarComunicadoDialog = ({
   const toggleDepartamento = (dept: string) => {
     setDepartamentosSelecionados((prev) =>
       prev.includes(dept) ? prev.filter((d) => d !== dept) : [...prev, dept]
+    );
+  };
+
+  const toggleFuncionario = (funcId: string) => {
+    setFuncionariosSelecionados((prev) =>
+      prev.includes(funcId) ? prev.filter((id) => id !== funcId) : [...prev, funcId]
     );
   };
 
@@ -226,24 +255,43 @@ export const CriarComunicadoDialog = ({
 
           <div className="space-y-3">
             <Label>Destinatários</Label>
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="todos"
-                checked={destinatariosTodos}
-                onCheckedChange={(checked) => {
-                  setDestinatariosTodos(checked as boolean);
-                  if (checked) setDepartamentosSelecionados([]);
-                }}
-              />
-              <label
-                htmlFor="todos"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Enviar para todos os funcionários
-              </label>
-            </div>
+            <RadioGroup value={tipoDestinatario} onValueChange={(value: any) => {
+              setTipoDestinatario(value);
+              setDepartamentosSelecionados([]);
+              setFuncionariosSelecionados([]);
+            }}>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="todos" id="todos" />
+                <label
+                  htmlFor="todos"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Enviar para todos os funcionários
+                </label>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="departamentos" id="departamentos" />
+                <label
+                  htmlFor="departamentos"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Enviar para departamentos específicos
+                </label>
+              </div>
 
-            {!destinatariosTodos && departamentos && (
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="funcionarios" id="funcionarios" />
+                <label
+                  htmlFor="funcionarios"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Enviar para funcionários específicos
+                </label>
+              </div>
+            </RadioGroup>
+
+            {tipoDestinatario === "departamentos" && departamentos && (
               <div className="space-y-2 pl-6 border-l-2 border-border">
                 <Label className="text-sm text-muted-foreground">
                   Selecione os departamentos:
@@ -265,6 +313,36 @@ export const CriarComunicadoDialog = ({
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {tipoDestinatario === "funcionarios" && funcionarios && (
+              <div className="space-y-2 pl-6 border-l-2 border-border">
+                <Label className="text-sm text-muted-foreground">
+                  Selecione os funcionários ({funcionariosSelecionados.length} selecionados):
+                </Label>
+                <ScrollArea className="h-[200px] w-full rounded-md border p-4">
+                  <div className="space-y-2">
+                    {funcionarios.map((func) => (
+                      <div key={func.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={func.id}
+                          checked={funcionariosSelecionados.includes(func.id)}
+                          onCheckedChange={() => toggleFuncionario(func.id)}
+                        />
+                        <label
+                          htmlFor={func.id}
+                          className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
+                        >
+                          <div className="flex flex-col">
+                            <span className="font-medium">{func.nome}</span>
+                            <span className="text-xs text-muted-foreground">{func.email} • {func.departamento || "Sem departamento"}</span>
+                          </div>
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               </div>
             )}
           </div>
