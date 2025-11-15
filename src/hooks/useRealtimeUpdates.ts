@@ -276,3 +276,35 @@ export const useComunicadosRealtime = () => {
     };
   }, [queryClient]);
 };
+
+/**
+ * Hook para gerenciar atualizações em tempo real de salários
+ * Escuta mudanças nas tabelas profiles (salário) e historico_salarios
+ */
+export const useSalariosRealtime = () => {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    // Canal para mudanças em historico_salarios
+    const historicoChannel = supabase
+      .channel('historico-salarios-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'historico_salarios'
+        },
+        (payload) => {
+          console.log('Histórico de salário atualizado:', payload);
+          // Invalidar queries de funcionários para recarregar salários
+          queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(historicoChannel);
+    };
+  }, [queryClient]);
+};
