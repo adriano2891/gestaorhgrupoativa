@@ -145,48 +145,49 @@ const Funcionarios = () => {
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  // Buscar funcionários do banco de dados
+  // Função para buscar funcionários do banco de dados
+  const fetchEmployees = async () => {
+    const { data: profilesData, error } = await supabase
+      .from("profiles")
+      .select(`
+        id,
+        nome,
+        email,
+        telefone,
+        cargo,
+        departamento,
+        created_at,
+        user_roles!inner(role)
+      `)
+      .eq("user_roles.role", "funcionario");
+
+    if (error) {
+      console.error("Erro ao buscar funcionários:", error);
+      toast({
+        title: "Erro ao carregar funcionários",
+        description: "Não foi possível carregar a lista de funcionários.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Transformar dados do banco para o formato usado na interface
+    const formattedEmployees = profilesData.map((profile: any) => ({
+      id: profile.id,
+      name: profile.nome,
+      email: profile.email,
+      phone: profile.telefone || "Não informado",
+      position: profile.cargo || "Não informado",
+      department: profile.departamento || "Não informado",
+      status: "ativo" as const,
+      admissionDate: new Date(profile.created_at).toISOString().split('T')[0],
+    }));
+
+    setEmployees(formattedEmployees);
+  };
+
+  // Carregar funcionários ao montar o componente
   useEffect(() => {
-    const fetchEmployees = async () => {
-      const { data: profilesData, error } = await supabase
-        .from("profiles")
-        .select(`
-          id,
-          nome,
-          email,
-          telefone,
-          cargo,
-          departamento,
-          created_at,
-          user_roles!inner(role)
-        `)
-        .eq("user_roles.role", "funcionario");
-
-      if (error) {
-        console.error("Erro ao buscar funcionários:", error);
-        toast({
-          title: "Erro ao carregar funcionários",
-          description: "Não foi possível carregar a lista de funcionários.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Transformar dados do banco para o formato usado na interface
-      const formattedEmployees = profilesData.map((profile: any) => ({
-        id: profile.id,
-        name: profile.nome,
-        email: profile.email,
-        phone: profile.telefone || "Não informado",
-        position: profile.cargo || "Não informado",
-        department: profile.departamento || "Não informado",
-        status: "ativo" as const,
-        admissionDate: new Date(profile.created_at).toISOString().split('T')[0],
-      }));
-
-      setEmployees(formattedEmployees);
-    };
-
     fetchEmployees();
 
     // Subscrever a mudanças em tempo real na tabela profiles
@@ -367,13 +368,13 @@ const Funcionarios = () => {
           throw error;
         }
 
-        // Remover da lista local
-        setEmployees(employees.filter(emp => emp.id !== deletingEmployeeId));
-        
         toast({
           title: "Funcionário excluído",
           description: "O funcionário foi removido com sucesso.",
         });
+
+        // Recarregar dados do banco para garantir sincronização
+        await fetchEmployees();
       } catch (error: any) {
         toast({
           title: "Erro ao excluir funcionário",
@@ -433,11 +434,6 @@ const Funcionarios = () => {
           }
         }
 
-        // Atualizar lista local
-        setEmployees(employees.map(emp => 
-          emp.id === editingEmployee.id ? editingEmployee : emp
-        ));
-        
         toast({
           title: "Funcionário atualizado",
           description: "Os dados do funcionário foram atualizados com sucesso.",
@@ -447,6 +443,9 @@ const Funcionarios = () => {
         setEditingEmployee(null);
         setEditPassword("");
         setEditSalary("");
+
+        // Recarregar dados do banco para garantir sincronização
+        await fetchEmployees();
       } catch (error: any) {
         console.error("Erro ao atualizar funcionário:", error);
         toast({
@@ -556,20 +555,6 @@ const Funcionarios = () => {
         }
       }
 
-      // Adicionar o novo funcionário à lista local
-      const novoFuncionario = {
-        id: authData.user.id,
-        name: newEmployee.name,
-        email: newEmployee.email,
-        phone: newEmployee.phone,
-        position: newEmployee.position,
-        department: newEmployee.department,
-        status: newEmployee.status,
-        admissionDate: new Date().toISOString().split('T')[0],
-      };
-
-      setEmployees([...employees, novoFuncionario]);
-
       toast({
         title: "Funcionário adicionado com sucesso!",
         description: `${newEmployee.name} foi cadastrado e pode acessar o Portal do Funcionário com CPF e senha.`,
@@ -590,6 +575,9 @@ const Funcionarios = () => {
       
       setIsAddDialogOpen(false);
       setValidationErrors({});
+
+      // Recarregar dados do banco para garantir sincronização
+      await fetchEmployees();
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors: Record<string, string> = {};
