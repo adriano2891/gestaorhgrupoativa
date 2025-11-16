@@ -285,6 +285,24 @@ export const useSalariosRealtime = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    // Canal para mudanças diretas em profiles (campo salario)
+    const profilesChannel = supabase
+      .channel('profiles-salary-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          console.log('Perfil atualizado (salário):', payload);
+          // Invalidar queries de funcionários para recarregar salários
+          queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
+        }
+      )
+      .subscribe();
+
     // Canal para mudanças em historico_salarios
     const historicoChannel = supabase
       .channel('historico-salarios-changes')
@@ -304,6 +322,7 @@ export const useSalariosRealtime = () => {
       .subscribe();
 
     return () => {
+      supabase.removeChannel(profilesChannel);
       supabase.removeChannel(historicoChannel);
     };
   }, [queryClient]);

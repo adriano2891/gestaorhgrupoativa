@@ -147,43 +147,59 @@ const Funcionarios = () => {
 
   // Função para buscar funcionários do banco de dados
   const fetchEmployees = async () => {
-    const { data: profilesData, error } = await supabase
-      .from("profiles")
-      .select(`
-        id,
-        nome,
-        email,
-        telefone,
-        cargo,
-        departamento,
-        created_at,
-        user_roles!inner(role)
-      `)
-      .eq("user_roles.role", "funcionario");
+    try {
+      const { data: profilesData, error } = await supabase
+        .from("profiles")
+        .select(`
+          id,
+          nome,
+          email,
+          telefone,
+          cargo,
+          departamento,
+          salario,
+          created_at,
+          user_roles!inner(role)
+        `)
+        .eq("user_roles.role", "funcionario");
 
-    if (error) {
+      if (error) {
+        console.error("Erro ao buscar funcionários:", error);
+        toast({
+          title: "Erro ao carregar funcionários",
+          description: "Não foi possível carregar a lista de funcionários.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Transformar dados do banco para o formato usado na interface
+      const formattedEmployees = profilesData.map((profile: any) => ({
+        id: profile.id,
+        name: profile.nome,
+        email: profile.email,
+        phone: profile.telefone || "Não informado",
+        position: profile.cargo || "Não informado",
+        department: profile.departamento || "Não informado",
+        status: "ativo" as const,
+        admissionDate: new Date(profile.created_at).toISOString().split('T')[0],
+      }));
+
+      setEmployees(formattedEmployees);
+
+      // Atualizar salários imediatamente
+      const salaries: Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }> = {};
+      
+      for (const profile of profilesData) {
+        salaries[profile.id] = {
+          salario: profile.salario,
+        };
+      }
+
+      setEmployeeSalaries(salaries);
+    } catch (error) {
       console.error("Erro ao buscar funcionários:", error);
-      toast({
-        title: "Erro ao carregar funcionários",
-        description: "Não foi possível carregar a lista de funcionários.",
-        variant: "destructive",
-      });
-      return;
     }
-
-    // Transformar dados do banco para o formato usado na interface
-    const formattedEmployees = profilesData.map((profile: any) => ({
-      id: profile.id,
-      name: profile.nome,
-      email: profile.email,
-      phone: profile.telefone || "Não informado",
-      position: profile.cargo || "Não informado",
-      department: profile.departamento || "Não informado",
-      status: "ativo" as const,
-      admissionDate: new Date(profile.created_at).toISOString().split('T')[0],
-    }));
-
-    setEmployees(formattedEmployees);
   };
 
   // Carregar funcionários ao montar o componente
@@ -212,31 +228,15 @@ const Funcionarios = () => {
     };
   }, [toast]);
 
-  // Buscar salários e histórico de alterações
+  // Buscar histórico de alterações
   useEffect(() => {
-    const fetchSalaries = async () => {
-      if (employees.length === 0) {
-        setEmployeeSalaries({});
-        return;
-      }
+    const fetchHistorico = async () => {
+      if (employees.length === 0) return;
 
       try {
-        console.log("Buscando salários para", employees.length, "funcionários");
-        
-        // Buscar todos os salários de uma vez
         const employeeIds = employees.map(emp => emp.id);
         
-        const { data: profilesData, error: profilesError } = await supabase
-          .from("profiles")
-          .select("id, salario")
-          .in("id", employeeIds);
-
-        if (profilesError) {
-          console.error("Erro ao buscar salários:", profilesError);
-          return;
-        }
-
-        // Buscar histórico de salários de uma vez
+        // Buscar histórico de salários
         const { data: historicoData, error: historicoError } = await supabase
           .from("historico_salarios")
           .select("user_id, salario_novo, data_alteracao")
@@ -245,6 +245,7 @@ const Funcionarios = () => {
 
         if (historicoError) {
           console.error("Erro ao buscar histórico:", historicoError);
+          return;
         }
 
         // Criar mapa de históricos (pegar apenas o mais recente de cada usuário)
@@ -258,24 +259,25 @@ const Funcionarios = () => {
           }
         });
 
-        // Montar objeto de salários
-        const salaries: Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }> = {};
-        
-        profilesData?.forEach(profile => {
-          salaries[profile.id] = {
-            salario: profile.salario,
-            ultimaAlteracao: historicoMap.get(profile.id)
-          };
+        // Atualizar salários com histórico
+        setEmployeeSalaries(prev => {
+          const updated = { ...prev };
+          employeeIds.forEach(id => {
+            if (updated[id]) {
+              updated[id] = {
+                ...updated[id],
+                ultimaAlteracao: historicoMap.get(id)
+              };
+            }
+          });
+          return updated;
         });
-
-        console.log("Salários carregados:", salaries);
-        setEmployeeSalaries(salaries);
       } catch (error) {
-        console.error("Erro ao buscar salários:", error);
+        console.error("Erro ao buscar histórico:", error);
       }
     };
 
-    fetchSalaries();
+    fetchHistorico();
 
     // Subscrever a mudanças em tempo real no histórico de salários
     const channel = supabase
@@ -288,8 +290,7 @@ const Funcionarios = () => {
           table: 'historico_salarios'
         },
         () => {
-          // Recarregar salários quando houver mudanças no histórico
-          fetchSalaries();
+          fetchHistorico();
         }
       )
       .subscribe();
@@ -368,13 +369,13 @@ const Funcionarios = () => {
           throw error;
         }
 
+        // Recarregar dados do banco
+        await fetchEmployees();
+        
         toast({
           title: "Funcionário excluído",
           description: "O funcionário foi removido com sucesso.",
         });
-
-        // Recarregar dados do banco para garantir sincronização
-        await fetchEmployees();
       } catch (error: any) {
         toast({
           title: "Erro ao excluir funcionário",
@@ -434,18 +435,19 @@ const Funcionarios = () => {
           }
         }
 
-        toast({
-          title: "Funcionário atualizado",
-          description: "Os dados do funcionário foram atualizados com sucesso.",
-        });
-        
         setIsEditDialogOpen(false);
         setEditingEmployee(null);
         setEditPassword("");
         setEditSalary("");
 
-        // Recarregar dados do banco para garantir sincronização
-        await fetchEmployees();
+        // Recarregar dados do banco com pequeno delay para garantir que o trigger executou
+        setTimeout(async () => {
+          await fetchEmployees();
+          toast({
+            title: "Funcionário atualizado",
+            description: "Os dados do funcionário foram atualizados com sucesso.",
+          });
+        }, 300);
       } catch (error: any) {
         console.error("Erro ao atualizar funcionário:", error);
         toast({
@@ -554,11 +556,6 @@ const Funcionarios = () => {
             .eq("id", authData.user.id);
         }
       }
-
-      toast({
-        title: "Funcionário adicionado com sucesso!",
-        description: `${newEmployee.name} foi cadastrado e pode acessar o Portal do Funcionário com CPF e senha.`,
-      });
       
       // Limpar o formulário
       setNewEmployee({
@@ -576,8 +573,14 @@ const Funcionarios = () => {
       setIsAddDialogOpen(false);
       setValidationErrors({});
 
-      // Recarregar dados do banco para garantir sincronização
-      await fetchEmployees();
+      // Recarregar dados do banco com pequeno delay para garantir que tudo foi salvo
+      setTimeout(async () => {
+        await fetchEmployees();
+        toast({
+          title: "Funcionário adicionado com sucesso!",
+          description: `${newEmployee.name} foi cadastrado e pode acessar o Portal do Funcionário com CPF e senha.`,
+        });
+      }, 300);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors: Record<string, string> = {};
