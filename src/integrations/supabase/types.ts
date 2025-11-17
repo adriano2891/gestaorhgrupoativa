@@ -463,6 +463,7 @@ export type Database = {
           id: string
           nome: string
           salario: number | null
+          status: string | null
           telefone: string | null
           updated_at: string | null
           usuario: string | null
@@ -476,6 +477,7 @@ export type Database = {
           id: string
           nome: string
           salario?: number | null
+          status?: string | null
           telefone?: string | null
           updated_at?: string | null
           usuario?: string | null
@@ -489,6 +491,7 @@ export type Database = {
           id?: string
           nome?: string
           salario?: number | null
+          status?: string | null
           telefone?: string | null
           updated_at?: string | null
           usuario?: string | null
