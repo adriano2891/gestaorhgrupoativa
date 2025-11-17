@@ -158,6 +158,7 @@ const Funcionarios = () => {
           cargo,
           departamento,
           salario,
+          status,
           created_at,
           user_roles!inner(role)
         `)
@@ -181,7 +182,7 @@ const Funcionarios = () => {
         phone: profile.telefone || "Não informado",
         position: profile.cargo || "Não informado",
         department: profile.departamento || "Não informado",
-        status: "ativo" as const,
+        status: (profile.status || "ativo") as "ativo" | "afastado" | "demitido",
         admissionDate: new Date(profile.created_at).toISOString().split('T')[0],
       }));
 
@@ -368,9 +369,6 @@ const Funcionarios = () => {
         if (error) {
           throw error;
         }
-
-        // Recarregar dados do banco
-        await fetchEmployees();
         
         toast({
           title: "Funcionário excluído",
@@ -399,6 +397,7 @@ const Funcionarios = () => {
           telefone: editingEmployee.phone,
           cargo: editingEmployee.position,
           departamento: editingEmployee.department,
+          status: editingEmployee.status,
         };
 
         // Converter salário formatado para número
@@ -435,19 +434,15 @@ const Funcionarios = () => {
           }
         }
 
+        toast({
+          title: "Funcionário atualizado",
+          description: "Os dados do funcionário foram atualizados com sucesso.",
+        });
+
         setIsEditDialogOpen(false);
         setEditingEmployee(null);
         setEditPassword("");
         setEditSalary("");
-
-        // Recarregar dados do banco com pequeno delay para garantir que o trigger executou
-        setTimeout(async () => {
-          await fetchEmployees();
-          toast({
-            title: "Funcionário atualizado",
-            description: "Os dados do funcionário foram atualizados com sucesso.",
-          });
-        }, 300);
       } catch (error: any) {
         console.error("Erro ao atualizar funcionário:", error);
         toast({
@@ -570,17 +565,13 @@ const Funcionarios = () => {
         password: "",
       });
       
+      toast({
+        title: "Funcionário adicionado com sucesso!",
+        description: `${newEmployee.name} foi cadastrado e pode acessar o Portal do Funcionário com CPF e senha.`,
+      });
+
       setIsAddDialogOpen(false);
       setValidationErrors({});
-
-      // Recarregar dados do banco com pequeno delay para garantir que tudo foi salvo
-      setTimeout(async () => {
-        await fetchEmployees();
-        toast({
-          title: "Funcionário adicionado com sucesso!",
-          description: `${newEmployee.name} foi cadastrado e pode acessar o Portal do Funcionário com CPF e senha.`,
-        });
-      }, 300);
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors: Record<string, string> = {};
