@@ -297,10 +297,8 @@ export const useSalariosRealtime = () => {
         },
         (payload) => {
           console.log('Perfil atualizado (salário):', payload);
-          // Aguardar um pouco antes de invalidar para garantir consistência
-          setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
-          }, 500);
+          // Invalidar queries de funcionários para recarregar salários
+          queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
         }
       )
       .subscribe();
@@ -317,10 +315,8 @@ export const useSalariosRealtime = () => {
         },
         (payload) => {
           console.log('Histórico de salário atualizado:', payload);
-          // Aguardar um pouco antes de invalidar para garantir consistência
-          setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
-          }, 500);
+          // Invalidar queries de funcionários para recarregar salários
+          queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
         }
       )
       .subscribe();

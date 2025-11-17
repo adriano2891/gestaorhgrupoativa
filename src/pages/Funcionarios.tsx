@@ -390,12 +390,6 @@ const Funcionarios = () => {
   const handleSaveEdit = async () => {
     if (editingEmployee) {
       try {
-        console.log('Salvando edição:', {
-          id: editingEmployee.id,
-          status: editingEmployee.status,
-          salario: editSalary
-        });
-
         // Preparar dados para atualização
         const updateData: any = {
           nome: editingEmployee.name,
@@ -415,20 +409,13 @@ const Funcionarios = () => {
           }
         }
 
-        console.log('Dados a serem atualizados:', updateData);
-
         // Atualizar dados no perfil
         const { error: profileError } = await supabase
           .from("profiles")
           .update(updateData)
           .eq("id", editingEmployee.id);
 
-        if (profileError) {
-          console.error('Erro ao atualizar perfil:', profileError);
-          throw profileError;
-        }
-
-        console.log('Perfil atualizado com sucesso');
+        if (profileError) throw profileError;
 
         // Se senha foi fornecida, atualizar no auth
         if (editPassword && editPassword.length >= 6) {
@@ -456,9 +443,6 @@ const Funcionarios = () => {
         setEditingEmployee(null);
         setEditPassword("");
         setEditSalary("");
-
-        // Forçar atualização imediata
-        await fetchEmployees();
       } catch (error: any) {
         console.error("Erro ao atualizar funcionário:", error);
         toast({
