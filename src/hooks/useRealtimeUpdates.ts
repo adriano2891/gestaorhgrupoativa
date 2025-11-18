@@ -19,8 +19,7 @@ export const useFuncionariosRealtime = () => {
           schema: 'public',
           table: 'profiles'
         },
-        (payload) => {
-          console.log('Funcionário atualizado:', payload);
+        () => {
           queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
           queryClient.invalidateQueries({ queryKey: ["funcionarios-por-departamento"] });
           queryClient.invalidateQueries({ queryKey: ["funcionarios-por-cargo"] });
@@ -285,26 +284,6 @@ export const useSalariosRealtime = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    // Canal para mudanças diretas em profiles (campo salario)
-    const profilesChannel = supabase
-      .channel('profiles-salary-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'profiles'
-        },
-        (payload) => {
-          console.log('Perfil atualizado (salário):', payload);
-          // Aguardar um pouco antes de invalidar para garantir consistência
-          setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
-          }, 500);
-        }
-      )
-      .subscribe();
-
     // Canal para mudanças em historico_salarios
     const historicoChannel = supabase
       .channel('historico-salarios-changes')
@@ -315,18 +294,13 @@ export const useSalariosRealtime = () => {
           schema: 'public',
           table: 'historico_salarios'
         },
-        (payload) => {
-          console.log('Histórico de salário atualizado:', payload);
-          // Aguardar um pouco antes de invalidar para garantir consistência
-          setTimeout(() => {
-            queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
-          }, 500);
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
         }
       )
       .subscribe();
 
     return () => {
-      supabase.removeChannel(profilesChannel);
       supabase.removeChannel(historicoChannel);
     };
   }, [queryClient]);

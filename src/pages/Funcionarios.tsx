@@ -390,12 +390,6 @@ const Funcionarios = () => {
   const handleSaveEdit = async () => {
     if (editingEmployee) {
       try {
-        console.log('Salvando edição:', {
-          id: editingEmployee.id,
-          status: editingEmployee.status,
-          salario: editSalary
-        });
-
         // Preparar dados para atualização
         const updateData: any = {
           nome: editingEmployee.name,
@@ -408,14 +402,11 @@ const Funcionarios = () => {
 
         // Converter salário formatado para número
         if (editSalary) {
-          // Remover pontos de milhar e trocar vírgula por ponto
           const salarioNumero = parseFloat(editSalary.replace(/\./g, '').replace(',', '.'));
           if (!isNaN(salarioNumero) && salarioNumero > 0) {
             updateData.salario = salarioNumero;
           }
         }
-
-        console.log('Dados a serem atualizados:', updateData);
 
         // Atualizar dados no perfil
         const { error: profileError } = await supabase
@@ -424,11 +415,8 @@ const Funcionarios = () => {
           .eq("id", editingEmployee.id);
 
         if (profileError) {
-          console.error('Erro ao atualizar perfil:', profileError);
           throw profileError;
         }
-
-        console.log('Perfil atualizado com sucesso');
 
         // Se senha foi fornecida, atualizar no auth
         if (editPassword && editPassword.length >= 6) {
@@ -438,7 +426,6 @@ const Funcionarios = () => {
           );
           
           if (passwordError) {
-            console.error("Erro ao atualizar senha:", passwordError);
             toast({
               title: "Atenção",
               description: "Dados atualizados, mas não foi possível alterar a senha.",
@@ -456,14 +443,12 @@ const Funcionarios = () => {
         setEditingEmployee(null);
         setEditPassword("");
         setEditSalary("");
-
-        // Forçar atualização imediata
-        await fetchEmployees();
+        
+        // O hook useFuncionariosRealtime vai atualizar automaticamente
       } catch (error: any) {
-        console.error("Erro ao atualizar funcionário:", error);
         toast({
           title: "Erro ao atualizar",
-          description: error.message || "Não foi possível atualizar os dados.",
+          description: error.message || "Não foi possível atualizar o funcionário.",
           variant: "destructive",
         });
       }
