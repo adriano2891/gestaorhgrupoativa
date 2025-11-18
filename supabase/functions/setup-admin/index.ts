@@ -18,15 +18,18 @@ Deno.serve(async (req) => {
     const adminExists = existingUsers?.users?.some(u => u.email === 'admin@sistema.com')
 
     if (!adminExists) {
-      // Criar usuário admin
+      // Criar usuário admin com senha aleatória
+      const randomPassword = crypto.randomUUID();
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: 'admin@sistema.com',
-        password: '08031982',
+        email: Deno.env.get('INITIAL_ADMIN_EMAIL') ?? 'admin@sistema.com',
+        password: randomPassword,
         email_confirm: true,
         user_metadata: {
           nome: 'Administrador'
         }
       })
+      
+      console.log('Admin created. Email: admin@sistema.com, Temporary password:', randomPassword)
 
       if (createError) throw createError
 
