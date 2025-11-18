@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Bell, Plus, Trash2, Eye, EyeOff } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useComunicadosRealtime } from "@/hooks/useRealtimeUpdates";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -35,6 +36,8 @@ interface Comunicado {
 }
 
 const Comunicados = () => {
+  useComunicadosRealtime();
+  
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedComunicado, setSelectedComunicado] = useState<string | null>(null);

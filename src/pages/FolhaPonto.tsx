@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Calendar, Clock, Download, Filter, AlertTriangle, CheckCircle, XCircle, FileText, Eye, FileSpreadsheet, Pencil } from "lucide-react";
-import { usePontoRealtime } from "@/hooks/useRealtimeUpdates";
+import { usePontoRealtime, useFuncionariosRealtime } from "@/hooks/useRealtimeUpdates";
+import { useFuncionarios } from "@/hooks/useFuncionarios";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -67,36 +68,29 @@ interface EmployeeMonthRecord {
 
 const FolhaPonto = () => {
   usePontoRealtime();
+  useFuncionariosRealtime();
+  
+  const { data: funcionarios } = useFuncionarios();
+  
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState((currentDate.getMonth() + 1).toString().padStart(2, '0'));
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
   const [selectedEmployee, setSelectedEmployee] = useState("todos");
   const [selectedDepartamento, setSelectedDepartamento] = useState("todos");
   const [viewMode, setViewMode] = useState<"resumo" | "detalhado">("detalhado");
-  const [employees, setEmployees] = useState<any[]>([]);
-  const [departamentos, setDepartamentos] = useState<string[]>([]);
   const [monthRecords, setMonthRecords] = useState<EmployeeMonthRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [editingCell, setEditingCell] = useState<{empId: string, day: number, field: 'status' | 'horas_extras'} | null>(null);
   const [editValue, setEditValue] = useState("");
 
-  useEffect(() => {
-    loadEmployees();
-    loadMonthRecords();
-  }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento]);
+  // Extrair lista de funcionários e departamentos dos dados sincronizados
+  const employees = funcionarios || [];
+  const departamentos = [...new Set(employees.map(e => e.departamento).filter(Boolean))] as string[];
 
-  const loadEmployees = async () => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, nome, departamento");
-    
-    if (data) {
-      setEmployees(data);
-      const depts = [...new Set(data.map(e => e.departamento).filter(Boolean))];
-      setDepartamentos(depts as string[]);
-    }
-  };
+  useEffect(() => {
+    loadMonthRecords();
+  }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, funcionarios]);
 
   const loadMonthRecords = async () => {
     setLoading(true);
