@@ -92,121 +92,139 @@ const Index = () => {
   return (
     <div className="min-h-[calc(100vh-180px)] bg-[#4DD0D4] relative overflow-hidden">
       {/* Cabeçalho */}
-      <div className="text-center pt-8 pb-4 space-y-2 relative z-10">
-        <h1 className="text-4xl md:text-5xl font-bold text-black">Dashboard</h1>
-        <p className="text-lg text-black/70">
+      <div className="text-center pt-12 pb-8 space-y-2 relative z-10">
+        <h1 className="text-5xl font-bold text-black">Dashboard</h1>
+        <p className="text-base text-black/60">
           Acesso rápido aos módulos
         </p>
       </div>
 
-      {/* Container central com logo e módulos circulares */}
-      <div className="relative w-full h-[calc(100vh-280px)] min-h-[600px] flex items-center justify-center">
-        {/* Logo Central */}
-        <div className="absolute inset-0 flex items-center justify-center opacity-20">
-          <div className="text-center">
-            <div className="text-[#2BA7AB] font-bold text-8xl mb-4">
-              <svg viewBox="0 0 200 200" className="w-64 h-64 mx-auto">
-                <polygon points="100,20 180,180 20,180" fill="currentColor" />
-              </svg>
-            </div>
-            <div className="text-6xl font-bold text-[#2BA7AB] tracking-widest">ATIVA</div>
-            <div className="text-2xl font-semibold text-red-500 mt-2">GRUPO ATIVA</div>
+      {/* Container central com logo e módulos */}
+      <div className="relative w-full flex items-center justify-center px-8" style={{ height: 'calc(100vh - 350px)', minHeight: '500px' }}>
+        
+        {/* Logo Central ATIVA */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-30 pointer-events-none">
+          <div className="text-center -mt-8">
+            <svg viewBox="0 0 200 80" className="w-80 h-32 mx-auto mb-2">
+              <defs>
+                <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style={{ stopColor: '#2BA7AB', stopOpacity: 1 }} />
+                  <stop offset="100%" style={{ stopColor: '#3DBEC2', stopOpacity: 1 }} />
+                </linearGradient>
+              </defs>
+              <polygon points="40,10 80,70 0,70" fill="url(#logoGradient)" transform="rotate(-15 40 40)" />
+              <text x="90" y="55" fill="#2BA7AB" fontSize="48" fontWeight="bold" letterSpacing="4">ATIVA</text>
+            </svg>
+            <div className="text-2xl font-semibold tracking-wide" style={{ color: '#E74C3C' }}>GRUPO ATIVA</div>
           </div>
         </div>
 
-        {/* Módulos em Layout Circular */}
-        <div className="relative w-full max-w-5xl h-full">
-          {/* Funcionários - Top Left */}
+        {/* Layout Circular dos Módulos */}
+        <div className="relative w-full max-w-4xl mx-auto" style={{ height: '450px' }}>
+          
+          {/* Funcionários - Topo Esquerda */}
           <div 
-            className="absolute left-[15%] top-[8%] cursor-pointer hover:scale-110 transition-transform"
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ left: '20%', top: '5%' }}
             onClick={() => navigate("/funcionarios")}
           >
-            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
-              <Users className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            <div className="bg-white rounded-3xl shadow-xl p-8 w-28 h-28 flex items-center justify-center">
+              <Users className="w-14 h-14 text-[#4DD0D4]" />
             </div>
-            <p className="text-center mt-2 font-semibold text-black">Funcionários</p>
+            <p className="text-center mt-3 font-semibold text-black text-sm">Funcionários</p>
           </div>
 
-          {/* Banco de Talentos - Top Right */}
+          {/* Banco de Talentos - Topo Direita */}
           <div 
-            className="absolute right-[15%] top-[8%] cursor-pointer hover:scale-110 transition-transform"
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ right: '20%', top: '5%', animationDelay: '0.1s' }}
             onClick={() => navigate("/banco-talentos")}
           >
-            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
-              <Briefcase className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            <div className="bg-white rounded-3xl shadow-xl p-8 w-28 h-28 flex items-center justify-center">
+              <Briefcase className="w-14 h-14 text-[#4DD0D4]" />
             </div>
-            <p className="text-center mt-2 font-semibold text-black">Banco de Talentos</p>
+            <p className="text-center mt-3 font-semibold text-black text-sm">Banco de Talentos</p>
           </div>
 
-          {/* Relatórios - Left */}
+          {/* Relatórios e Análises - Meio Esquerda */}
           <div 
-            className="absolute left-[8%] top-[35%] cursor-pointer hover:scale-110 transition-transform"
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ left: '8%', top: '38%', animationDelay: '0.2s' }}
             onClick={() => navigate("/relatorios")}
           >
-            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
-              <BarChart3 className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            <div className="bg-white rounded-3xl shadow-xl p-8 w-28 h-28 flex items-center justify-center">
+              <BarChart3 className="w-14 h-14 text-[#4DD0D4]" />
             </div>
-            <p className="text-center mt-2 font-semibold text-black">Relatórios e Análises</p>
+            <p className="text-center mt-3 font-semibold text-black text-sm">Relatórios e Análises</p>
           </div>
 
-          {/* Folha de Ponto - Right */}
+          {/* Folha de Ponto - Meio Direita */}
           <div 
-            className="absolute right-[8%] top-[35%] cursor-pointer hover:scale-110 transition-transform"
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ right: '8%', top: '38%', animationDelay: '0.3s' }}
             onClick={() => navigate("/folha-ponto")}
           >
-            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
-              <Clock className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            <div className="bg-white rounded-3xl shadow-xl p-8 w-28 h-28 flex items-center justify-center">
+              <Clock className="w-14 h-14 text-[#4DD0D4]" />
             </div>
-            <p className="text-center mt-2 font-semibold text-black">Folha de Ponto</p>
+            <p className="text-center mt-3 font-semibold text-black text-sm">Folha de Ponto</p>
           </div>
 
-          {/* Holerites - Bottom Left */}
+          {/* Holerites - Inferior Esquerda */}
           <div 
-            className="absolute left-[15%] bottom-[15%] cursor-pointer hover:scale-110 transition-transform"
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ left: '20%', bottom: '8%', animationDelay: '0.4s' }}
             onClick={() => navigate("/holerites")}
           >
-            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
-              <FileText className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            <div className="bg-white rounded-3xl shadow-xl p-8 w-28 h-28 flex items-center justify-center">
+              <FileText className="w-14 h-14 text-[#4DD0D4]" />
             </div>
-            <p className="text-center mt-2 font-semibold text-black">Holerites</p>
+            <p className="text-center mt-3 font-semibold text-black text-sm">Holerites</p>
           </div>
 
-          {/* Comunicados - Bottom Right */}
+          {/* Comunicados - Inferior Direita */}
           <div 
-            className="absolute right-[15%] bottom-[15%] cursor-pointer hover:scale-110 transition-transform"
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ right: '20%', bottom: '8%', animationDelay: '0.5s' }}
             onClick={() => navigate("/comunicados")}
           >
-            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
-              <Bell className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            <div className="bg-white rounded-3xl shadow-xl p-8 w-28 h-28 flex items-center justify-center">
+              <Bell className="w-14 h-14 text-[#4DD0D4]" />
             </div>
-            <p className="text-center mt-2 font-semibold text-black">Comunicados</p>
+            <p className="text-center mt-3 font-semibold text-black text-sm">Comunicados</p>
           </div>
 
-          {/* Gerenciar Admins - Bottom Center */}
+          {/* Gerenciar Admins - Inferior Centro */}
           {isAdmin && (
             <div 
-              className="absolute left-1/2 -translate-x-1/2 bottom-[8%] cursor-pointer hover:scale-110 transition-transform"
+              className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+              style={{ left: '50%', transform: 'translateX(-50%)', bottom: '8%', animationDelay: '0.6s' }}
               onClick={() => navigate("/admins")}
             >
-              <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
-                <Shield className="w-12 h-12 text-[#4DD0D4] mb-2" />
+              <div className="bg-white rounded-3xl shadow-xl p-8 w-28 h-28 flex items-center justify-center">
+                <Shield className="w-14 h-14 text-[#4DD0D4]" />
               </div>
-              <p className="text-center mt-2 font-semibold text-black">Gerenciar Admins</p>
+              <p className="text-center mt-3 font-semibold text-black text-sm">Gerenciar Admins</p>
             </div>
           )}
 
-          {/* Controle de Férias - Positioned based on admin status */}
+          {/* Controle de Férias - Posicionamento condicional */}
           <div 
-            className={`absolute left-1/2 -translate-x-1/2 cursor-pointer hover:scale-110 transition-transform ${
-              isAdmin ? 'bottom-[32%]' : 'bottom-[15%]'
-            }`}
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ 
+              left: '50%', 
+              transform: 'translateX(-50%)', 
+              bottom: isAdmin ? '35%' : '8%',
+              animationDelay: '0.7s'
+            }}
             onClick={() => navigate("/controle-ferias")}
           >
-            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
-              <Calendar className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            <div className="bg-white rounded-3xl shadow-xl p-8 w-28 h-28 flex items-center justify-center">
+              <Calendar className="w-14 h-14 text-[#4DD0D4]" />
             </div>
-            <p className="text-center mt-2 font-semibold text-black">Controle de Férias</p>
+            <p className="text-center mt-3 font-semibold text-black text-sm">Controle de Férias</p>
           </div>
+
         </div>
       </div>
     </div>
