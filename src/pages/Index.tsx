@@ -90,41 +90,123 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-[calc(100vh-180px)] px-4 py-8">
-      <div className="w-full max-w-7xl mx-auto space-y-8">
-        {/* Cabeçalho */}
-        <div className="text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold text-foreground">Dashboard</h1>
-          <p className="text-lg text-muted-foreground">
-            Acesso rápido aos módulos do sistema
-          </p>
+    <div className="min-h-[calc(100vh-180px)] bg-[#4DD0D4] relative overflow-hidden">
+      {/* Cabeçalho */}
+      <div className="text-center pt-8 pb-4 space-y-2 relative z-10">
+        <h1 className="text-4xl md:text-5xl font-bold text-black">Dashboard</h1>
+        <p className="text-lg text-black/70">
+          Acesso rápido aos módulos
+        </p>
+      </div>
+
+      {/* Container central com logo e módulos circulares */}
+      <div className="relative w-full h-[calc(100vh-280px)] min-h-[600px] flex items-center justify-center">
+        {/* Logo Central */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-20">
+          <div className="text-center">
+            <div className="text-[#2BA7AB] font-bold text-8xl mb-4">
+              <svg viewBox="0 0 200 200" className="w-64 h-64 mx-auto">
+                <polygon points="100,20 180,180 20,180" fill="currentColor" />
+              </svg>
+            </div>
+            <div className="text-6xl font-bold text-[#2BA7AB] tracking-widest">ATIVA</div>
+            <div className="text-2xl font-semibold text-red-500 mt-2">GRUPO ATIVA</div>
+          </div>
         </div>
 
-        {/* Grid de Módulos */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {modules.map((module) => (
-            <Card
-              key={module.path}
-              className="cursor-pointer hover:shadow-lg transition-all duration-300 border-2 hover:border-primary group"
-              onClick={() => navigate(module.path)}
+        {/* Módulos em Layout Circular */}
+        <div className="relative w-full max-w-5xl h-full">
+          {/* Funcionários - Top Left */}
+          <div 
+            className="absolute left-[15%] top-[8%] cursor-pointer hover:scale-110 transition-transform"
+            onClick={() => navigate("/funcionarios")}
+          >
+            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
+              <Users className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            </div>
+            <p className="text-center mt-2 font-semibold text-black">Funcionários</p>
+          </div>
+
+          {/* Banco de Talentos - Top Right */}
+          <div 
+            className="absolute right-[15%] top-[8%] cursor-pointer hover:scale-110 transition-transform"
+            onClick={() => navigate("/banco-talentos")}
+          >
+            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
+              <Briefcase className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            </div>
+            <p className="text-center mt-2 font-semibold text-black">Banco de Talentos</p>
+          </div>
+
+          {/* Relatórios - Left */}
+          <div 
+            className="absolute left-[8%] top-[35%] cursor-pointer hover:scale-110 transition-transform"
+            onClick={() => navigate("/relatorios")}
+          >
+            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
+              <BarChart3 className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            </div>
+            <p className="text-center mt-2 font-semibold text-black">Relatórios e Análises</p>
+          </div>
+
+          {/* Folha de Ponto - Right */}
+          <div 
+            className="absolute right-[8%] top-[35%] cursor-pointer hover:scale-110 transition-transform"
+            onClick={() => navigate("/folha-ponto")}
+          >
+            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
+              <Clock className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            </div>
+            <p className="text-center mt-2 font-semibold text-black">Folha de Ponto</p>
+          </div>
+
+          {/* Holerites - Bottom Left */}
+          <div 
+            className="absolute left-[15%] bottom-[15%] cursor-pointer hover:scale-110 transition-transform"
+            onClick={() => navigate("/holerites")}
+          >
+            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
+              <FileText className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            </div>
+            <p className="text-center mt-2 font-semibold text-black">Holerites</p>
+          </div>
+
+          {/* Comunicados - Bottom Right */}
+          <div 
+            className="absolute right-[15%] bottom-[15%] cursor-pointer hover:scale-110 transition-transform"
+            onClick={() => navigate("/comunicados")}
+          >
+            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
+              <Bell className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            </div>
+            <p className="text-center mt-2 font-semibold text-black">Comunicados</p>
+          </div>
+
+          {/* Gerenciar Admins - Bottom Center */}
+          {isAdmin && (
+            <div 
+              className="absolute left-1/2 -translate-x-1/2 bottom-[8%] cursor-pointer hover:scale-110 transition-transform"
+              onClick={() => navigate("/admins")}
             >
-              <CardHeader className="space-y-4">
-                <div
-                  className={`w-16 h-16 rounded-lg ${module.bgColor} flex items-center justify-center group-hover:scale-110 transition-transform`}
-                >
-                  <module.icon className={`w-8 h-8 ${module.color}`} />
-                </div>
-                <div>
-                  <CardTitle className="text-xl group-hover:text-primary transition-colors">
-                    {module.title}
-                  </CardTitle>
-                  <CardDescription className="mt-2">
-                    {module.description}
-                  </CardDescription>
-                </div>
-              </CardHeader>
-            </Card>
-          ))}
+              <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
+                <Shield className="w-12 h-12 text-[#4DD0D4] mb-2" />
+              </div>
+              <p className="text-center mt-2 font-semibold text-black">Gerenciar Admins</p>
+            </div>
+          )}
+
+          {/* Controle de Férias - Positioned based on admin status */}
+          <div 
+            className={`absolute left-1/2 -translate-x-1/2 cursor-pointer hover:scale-110 transition-transform ${
+              isAdmin ? 'bottom-[32%]' : 'bottom-[15%]'
+            }`}
+            onClick={() => navigate("/controle-ferias")}
+          >
+            <div className="bg-white rounded-2xl shadow-lg p-6 w-32 h-32 flex flex-col items-center justify-center">
+              <Calendar className="w-12 h-12 text-[#4DD0D4] mb-2" />
+            </div>
+            <p className="text-center mt-2 font-semibold text-black">Controle de Férias</p>
+          </div>
         </div>
       </div>
     </div>
