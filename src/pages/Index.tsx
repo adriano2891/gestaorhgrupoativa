@@ -1,4 +1,4 @@
-import { Users, Briefcase, BarChart3, Clock, FileText, Shield, Calendar, Bell } from "lucide-react";
+import { Users, Briefcase, BarChart3, Clock, FileText, Settings, Calendar, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { 
@@ -82,7 +82,7 @@ const Index = () => {
     modules.push({
       title: "Gerenciar Admins",
       description: "Controle de administradores",
-      icon: Shield,
+      icon: Settings,
       path: "/admins",
       color: "text-red-500",
       bgColor: "bg-red-50 dark:bg-red-950",
@@ -194,7 +194,7 @@ const Index = () => {
               onClick={() => navigate("/admins")}
             >
               <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-                <Shield className="w-16 h-16 text-[#3EE0CF]" />
+                <Settings className="w-16 h-16 text-[#3EE0CF]" />
               </div>
               <p className="text-center mt-3 font-semibold text-gray-800 text-base">Gerenciar Admins</p>
             </div>
