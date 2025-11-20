@@ -106,7 +106,7 @@ const Index = () => {
             <img 
               src={logoAtiva} 
               alt="Logo Grupo Ativa" 
-              className="w-64 h-auto opacity-40"
+              className="w-[768px] h-auto opacity-40"
             />
           </div>
         </div>
