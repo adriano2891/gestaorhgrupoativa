@@ -111,17 +111,17 @@ const Index = () => {
       {/* Container central com logo e módulos */}
       <div className="relative w-full flex items-center justify-center px-4 md:px-8" style={{ minHeight: '600px', height: 'calc(100vh - 250px)' }}>
         
-        {/* Logo Central ATIVA */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-          <img 
-            src={logoAtiva} 
-            alt="Logo Grupo Ativa" 
-            className="w-[280px] sm:w-[320px] md:w-[380px] lg:w-[420px] h-auto opacity-40"
-          />
-        </div>
-
         {/* Módulos em Layout Circular */}
         <div className="relative w-full max-w-5xl mx-auto" style={{ height: '600px' }}>
+          
+          {/* Logo Central ATIVA - Dentro do container dos módulos */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none z-0">
+            <img 
+              src={logoAtiva} 
+              alt="Logo Grupo Ativa" 
+              className="w-[240px] sm:w-[280px] md:w-[320px] lg:w-[360px] h-auto opacity-40"
+            />
+          </div>
           
           {/* Funcionários */}
           <div 
