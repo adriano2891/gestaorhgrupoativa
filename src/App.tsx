@@ -1,50 +1,135 @@
 import React from "react";
-import { HashRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Layout } from "./components/Layout";
 import { AuthProvider } from "./components/auth/AuthProvider";
-import Dashboard from "./pages/Dashboard";
-import { ArrowLeft } from "lucide-react";
+import Index from "./pages/Index";
+import NotFound from "./pages/NotFound";
+import Login from "./pages/Login";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import Holerites from "./pages/Holerites";
+import Funcionarios from "./pages/Funcionarios";
+import BancoTalentos from "./pages/BancoTalentos";
+import Relatorios from "./pages/Relatorios";
+import FolhaPonto from "./pages/FolhaPonto";
+import GerenciarAdmins from "./pages/GerenciarAdmins";
+import PortalFuncionario from "./pages/PortalFuncionario";
+import CreateAdmin from "./pages/CreateAdmin";
+import ControleFerias from "./pages/ControleFerias";
+import Comunicados from "./pages/Comunicados";
 
-// Generic Placeholder for inner pages
-const ModulePlaceholder: React.FC = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const moduleName = location.pathname.substring(1).replace("-", " ").toUpperCase();
+const queryClient = new QueryClient();
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <button
-        onClick={() => navigate("/")}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors"
-      >
-        <ArrowLeft size={20} />
-        Voltar ao Início
-      </button>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 flex flex-col items-center justify-center h-[60vh]">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">{moduleName}</h1>
-        <p className="text-gray-500">Este módulo está em desenvolvimento.</p>
-      </div>
-    </div>
-  );
-};
-
-const App: React.FC = () => {
-  return (
-    <HashRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/funcionarios" element={<ModulePlaceholder />} />
-          <Route path="/banco-talentos" element={<ModulePlaceholder />} />
-          <Route path="/relatorios" element={<ModulePlaceholder />} />
-          <Route path="/folha-ponto" element={<ModulePlaceholder />} />
-          <Route path="/holerites" element={<ModulePlaceholder />} />
-          <Route path="/controle-ferias" element={<ModulePlaceholder />} />
-          <Route path="/comunicados" element={<ModulePlaceholder />} />
-          <Route path="/admins" element={<ModulePlaceholder />} />
-        </Routes>
-      </AuthProvider>
-    </HashRouter>
-  );
-};
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/criar-admin" element={<CreateAdmin />} />
+            <Route path="/portal-funcionario" element={<PortalFuncionario />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Index />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/funcionarios"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Funcionarios />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/banco-talentos"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <BancoTalentos />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/relatorios"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Relatorios />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/folha-ponto"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <FolhaPonto />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/holerites"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Holerites />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admins"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <GerenciarAdmins />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/controle-ferias"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <ControleFerias />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/comunicados"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Comunicados />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </TooltipProvider>
+  </QueryClientProvider>
+);
 
 export default App;

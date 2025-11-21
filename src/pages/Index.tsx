@@ -1,50 +1,209 @@
-import React from "react";
-import { HashRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
-import { AuthProvider } from "./components/auth/AuthProvider";
-import Dashboard from "./pages/Dashboard";
-import { ArrowLeft } from "lucide-react";
+import { Users, Briefcase, BarChart3, Clock, FileText, Settings, Calendar, Bell } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { 
+  useMetricasRealtime, 
+  useFuncionariosRealtime, 
+  useComunicadosRealtime 
+} from "@/hooks/useRealtimeUpdates";
+import logoAtiva from "@/assets/logo-ativa.png";
 
-// Generic Placeholder for inner pages
-const ModulePlaceholder: React.FC = () => {
-  const location = useLocation();
+const Index = () => {
   const navigate = useNavigate();
-  const moduleName = location.pathname.substring(1).replace("-", " ").toUpperCase();
+  const { roles } = useAuth();
+  
+  // Sincronização em tempo real para todos os módulos
+  useMetricasRealtime();
+  useFuncionariosRealtime();
+  useComunicadosRealtime();
+  const isAdmin = roles.includes("admin") || roles.includes("rh") || roles.includes("gestor");
+
+  const modules = [
+    {
+      title: "Funcionários",
+      description: "Gestão de colaboradores",
+      icon: Users,
+      path: "/funcionarios",
+      color: "text-blue-500",
+      bgColor: "bg-blue-50 dark:bg-blue-950",
+    },
+    {
+      title: "Banco de Talentos",
+      description: "Candidatos e recrutamento",
+      icon: Briefcase,
+      path: "/banco-talentos",
+      color: "text-purple-500",
+      bgColor: "bg-purple-50 dark:bg-purple-950",
+    },
+    {
+      title: "Relatórios",
+      description: "Análises e indicadores",
+      icon: BarChart3,
+      path: "/relatorios",
+      color: "text-green-500",
+      bgColor: "bg-green-50 dark:bg-green-950",
+    },
+    {
+      title: "Folha de Ponto",
+      description: "Controle de jornada",
+      icon: Clock,
+      path: "/folha-ponto",
+      color: "text-orange-500",
+      bgColor: "bg-orange-50 dark:bg-orange-950",
+    },
+    {
+      title: "Holerites",
+      description: "Gestão de pagamentos",
+      icon: FileText,
+      path: "/holerites",
+      color: "text-cyan-500",
+      bgColor: "bg-cyan-50 dark:bg-cyan-950",
+    },
+    {
+      title: "Controle de Férias",
+      description: "Gerenciamento de férias",
+      icon: Calendar,
+      path: "/controle-ferias",
+      color: "text-pink-500",
+      bgColor: "bg-pink-50 dark:bg-pink-950",
+    },
+    {
+      title: "Comunicados",
+      description: "Avisos e notificações internas",
+      icon: Bell,
+      path: "/comunicados",
+      color: "text-yellow-500",
+      bgColor: "bg-yellow-50 dark:bg-yellow-950",
+    },
+  ];
+
+  // Adicionar Gerenciar Admins apenas para admins
+  if (isAdmin) {
+    modules.push({
+      title: "Gerenciar Admins",
+      description: "Controle de administradores",
+      icon: Settings,
+      path: "/admins",
+      color: "text-red-500",
+      bgColor: "bg-red-50 dark:bg-red-950",
+    });
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <button
-        onClick={() => navigate("/")}
-        className="flex items-center gap-2 text-gray-600 hover:text-gray-900 mb-8 transition-colors"
-      >
-        <ArrowLeft size={20} />
-        Voltar ao Início
-      </button>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-12 flex flex-col items-center justify-center h-[60vh]">
-        <h1 className="text-3xl font-bold text-gray-800 mb-4">{moduleName}</h1>
-        <p className="text-gray-500">Este módulo está em desenvolvimento.</p>
+    <div className="min-h-[calc(100vh-180px)] relative overflow-hidden" style={{ backgroundColor: '#3EE0CF' }}>
+      {/* Cabeçalho */}
+      <div className="text-center pt-12 pb-8 space-y-2 relative z-10">
+        <h1 className="text-5xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-700 text-lg">Acesso rápido aos módulos</p>
+      </div>
+
+      {/* Container central com logo e módulos */}
+      <div className="relative w-full flex items-center justify-center px-8" style={{ height: 'calc(100vh - 350px)', minHeight: '600px' }}>
+        
+        {/* Logo Central ATIVA */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+          <div className="flex flex-col items-center">
+            <img 
+              src={logoAtiva} 
+              alt="Logo Grupo Ativa" 
+              className="w-[768px] h-auto opacity-40"
+            />
+          </div>
+        </div>
+
+        {/* Layout Circular dos Módulos */}
+        <div className="relative w-full max-w-6xl mx-auto" style={{ height: '600px' }}>
+          
+          {/* Funcionários - Topo Esquerda */}
+          <div 
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ left: '15%', top: '5%' }}
+            onClick={() => navigate("/funcionarios")}
+          >
+            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
+              <Users className="w-16 h-16 text-[#3EE0CF]" />
+            </div>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Funcionários</p>
+          </div>
+
+          {/* Banco de Talentos - Topo Direita */}
+          <div 
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ right: '15%', top: '5%', animationDelay: '0.1s' }}
+            onClick={() => navigate("/banco-talentos")}
+          >
+            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
+              <Briefcase className="w-16 h-16 text-[#3EE0CF]" />
+            </div>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Banco de Talentos</p>
+          </div>
+
+          {/* Relatórios e Análises - Meio Esquerda */}
+          <div 
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ left: '5%', top: '38%', animationDelay: '0.2s' }}
+            onClick={() => navigate("/relatorios")}
+          >
+            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
+              <BarChart3 className="w-16 h-16 text-[#3EE0CF]" />
+            </div>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Relatórios e Análises</p>
+          </div>
+
+          {/* Folha de Ponto - Meio Direita */}
+          <div 
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ right: '5%', top: '38%', animationDelay: '0.3s' }}
+            onClick={() => navigate("/folha-ponto")}
+          >
+            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
+              <Clock className="w-16 h-16 text-[#3EE0CF]" />
+            </div>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Folha de Ponto</p>
+          </div>
+
+          {/* Holerites - Inferior Esquerda */}
+          <div 
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ left: '20%', bottom: '8%', animationDelay: '0.4s' }}
+            onClick={() => navigate("/holerites")}
+          >
+            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
+              <FileText className="w-16 h-16 text-[#3EE0CF]" />
+            </div>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Holerites</p>
+          </div>
+
+          {/* Comunicados - Inferior Direita */}
+          <div 
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ right: '20%', bottom: '8%', animationDelay: '0.5s' }}
+            onClick={() => navigate("/comunicados")}
+          >
+            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
+              <Bell className="w-16 h-16 text-[#3EE0CF]" />
+            </div>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Comunicados</p>
+          </div>
+
+          {/* Gerenciar Admins - Inferior Centro (apenas para admins) */}
+          {isAdmin && (
+            <div 
+              className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+              style={{ left: '50%', transform: 'translateX(-50%)', bottom: '2%', animationDelay: '0.6s' }}
+              onClick={() => navigate("/admins")}
+            >
+              <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
+                <Settings className="w-16 h-16 text-[#3EE0CF]" />
+              </div>
+              <p className="text-center mt-3 font-semibold text-gray-800 text-base">Gerenciar Admins</p>
+            </div>
+          )}
+
+        </div>
       </div>
     </div>
   );
 };
 
-const App: React.FC = () => {
-  return (
-    <HashRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/funcionarios" element={<ModulePlaceholder />} />
-          <Route path="/banco-talentos" element={<ModulePlaceholder />} />
-          <Route path="/relatorios" element={<ModulePlaceholder />} />
-          <Route path="/folha-ponto" element={<ModulePlaceholder />} />
-          <Route path="/holerites" element={<ModulePlaceholder />} />
-          <Route path="/controle-ferias" element={<ModulePlaceholder />} />
-          <Route path="/comunicados" element={<ModulePlaceholder />} />
-          <Route path="/admins" element={<ModulePlaceholder />} />
-        </Routes>
-      </AuthProvider>
-    </HashRouter>
-  );
-};
-
-export default App;
+export default Index;
