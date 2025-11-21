@@ -92,114 +92,125 @@ const Index = () => {
   return (
     <div className="min-h-[calc(100vh-180px)] relative overflow-hidden" style={{ backgroundColor: '#3EE0CF' }}>
       {/* Cabeçalho */}
-      <div className="text-center pt-12 pb-8 space-y-2 relative z-10">
-        <h1 className="text-5xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-700 text-lg">Acesso rápido aos módulos</p>
+      <div className="text-center pt-8 pb-6 space-y-2 relative z-10">
+        <h1 className="text-4xl md:text-5xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-700 text-base md:text-lg">Acesso rápido aos módulos</p>
       </div>
 
       {/* Container central com logo e módulos */}
-      <div className="relative w-full flex items-center justify-center px-8" style={{ height: 'calc(100vh - 350px)', minHeight: '600px' }}>
+      <div className="relative w-full px-4 md:px-8 pb-8">
         
         {/* Logo Central ATIVA */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-          <div className="flex flex-col items-center">
-            <img 
-              src={logoAtiva} 
-              alt="Logo Grupo Ativa" 
-              className="w-[768px] h-auto opacity-40"
-            />
-          </div>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0 opacity-40">
+          <img 
+            src={logoAtiva} 
+            alt="Logo Grupo Ativa" 
+            className="w-[300px] sm:w-[400px] md:w-[500px] lg:w-[600px] xl:w-[700px] h-auto max-w-[90vw]"
+          />
         </div>
 
-        {/* Layout Circular dos Módulos */}
-        <div className="relative w-full max-w-6xl mx-auto" style={{ height: '600px' }}>
-          
-          {/* Funcionários - Topo Esquerda */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ left: '15%', top: '5%' }}
-            onClick={() => navigate("/funcionarios")}
-          >
-            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-              <Users className="w-16 h-16 text-[#3EE0CF]" />
-            </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Funcionários</p>
-          </div>
-
-          {/* Banco de Talentos - Topo Direita */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ right: '15%', top: '5%', animationDelay: '0.1s' }}
-            onClick={() => navigate("/banco-talentos")}
-          >
-            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-              <Briefcase className="w-16 h-16 text-[#3EE0CF]" />
-            </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Banco de Talentos</p>
-          </div>
-
-          {/* Relatórios e Análises - Meio Esquerda */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ left: '5%', top: '38%', animationDelay: '0.2s' }}
-            onClick={() => navigate("/relatorios")}
-          >
-            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-              <BarChart3 className="w-16 h-16 text-[#3EE0CF]" />
-            </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Relatórios e Análises</p>
-          </div>
-
-          {/* Folha de Ponto - Meio Direita */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ right: '5%', top: '38%', animationDelay: '0.3s' }}
-            onClick={() => navigate("/folha-ponto")}
-          >
-            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-              <Clock className="w-16 h-16 text-[#3EE0CF]" />
-            </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Folha de Ponto</p>
-          </div>
-
-          {/* Holerites - Inferior Esquerda */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ left: '20%', bottom: '8%', animationDelay: '0.4s' }}
-            onClick={() => navigate("/holerites")}
-          >
-            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-              <FileText className="w-16 h-16 text-[#3EE0CF]" />
-            </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Holerites</p>
-          </div>
-
-          {/* Comunicados - Inferior Direita */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ right: '20%', bottom: '8%', animationDelay: '0.5s' }}
-            onClick={() => navigate("/comunicados")}
-          >
-            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-              <Bell className="w-16 h-16 text-[#3EE0CF]" />
-            </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Comunicados</p>
-          </div>
-
-          {/* Gerenciar Admins - Inferior Centro (apenas para admins) */}
-          {isAdmin && (
+        {/* Grid Responsivo dos Módulos */}
+        <div className="relative z-10 max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8 lg:gap-10">
+            
+            {/* Funcionários */}
             <div 
-              className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-              style={{ left: '50%', transform: 'translateX(-50%)', bottom: '2%', animationDelay: '0.6s' }}
-              onClick={() => navigate("/admins")}
+              className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 animate-fade-in"
+              onClick={() => navigate("/funcionarios")}
             >
-              <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-                <Settings className="w-16 h-16 text-[#3EE0CF]" />
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center">
+                <Users className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-[#3EE0CF]" />
               </div>
-              <p className="text-center mt-3 font-semibold text-gray-800 text-base">Gerenciar Admins</p>
+              <p className="text-center mt-2 sm:mt-3 font-semibold text-gray-800 text-xs sm:text-sm md:text-base">Funcionários</p>
             </div>
-          )}
 
+            {/* Banco de Talentos */}
+            <div 
+              className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 animate-fade-in"
+              style={{ animationDelay: '0.1s' }}
+              onClick={() => navigate("/banco-talentos")}
+            >
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center">
+                <Briefcase className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-[#3EE0CF]" />
+              </div>
+              <p className="text-center mt-2 sm:mt-3 font-semibold text-gray-800 text-xs sm:text-sm md:text-base">Banco de Talentos</p>
+            </div>
+
+            {/* Relatórios e Análises */}
+            <div 
+              className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 animate-fade-in"
+              style={{ animationDelay: '0.2s' }}
+              onClick={() => navigate("/relatorios")}
+            >
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center">
+                <BarChart3 className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-[#3EE0CF]" />
+              </div>
+              <p className="text-center mt-2 sm:mt-3 font-semibold text-gray-800 text-xs sm:text-sm md:text-base">Relatórios e Análises</p>
+            </div>
+
+            {/* Folha de Ponto */}
+            <div 
+              className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 animate-fade-in"
+              style={{ animationDelay: '0.3s' }}
+              onClick={() => navigate("/folha-ponto")}
+            >
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center">
+                <Clock className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-[#3EE0CF]" />
+              </div>
+              <p className="text-center mt-2 sm:mt-3 font-semibold text-gray-800 text-xs sm:text-sm md:text-base">Folha de Ponto</p>
+            </div>
+
+            {/* Holerites */}
+            <div 
+              className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 animate-fade-in"
+              style={{ animationDelay: '0.4s' }}
+              onClick={() => navigate("/holerites")}
+            >
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center">
+                <FileText className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-[#3EE0CF]" />
+              </div>
+              <p className="text-center mt-2 sm:mt-3 font-semibold text-gray-800 text-xs sm:text-sm md:text-base">Holerites</p>
+            </div>
+
+            {/* Comunicados */}
+            <div 
+              className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 animate-fade-in"
+              style={{ animationDelay: '0.5s' }}
+              onClick={() => navigate("/comunicados")}
+            >
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center">
+                <Bell className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-[#3EE0CF]" />
+              </div>
+              <p className="text-center mt-2 sm:mt-3 font-semibold text-gray-800 text-xs sm:text-sm md:text-base">Comunicados</p>
+            </div>
+
+            {/* Controle de Férias */}
+            <div 
+              className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 animate-fade-in"
+              style={{ animationDelay: '0.6s' }}
+              onClick={() => navigate("/controle-ferias")}
+            >
+              <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center">
+                <Calendar className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-[#3EE0CF]" />
+              </div>
+              <p className="text-center mt-2 sm:mt-3 font-semibold text-gray-800 text-xs sm:text-sm md:text-base">Controle de Férias</p>
+            </div>
+
+            {/* Gerenciar Admins (apenas para admins) */}
+            {isAdmin && (
+              <div 
+                className="flex flex-col items-center cursor-pointer hover:scale-105 transition-transform duration-200 animate-fade-in"
+                style={{ animationDelay: '0.7s' }}
+                onClick={() => navigate("/admins")}
+              >
+                <div className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 md:p-8 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 flex items-center justify-center">
+                  <Settings className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-[#3EE0CF]" />
+                </div>
+                <p className="text-center mt-2 sm:mt-3 font-semibold text-gray-800 text-xs sm:text-sm md:text-base">Gerenciar Admins</p>
+              </div>
+            )}
+
+          </div>
         </div>
       </div>
     </div>
