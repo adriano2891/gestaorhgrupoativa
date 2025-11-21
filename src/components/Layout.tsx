@@ -35,7 +35,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen bg-primary">
       {/* Header */}
-      <header className="bg-card shadow-sm">
+      <header className="bg-card shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Building2 className="h-8 w-8 text-primary" />
@@ -65,7 +65,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </header>
 
       {/* Navigation */}
-      <nav className="bg-primary border-b border-primary-foreground/10">
+      <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[73px] z-40">
         <div className="container mx-auto px-6">
           <div className="flex items-center gap-1 overflow-x-auto">
             {navItems.map((item) => {
