@@ -115,7 +115,7 @@ const Index = () => {
         <div className="relative w-full max-w-5xl mx-auto" style={{ height: '600px' }}>
           
           {/* Logo Central ATIVA - Dentro do container dos módulos */}
-          <div className="absolute top-[58%] left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none z-0">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center pointer-events-none z-0">
             <img 
               src={logoAtiva} 
               alt="Logo Grupo Ativa" 
