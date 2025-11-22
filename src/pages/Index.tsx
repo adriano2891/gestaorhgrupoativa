@@ -93,6 +93,10 @@ const Index = () => {
 
   // Layout mobile/tablet
   if (isMobile) {
+    // Separar módulos: primeiros 4 no topo, últimos 3 embaixo (incluindo admin no centro)
+    const topModules = modules.slice(0, 4);
+    const bottomModules = modules.slice(4);
+    
     return (
       <div className="min-h-[calc(100vh-180px)] relative overflow-hidden" style={{ backgroundColor: '#3EE0CF' }}>
         {/* Cabeçalho */}
@@ -106,14 +110,15 @@ const Index = () => {
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-48 md:w-64 h-auto opacity-40"
+            className="w-32 md:w-48 h-auto opacity-40"
           />
         </div>
 
         {/* Grid de Módulos */}
-        <div className="px-4 pb-8">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
-            {modules.map((module, index) => (
+        <div className="px-4 pb-8 space-y-4">
+          {/* Primeiros 4 módulos em grid 2x2 */}
+          <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+            {topModules.map((module, index) => (
               <div
                 key={module.path}
                 className="cursor-pointer hover:scale-105 transition-transform duration-200 animate-fade-in"
@@ -123,6 +128,25 @@ const Index = () => {
                 <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center min-h-[120px]">
                   <module.icon className="w-12 h-12 md:w-14 md:h-14 text-[#3EE0CF] mb-2" />
                   <p className="text-center font-semibold text-gray-800 text-xs md:text-sm leading-tight">
+                    {module.title}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Últimos 3 módulos em grid 1x3 (Holerites, Admin, Comunicados) */}
+          <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto">
+            {bottomModules.map((module, index) => (
+              <div
+                key={module.path}
+                className="cursor-pointer hover:scale-105 transition-transform duration-200 animate-fade-in"
+                style={{ animationDelay: `${(index + 4) * 0.1}s` }}
+                onClick={() => navigate(module.path)}
+              >
+                <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 flex flex-col items-center justify-center min-h-[110px] md:min-h-[120px]">
+                  <module.icon className="w-10 h-10 md:w-12 md:h-12 text-[#3EE0CF] mb-1 md:mb-2" />
+                  <p className="text-center font-semibold text-gray-800 text-[10px] md:text-xs leading-tight">
                     {module.title}
                   </p>
                 </div>
