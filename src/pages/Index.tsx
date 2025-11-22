@@ -168,15 +168,15 @@ const Index = () => {
       </div>
 
       {/* Container central com logo e módulos */}
-      <div className="relative w-full flex items-center justify-center px-8" style={{ height: 'calc(100vh - 350px)', minHeight: '600px' }}>
+      <div className="relative w-full flex items-center justify-center px-8" style={{ height: 'calc(100vh - 350px)', minHeight: '650px' }}>
         
         {/* Logo Central ATIVA */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" style={{ top: '-40px' }}>
           <div className="flex flex-col items-center">
             <img 
               src={logoAtiva} 
               alt="Logo Grupo Ativa" 
-              className="w-[450px] xl:w-[550px] h-auto opacity-40"
+              className="w-[380px] xl:w-[480px] h-auto opacity-40"
             />
           </div>
         </div>
@@ -187,7 +187,7 @@ const Index = () => {
           {/* Funcionários - Topo Esquerda */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ left: '15%', top: '5%' }}
+            style={{ left: '16%', top: '8%' }}
             onClick={() => navigate("/funcionarios")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -199,7 +199,7 @@ const Index = () => {
           {/* Banco de Talentos - Topo Direita */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ right: '15%', top: '5%', animationDelay: '0.1s' }}
+            style={{ right: '16%', top: '8%', animationDelay: '0.1s' }}
             onClick={() => navigate("/banco-talentos")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -211,7 +211,7 @@ const Index = () => {
           {/* Relatórios e Análises - Meio Esquerda */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ left: '5%', top: '38%', animationDelay: '0.2s' }}
+            style={{ left: '6%', top: '40%', animationDelay: '0.2s' }}
             onClick={() => navigate("/relatorios")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -223,7 +223,7 @@ const Index = () => {
           {/* Folha de Ponto - Meio Direita */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ right: '5%', top: '38%', animationDelay: '0.3s' }}
+            style={{ right: '6%', top: '40%', animationDelay: '0.3s' }}
             onClick={() => navigate("/folha-ponto")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -232,10 +232,22 @@ const Index = () => {
             <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Folha de Ponto</p>
           </div>
 
+          {/* Controle de Férias - Meio Superior (novo posicionamento) */}
+          <div 
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ left: '50%', transform: 'translateX(-50%)', top: '8%', animationDelay: '0.4s' }}
+            onClick={() => navigate("/controle-ferias")}
+          >
+            <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
+              <Calendar className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
+            </div>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Controle de Férias</p>
+          </div>
+
           {/* Holerites - Inferior Esquerda */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ left: '22%', bottom: '12%', animationDelay: '0.4s' }}
+            style={{ left: '20%', bottom: '8%', animationDelay: '0.5s' }}
             onClick={() => navigate("/holerites")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -248,7 +260,7 @@ const Index = () => {
           {isAdmin && (
             <div 
               className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-              style={{ left: '50%', transform: 'translateX(-50%)', bottom: '12%', animationDelay: '0.5s' }}
+              style={{ left: '50%', transform: 'translateX(-50%)', bottom: '8%', animationDelay: '0.6s' }}
               onClick={() => navigate("/admins")}
             >
               <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -261,7 +273,7 @@ const Index = () => {
           {/* Comunicados - Inferior Direita */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ right: '22%', bottom: '12%', animationDelay: '0.6s' }}
+            style={{ right: '20%', bottom: '8%', animationDelay: '0.7s' }}
             onClick={() => navigate("/comunicados")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
