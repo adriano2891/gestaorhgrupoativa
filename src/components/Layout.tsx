@@ -36,52 +36,53 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     <div className="min-h-screen bg-primary">
       {/* Header */}
       <header className="bg-card shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Building2 className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">AtivaRH</h1>
+            <Building2 className="h-6 w-6 md:h-8 md:w-8 text-primary" />
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">AtivaRH</h1>
           </div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground hidden md:block">
+          <div className="flex items-center gap-2 md:gap-4">
+            <span className="text-xs md:text-sm text-muted-foreground hidden lg:block">
               {currentDate}
             </span>
-            <span className="text-sm font-medium text-foreground">
+            <span className="text-xs md:text-sm font-medium text-foreground hidden sm:inline">
               {profile?.nome || "Usuário"}
             </span>
-            <Button variant="ghost" size="icon" onClick={toggleTheme}>
-              {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-8 w-8 md:h-10 md:w-10">
+              {isDark ? <Sun className="h-4 w-4 md:h-5 md:w-5" /> : <Moon className="h-4 w-4 md:h-5 md:w-5" />}
             </Button>
             <Button 
               variant="ghost" 
               size="icon"
               onClick={() => signOut()}
               title="Sair"
+              className="h-8 w-8 md:h-10 md:w-10"
             >
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
           </div>
         </div>
       </header>
 
       {/* Navigation */}
-      <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[73px] z-40">
-        <div className="container mx-auto px-6">
-          <div className="flex items-center gap-1 overflow-x-auto">
+      <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[57px] md:top-[73px] z-40">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-2 px-4 py-4 text-sm font-medium transition-all whitespace-nowrap border-b-2 ${
+                  className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-3 md:py-4 text-xs md:text-sm font-medium transition-all whitespace-nowrap border-b-2 ${
                     isActive
                       ? "text-primary-foreground border-primary-foreground"
                       : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:border-primary-foreground/30"
                   }`}
                 >
-                  <span>{item.icon}</span>
-                  {item.label}
+                  <span className="text-base md:text-lg">{item.icon}</span>
+                  <span className="hidden sm:inline">{item.label}</span>
                 </Link>
               );
             })}
@@ -90,7 +91,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto px-6 py-8">{children}</main>
+      <main className="container mx-auto px-4 md:px-6 py-4 md:py-8">{children}</main>
     </div>
   );
 };

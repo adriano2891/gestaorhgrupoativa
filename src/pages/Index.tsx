@@ -6,11 +6,13 @@ import {
   useFuncionariosRealtime, 
   useComunicadosRealtime 
 } from "@/hooks/useRealtimeUpdates";
+import { useIsMobile } from "@/hooks/use-mobile";
 import logoAtiva from "@/assets/logo-ativa.png";
 
 const Index = () => {
   const navigate = useNavigate();
   const { roles } = useAuth();
+  const isMobile = useIsMobile();
   
   // Sincronização em tempo real para todos os módulos
   useMetricasRealtime();
@@ -89,12 +91,56 @@ const Index = () => {
     });
   }
 
+  // Layout mobile/tablet
+  if (isMobile) {
+    return (
+      <div className="min-h-[calc(100vh-180px)] relative overflow-hidden" style={{ backgroundColor: '#3EE0CF' }}>
+        {/* Cabeçalho */}
+        <div className="text-center pt-8 pb-6 space-y-1 relative z-10 px-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-700 text-sm md:text-base">Acesso rápido aos módulos</p>
+        </div>
+
+        {/* Logo Central */}
+        <div className="flex justify-center mb-6 px-4">
+          <img 
+            src={logoAtiva} 
+            alt="Logo Grupo Ativa" 
+            className="w-48 md:w-64 h-auto opacity-40"
+          />
+        </div>
+
+        {/* Grid de Módulos */}
+        <div className="px-4 pb-8">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            {modules.map((module, index) => (
+              <div
+                key={module.path}
+                className="cursor-pointer hover:scale-105 transition-transform duration-200 animate-fade-in"
+                style={{ animationDelay: `${index * 0.1}s` }}
+                onClick={() => navigate(module.path)}
+              >
+                <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center min-h-[120px]">
+                  <module.icon className="w-12 h-12 md:w-14 md:h-14 text-[#3EE0CF] mb-2" />
+                  <p className="text-center font-semibold text-gray-800 text-xs md:text-sm leading-tight">
+                    {module.title}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Layout desktop (circular original)
   return (
     <div className="min-h-[calc(100vh-180px)] relative overflow-hidden" style={{ backgroundColor: '#3EE0CF' }}>
       {/* Cabeçalho */}
       <div className="text-center pt-12 pb-8 space-y-2 relative z-10">
-        <h1 className="text-5xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-700 text-lg">Acesso rápido aos módulos</p>
+        <h1 className="text-4xl lg:text-5xl font-bold text-gray-900">Dashboard</h1>
+        <p className="text-gray-700 text-base lg:text-lg">Acesso rápido aos módulos</p>
       </div>
 
       {/* Container central com logo e módulos */}
@@ -106,7 +152,7 @@ const Index = () => {
             <img 
               src={logoAtiva} 
               alt="Logo Grupo Ativa" 
-              className="w-[768px] h-auto opacity-40"
+              className="w-[600px] xl:w-[768px] h-auto opacity-40"
             />
           </div>
         </div>
@@ -120,10 +166,10 @@ const Index = () => {
             style={{ left: '15%', top: '5%' }}
             onClick={() => navigate("/funcionarios")}
           >
-            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-              <Users className="w-16 h-16 text-[#3EE0CF]" />
+            <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
+              <Users className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
             </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Funcionários</p>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Funcionários</p>
           </div>
 
           {/* Banco de Talentos - Topo Direita */}
@@ -132,10 +178,10 @@ const Index = () => {
             style={{ right: '15%', top: '5%', animationDelay: '0.1s' }}
             onClick={() => navigate("/banco-talentos")}
           >
-            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-              <Briefcase className="w-16 h-16 text-[#3EE0CF]" />
+            <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
+              <Briefcase className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
             </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Banco de Talentos</p>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Banco de Talentos</p>
           </div>
 
           {/* Relatórios e Análises - Meio Esquerda */}
@@ -144,10 +190,10 @@ const Index = () => {
             style={{ left: '5%', top: '38%', animationDelay: '0.2s' }}
             onClick={() => navigate("/relatorios")}
           >
-            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-              <BarChart3 className="w-16 h-16 text-[#3EE0CF]" />
+            <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
+              <BarChart3 className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
             </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Relatórios e Análises</p>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Relatórios e Análises</p>
           </div>
 
           {/* Folha de Ponto - Meio Direita */}
@@ -156,10 +202,10 @@ const Index = () => {
             style={{ right: '5%', top: '38%', animationDelay: '0.3s' }}
             onClick={() => navigate("/folha-ponto")}
           >
-            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-              <Clock className="w-16 h-16 text-[#3EE0CF]" />
+            <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
+              <Clock className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
             </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Folha de Ponto</p>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Folha de Ponto</p>
           </div>
 
           {/* Holerites - Inferior Esquerda */}
@@ -168,10 +214,10 @@ const Index = () => {
             style={{ left: '20%', bottom: '8%', animationDelay: '0.4s' }}
             onClick={() => navigate("/holerites")}
           >
-            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-              <FileText className="w-16 h-16 text-[#3EE0CF]" />
+            <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
+              <FileText className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
             </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Holerites</p>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Holerites</p>
           </div>
 
           {/* Comunicados - Inferior Direita */}
@@ -180,10 +226,10 @@ const Index = () => {
             style={{ right: '20%', bottom: '8%', animationDelay: '0.5s' }}
             onClick={() => navigate("/comunicados")}
           >
-            <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-              <Bell className="w-16 h-16 text-[#3EE0CF]" />
+            <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
+              <Bell className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
             </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-base">Comunicados</p>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Comunicados</p>
           </div>
 
           {/* Gerenciar Admins - Inferior Centro (apenas para admins) */}
@@ -193,10 +239,10 @@ const Index = () => {
               style={{ left: '50%', transform: 'translateX(-50%)', bottom: '2%', animationDelay: '0.6s' }}
               onClick={() => navigate("/admins")}
             >
-              <div className="bg-white rounded-3xl shadow-lg p-8 w-32 h-32 flex items-center justify-center">
-                <Settings className="w-16 h-16 text-[#3EE0CF]" />
+              <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
+                <Settings className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
               </div>
-              <p className="text-center mt-3 font-semibold text-gray-800 text-base">Gerenciar Admins</p>
+              <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Gerenciar Admins</p>
             </div>
           )}
 
