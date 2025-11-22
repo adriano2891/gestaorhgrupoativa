@@ -176,7 +176,7 @@ const Index = () => {
             <img 
               src={logoAtiva} 
               alt="Logo Grupo Ativa" 
-              className="w-[600px] xl:w-[768px] h-auto opacity-40"
+              className="w-[450px] xl:w-[550px] h-auto opacity-40"
             />
           </div>
         </div>
@@ -235,7 +235,7 @@ const Index = () => {
           {/* Holerites - Inferior Esquerda */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ left: '20%', bottom: '8%', animationDelay: '0.4s' }}
+            style={{ left: '22%', bottom: '12%', animationDelay: '0.4s' }}
             onClick={() => navigate("/holerites")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -244,23 +244,11 @@ const Index = () => {
             <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Holerites</p>
           </div>
 
-          {/* Comunicados - Inferior Direita */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ right: '20%', bottom: '8%', animationDelay: '0.5s' }}
-            onClick={() => navigate("/comunicados")}
-          >
-            <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
-              <Bell className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
-            </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Comunicados</p>
-          </div>
-
           {/* Gerenciar Admins - Inferior Centro (apenas para admins) */}
           {isAdmin && (
             <div 
               className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-              style={{ left: '50%', transform: 'translateX(-50%)', bottom: '2%', animationDelay: '0.6s' }}
+              style={{ left: '50%', transform: 'translateX(-50%)', bottom: '12%', animationDelay: '0.5s' }}
               onClick={() => navigate("/admins")}
             >
               <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -269,6 +257,18 @@ const Index = () => {
               <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Gerenciar Admins</p>
             </div>
           )}
+
+          {/* Comunicados - Inferior Direita */}
+          <div 
+            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
+            style={{ right: '22%', bottom: '12%', animationDelay: '0.6s' }}
+            onClick={() => navigate("/comunicados")}
+          >
+            <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
+              <Bell className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
+            </div>
+            <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Comunicados</p>
+          </div>
 
         </div>
       </div>
