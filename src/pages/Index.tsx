@@ -240,7 +240,7 @@ const Index = () => {
           {isAdmin && (
             <div 
               className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-              style={{ left: '48%', transform: 'translateX(-50%)', bottom: '5%', animationDelay: '0.5s' }}
+              style={{ left: '46%', transform: 'translateX(-50%)', bottom: '5%', animationDelay: '0.5s' }}
               onClick={() => navigate("/admins")}
             >
               <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
