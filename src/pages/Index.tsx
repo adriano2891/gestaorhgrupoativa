@@ -163,7 +163,7 @@ const Index = () => {
       <div className="relative w-full flex items-center justify-center px-8" style={{ height: 'calc(100vh - 350px)', minHeight: '600px' }}>
         
         {/* Logo Central ATIVA */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" style={{ top: '-60px' }}>
           <div className="flex flex-col items-center">
             <img 
               src={logoAtiva} 
