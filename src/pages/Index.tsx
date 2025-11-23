@@ -62,14 +62,6 @@ const Index = () => {
       bgColor: "bg-cyan-50 dark:bg-cyan-950",
     },
     {
-      title: "Controle de Férias",
-      description: "Gerenciamento de férias",
-      icon: Calendar,
-      path: "/controle-ferias",
-      color: "text-pink-500",
-      bgColor: "bg-pink-50 dark:bg-pink-950",
-    },
-    {
       title: "Comunicados",
       description: "Avisos e notificações internas",
       icon: Bell,
@@ -168,26 +160,26 @@ const Index = () => {
       </div>
 
       {/* Container central com logo e módulos */}
-      <div className="relative w-full flex items-center justify-center px-8" style={{ height: 'calc(100vh - 350px)', minHeight: '650px' }}>
+      <div className="relative w-full flex items-center justify-center px-8" style={{ height: 'calc(100vh - 350px)', minHeight: '600px' }}>
         
         {/* Logo Central ATIVA */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" style={{ top: '-40px' }}>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
           <div className="flex flex-col items-center">
             <img 
               src={logoAtiva} 
               alt="Logo Grupo Ativa" 
-              className="w-[380px] xl:w-[480px] h-auto opacity-40"
+              className="w-[420px] xl:w-[500px] h-auto opacity-40"
             />
           </div>
         </div>
 
         {/* Layout Circular dos Módulos */}
-        <div className="relative w-full max-w-6xl mx-auto" style={{ height: '600px' }}>
+        <div className="relative w-full max-w-6xl mx-auto" style={{ height: '550px' }}>
           
-          {/* Funcionários - Topo Esquerda */}
+          {/* Funcionários - Superior Esquerda */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ left: '16%', top: '8%' }}
+            style={{ left: '18%', top: '10%' }}
             onClick={() => navigate("/funcionarios")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -196,10 +188,10 @@ const Index = () => {
             <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Funcionários</p>
           </div>
 
-          {/* Banco de Talentos - Topo Direita */}
+          {/* Banco de Talentos - Superior Direita */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ right: '16%', top: '8%', animationDelay: '0.1s' }}
+            style={{ right: '18%', top: '10%', animationDelay: '0.1s' }}
             onClick={() => navigate("/banco-talentos")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -211,7 +203,7 @@ const Index = () => {
           {/* Relatórios e Análises - Meio Esquerda */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ left: '6%', top: '40%', animationDelay: '0.2s' }}
+            style={{ left: '8%', top: '42%', animationDelay: '0.2s' }}
             onClick={() => navigate("/relatorios")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -223,7 +215,7 @@ const Index = () => {
           {/* Folha de Ponto - Meio Direita */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ right: '6%', top: '40%', animationDelay: '0.3s' }}
+            style={{ right: '8%', top: '42%', animationDelay: '0.3s' }}
             onClick={() => navigate("/folha-ponto")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -232,22 +224,10 @@ const Index = () => {
             <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Folha de Ponto</p>
           </div>
 
-          {/* Controle de Férias - Meio Superior (novo posicionamento) */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ left: '50%', transform: 'translateX(-50%)', top: '8%', animationDelay: '0.4s' }}
-            onClick={() => navigate("/controle-ferias")}
-          >
-            <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
-              <Calendar className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
-            </div>
-            <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Controle de Férias</p>
-          </div>
-
           {/* Holerites - Inferior Esquerda */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ left: '20%', bottom: '8%', animationDelay: '0.5s' }}
+            style={{ left: '20%', bottom: '8%', animationDelay: '0.4s' }}
             onClick={() => navigate("/holerites")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -260,7 +240,7 @@ const Index = () => {
           {isAdmin && (
             <div 
               className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-              style={{ left: '50%', transform: 'translateX(-50%)', bottom: '8%', animationDelay: '0.6s' }}
+              style={{ left: '50%', transform: 'translateX(-50%)', bottom: '8%', animationDelay: '0.5s' }}
               onClick={() => navigate("/admins")}
             >
               <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
@@ -273,7 +253,7 @@ const Index = () => {
           {/* Comunicados - Inferior Direita */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-            style={{ right: '20%', bottom: '8%', animationDelay: '0.7s' }}
+            style={{ right: '20%', bottom: '8%', animationDelay: '0.6s' }}
             onClick={() => navigate("/comunicados")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
