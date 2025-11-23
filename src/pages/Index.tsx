@@ -163,7 +163,7 @@ const Index = () => {
       <div className="relative w-full flex items-center justify-center px-8" style={{ height: 'calc(100vh - 350px)', minHeight: '600px' }}>
         
         {/* Logo Central ATIVA */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" style={{ top: '-60px' }}>
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0" style={{ top: '-90px' }}>
           <div className="flex flex-col items-center">
             <img 
               src={logoAtiva} 
@@ -240,7 +240,7 @@ const Index = () => {
           {isAdmin && (
             <div 
               className="absolute cursor-pointer hover:scale-110 transition-transform duration-200 animate-fade-in"
-              style={{ left: '50%', transform: 'translateX(-50%)', bottom: '8%', animationDelay: '0.5s' }}
+              style={{ left: '48%', transform: 'translateX(-50%)', bottom: '5%', animationDelay: '0.5s' }}
               onClick={() => navigate("/admins")}
             >
               <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
