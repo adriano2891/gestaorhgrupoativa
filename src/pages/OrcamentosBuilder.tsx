@@ -10,7 +10,9 @@ import {
   FileDown,
   Package,
   ImageOff,
-  UserPlus
+  UserPlus,
+  Eye,
+  Download
 } from 'lucide-react';
 import { useQuotes } from '@/contexts/QuotesContext';
 import { useItensOrcamento } from '@/hooks/useItensOrcamento';
@@ -29,8 +31,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { downloadQuotePDF, previewQuotePDF } from '@/utils/quotePdfGenerator';
 
 export default function OrcamentosBuilder() {
   const navigate = useNavigate();
@@ -188,6 +197,48 @@ export default function OrcamentosBuilder() {
       );
     }
     navigate('/orcamentos/lista');
+  };
+
+  // Generate PDF data for preview/download
+  const generatePdfData = () => {
+    const selectedClient = clients.find(c => c.id === clientId);
+    return {
+      publicId: existingQuote?.publicId || `QT-${new Date().getFullYear()}-TEMP`,
+      version: existingQuote?.version || 1,
+      clientName: selectedClient?.name || 'Cliente não selecionado',
+      clientEmail: selectedClient?.email,
+      clientPhone: selectedClient?.phone,
+      createdAt: existingQuote?.createdAt || new Date(),
+      validUntil: new Date(Date.now() + validityDays * 24 * 60 * 60 * 1000),
+      items,
+      financials: {
+        subtotal,
+        taxRate,
+        taxAmount,
+        fees: 0,
+        total,
+      },
+      observations,
+      signature: existingQuote?.signature,
+    };
+  };
+
+  const handlePreviewPdf = () => {
+    if (items.length === 0) {
+      toast.error('Adicione pelo menos um item para visualizar o PDF');
+      return;
+    }
+    previewQuotePDF(generatePdfData());
+    toast.success('PDF aberto em nova aba');
+  };
+
+  const handleDownloadPdf = () => {
+    if (items.length === 0) {
+      toast.error('Adicione pelo menos um item para baixar o PDF');
+      return;
+    }
+    downloadQuotePDF(generatePdfData());
+    toast.success('PDF baixado com sucesso');
   };
 
   return (
@@ -533,14 +584,28 @@ export default function OrcamentosBuilder() {
                   <X className="w-4 h-4 mr-2" />
                   Cancelar
                 </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  disabled={items.length === 0}
-                >
-                  <FileDown className="w-4 h-4 mr-2" />
-                  PDF
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      disabled={items.length === 0}
+                    >
+                      <FileDown className="w-4 h-4 mr-2" />
+                      PDF
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="center" className="w-48">
+                    <DropdownMenuItem onClick={handlePreviewPdf} className="cursor-pointer">
+                      <Eye className="w-4 h-4 mr-2" />
+                      Visualizar PDF
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleDownloadPdf} className="cursor-pointer">
+                      <Download className="w-4 h-4 mr-2" />
+                      Baixar PDF
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 <Button
                   onClick={handleSave}
                   className="flex-1 bg-[#006fee] hover:bg-[#0058c4] text-white"
