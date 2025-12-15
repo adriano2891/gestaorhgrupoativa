@@ -32,6 +32,7 @@ export default function OrcamentosClienteForm() {
     nome_sindico: '',
     email: '',
     telefone: '',
+    numero_unidades: undefined,
     cep: '',
     rua: '',
     numero: '',
@@ -170,7 +171,7 @@ export default function OrcamentosClienteForm() {
                   </div>
 
                   <div>
-                    <Label htmlFor="nome_sindico">Nome do Síndico *</Label>
+                    <Label htmlFor="nome_sindico">Síndico Responsável *</Label>
                     <div className="relative mt-1">
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
                       <Input
@@ -178,10 +179,26 @@ export default function OrcamentosClienteForm() {
                         value={formData.nome_sindico}
                         onChange={(e) => handleChange('nome_sindico', e.target.value)}
                         className="pl-10 bg-white"
-                        placeholder="Nome completo do síndico"
+                        placeholder="Nome completo do síndico responsável"
                         maxLength={150}
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="numero_unidades">Número de Unidades</Label>
+                    <Input
+                      id="numero_unidades"
+                      type="number"
+                      value={formData.numero_unidades || ''}
+                      onChange={(e) => setFormData(prev => ({ 
+                        ...prev, 
+                        numero_unidades: e.target.value ? Number(e.target.value) : undefined 
+                      }))}
+                      className="mt-1 bg-white"
+                      placeholder="Ex: 120"
+                      min={1}
+                    />
                   </div>
 
                   <div>
