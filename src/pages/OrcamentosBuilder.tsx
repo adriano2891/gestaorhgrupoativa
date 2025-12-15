@@ -9,7 +9,8 @@ import {
   X,
   FileDown,
   Package,
-  ImageOff
+  ImageOff,
+  UserPlus
 } from 'lucide-react';
 import { useQuotes } from '@/contexts/QuotesContext';
 import { useItensOrcamento } from '@/hooks/useItensOrcamento';
@@ -219,18 +220,28 @@ export default function OrcamentosBuilder() {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="client">Cliente *</Label>
-                  <Select value={clientId} onValueChange={setClientId}>
-                    <SelectTrigger className="mt-1 bg-white">
-                      <SelectValue placeholder="Selecione um cliente" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map(client => (
-                        <SelectItem key={client.id} value={client.id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="flex gap-2 mt-1">
+                    <Select value={clientId} onValueChange={setClientId}>
+                      <SelectTrigger className="bg-white flex-1">
+                        <SelectValue placeholder="Selecione um cliente" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map(client => (
+                          <SelectItem key={client.id} value={client.id}>
+                            {client.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      type="button"
+                      onClick={() => navigate('/orcamentos/clientes/novo')}
+                      className="bg-[#006fee] hover:bg-[#0058c4] text-white shrink-0"
+                    >
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Adicionar Cliente
+                    </Button>
+                  </div>
                 </div>
 
                 <div>
