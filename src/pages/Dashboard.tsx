@@ -121,24 +121,22 @@ const Dashboard = () => {
       className="min-h-screen relative overflow-hidden flex flex-col"
       style={{ backgroundColor: '#40E0D0' }}
     >
-      {/* Título central no topo */}
-      <div className="text-center pt-4 sm:pt-6 lg:pt-8 pb-2 relative z-10 px-4">
+      {/* Header com título e botão sair */}
+      <div className="flex items-start justify-between px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 relative z-10">
         <h1 
-          className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-white font-bold"
+          className="text-sm sm:text-base md:text-lg lg:text-xl text-white font-bold"
           style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
         >
           Sistema Integrado de Gerenciamento GRUPO ATIVA
         </h1>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-1 sm:gap-2 text-white hover:opacity-80 transition-opacity"
+        >
+          <LogOut className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+          <span className="text-sm sm:text-base lg:text-lg font-medium">Sair</span>
+        </button>
       </div>
-
-      {/* Botão Sair */}
-      <button
-        onClick={handleLogout}
-        className="absolute top-3 sm:top-4 lg:top-6 right-3 sm:right-6 lg:right-8 flex items-center gap-1 sm:gap-2 text-white hover:opacity-80 transition-opacity z-20"
-      >
-        <LogOut className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-        <span className="text-sm sm:text-base lg:text-lg font-medium">Sair</span>
-      </button>
 
       {/* Container central com logo e módulos */}
       <div className="flex-1 relative w-full flex items-center justify-center px-4 py-2">
