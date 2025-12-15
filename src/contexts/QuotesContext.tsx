@@ -78,8 +78,9 @@ export function QuotesProvider({ children }: { children: ReactNode }) {
 
   const generatePublicId = () => {
     const year = new Date().getFullYear();
-    const count = quotes.filter(q => q.publicId.includes(`QT-${year}`)).length + 1;
-    return `QT-${year}-${String(count).padStart(3, '0')}`;
+    const baseNumber = 163; // Numeração inicial
+    const count = quotes.filter(q => q.publicId.includes(`QT-${year}`)).length + baseNumber;
+    return `QT-${year}-${String(count).padStart(4, '0')}`;
   };
 
   const calculateFinancials = (items: QuoteItem[], taxRate: number = 5, fees: number = 0) => {
