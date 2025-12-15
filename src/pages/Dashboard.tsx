@@ -48,18 +48,18 @@ const Dashboard = () => {
       <div className="flex-1 relative w-full flex items-center justify-center px-4">
         
         {/* Logo Central ATIVA */}
-        <div className="absolute inset-0 flex items-start justify-center pointer-events-none z-0" style={{ paddingTop: '60px' }}>
+        <div className="absolute inset-0 flex items-start justify-center pointer-events-none z-0" style={{ paddingTop: '20px' }}>
           <div 
             className="flex items-center justify-center"
             style={{ 
-              width: '320px',
-              height: '320px',
+              width: '400px',
+              height: '400px',
             }}
           >
             <img 
               src={logoAtiva} 
               alt="Logo Grupo Ativa" 
-              className="w-[280px] h-auto"
+              className="w-[380px] h-auto"
             />
           </div>
         </div>
