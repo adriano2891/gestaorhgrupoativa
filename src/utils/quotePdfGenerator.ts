@@ -234,9 +234,10 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
       cellPadding: 6,
       lineColor: [200, 200, 200],
       lineWidth: 0.3,
+      fillColor: [62, 224, 207], // #3EE0CF - odd rows (1st, 3rd, etc.)
     },
     alternateRowStyles: {
-      fillColor: [255, 255, 255],
+      fillColor: [255, 255, 255], // white - even rows (2nd, 4th, etc.)
     },
     styles: {
       overflow: 'linebreak',
