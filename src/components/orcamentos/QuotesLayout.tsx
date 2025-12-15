@@ -35,15 +35,15 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#3ee0cf' }}>
+    <div className="min-h-screen bg-white">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-sm border-b border-white/20 px-4 py-3 flex items-center justify-between">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#3EE0CF] shadow-md px-4 py-3 flex items-center justify-between">
         <button onClick={() => setSidebarOpen(true)} className="p-2">
-          <Menu className="w-6 h-6 text-zinc-700" />
+          <Menu className="w-6 h-6 text-black" />
         </button>
-        <h1 className="text-lg font-semibold text-zinc-800">Gestão de Orçamentos</h1>
+        <h1 className="text-lg font-semibold text-black">Gestão de Orçamentos</h1>
         <button onClick={() => navigate('/dashboard')} className="p-2">
-          <ChevronLeft className="w-6 h-6 text-zinc-700" />
+          <ChevronLeft className="w-6 h-6 text-black" />
         </button>
       </div>
 
@@ -58,19 +58,19 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed top-0 left-0 h-full w-64 bg-white/95 backdrop-blur-md border-r border-white/20 shadow-xl z-50 transition-transform duration-300",
+          "fixed top-0 left-0 h-full w-64 bg-[#3EE0CF] shadow-xl z-50 transition-transform duration-300",
           "lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold text-zinc-800">Orçamentos</h2>
+            <h2 className="text-xl font-bold text-black">Orçamentos</h2>
             <button 
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1 hover:bg-zinc-100 rounded"
+              className="lg:hidden p-1 hover:bg-black/10 rounded"
             >
-              <X className="w-5 h-5 text-zinc-600" />
+              <X className="w-5 h-5 text-black" />
             </button>
           </div>
 
@@ -87,8 +87,8 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left",
                     isActive 
-                      ? "bg-[#006fee] text-white shadow-md" 
-                      : "text-zinc-600 hover:bg-zinc-100"
+                      ? "bg-black text-white shadow-md" 
+                      : "text-black hover:bg-black/10"
                   )}
                 >
                   <item.icon className="w-5 h-5" />
@@ -99,17 +99,17 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
           </nav>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-zinc-200">
+        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-black/10">
           <button
             onClick={() => navigate('/dashboard')}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-zinc-600 hover:bg-zinc-100 transition-all mb-2"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-black hover:bg-black/10 transition-all mb-2"
           >
             <ChevronLeft className="w-5 h-5" />
             <span className="font-medium">Voltar ao Dashboard</span>
           </button>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-all"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-black hover:bg-black/10 transition-all"
           >
             <LogOut className="w-5 h-5" />
             <span className="font-medium">Sair</span>
