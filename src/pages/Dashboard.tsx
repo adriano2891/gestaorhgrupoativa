@@ -4,6 +4,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import logoAtiva from "@/assets/logo-ativa.png";
 import iconHr from "@/assets/icon-hr-new.png";
 import iconClients from "@/assets/icon-clients-new.png";
+import iconSuppliers from "@/assets/icon-suppliers-new.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -125,21 +126,17 @@ const Dashboard = () => {
             onClick={() => navigate("/fornecedores")}
           >
             <div 
-              className="rounded-full flex items-center justify-center shadow-lg mx-auto"
+              className="rounded-full flex items-center justify-center shadow-lg mx-auto overflow-hidden"
               style={{ 
                 width: '120px', 
                 height: '120px',
-                background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
               }}
             >
-              <div className="relative">
-                <div className="w-12 h-8 bg-gray-300 rounded-sm"></div>
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2">
-                  <div className="w-6 h-4 bg-teal-400 rounded-sm flex items-center justify-center">
-                    <span className="text-white text-xs">↗</span>
-                  </div>
-                </div>
-              </div>
+              <img 
+                src={iconSuppliers} 
+                alt="Fornecedores" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <p 
               className="text-center mt-2 font-semibold text-white text-sm"
