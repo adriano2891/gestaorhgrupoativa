@@ -37,7 +37,54 @@ interface QuoteDataForPdf {
   };
 }
 
-export function generateQuotePDF(quote: Quote | QuoteDataForPdf): jsPDF {
+// Load image and convert to base64
+async function loadImageAsBase64(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) {
+    console.error('Error loading image:', error);
+    return null;
+  }
+}
+
+// Create placeholder image for items without image
+function createPlaceholderImage(doc: jsPDF): string {
+  // Create a simple gray placeholder with package icon representation
+  const canvas = document.createElement('canvas');
+  canvas.width = 60;
+  canvas.height = 60;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    // Background
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, 60, 60);
+    
+    // Border
+    ctx.strokeStyle = '#d0d0d0';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(2, 2, 56, 56);
+    
+    // Simple package icon
+    ctx.fillStyle = '#a0a0a0';
+    ctx.fillRect(15, 20, 30, 25);
+    ctx.fillStyle = '#888888';
+    ctx.fillRect(15, 15, 30, 8);
+    
+    // Ribbon
+    ctx.fillStyle = '#909090';
+    ctx.fillRect(28, 15, 4, 30);
+  }
+  return canvas.toDataURL('image/png');
+}
+
+export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<jsPDF> {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -48,6 +95,20 @@ export function generateQuotePDF(quote: Quote | QuoteDataForPdf): jsPDF {
   const tealColor: [number, number, number] = [62, 224, 207];
   const darkGray: [number, number, number] = [60, 60, 60];
   const lightGray: [number, number, number] = [120, 120, 120];
+
+  // Pre-load all images
+  const imageCache: Map<number, string> = new Map();
+  const placeholderImage = createPlaceholderImage(doc);
+  
+  for (let i = 0; i < quote.items.length; i++) {
+    const item = quote.items[i];
+    if (item.imageUrl) {
+      const imageData = await loadImageAsBase64(item.imageUrl);
+      imageCache.set(i, imageData || placeholderImage);
+    } else {
+      imageCache.set(i, placeholderImage);
+    }
+  }
 
   // Header with gradient effect
   doc.setFillColor(...tealColor);
@@ -127,10 +188,11 @@ export function generateQuotePDF(quote: Quote | QuoteDataForPdf): jsPDF {
   doc.text(`Data de Emissão: ${format(createdDate, "dd/MM/yyyy", { locale: ptBR })}`, margin + 5, y + 8);
   doc.text(`Válido até: ${format(validUntilDate, "dd/MM/yyyy", { locale: ptBR })}`, pageWidth - margin - 5, y + 8, { align: 'right' });
 
-  // Items table
+  // Items table with images
   y += 20;
+  const imageSize = 12; // Image size in the table
   const tableData = quote.items.map((item, idx) => [
-    (idx + 1).toString(),
+    '', // Placeholder for image - will be drawn via didDrawCell
     item.name,
     item.description ? item.description.substring(0, 35) + (item.description.length > 35 ? '...' : '') : '-',
     item.quantity.toString(),
@@ -140,7 +202,7 @@ export function generateQuotePDF(quote: Quote | QuoteDataForPdf): jsPDF {
 
   autoTable(doc, {
     startY: y,
-    head: [['#', 'Item', 'Descrição', 'Qtd', 'Valor Un.', 'Total']],
+    head: [['Foto', 'Item', 'Descrição', 'Qtd', 'Valor Un.', 'Total']],
     body: tableData,
     headStyles: {
       fillColor: primaryColor,
@@ -156,16 +218,45 @@ export function generateQuotePDF(quote: Quote | QuoteDataForPdf): jsPDF {
       cellPadding: 4,
       lineColor: [220, 220, 220],
       lineWidth: 0.1,
+      minCellHeight: imageSize + 4,
     },
     columnStyles: {
-      0: { cellWidth: 10, halign: 'center' },
-      1: { cellWidth: 40 },
-      2: { cellWidth: 55 },
+      0: { cellWidth: 18, halign: 'center', valign: 'middle' },
+      1: { cellWidth: 38 },
+      2: { cellWidth: 50 },
       3: { cellWidth: 15, halign: 'center' },
       4: { cellWidth: 28, halign: 'right' },
       5: { cellWidth: 28, halign: 'right' },
     },
     theme: 'grid',
+    didDrawCell: (data) => {
+      // Draw images in the first column (index 0) for body rows
+      if (data.section === 'body' && data.column.index === 0) {
+        const rowIndex = data.row.index;
+        const imageData = imageCache.get(rowIndex);
+        
+        if (imageData) {
+          const cellX = data.cell.x;
+          const cellY = data.cell.y;
+          const cellWidth = data.cell.width;
+          const cellHeight = data.cell.height;
+          
+          // Center the image in the cell
+          const imgX = cellX + (cellWidth - imageSize) / 2;
+          const imgY = cellY + (cellHeight - imageSize) / 2;
+          
+          try {
+            doc.addImage(imageData, 'PNG', imgX, imgY, imageSize, imageSize);
+          } catch (e) {
+            // If image fails, draw a simple placeholder rectangle
+            doc.setFillColor(240, 240, 240);
+            doc.rect(imgX, imgY, imageSize, imageSize, 'F');
+            doc.setDrawColor(200, 200, 200);
+            doc.rect(imgX, imgY, imageSize, imageSize, 'S');
+          }
+        }
+      }
+    },
   });
 
   // Financial Summary
@@ -275,25 +366,25 @@ export function generateQuotePDF(quote: Quote | QuoteDataForPdf): jsPDF {
   return doc;
 }
 
-export function downloadQuotePDF(quote: Quote | QuoteDataForPdf): void {
-  const doc = generateQuotePDF(quote);
+export async function downloadQuotePDF(quote: Quote | QuoteDataForPdf): Promise<void> {
+  const doc = await generateQuotePDF(quote);
   doc.save(`${quote.publicId}-v${quote.version}.pdf`);
 }
 
-export function previewQuotePDF(quote: Quote | QuoteDataForPdf): void {
-  const doc = generateQuotePDF(quote);
+export async function previewQuotePDF(quote: Quote | QuoteDataForPdf): Promise<void> {
+  const doc = await generateQuotePDF(quote);
   const pdfBlob = doc.output('blob');
   const pdfUrl = URL.createObjectURL(pdfBlob);
   window.open(pdfUrl, '_blank');
 }
 
-export function getPdfBlob(quote: Quote | QuoteDataForPdf): Blob {
-  const doc = generateQuotePDF(quote);
+export async function getPdfBlob(quote: Quote | QuoteDataForPdf): Promise<Blob> {
+  const doc = await generateQuotePDF(quote);
   return doc.output('blob');
 }
 
-export function getPdfBase64(quote: Quote | QuoteDataForPdf): string {
-  const doc = generateQuotePDF(quote);
+export async function getPdfBase64(quote: Quote | QuoteDataForPdf): Promise<string> {
+  const doc = await generateQuotePDF(quote);
   return doc.output('datauristring');
 }
 
