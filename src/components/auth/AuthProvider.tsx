@@ -131,8 +131,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      // Ignorar erros de sessão não encontrada
+      console.log("Logout error (ignored):", error);
+    }
+    // Sempre limpar estado e redirecionar
+    setUser(null);
+    setProfile(null);
+    setRoles([]);
     navigate("/login");
   };
 
