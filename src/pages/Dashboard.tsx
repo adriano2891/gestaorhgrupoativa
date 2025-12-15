@@ -147,17 +147,17 @@ const Dashboard = () => {
             </p>
           </div>
 
-          {/* Orçamentos - Centro Direita */}
+          {/* Orçamentos - Centro Direita (mesmo alinhamento que Clientes) */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
-            style={{ right: '15%', top: '38%', transform: 'translateY(-50%)' }}
+            style={{ right: '18%', top: '50%', transform: 'translateY(-50%)' }}
             onClick={() => navigate("/orcamentos")}
           >
             <div 
               className="rounded-full flex items-center justify-center shadow-lg overflow-hidden"
               style={{ 
-                width: '140px', 
-                height: '140px',
+                width: '120px', 
+                height: '120px',
               }}
             >
               <img 
