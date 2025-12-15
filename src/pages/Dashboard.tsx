@@ -48,11 +48,10 @@ const Dashboard = () => {
       <div className="flex-1 relative w-full flex items-center justify-center px-4">
         
         {/* Logo Central ATIVA */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+        <div className="absolute inset-0 flex items-start justify-center pointer-events-none z-0" style={{ paddingTop: '60px' }}>
           <div 
-            className="rounded-full flex items-center justify-center"
+            className="flex items-center justify-center"
             style={{ 
-              backgroundColor: 'rgba(127, 255, 212, 0.5)',
               width: '320px',
               height: '320px',
             }}
