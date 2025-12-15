@@ -214,21 +214,12 @@ const GestaoRH = () => {
       <div className="relative w-full flex items-center justify-center px-8" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
         
         {/* Logo Central ATIVA */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-          <div 
-            className="rounded-full flex items-center justify-center"
-            style={{ 
-              backgroundColor: 'rgba(127, 255, 212, 0.5)',
-              width: '300px',
-              height: '300px',
-            }}
-          >
-            <img 
-              src={logoAtiva} 
-              alt="Logo Grupo Ativa" 
-              className="w-[260px] h-auto"
-            />
-          </div>
+        <div className="absolute inset-0 flex items-start justify-center pointer-events-none z-0" style={{ paddingTop: '20px' }}>
+          <img 
+            src={logoAtiva} 
+            alt="Logo Grupo Ativa" 
+            className="w-[280px] h-auto opacity-90"
+          />
         </div>
 
         {/* Layout Circular dos Módulos */}
