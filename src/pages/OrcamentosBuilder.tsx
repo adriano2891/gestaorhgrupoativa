@@ -227,21 +227,23 @@ export default function OrcamentosBuilder() {
     };
   };
 
-  const handlePreviewPdf = () => {
+  const handlePreviewPdf = async () => {
     if (items.length === 0) {
       toast.error('Adicione pelo menos um item para visualizar o PDF');
       return;
     }
-    previewQuotePDF(generatePdfData());
+    toast.info('Gerando PDF com imagens...');
+    await previewQuotePDF(generatePdfData());
     toast.success('PDF aberto em nova aba');
   };
 
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = async () => {
     if (items.length === 0) {
       toast.error('Adicione pelo menos um item para baixar o PDF');
       return;
     }
-    downloadQuotePDF(generatePdfData());
+    toast.info('Gerando PDF com imagens...');
+    await downloadQuotePDF(generatePdfData());
     toast.success('PDF baixado com sucesso');
   };
 
