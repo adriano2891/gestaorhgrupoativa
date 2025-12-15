@@ -186,8 +186,10 @@ export default function OrcamentosBuilder() {
       });
       toast.success('Orçamento atualizado com sucesso');
     } else {
+      const selectedClient = clientes.find(c => c.id === clientId);
       addQuote({
         clientId,
+        clientName: selectedClient?.nome_condominio || 'Cliente Desconhecido',
         validityDays,
         items: items.map(({ id, total, hasExcessiveDiscount, ...rest }) => rest),
         observations,

@@ -123,6 +123,7 @@ export interface Quote {
 // Quote creation/update input
 export interface QuoteInput {
   clientId: string;
+  clientName: string;
   validityDays: number;
   items: Omit<QuoteItem, 'id' | 'total' | 'hasExcessiveDiscount'>[];
   observations?: string;

@@ -99,10 +99,7 @@ export function QuotesProvider({ children }: { children: ReactNode }) {
   };
 
   const addQuote = (input: QuoteInput): Quote => {
-    const client = SAMPLE_CLIENTS.find(c => c.id === input.clientId);
-    
     const items: QuoteItem[] = input.items.map((item, index) => {
-      const product = SAMPLE_PRODUCTS.find(p => p.id === item.productId);
       const hasExcessiveDiscount = item.unitPrice < (item.basePrice * 0.9);
       return {
         ...item,
@@ -119,7 +116,7 @@ export function QuotesProvider({ children }: { children: ReactNode }) {
       publicId: generatePublicId(),
       version: 1,
       clientId: input.clientId,
-      clientName: client?.name || 'Cliente Desconhecido',
+      clientName: input.clientName,
       validUntil: new Date(Date.now() + input.validityDays * 24 * 60 * 60 * 1000),
       items,
       financials: calculateFinancials(items, input.taxRate || 5, input.fees || 0),
