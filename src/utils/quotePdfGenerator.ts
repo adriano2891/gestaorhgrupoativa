@@ -316,7 +316,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
     doc.setTextColor(34, 139, 34);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('✓ ORÇAMENTO APROVADO E ASSINADO', margin + 5, signatureY + 10);
+    doc.text('RESPONSÁVEL PELO ORÇAMENTO:', margin + 5, signatureY + 10);
     
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...darkGray);
