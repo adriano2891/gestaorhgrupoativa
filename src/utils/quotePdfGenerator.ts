@@ -94,6 +94,11 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   const black: [number, number, number] = [0, 0, 0];
   const darkGray: [number, number, number] = [80, 80, 80];
   const lightGray: [number, number, number] = [150, 150, 150];
+  const bgColor: [number, number, number] = [221, 217, 206]; // #ddd9ce
+
+  // Set page background color
+  doc.setFillColor(...bgColor);
+  doc.rect(0, 0, pageWidth, pageHeight, 'F');
 
   // Pre-load all images
   const imageCache: Map<number, string> = new Map();
@@ -283,15 +288,30 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   // ============= TOTAL VALUE =============
   const finalY = (doc as any).lastAutoTable.finalY + 10;
   
+  const totalText = 'VALOR TOTAL:';
+  const totalValue = formatCurrency(quote.financials.total);
+  
   doc.setTextColor(...black);
   doc.setFontSize(14);
   doc.setFont('helvetica', 'bolditalic');
-  doc.text('VALOR TOTAL:', pageWidth - margin - 60, finalY);
+  const totalTextWidth = doc.getTextWidth(totalText);
+  
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  const totalValueWidth = doc.getTextWidth(totalValue);
+  
+  // Calculate positions to fit both texts with proper spacing
+  const totalStartX = pageWidth - margin - totalValueWidth - totalTextWidth - 8;
+  
+  doc.setTextColor(...black);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bolditalic');
+  doc.text(totalText, totalStartX, finalY);
   
   doc.setTextColor(...darkTeal);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text(formatCurrency(quote.financials.total), pageWidth - margin, finalY, { align: 'right' });
+  doc.text(totalValue, pageWidth - margin, finalY, { align: 'right' });
 
   // ============= SIGNATURE AREA (if signed) =============
   let signatureEndY = finalY;
