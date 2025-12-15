@@ -1,0 +1,310 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Search, 
+  Plus, 
+  Eye, 
+  Edit, 
+  FileDown, 
+  MoreVertical,
+  Trash2,
+  Link,
+  CheckCircle,
+  XCircle
+} from 'lucide-react';
+import { useQuotes } from '@/contexts/QuotesContext';
+import { QuotesLayout } from '@/components/orcamentos/QuotesLayout';
+import { GlassPanel } from '@/components/orcamentos/GlassPanel';
+import { QUOTE_STATUS_LABELS, QUOTE_STATUS_COLORS } from '@/types/quotes';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+
+export default function OrcamentosLista() {
+  const navigate = useNavigate();
+  const { quotes, deleteQuote, approveQuote, rejectQuote } = useQuotes();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('todos');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [quoteToDelete, setQuoteToDelete] = useState<string | null>(null);
+
+  // Filter quotes
+  const filteredQuotes = quotes.filter(q => {
+    const matchesSearch = 
+      q.clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      q.publicId.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'todos' || q.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(value);
+  };
+
+  const handleDelete = () => {
+    if (quoteToDelete) {
+      deleteQuote(quoteToDelete);
+      toast.success('Orçamento excluído com sucesso');
+      setQuoteToDelete(null);
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleApprove = (id: string) => {
+    approveQuote(id);
+    toast.success('Orçamento aprovado com sucesso');
+  };
+
+  const handleReject = (id: string) => {
+    rejectQuote(id);
+    toast.success('Orçamento rejeitado');
+  };
+
+  const handleCopyLink = (publicId: string) => {
+    const link = `${window.location.origin}/public/${publicId}`;
+    navigator.clipboard.writeText(link);
+    toast.success('Link copiado para a área de transferência');
+  };
+
+  return (
+    <QuotesLayout>
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-white">Lista de Orçamentos</h1>
+            <p className="text-white/80">{filteredQuotes.length} orçamento(s) encontrado(s)</p>
+          </div>
+          <Button 
+            onClick={() => navigate('/orcamentos/novo')}
+            className="bg-[#006fee] hover:bg-[#0058c4] text-white shadow-lg"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Orçamento
+          </Button>
+        </div>
+
+        {/* Filters */}
+        <GlassPanel className="p-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+              <Input
+                placeholder="Buscar por cliente ou ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 bg-white border-zinc-200"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-48 bg-white border-zinc-200">
+                <SelectValue placeholder="Filtrar por status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os Status</SelectItem>
+                {Object.entries(QUOTE_STATUS_LABELS).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </GlassPanel>
+
+        {/* Quotes Table */}
+        <GlassPanel className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[800px]">
+              <thead className="bg-zinc-50 border-b border-zinc-200">
+                <tr>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">ID</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">Cliente</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">Criado em</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">Validade</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">Status</th>
+                  <th className="text-right px-6 py-4 text-sm font-semibold text-zinc-600">Valor</th>
+                  <th className="text-center px-6 py-4 text-sm font-semibold text-zinc-600">Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredQuotes.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="text-center py-12 text-zinc-500">
+                      {quotes.length === 0 
+                        ? 'Nenhum orçamento criado ainda.'
+                        : 'Nenhum orçamento encontrado.'}
+                    </td>
+                  </tr>
+                ) : (
+                  filteredQuotes.map((quote, index) => (
+                    <tr 
+                      key={quote.id} 
+                      className={cn(
+                        "border-b border-zinc-100 hover:bg-zinc-50/50 transition-colors",
+                        index % 2 === 0 ? 'bg-white' : 'bg-zinc-50/30'
+                      )}
+                    >
+                      <td className="px-6 py-4">
+                        <span className="font-mono text-sm font-medium text-[#006fee]">
+                          {quote.publicId}
+                        </span>
+                        {quote.version > 1 && (
+                          <span className="ml-1 text-xs text-zinc-400">v{quote.version}</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-medium text-zinc-800">{quote.clientName}</span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-zinc-600">
+                        {format(quote.createdAt, "dd/MM/yyyy", { locale: ptBR })}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-zinc-600">
+                        {format(quote.validUntil, "dd/MM/yyyy", { locale: ptBR })}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={cn(
+                          "inline-flex px-2.5 py-1 rounded-full text-xs font-medium text-white",
+                          QUOTE_STATUS_COLORS[quote.status]
+                        )}>
+                          {QUOTE_STATUS_LABELS[quote.status]}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right font-medium text-zinc-800">
+                        {formatCurrency(quote.financials.total)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate(`/orcamentos/${quote.id}`)}
+                            className="h-8 w-8"
+                            title="Ver detalhes"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}
+                            className="h-8 w-8"
+                            title="Editar"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8">
+                                <MoreVertical className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
+                                <Eye className="w-4 h-4 mr-2" />
+                                Ver Detalhes
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
+                                <Edit className="w-4 h-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <FileDown className="w-4 h-4 mr-2" />
+                                Baixar PDF
+                              </DropdownMenuItem>
+                              {quote.status !== 'aprovacao_interna' && (
+                                <DropdownMenuItem onClick={() => handleCopyLink(quote.publicId)}>
+                                  <Link className="w-4 h-4 mr-2" />
+                                  Copiar Link Público
+                                </DropdownMenuItem>
+                              )}
+                              {quote.status === 'aprovacao_interna' && (
+                                <>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem 
+                                    onClick={() => handleApprove(quote.id)}
+                                    className="text-green-600"
+                                  >
+                                    <CheckCircle className="w-4 h-4 mr-2" />
+                                    Aprovar
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={() => handleReject(quote.id)}
+                                    className="text-red-600"
+                                  >
+                                    <XCircle className="w-4 h-4 mr-2" />
+                                    Rejeitar
+                                  </DropdownMenuItem>
+                                </>
+                              )}
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem 
+                                onClick={() => {
+                                  setQuoteToDelete(quote.id);
+                                  setDeleteDialogOpen(true);
+                                }}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Excluir
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </GlassPanel>
+      </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir orçamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este orçamento? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </QuotesLayout>
+  );
+}
