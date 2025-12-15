@@ -149,7 +149,7 @@ const GestaoRH = () => {
       </div>
 
       {/* Título */}
-      <div className="text-center pt-2 lg:pt-4 pb-4 lg:pb-8">
+      <div className="text-center -mt-2 lg:-mt-4 pb-4 lg:pb-8">
         <h1 
           className="text-3xl md:text-4xl lg:text-5xl text-white"
           style={{ 
