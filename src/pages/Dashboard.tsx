@@ -48,18 +48,12 @@ const Dashboard = () => {
   // Hover animation styles
   const hoverStyles = `
     @keyframes icon-glow {
-      0%, 100% { 
-        box-shadow: 0 0 20px rgba(255,255,255,0.4), 0 8px 30px rgba(0,0,0,0.2);
-        filter: brightness(1);
-      }
-      50% { 
-        box-shadow: 0 0 40px rgba(255,255,255,0.8), 0 0 60px rgba(62,224,207,0.6), 0 12px 40px rgba(0,0,0,0.25);
-        filter: brightness(1.15);
-      }
+      0%, 100% { box-shadow: 0 0 20px rgba(255,255,255,0.3), 0 8px 30px rgba(0,0,0,0.2); }
+      50% { box-shadow: 0 0 35px rgba(255,255,255,0.5), 0 12px 40px rgba(0,0,0,0.25); }
     }
-    @keyframes icon-shine {
-      0% { transform: translateX(-100%) rotate(25deg); }
-      100% { transform: translateX(200%) rotate(25deg); }
+    @keyframes icon-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
     }
     .module-icon-container {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -69,37 +63,16 @@ const Dashboard = () => {
     }
     .module-icon-container:hover .icon-ring {
       animation: icon-glow 1.5s ease-in-out infinite;
-    }
-    .module-icon-container:hover .icon-ring::before {
-      animation: icon-shine 0.8s ease-out;
+      ring-color: rgba(255,255,255,0.6);
     }
     .module-icon-container:active {
       transform: scale(1.05) translateY(-2px);
     }
     .icon-ring {
       transition: all 0.3s ease;
-      position: relative;
-      overflow: hidden;
-    }
-    .icon-ring::before {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -50%;
-      width: 50%;
-      height: 200%;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255,255,255,0.4),
-        transparent
-      );
-      transform: translateX(-100%) rotate(25deg);
-      z-index: 10;
-      pointer-events: none;
     }
     .icon-ring:hover {
-      box-shadow: 0 0 35px rgba(255,255,255,0.6), 0 0 50px rgba(62,224,207,0.4), 0 10px 35px rgba(0,0,0,0.2);
+      box-shadow: 0 0 30px rgba(255,255,255,0.4), 0 10px 35px rgba(0,0,0,0.2);
     }
   `;
 
