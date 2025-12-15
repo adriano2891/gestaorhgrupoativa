@@ -40,12 +40,14 @@ import {
 import { toast } from 'sonner';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { downloadQuotePDF, previewQuotePDF } from '@/utils/quotePdfGenerator';
+import { useClientesOrcamentos } from '@/hooks/useClientesOrcamentos';
 
 export default function OrcamentosBuilder() {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { clients, products, addQuote, getQuote, updateQuote } = useQuotes();
+  const { products, addQuote, getQuote, updateQuote } = useQuotes();
   const { itens: dbItens, isLoading: isLoadingItens } = useItensOrcamento();
+  const { clientes, isLoading: isLoadingClientes } = useClientesOrcamentos();
   
   const isEditing = Boolean(id);
   const existingQuote = id ? getQuote(id) : undefined;
@@ -170,7 +172,7 @@ export default function OrcamentosBuilder() {
     if (isEditing && existingQuote) {
       updateQuote(existingQuote.id, {
         clientId,
-        clientName: clients.find(c => c.id === clientId)?.name || '',
+        clientName: clientes.find(c => c.id === clientId)?.nome_condominio || '',
         items,
         status: requiresApproval ? 'aprovacao_interna' : status,
         observations,
@@ -201,13 +203,13 @@ export default function OrcamentosBuilder() {
 
   // Generate PDF data for preview/download
   const generatePdfData = () => {
-    const selectedClient = clients.find(c => c.id === clientId);
+    const selectedClient = clientes.find(c => c.id === clientId);
     return {
       publicId: existingQuote?.publicId || `QT-${new Date().getFullYear()}-TEMP`,
       version: existingQuote?.version || 1,
-      clientName: selectedClient?.name || 'Cliente não selecionado',
+      clientName: selectedClient?.nome_condominio || 'Cliente não selecionado',
       clientEmail: selectedClient?.email,
-      clientPhone: selectedClient?.phone,
+      clientPhone: selectedClient?.telefone || undefined,
       createdAt: existingQuote?.createdAt || new Date(),
       validUntil: new Date(Date.now() + validityDays * 24 * 60 * 60 * 1000),
       items,
@@ -277,9 +279,9 @@ export default function OrcamentosBuilder() {
                         <SelectValue placeholder="Selecione um cliente" />
                       </SelectTrigger>
                       <SelectContent>
-                        {clients.map(client => (
-                          <SelectItem key={client.id} value={client.id}>
-                            {client.name}
+                        {clientes.map(cliente => (
+                          <SelectItem key={cliente.id} value={cliente.id}>
+                            {cliente.nome_condominio} - {cliente.nome_sindico}
                           </SelectItem>
                         ))}
                       </SelectContent>
