@@ -31,6 +31,9 @@ import OrcamentosPublic from "./pages/OrcamentosPublic";
 import ItensOrcamento from "./pages/ItensOrcamento";
 import OrcamentosClienteForm from "./pages/OrcamentosClienteForm";
 import GestaoClientes from "./pages/GestaoClientes";
+import Fornecedores from "./pages/Fornecedores";
+import FornecedorForm from "./pages/FornecedorForm";
+import FornecedorDetalhes from "./pages/FornecedorDetalhes";
 
 const queryClient = new QueryClient();
 
@@ -214,6 +217,39 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <OrcamentosClienteForm />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Fornecedores Routes */}
+              <Route
+                path="/fornecedores"
+                element={
+                  <ProtectedRoute>
+                    <Fornecedores />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/fornecedores/novo"
+                element={
+                  <ProtectedRoute>
+                    <FornecedorForm />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/fornecedores/:id"
+                element={
+                  <ProtectedRoute>
+                    <FornecedorDetalhes />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/fornecedores/:id/editar"
+                element={
+                  <ProtectedRoute>
+                    <FornecedorForm />
                   </ProtectedRoute>
                 }
               />
