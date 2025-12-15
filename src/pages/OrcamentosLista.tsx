@@ -46,6 +46,8 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { downloadQuotePDF } from '@/utils/quotePdfGenerator';
+import type { Quote } from '@/types/quotes';
 
 export default function OrcamentosLista() {
   const navigate = useNavigate();
@@ -99,6 +101,17 @@ export default function OrcamentosLista() {
   const handleStatusChange = (quoteId: string, newStatus: string) => {
     updateQuote(quoteId, { status: newStatus as any });
     toast.success(`Status alterado para "${QUOTE_STATUS_LABELS[newStatus as keyof typeof QUOTE_STATUS_LABELS]}"`);
+  };
+
+  const handleDownloadPdf = async (quote: Quote) => {
+    try {
+      toast.info('Gerando PDF...');
+      await downloadQuotePDF(quote);
+      toast.success('PDF baixado com sucesso');
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast.error('Erro ao gerar PDF');
+    }
   };
 
   return (
@@ -259,7 +272,7 @@ export default function OrcamentosLista() {
                                 <Edit className="w-4 h-4 mr-2" />
                                 Editar
                               </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDownloadPdf(quote)}>
                                 <FileDown className="w-4 h-4 mr-2" />
                                 Baixar PDF
                               </DropdownMenuItem>
