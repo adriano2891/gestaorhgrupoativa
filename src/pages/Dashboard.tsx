@@ -86,7 +86,7 @@ const Dashboard = () => {
           {/* Módulos em círculo - Desktop */}
           <div className="hidden md:block">
             {modules.map((module, index) => {
-              const { x, y } = getModulePosition(index, modules.length, 280);
+              const { x, y } = getModulePosition(index, modules.length, 220);
               
               return (
                 <div
@@ -128,7 +128,7 @@ const Dashboard = () => {
           {/* Módulos em círculo - Tablet */}
           <div className="hidden sm:block md:hidden">
             {modules.map((module, index) => {
-              const { x, y } = getModulePosition(index, modules.length, 200);
+              const { x, y } = getModulePosition(index, modules.length, 160);
               
               return (
                 <div
