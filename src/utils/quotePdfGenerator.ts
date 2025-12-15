@@ -375,7 +375,18 @@ export async function previewQuotePDF(quote: Quote | QuoteDataForPdf): Promise<v
   const doc = await generateQuotePDF(quote);
   const pdfBlob = doc.output('blob');
   const pdfUrl = URL.createObjectURL(pdfBlob);
-  window.open(pdfUrl, '_blank');
+  
+  // Create a link element and trigger click to avoid popup blockers
+  const link = document.createElement('a');
+  link.href = pdfUrl;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  // Cleanup URL after a delay
+  setTimeout(() => URL.revokeObjectURL(pdfUrl), 1000);
 }
 
 export async function getPdfBlob(quote: Quote | QuoteDataForPdf): Promise<Blob> {
