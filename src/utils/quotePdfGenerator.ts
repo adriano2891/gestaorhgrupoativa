@@ -34,6 +34,7 @@ interface QuoteDataForPdf {
   signature?: {
     name: string;
     signedAt: Date;
+    dataUrl?: string;
   };
 }
 
@@ -306,17 +307,19 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   // Signature area (if signed)
   const signatureY = Math.max(finalY + 55, obsEndY + 15);
   if (quote.signature) {
+    const signatureBoxHeight = 45; // Increased height to accommodate image
+    
     doc.setDrawColor(...tealColor);
     doc.setLineWidth(0.5);
-    doc.roundedRect(margin, signatureY, pageWidth - margin * 2, 25, 2, 2, 'S');
+    doc.roundedRect(margin, signatureY, pageWidth - margin * 2, signatureBoxHeight, 2, 2, 'S');
     
     doc.setFillColor(240, 255, 245);
-    doc.roundedRect(margin, signatureY, pageWidth - margin * 2, 25, 2, 2, 'F');
+    doc.roundedRect(margin, signatureY, pageWidth - margin * 2, signatureBoxHeight, 2, 2, 'F');
     
     doc.setTextColor(34, 139, 34);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('RESPONSÁVEL PELO ORÇAMENTO:', margin + 5, signatureY + 10);
+    doc.text('RESPONSÁVEL PELO ORÇAMENTO:', margin + 5, signatureY + 8);
     
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...darkGray);
@@ -326,8 +329,23 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
     doc.text(
       `Assinado por: ${quote.signature.name} em ${format(signedAt, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
       margin + 5,
-      signatureY + 18
+      signatureY + 15
     );
+    
+    // Add signature image if available
+    if (quote.signature.dataUrl) {
+      try {
+        const signatureImg = quote.signature.dataUrl;
+        const imgWidth = 50;
+        const imgHeight = 20;
+        const imgX = pageWidth - margin - imgWidth - 5;
+        const imgY = signatureY + 8;
+        
+        doc.addImage(signatureImg, 'PNG', imgX, imgY, imgWidth, imgHeight);
+      } catch (error) {
+        console.error('Erro ao adicionar imagem da assinatura:', error);
+      }
+    }
   }
 
   // Footer
