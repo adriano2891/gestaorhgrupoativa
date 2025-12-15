@@ -207,7 +207,7 @@ export default function OrcamentosBuilder() {
   const generatePdfData = () => {
     const selectedClient = clientes.find(c => c.id === clientId);
     return {
-      publicId: existingQuote?.publicId || `QT-${new Date().getFullYear()}-TEMP`,
+      publicId: existingQuote?.publicId || `QT-${new Date().getFullYear()}-0163`,
       version: existingQuote?.version || 1,
       clientName: selectedClient?.nome_condominio || 'Cliente não selecionado',
       clientEmail: selectedClient?.email,
