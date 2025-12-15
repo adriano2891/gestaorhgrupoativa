@@ -1,4 +1,4 @@
-import { Users, Briefcase, BarChart3, Clock, FileText, Settings, Bell, LogOut, ArrowLeft } from "lucide-react";
+import { LogOut, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { 
@@ -8,6 +8,13 @@ import {
 } from "@/hooks/useRealtimeUpdates";
 import { useIsMobile } from "@/hooks/use-mobile";
 import logoAtiva from "@/assets/logo-ativa.png";
+import iconFuncionarios from "@/assets/icon-rh-funcionarios.png";
+import iconTalentos from "@/assets/icon-rh-talentos.png";
+import iconRelatorios from "@/assets/icon-rh-relatorios.png";
+import iconPonto from "@/assets/icon-rh-ponto.png";
+import iconHolerites from "@/assets/icon-rh-holerites.png";
+import iconComunicados from "@/assets/icon-rh-comunicados.png";
+import iconAdmins from "@/assets/icon-rh-admins.png";
 
 const GestaoRH = () => {
   const navigate = useNavigate();
@@ -24,37 +31,37 @@ const GestaoRH = () => {
     {
       title: "Funcionários",
       description: "Gestão de colaboradores",
-      icon: Users,
+      iconSrc: iconFuncionarios,
       path: "/funcionarios",
     },
     {
       title: "Banco de Talentos",
       description: "Candidatos e recrutamento",
-      icon: Briefcase,
+      iconSrc: iconTalentos,
       path: "/banco-talentos",
     },
     {
       title: "Relatórios",
       description: "Análises e indicadores",
-      icon: BarChart3,
+      iconSrc: iconRelatorios,
       path: "/relatorios",
     },
     {
       title: "Folha de Ponto",
       description: "Controle de jornada",
-      icon: Clock,
+      iconSrc: iconPonto,
       path: "/folha-ponto",
     },
     {
       title: "Holerites",
       description: "Gestão de pagamentos",
-      icon: FileText,
+      iconSrc: iconHolerites,
       path: "/holerites",
     },
     {
       title: "Comunicados",
       description: "Avisos e notificações internas",
-      icon: Bell,
+      iconSrc: iconComunicados,
       path: "/comunicados",
     },
   ];
@@ -64,7 +71,7 @@ const GestaoRH = () => {
     modules.push({
       title: "Gerenciar Admins",
       description: "Controle de administradores",
-      icon: Settings,
+      iconSrc: iconAdmins,
       path: "/admins",
     });
   }
@@ -123,45 +130,43 @@ const GestaoRH = () => {
         {/* Grid de Módulos */}
         <div className="px-4 pb-8 space-y-4">
           <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-            {topModules.map((module, index) => (
+            {topModules.map((module) => (
               <div
                 key={module.path}
                 className="cursor-pointer hover:scale-105 transition-transform duration-200"
                 onClick={() => navigate(module.path)}
               >
-                <div 
-                  className="rounded-full shadow-lg p-6 flex flex-col items-center justify-center min-h-[120px]"
-                  style={{ 
-                    background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
-                  }}
-                >
-                  <module.icon className="w-10 h-10 text-white mb-2" />
-                  <p className="text-center font-semibold text-white text-xs leading-tight">
-                    {module.title}
-                  </p>
+                <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 mx-auto">
+                  <img 
+                    src={module.iconSrc} 
+                    alt={module.title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
+                <p className="text-center mt-2 font-semibold text-white text-xs leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+                  {module.title}
+                </p>
               </div>
             ))}
           </div>
           
           <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto">
-            {bottomModules.map((module, index) => (
+            {bottomModules.map((module) => (
               <div
                 key={module.path}
                 className="cursor-pointer hover:scale-105 transition-transform duration-200"
                 onClick={() => navigate(module.path)}
               >
-                <div 
-                  className="rounded-full shadow-lg p-4 flex flex-col items-center justify-center min-h-[100px]"
-                  style={{ 
-                    background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
-                  }}
-                >
-                  <module.icon className="w-8 h-8 text-white mb-1" />
-                  <p className="text-center font-semibold text-white text-[9px] leading-tight">
-                    {module.title}
-                  </p>
+                <div className="rounded-full shadow-lg overflow-hidden w-20 h-20 mx-auto">
+                  <img 
+                    src={module.iconSrc} 
+                    alt={module.title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
+                <p className="text-center mt-2 font-semibold text-white text-[9px] leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+                  {module.title}
+                </p>
               </div>
             ))}
           </div>
@@ -235,13 +240,12 @@ const GestaoRH = () => {
             style={{ left: '18%', top: '5%' }}
             onClick={() => navigate("/funcionarios")}
           >
-            <div 
-              className="rounded-full shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center"
-              style={{ 
-                background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
-              }}
-            >
-              <Users className="w-12 h-12 lg:w-16 lg:h-16 text-white" />
+            <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
+              <img 
+                src={iconFuncionarios} 
+                alt="Funcionários"
+                className="w-full h-full object-cover"
+              />
             </div>
             <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
               Funcionários
@@ -254,13 +258,12 @@ const GestaoRH = () => {
             style={{ right: '18%', top: '5%' }}
             onClick={() => navigate("/banco-talentos")}
           >
-            <div 
-              className="rounded-full shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center"
-              style={{ 
-                background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
-              }}
-            >
-              <Briefcase className="w-12 h-12 lg:w-16 lg:h-16 text-white" />
+            <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
+              <img 
+                src={iconTalentos} 
+                alt="Banco de Talentos"
+                className="w-full h-full object-cover"
+              />
             </div>
             <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
               Banco de Talentos
@@ -273,13 +276,12 @@ const GestaoRH = () => {
             style={{ left: '5%', top: '40%' }}
             onClick={() => navigate("/relatorios")}
           >
-            <div 
-              className="rounded-full shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center"
-              style={{ 
-                background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
-              }}
-            >
-              <BarChart3 className="w-12 h-12 lg:w-16 lg:h-16 text-white" />
+            <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
+              <img 
+                src={iconRelatorios} 
+                alt="Relatórios"
+                className="w-full h-full object-cover"
+              />
             </div>
             <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
               Relatórios
@@ -292,13 +294,12 @@ const GestaoRH = () => {
             style={{ right: '5%', top: '40%' }}
             onClick={() => navigate("/folha-ponto")}
           >
-            <div 
-              className="rounded-full shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center"
-              style={{ 
-                background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
-              }}
-            >
-              <Clock className="w-12 h-12 lg:w-16 lg:h-16 text-white" />
+            <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
+              <img 
+                src={iconPonto} 
+                alt="Folha de Ponto"
+                className="w-full h-full object-cover"
+              />
             </div>
             <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
               Folha de Ponto
@@ -311,13 +312,12 @@ const GestaoRH = () => {
             style={{ left: '18%', bottom: '5%' }}
             onClick={() => navigate("/holerites")}
           >
-            <div 
-              className="rounded-full shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center"
-              style={{ 
-                background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
-              }}
-            >
-              <FileText className="w-12 h-12 lg:w-16 lg:h-16 text-white" />
+            <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
+              <img 
+                src={iconHolerites} 
+                alt="Holerites"
+                className="w-full h-full object-cover"
+              />
             </div>
             <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
               Holerites
@@ -331,13 +331,12 @@ const GestaoRH = () => {
               style={{ left: '50%', transform: 'translateX(-50%)', bottom: '5%' }}
               onClick={() => navigate("/admins")}
             >
-              <div 
-                className="rounded-full shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center"
-                style={{ 
-                  background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
-                }}
-              >
-                <Settings className="w-12 h-12 lg:w-16 lg:h-16 text-white" />
+              <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
+                <img 
+                  src={iconAdmins} 
+                  alt="Gerenciar Admins"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
                 Gerenciar Admins
@@ -351,13 +350,12 @@ const GestaoRH = () => {
             style={{ right: '18%', bottom: '5%' }}
             onClick={() => navigate("/comunicados")}
           >
-            <div 
-              className="rounded-full shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center"
-              style={{ 
-                background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
-              }}
-            >
-              <Bell className="w-12 h-12 lg:w-16 lg:h-16 text-white" />
+            <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
+              <img 
+                src={iconComunicados} 
+                alt="Comunicados"
+                className="w-full h-full object-cover"
+              />
             </div>
             <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
               Comunicados
