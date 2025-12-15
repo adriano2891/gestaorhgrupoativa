@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { LogOut, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -27,11 +28,21 @@ const GestaoRH = () => {
   const navigate = useNavigate();
   const { roles, signOut } = useAuth();
   const isMobile = useIsMobile();
+  const [isAnimating, setIsAnimating] = useState(true);
   
   useMetricasRealtime();
   useFuncionariosRealtime();
   useComunicadosRealtime();
   const isAdmin = roles.includes("admin") || roles.includes("rh") || roles.includes("gestor");
+
+  // Trigger entry animation on mount
+  useEffect(() => {
+    setIsAnimating(true);
+    const timer = setTimeout(() => {
+      setIsAnimating(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
 
   const modules: ModuleItem[] = [
     { title: "Funcionários", description: "Gestão de colaboradores", iconSrc: iconFuncionarios, path: "/funcionarios" },
@@ -60,12 +71,34 @@ const GestaoRH = () => {
     };
   };
 
+  // Animation styles
+  const animationStyles = `
+    @keyframes rh-fade-in {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes rh-logo-scale {
+      from { opacity: 0; transform: scale(0.8); }
+      to { opacity: 0.4; transform: scale(1); }
+    }
+    @keyframes rh-module-pop {
+      from { opacity: 0; transform: scale(0.7); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .rh-animate-header { animation: rh-fade-in 0.4s ease-out forwards; }
+    .rh-animate-title { animation: rh-fade-in 0.5s ease-out 0.1s forwards; opacity: 0; }
+    .rh-animate-logo { animation: rh-logo-scale 0.6s ease-out 0.2s forwards; opacity: 0; }
+    .rh-animate-module { animation: rh-module-pop 0.4s ease-out forwards; opacity: 0; }
+  `;
+
   // Mobile/Tablet layout
   if (isMobile) {
     return (
       <div className="min-h-screen relative overflow-hidden safe-bottom" style={{ backgroundColor: '#40E0D0' }}>
+        <style>{animationStyles}</style>
+        
         {/* Header */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        <div className={`flex items-center justify-between px-4 pt-4 pb-2 ${isAnimating ? 'rh-animate-header' : ''}`}>
           <button
             onClick={() => navigate("/dashboard")}
             className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity touch-target"
@@ -83,7 +116,7 @@ const GestaoRH = () => {
         </div>
 
         {/* Título */}
-        <div className="text-center py-3 px-4">
+        <div className={`text-center py-3 px-4 ${isAnimating ? 'rh-animate-title' : ''}`}>
           <h1 
             className="text-2xl sm:text-3xl text-white"
             style={{ 
@@ -97,17 +130,18 @@ const GestaoRH = () => {
         </div>
 
         {/* Logo */}
-        <div className="flex justify-center mb-4">
-          <img src={logoAtiva} alt="Logo Grupo Ativa" className="w-24 sm:w-32 h-auto opacity-40" />
+        <div className={`flex justify-center mb-4 ${isAnimating ? 'rh-animate-logo' : 'opacity-40'}`}>
+          <img src={logoAtiva} alt="Logo Grupo Ativa" className="w-24 sm:w-32 h-auto" />
         </div>
 
         {/* Grid de Módulos */}
         <div className="px-4 pb-8">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-lg mx-auto">
-            {modules.map((module) => (
+            {modules.map((module, index) => (
               <div
                 key={module.path}
-                className="cursor-pointer active:scale-95 transition-transform duration-200 flex flex-col items-center"
+                className={`cursor-pointer active:scale-95 transition-transform duration-200 flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
+                style={isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {}}
                 onClick={() => navigate(module.path)}
               >
                 <div className="rounded-full shadow-lg overflow-hidden w-20 h-20 sm:w-24 sm:h-24 ring-2 ring-white/30">
@@ -130,8 +164,10 @@ const GestaoRH = () => {
   // Desktop layout (circular)
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: '#40E0D0' }}>
+      <style>{animationStyles}</style>
+      
       {/* Header */}
-      <div className="flex items-center justify-between px-4 md:px-6 lg:px-8 pt-4 lg:pt-6">
+      <div className={`flex items-center justify-between px-4 md:px-6 lg:px-8 pt-4 lg:pt-6 ${isAnimating ? 'rh-animate-header' : ''}`}>
         <div className="flex flex-col items-start">
           <button
             onClick={() => navigate("/dashboard")}
@@ -142,7 +178,7 @@ const GestaoRH = () => {
           </button>
           {/* Título */}
           <h1 
-            className="text-3xl md:text-4xl lg:text-5xl text-white mt-2"
+            className={`text-3xl md:text-4xl lg:text-5xl text-white mt-2 ${isAnimating ? 'rh-animate-title' : ''}`}
             style={{ 
               fontFamily: "'Brush Script MT', 'Segoe Script', cursive",
               fontStyle: 'italic',
@@ -165,11 +201,12 @@ const GestaoRH = () => {
       <div className="relative w-full flex items-center justify-center px-4" style={{ height: 'calc(100vh - 180px)', minHeight: '400px' }}>
         
         {/* Logo Central */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+        <div className={`absolute inset-0 flex items-center justify-center pointer-events-none z-0 ${isAnimating ? 'rh-animate-logo' : 'opacity-90'}`}>
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-48 md:w-64 lg:w-80 xl:w-96 h-auto opacity-90"
+            className="w-48 md:w-64 lg:w-80 xl:w-96 h-auto"
+            style={!isAnimating ? { opacity: 0.9 } : {}}
           />
         </div>
 
@@ -180,8 +217,13 @@ const GestaoRH = () => {
             return (
               <div
                 key={module.path}
-                className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
-                style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
+                className={`absolute cursor-pointer hover:scale-110 transition-transform duration-200 ${isAnimating ? 'rh-animate-module' : ''}`}
+                style={{ 
+                  left: '50%', 
+                  top: '50%', 
+                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                  ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
+                }}
                 onClick={() => navigate(module.path)}
               >
                 <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 ring-4 ring-white/30 hover:ring-white/50">
@@ -202,8 +244,13 @@ const GestaoRH = () => {
             return (
               <div
                 key={module.path}
-                className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
-                style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
+                className={`absolute cursor-pointer hover:scale-110 transition-transform duration-200 ${isAnimating ? 'rh-animate-module' : ''}`}
+                style={{ 
+                  left: '50%', 
+                  top: '50%', 
+                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                  ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
+                }}
                 onClick={() => navigate(module.path)}
               >
                 <div className="rounded-full shadow-lg overflow-hidden w-24 h-24 ring-3 ring-white/30">
@@ -224,8 +271,13 @@ const GestaoRH = () => {
             return (
               <div
                 key={module.path}
-                className="absolute cursor-pointer hover:scale-105 transition-transform duration-200"
-                style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
+                className={`absolute cursor-pointer hover:scale-105 transition-transform duration-200 ${isAnimating ? 'rh-animate-module' : ''}`}
+                style={{ 
+                  left: '50%', 
+                  top: '50%', 
+                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                  ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
+                }}
                 onClick={() => navigate(module.path)}
               >
                 <div className="rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
@@ -242,10 +294,11 @@ const GestaoRH = () => {
         {/* Layout Grid - SM (tablets pequenos) */}
         <div className="block md:hidden relative">
           <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
-            {modules.map((module) => (
+            {modules.map((module, index) => (
               <div
                 key={module.path}
-                className="cursor-pointer hover:scale-105 transition-transform duration-200 flex flex-col items-center"
+                className={`cursor-pointer hover:scale-105 transition-transform duration-200 flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
+                style={isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {}}
                 onClick={() => navigate(module.path)}
               >
                 <div className="rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
