@@ -195,7 +195,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
 
   // ============= TITLE "ORÇAMENTO" =============
   y = 100;
-  doc.setTextColor(...darkTeal);
+  doc.setTextColor(...black);
   doc.setFontSize(28);
   doc.setFont('helvetica', 'bold');
   doc.text('ORÇAMENTO', pageWidth / 2, y, { align: 'center' });
@@ -223,7 +223,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
     body: tableData,
     headStyles: {
       fillColor: tealColor,
-      textColor: [255, 255, 255],
+      textColor: [0, 0, 0],
       fontStyle: 'bolditalic',
       fontSize: 10,
       halign: 'center',
@@ -247,7 +247,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
       1: { cellWidth: 75, halign: 'left', valign: 'middle', fontStyle: 'normal' },
       2: { cellWidth: 28, halign: 'center', valign: 'middle' },
       3: { cellWidth: 18, halign: 'center', valign: 'middle' },
-      4: { cellWidth: 30, halign: 'center', valign: 'middle', fontStyle: 'bold', textColor: darkTeal },
+      4: { cellWidth: 30, halign: 'center', valign: 'middle', fontStyle: 'bold', textColor: black },
     },
     theme: 'grid',
     tableLineColor: [200, 200, 200],
@@ -308,7 +308,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.setFont('helvetica', 'bolditalic');
   doc.text(totalText, totalStartX, finalY);
   
-  doc.setTextColor(...darkTeal);
+  doc.setTextColor(...black);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
   doc.text(totalValue, pageWidth - margin, finalY, { align: 'right' });
