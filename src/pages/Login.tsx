@@ -50,9 +50,9 @@ const Login = () => {
             alt="Logo Grupo Ativa" 
             className="w-48 h-auto mx-auto mb-4"
           />
-          <CardTitle className="text-2xl font-bold">Sistema RH</CardTitle>
+          <CardTitle className="text-2xl font-bold">Bem-vindo</CardTitle>
           <CardDescription>
-            Gestão completa de recursos humanos
+            Insira suas credenciais para acessar o sistema.
           </CardDescription>
         </CardHeader>
         <CardContent>
