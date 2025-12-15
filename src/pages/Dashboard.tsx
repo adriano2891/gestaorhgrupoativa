@@ -45,6 +45,37 @@ const Dashboard = () => {
     return { x, y };
   };
 
+  // Hover animation styles
+  const hoverStyles = `
+    @keyframes icon-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255,255,255,0.3), 0 8px 30px rgba(0,0,0,0.2); }
+      50% { box-shadow: 0 0 35px rgba(255,255,255,0.5), 0 12px 40px rgba(0,0,0,0.25); }
+    }
+    @keyframes icon-float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .module-icon-container {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .module-icon-container:hover {
+      transform: scale(1.15) translateY(-5px);
+    }
+    .module-icon-container:hover .icon-ring {
+      animation: icon-glow 1.5s ease-in-out infinite;
+      ring-color: rgba(255,255,255,0.6);
+    }
+    .module-icon-container:active {
+      transform: scale(1.05) translateY(-2px);
+    }
+    .icon-ring {
+      transition: all 0.3s ease;
+    }
+    .icon-ring:hover {
+      box-shadow: 0 0 30px rgba(255,255,255,0.4), 0 10px 35px rgba(0,0,0,0.2);
+    }
+  `;
+
   // Mobile layout - Grid based
   if (isMobile) {
     return (
@@ -121,6 +152,8 @@ const Dashboard = () => {
       className="min-h-screen relative overflow-hidden flex flex-col"
       style={{ backgroundColor: '#40E0D0' }}
     >
+      <style>{hoverStyles}</style>
+      
       {/* Header com título e botão sair */}
       <div className="flex items-start justify-between px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 relative z-10">
         <h1 
@@ -159,7 +192,7 @@ const Dashboard = () => {
               return (
                 <div
                   key={module.id}
-                  className={`absolute ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-110'} transition-all duration-300`}
+                  className={`absolute module-icon-container ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
                   style={{
                     left: '50%',
                     top: '50%',
@@ -169,7 +202,7 @@ const Dashboard = () => {
                 >
                   <div className="flex flex-col items-center">
                     <div 
-                      className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-white/30 hover:ring-white/50 transition-all"
+                      className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-white/30"
                       style={{ width: '110px', height: '110px' }}
                     >
                       <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
@@ -194,7 +227,7 @@ const Dashboard = () => {
               return (
                 <div
                   key={module.id}
-                  className={`absolute ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-110'} transition-all duration-300`}
+                  className={`absolute module-icon-container ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
                   style={{
                     left: '50%',
                     top: '50%',
@@ -204,7 +237,7 @@ const Dashboard = () => {
                 >
                   <div className="flex flex-col items-center">
                     <div 
-                      className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-white/30"
+                      className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-white/30"
                       style={{ width: '100px', height: '100px' }}
                     >
                       <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
@@ -229,7 +262,7 @@ const Dashboard = () => {
               return (
                 <div
                   key={module.id}
-                  className={`absolute ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-105'} transition-all duration-300`}
+                  className={`absolute module-icon-container ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
                   style={{
                     left: '50%',
                     top: '50%',
@@ -239,7 +272,7 @@ const Dashboard = () => {
                 >
                   <div className="flex flex-col items-center">
                     <div 
-                      className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-3 ring-white/30"
+                      className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-3 ring-white/30"
                       style={{ width: '85px', height: '85px' }}
                     >
                       <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
@@ -264,7 +297,7 @@ const Dashboard = () => {
               return (
                 <div
                   key={module.id}
-                  className={`absolute ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-105'} transition-all duration-300`}
+                  className={`absolute module-icon-container ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
                   style={{
                     left: '50%',
                     top: '50%',
@@ -274,7 +307,7 @@ const Dashboard = () => {
                 >
                   <div className="flex flex-col items-center">
                     <div 
-                      className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
+                      className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
                       style={{ width: '70px', height: '70px' }}
                     >
                       <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
