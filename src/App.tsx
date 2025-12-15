@@ -3,10 +3,12 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import Index from "./pages/Index";
+import Dashboard from "./pages/Dashboard";
+import GestaoRH from "./pages/GestaoRH";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -38,9 +40,23 @@ const App = () => (
               path="/"
               element={
                 <ProtectedRoute>
-                  <Layout>
-                    <Index />
-                  </Layout>
+                  <Navigate to="/dashboard" replace />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/gestao-rh"
+              element={
+                <ProtectedRoute>
+                  <GestaoRH />
                 </ProtectedRoute>
               }
             />
