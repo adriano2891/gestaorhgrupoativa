@@ -6,6 +6,7 @@ import iconHr from "@/assets/icon-hr-new.png";
 import iconClients from "@/assets/icon-clients-new.png";
 import iconSuppliers from "@/assets/icon-suppliers-new.png";
 import iconBudget from "@/assets/icon-budget-new.png";
+import iconEmBreve from "@/assets/icon-em-breve.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -180,22 +181,17 @@ const Dashboard = () => {
             style={{ right: '5%', top: '15%' }}
           >
             <div 
-              className="rounded-full flex items-center justify-center shadow-lg"
+              className="rounded-full flex items-center justify-center shadow-lg overflow-hidden"
               style={{ 
                 width: '120px', 
                 height: '120px',
-                background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
               }}
             >
-              <span 
-                className="text-white text-xl"
-                style={{ 
-                  fontFamily: "'Brush Script MT', 'Segoe Script', cursive",
-                  fontStyle: 'italic'
-                }}
-              >
-                em<br/>Breve
-              </span>
+              <img 
+                src={iconEmBreve} 
+                alt="Em Breve" 
+                className="w-full h-full object-cover"
+              />
             </div>
           </div>
 
