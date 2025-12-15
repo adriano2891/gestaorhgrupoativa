@@ -147,7 +147,7 @@ const Dashboard = () => {
             </p>
           </div>
 
-          {/* Orçamentos - Centro Direita */}
+          {/* Orçamentos - Centro Direita (mesmo alinhamento que Clientes) */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
             style={{ right: '18%', top: '50%', transform: 'translateY(-50%)' }}
