@@ -59,6 +59,63 @@ export type Database = {
         }
         Relationships: []
       }
+      clientes_orcamentos: {
+        Row: {
+          ativo: boolean
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          complemento: string | null
+          created_at: string
+          email: string
+          estado: string | null
+          id: string
+          nome_condominio: string
+          nome_sindico: string
+          numero: string | null
+          observacoes: string | null
+          rua: string | null
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
+          created_at?: string
+          email: string
+          estado?: string | null
+          id?: string
+          nome_condominio: string
+          nome_sindico: string
+          numero?: string | null
+          observacoes?: string | null
+          rua?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
+          created_at?: string
+          email?: string
+          estado?: string | null
+          id?: string
+          nome_condominio?: string
+          nome_sindico?: string
+          numero?: string | null
+          observacoes?: string | null
+          rua?: string | null
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       comunicados: {
         Row: {
           ativo: boolean
