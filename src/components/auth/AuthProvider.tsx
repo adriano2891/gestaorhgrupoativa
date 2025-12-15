@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       password,
     });
     if (error) throw error;
-    navigate("/");
+    navigate("/dashboard");
   };
 
   const signUp = async (email: string, password: string, nome: string) => {
