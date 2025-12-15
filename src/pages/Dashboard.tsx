@@ -2,6 +2,7 @@ import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import logoAtiva from "@/assets/logo-ativa.png";
+import iconHr from "@/assets/icon-hr-new.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -70,21 +71,17 @@ const Dashboard = () => {
             onClick={() => navigate("/gestao-rh")}
           >
             <div 
-              className="rounded-full flex items-center justify-center shadow-lg"
+              className="rounded-full flex items-center justify-center shadow-lg overflow-hidden"
               style={{ 
                 width: '120px', 
                 height: '120px',
-                background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
               }}
             >
-              <div className="flex flex-col items-center justify-center">
-                <div className="flex -space-x-2 mb-1">
-                  <div className="w-6 h-8 bg-gray-300 rounded-t-full"></div>
-                  <div className="w-6 h-8 bg-gray-400 rounded-t-full"></div>
-                  <div className="w-6 h-8 bg-gray-300 rounded-t-full"></div>
-                </div>
-                <div className="bg-white text-gray-700 text-xs px-2 py-0.5 rounded font-bold">HR</div>
-              </div>
+              <img 
+                src={iconHr} 
+                alt="Gestão RH" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <p 
               className="text-center mt-2 font-semibold text-white text-sm"
