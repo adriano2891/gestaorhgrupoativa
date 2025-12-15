@@ -24,14 +24,12 @@ const Dashboard = () => {
       {/* Título central no topo */}
       <div className="text-center pt-8 pb-4 relative z-10">
         <h1 
-          className="text-4xl md:text-5xl text-white"
+          className="text-3xl md:text-4xl text-white font-bold"
           style={{ 
-            fontFamily: "'Brush Script MT', 'Segoe Script', cursive",
-            fontStyle: 'italic',
-            textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
+            textShadow: '2px 2px 4px rgba(0,0,0,0.2)'
           }}
         >
-          Escolha um módulo e navegue
+          Sistema Integrado de Gerenciamento GRUPO ATIVA
         </h1>
       </div>
 
