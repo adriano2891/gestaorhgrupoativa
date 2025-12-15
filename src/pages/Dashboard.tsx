@@ -5,7 +5,7 @@ import logoAtiva from "@/assets/logo-ativa.png";
 import iconHr from "@/assets/icon-hr-new.png";
 import iconClients from "@/assets/icon-clients-new.png";
 import iconSuppliers from "@/assets/icon-suppliers-new.png";
-import iconBudget from "@/assets/icon-budget-new.png";
+import iconBudget from "@/assets/icon-orcamentos-new.png";
 import iconEmBreve from "@/assets/icon-em-breve.png";
 
 const Dashboard = () => {
