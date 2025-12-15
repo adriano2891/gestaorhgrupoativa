@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import logoAtiva from "@/assets/logo-ativa.png";
 import iconHr from "@/assets/icon-hr-new.png";
+import iconClients from "@/assets/icon-clients-new.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -91,32 +92,23 @@ const Dashboard = () => {
             </p>
           </div>
 
-          {/* Gestão de Controle de Clientes - Centro Esquerda */}
           <div 
             className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
             style={{ left: '18%', top: '50%', transform: 'translateY(-50%)' }}
             onClick={() => navigate("/gestao-clientes")}
           >
             <div 
-              className="rounded-full flex items-center justify-center shadow-lg"
+              className="rounded-full flex items-center justify-center shadow-lg overflow-hidden"
               style={{ 
                 width: '120px', 
                 height: '120px',
-                background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
               }}
             >
-              <div className="flex flex-col items-center">
-                <div className="flex items-end gap-1 mb-1">
-                  <div className="w-4 h-10 bg-gray-300 rounded-sm"></div>
-                  <div className="w-4 h-8 bg-gray-400 rounded-sm"></div>
-                  <div className="w-4 h-6 bg-gray-300 rounded-sm"></div>
-                </div>
-                <div className="flex -space-x-1">
-                  <div className="w-4 h-5 bg-teal-400 rounded-full"></div>
-                  <div className="w-4 h-5 bg-teal-300 rounded-full"></div>
-                  <div className="w-4 h-5 bg-teal-400 rounded-full"></div>
-                </div>
-              </div>
+              <img 
+                src={iconClients} 
+                alt="Gestão de Controle de Clientes" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <p 
               className="text-center mt-2 font-semibold text-white text-sm max-w-[120px]"
