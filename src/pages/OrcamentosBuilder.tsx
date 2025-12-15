@@ -7,9 +7,12 @@ import {
   AlertTriangle,
   Save,
   X,
-  FileDown
+  FileDown,
+  Package,
+  ImageOff
 } from 'lucide-react';
 import { useQuotes } from '@/contexts/QuotesContext';
+import { useItensOrcamento } from '@/hooks/useItensOrcamento';
 import { QuotesLayout } from '@/components/orcamentos/QuotesLayout';
 import { GlassPanel } from '@/components/orcamentos/GlassPanel';
 import { QuoteItem, QUOTE_STATUS_LABELS, QuoteStatus } from '@/types/quotes';
@@ -26,11 +29,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function OrcamentosBuilder() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { clients, products, addQuote, getQuote, updateQuote } = useQuotes();
+  const { itens: dbItens, isLoading: isLoadingItens } = useItensOrcamento();
   
   const isEditing = Boolean(id);
   const existingQuote = id ? getQuote(id) : undefined;
@@ -47,10 +52,13 @@ export default function OrcamentosBuilder() {
   // Calculate if requires approval
   const requiresApproval = items.some(item => item.hasExcessiveDiscount);
 
-  // Filtered products for search
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.description.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter active items from database
+  const activeDbItens = dbItens?.filter(item => item.ativo) || [];
+  
+  // Filtered items based on search term
+  const filteredDbItens = activeDbItens.filter(item => 
+    item.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.descricao?.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   // Calculate totals
@@ -63,6 +71,30 @@ export default function OrcamentosBuilder() {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  const addItemFromDb = (dbItem: typeof dbItens[0]) => {
+    // Check if already added
+    if (items.some(item => item.productId === dbItem.id)) {
+      toast.info('Este item já foi adicionado ao orçamento');
+      return;
+    }
+
+    const newItem: QuoteItem = {
+      id: `item-${Date.now()}`,
+      productId: dbItem.id,
+      name: dbItem.nome,
+      description: dbItem.descricao || '',
+      quantity: 1,
+      basePrice: dbItem.preco_base,
+      unitPrice: dbItem.preco_base,
+      total: dbItem.preco_base,
+      imageUrl: dbItem.imagem_url || undefined,
+      hasExcessiveDiscount: false,
+    };
+
+    setItems([...items, newItem]);
+    toast.success(`${dbItem.nome} adicionado ao orçamento`);
   };
 
   const addItem = (productId: string) => {
@@ -263,9 +295,14 @@ export default function OrcamentosBuilder() {
               </div>
             </GlassPanel>
 
-            {/* Product Search */}
+            {/* Product Catalog */}
             <GlassPanel className="p-6">
-              <h2 className="text-lg font-semibold text-zinc-800 mb-4">Adicionar Itens</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-zinc-800">Adicionar Itens</h2>
+                <span className="text-sm text-zinc-500">
+                  {activeDbItens.length} produto{activeDbItens.length !== 1 ? 's' : ''} disponível{activeDbItens.length !== 1 ? 'is' : ''}
+                </span>
+              </div>
               
               <div className="relative mb-4">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
@@ -277,33 +314,92 @@ export default function OrcamentosBuilder() {
                 />
               </div>
 
-              {searchTerm && (
-                <div className="space-y-2 max-h-64 overflow-y-auto">
-                  {filteredProducts.length === 0 ? (
-                    <p className="text-sm text-zinc-500 text-center py-4">
-                      Nenhum produto encontrado
-                    </p>
-                  ) : (
-                    filteredProducts.map(product => (
-                      <button
-                        key={product.id}
-                        onClick={() => addItem(product.id)}
-                        className="w-full flex items-center justify-between p-3 rounded-lg hover:bg-zinc-100 transition-colors text-left"
-                      >
-                        <div>
-                          <p className="font-medium text-zinc-800">{product.name}</p>
-                          <p className="text-sm text-zinc-500">{product.description}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium text-zinc-600">
-                            {formatCurrency(product.basePrice)}
-                          </span>
-                          <Plus className="w-4 h-4 text-[#006fee]" />
-                        </div>
-                      </button>
-                    ))
-                  )}
+              {isLoadingItens ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#006fee]"></div>
                 </div>
+              ) : filteredDbItens.length === 0 ? (
+                <div className="text-center py-8 text-zinc-500">
+                  <Package className="w-12 h-12 mx-auto mb-2 text-zinc-300" />
+                  <p className="font-medium">Nenhum produto encontrado</p>
+                  <p className="text-sm">
+                    {searchTerm ? 'Tente outro termo de busca' : 'Cadastre produtos na aba "Cadastrar Itens"'}
+                  </p>
+                </div>
+              ) : (
+                <ScrollArea className="h-[320px] pr-4">
+                  <div className="grid grid-cols-1 gap-3">
+                    {filteredDbItens.map(item => {
+                      const isAdded = items.some(i => i.productId === item.id);
+                      return (
+                        <div
+                          key={item.id}
+                          className={cn(
+                            "flex items-center gap-4 p-3 rounded-xl border transition-all",
+                            isAdded 
+                              ? "border-green-200 bg-green-50" 
+                              : "border-zinc-200 bg-white hover:border-[#006fee]/30 hover:shadow-sm"
+                          )}
+                        >
+                          {/* Product Image */}
+                          <div className="w-16 h-16 rounded-lg bg-zinc-100 overflow-hidden flex-shrink-0 border border-zinc-200">
+                            {item.imagem_url ? (
+                              <img 
+                                src={item.imagem_url} 
+                                alt={item.nome}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center">
+                                <ImageOff className="w-6 h-6 text-zinc-300" />
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Product Info */}
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium text-zinc-800 truncate">{item.nome}</p>
+                            {item.descricao && (
+                              <p className="text-sm text-zinc-500 truncate">{item.descricao}</p>
+                            )}
+                            {item.categoria && (
+                              <span className="inline-block text-xs px-2 py-0.5 bg-zinc-100 text-zinc-600 rounded-full mt-1">
+                                {item.categoria}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Price & Add Button */}
+                          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                            <span className="text-sm font-semibold text-zinc-700">
+                              {formatCurrency(item.preco_base)}
+                            </span>
+                            <Button
+                              size="sm"
+                              onClick={() => addItemFromDb(item)}
+                              disabled={isAdded}
+                              className={cn(
+                                "h-8 px-3",
+                                isAdded 
+                                  ? "bg-green-500 text-white cursor-default" 
+                                  : "bg-[#006fee] hover:bg-[#0058c4] text-white"
+                              )}
+                            >
+                              {isAdded ? (
+                                <>✓ Adicionado</>
+                              ) : (
+                                <>
+                                  <Plus className="w-4 h-4 mr-1" />
+                                  Adicionar
+                                </>
+                              )}
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </ScrollArea>
               )}
             </GlassPanel>
           </div>
