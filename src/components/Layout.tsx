@@ -1,23 +1,25 @@
-import { Building2, Moon, Sun, LogOut } from "lucide-react";
+import { Building2, Moon, Sun, LogOut, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { useAuth } from "./auth/AuthProvider";
+import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: "📊" },
   { path: "/funcionarios", label: "Funcionários", icon: "👥" },
   { path: "/banco-talentos", label: "Banco de Talentos", icon: "🎯" },
-  { path: "/relatorios", label: "Relatórios e Análises", icon: "📈" },
+  { path: "/relatorios", label: "Relatórios", icon: "📈" },
   { path: "/folha-ponto", label: "Folha de Ponto", icon: "🕐" },
   { path: "/holerites", label: "Holerites", icon: "📄" },
   { path: "/comunicados", label: "Comunicados", icon: "📢" },
-  { path: "/admins", label: "Gerenciar Admins", icon: "⚙️" },
+  { path: "/admins", label: "Admins", icon: "⚙️" },
 ];
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const [isDark, setIsDark] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { signOut, profile } = useAuth();
 
   const toggleTheme = () => {
@@ -36,17 +38,17 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     <div className="min-h-screen bg-primary">
       {/* Header */}
       <header className="bg-card shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+        <div className="container mx-auto px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Building2 className="h-6 w-6 md:h-8 md:w-8 text-primary" />
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">AtivaRH</h1>
+            <Building2 className="h-5 w-5 sm:h-6 sm:w-6 md:h-8 md:w-8 text-primary" />
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">AtivaRH</h1>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-4">
-            <span className="text-xs md:text-sm text-muted-foreground hidden lg:block">
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
+            <span className="text-xs md:text-sm text-muted-foreground hidden xl:block">
               {currentDate}
             </span>
-            <span className="text-xs md:text-sm font-medium text-foreground hidden sm:inline">
+            <span className="text-xs md:text-sm font-medium text-foreground hidden md:inline max-w-[150px] truncate">
               {profile?.nome || "Usuário"}
             </span>
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-8 w-8 md:h-10 md:w-10">
@@ -61,12 +63,58 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             >
               <LogOut className="h-4 w-4 md:h-5 md:w-5" />
             </Button>
+            
+            {/* Mobile menu button */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 md:hidden">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] p-0">
+                <div className="flex flex-col h-full">
+                  <div className="p-4 border-b flex items-center justify-between">
+                    <span className="font-semibold text-foreground">Menu</span>
+                  </div>
+                  <nav className="flex-1 p-4">
+                    <div className="space-y-1">
+                      {navItems.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        return (
+                          <Link
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors touch-target ${
+                              isActive
+                                ? "bg-primary text-primary-foreground"
+                                : "text-foreground hover:bg-muted"
+                            }`}
+                          >
+                            <span className="text-lg">{item.icon}</span>
+                            <span>{item.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </nav>
+                  <div className="p-4 border-t">
+                    <p className="text-xs text-muted-foreground truncate">
+                      {profile?.nome || "Usuário"}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {currentDate}
+                    </p>
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </header>
 
-      {/* Navigation */}
-      <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[57px] md:top-[73px] z-40">
+      {/* Desktop Navigation */}
+      <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[49px] sm:top-[53px] md:top-[65px] z-40 hidden md:block">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
             {navItems.map((item) => {
@@ -75,14 +123,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-1 md:gap-2 px-3 md:px-4 py-3 md:py-4 text-xs md:text-sm font-medium transition-all whitespace-nowrap border-b-2 ${
+                  className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 py-3 lg:py-4 text-xs lg:text-sm font-medium transition-all whitespace-nowrap border-b-2 ${
                     isActive
                       ? "text-primary-foreground border-primary-foreground"
                       : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:border-primary-foreground/30"
                   }`}
                 >
-                  <span className="text-base md:text-lg">{item.icon}</span>
-                  <span className="hidden sm:inline">{item.label}</span>
+                  <span className="text-base lg:text-lg">{item.icon}</span>
+                  <span className="hidden lg:inline">{item.label}</span>
                 </Link>
               );
             })}
@@ -91,7 +139,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 md:px-6 py-4 md:py-8">{children}</main>
+      <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 lg:py-8">{children}</main>
     </div>
   );
 };

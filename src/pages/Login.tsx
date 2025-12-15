@@ -40,25 +40,25 @@ const Login = () => {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
+      className="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-cover bg-center bg-no-repeat safe-bottom safe-top"
       style={{ backgroundImage: `url(${loginBackground})` }}
     >
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
+      <Card className="w-full max-w-[95%] sm:max-w-md">
+        <CardHeader className="text-center space-y-2 p-4 sm:p-6">
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-48 h-auto mx-auto mb-4"
+            className="w-32 sm:w-40 md:w-48 h-auto mx-auto mb-2 sm:mb-4"
           />
-          <CardTitle className="text-2xl font-bold">Bem-vindo</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-xl sm:text-2xl font-bold">Bem-vindo</CardTitle>
+          <CardDescription className="text-sm sm:text-base">
             Insira suas credenciais para acessar o sistema.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6 pt-0">
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="login-email">Usuário</Label>
+              <Label htmlFor="login-email" className="text-sm sm:text-base">Usuário</Label>
               <Input
                 id="login-email"
                 type="text"
@@ -68,10 +68,11 @@ const Login = () => {
                   setLoginData({ ...loginData, email: e.target.value })
                 }
                 required
+                className="h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="login-password">Senha</Label>
+              <Label htmlFor="login-password" className="text-sm sm:text-base">Senha</Label>
               <Input
                 id="login-password"
                 type="password"
@@ -80,14 +81,15 @@ const Login = () => {
                   setLoginData({ ...loginData, password: e.target.value })
                 }
                 required
+                className="h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full h-10 sm:h-11 text-sm sm:text-base" disabled={loading}>
               <LogIn className="mr-2 h-4 w-4" />
               {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
-          <p className="text-center text-xs text-muted-foreground mt-4">
+          <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-4">
             © 2025 Grupo Ativa. Todos os direitos reservados.
           </p>
         </CardContent>

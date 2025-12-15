@@ -160,17 +160,17 @@ export default function OrcamentosLista() {
 
         {/* Quotes Table */}
         <GlassPanel className="overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[800px]">
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
+            <table className="w-full min-w-[700px]">
               <thead className="bg-zinc-50 border-b border-zinc-200">
                 <tr>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">ID</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">Cliente</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">Criado em</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">Validade</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">Status</th>
-                  <th className="text-right px-6 py-4 text-sm font-semibold text-zinc-600">Valor</th>
-                  <th className="text-center px-6 py-4 text-sm font-semibold text-zinc-600">Ações</th>
+                  <th className="text-left px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-zinc-600">ID</th>
+                  <th className="text-left px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-zinc-600">Cliente</th>
+                  <th className="text-left px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-zinc-600 hidden md:table-cell">Criado</th>
+                  <th className="text-left px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-zinc-600 hidden lg:table-cell">Validade</th>
+                  <th className="text-left px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-zinc-600">Status</th>
+                  <th className="text-right px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-zinc-600">Valor</th>
+                  <th className="text-center px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-zinc-600">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -191,30 +191,30 @@ export default function OrcamentosLista() {
                         index % 2 === 0 ? 'bg-white' : 'bg-zinc-50/30'
                       )}
                     >
-                      <td className="px-6 py-4">
-                        <span className="font-mono text-sm font-medium text-[#006fee]">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <span className="font-mono text-xs sm:text-sm font-medium text-[#006fee]">
                           {quote.publicId}
                         </span>
                         {quote.version > 1 && (
-                          <span className="ml-1 text-xs text-zinc-400">v{quote.version}</span>
+                          <span className="ml-1 text-[10px] sm:text-xs text-zinc-400">v{quote.version}</span>
                         )}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="font-medium text-zinc-800">{quote.clientName}</span>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <span className="font-medium text-zinc-800 text-xs sm:text-sm truncate block max-w-[120px] sm:max-w-none">{quote.clientName}</span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-zinc-600">
-                        {format(quote.createdAt, "dd/MM/yyyy", { locale: ptBR })}
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-zinc-600 hidden md:table-cell">
+                        {format(quote.createdAt, "dd/MM/yy", { locale: ptBR })}
                       </td>
-                      <td className="px-6 py-4 text-sm text-zinc-600">
-                        {format(quote.validUntil, "dd/MM/yyyy", { locale: ptBR })}
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-zinc-600 hidden lg:table-cell">
+                        {format(quote.validUntil, "dd/MM/yy", { locale: ptBR })}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
                         <Select 
                           value={quote.status} 
                           onValueChange={(value) => handleStatusChange(quote.id, value)}
                         >
                           <SelectTrigger className={cn(
-                            "w-[160px] h-8 text-xs font-medium text-white border-0",
+                            "w-[100px] sm:w-[140px] h-7 sm:h-8 text-[10px] sm:text-xs font-medium text-white border-0",
                             QUOTE_STATUS_COLORS[quote.status]
                           )}>
                             <SelectValue />
@@ -227,17 +227,17 @@ export default function OrcamentosLista() {
                                     "w-2 h-2 rounded-full",
                                     QUOTE_STATUS_COLORS[value as keyof typeof QUOTE_STATUS_COLORS]
                                   )} />
-                                  {label}
+                                  <span className="text-xs">{label}</span>
                                 </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       </td>
-                      <td className="px-6 py-4 text-right font-medium text-zinc-800">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-right font-medium text-zinc-800 text-xs sm:text-sm">
                         {formatCurrency(quote.financials.total)}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
                         <div className="flex items-center justify-center gap-1">
                           <Button
                             variant="ghost"
