@@ -124,8 +124,8 @@ const Dashboard = () => {
       {/* Header com título e botão sair */}
       <div className="flex items-start justify-between px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 relative z-10">
         <h1 
-          className="text-sm sm:text-base md:text-lg lg:text-xl text-white font-bold"
-          style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
+          className="text-base sm:text-lg md:text-xl lg:text-2xl text-white italic"
+          style={{ fontFamily: "'Pacifico', cursive", textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
         >
           Sistema Integrado de Gerenciamento GRUPO ATIVA
         </h1>
