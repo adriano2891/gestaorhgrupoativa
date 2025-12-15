@@ -218,7 +218,7 @@ const GestaoRH = () => {
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-[280px] h-auto opacity-90"
+            className="w-[380px] h-auto opacity-90"
           />
         </div>
 
