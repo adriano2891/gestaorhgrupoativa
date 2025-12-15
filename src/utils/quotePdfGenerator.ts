@@ -3,15 +3,15 @@ import autoTable from 'jspdf-autotable';
 import { Quote, QuoteItem } from '@/types/quotes';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import logoAtivaPdf from '@/assets/logo-ativa-pdf.png';
 
-// Company info - can be customized
+// Company info
 const COMPANY_INFO = {
   name: 'GRUPO ATIVA',
   cnpj: '00.000.000/0001-00',
-  address: 'Rua Exemplo, 123 - Centro',
-  city: 'São Paulo - SP',
+  address: 'Rua Exemplo, 123 - Centro São Paulo - SP',
   phone: '(11) 1234-5678',
-  email: 'contato@grupoativa.com.br',
+  email: 'Ativa@contato.com.br',
 };
 
 interface QuoteDataForPdf {
@@ -20,6 +20,9 @@ interface QuoteDataForPdf {
   clientName: string;
   clientEmail?: string;
   clientPhone?: string;
+  clientAddress?: string;
+  clientCnpj?: string;
+  clientSindico?: string;
   createdAt: Date;
   validUntil: Date;
   items: QuoteItem[];
@@ -56,31 +59,25 @@ async function loadImageAsBase64(url: string): Promise<string | null> {
 }
 
 // Create placeholder image for items without image
-function createPlaceholderImage(doc: jsPDF): string {
-  // Create a simple gray placeholder with package icon representation
+function createPlaceholderImage(): string {
   const canvas = document.createElement('canvas');
-  canvas.width = 60;
-  canvas.height = 60;
+  canvas.width = 80;
+  canvas.height = 80;
   const ctx = canvas.getContext('2d');
   if (ctx) {
-    // Background
-    ctx.fillStyle = '#f0f0f0';
-    ctx.fillRect(0, 0, 60, 60);
-    
-    // Border
-    ctx.strokeStyle = '#d0d0d0';
+    // White background with border
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 80, 80);
+    ctx.strokeStyle = '#cccccc';
     ctx.lineWidth = 2;
-    ctx.strokeRect(2, 2, 56, 56);
+    ctx.strokeRect(1, 1, 78, 78);
     
-    // Simple package icon
-    ctx.fillStyle = '#a0a0a0';
-    ctx.fillRect(15, 20, 30, 25);
-    ctx.fillStyle = '#888888';
-    ctx.fillRect(15, 15, 30, 8);
-    
-    // Ribbon
-    ctx.fillStyle = '#909090';
-    ctx.fillRect(28, 15, 4, 30);
+    // "FOTO" text
+    ctx.fillStyle = '#999999';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('FOTO', 40, 40);
   }
   return canvas.toDataURL('image/png');
 }
@@ -89,17 +86,18 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 14;
+  const margin = 15;
 
-  // Colors
-  const primaryColor: [number, number, number] = [0, 111, 238];
-  const tealColor: [number, number, number] = [62, 224, 207];
-  const darkGray: [number, number, number] = [60, 60, 60];
-  const lightGray: [number, number, number] = [120, 120, 120];
+  // Colors matching the model
+  const tealColor: [number, number, number] = [62, 224, 207]; // #3EE0CF
+  const darkTeal: [number, number, number] = [45, 180, 165];
+  const black: [number, number, number] = [0, 0, 0];
+  const darkGray: [number, number, number] = [80, 80, 80];
+  const lightGray: [number, number, number] = [150, 150, 150];
 
   // Pre-load all images
   const imageCache: Map<number, string> = new Map();
-  const placeholderImage = createPlaceholderImage(doc);
+  const placeholderImage = createPlaceholderImage();
   
   for (let i = 0; i < quote.items.length; i++) {
     const item = quote.items[i];
@@ -111,127 +109,146 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
     }
   }
 
-  // Header with gradient effect
+  // Load logo
+  let logoData: string | null = null;
+  try {
+    logoData = await loadImageAsBase64(logoAtivaPdf);
+  } catch (e) {
+    console.error('Error loading logo:', e);
+  }
+
+  // ============= HEADER SECTION =============
+  // Teal line at top
   doc.setFillColor(...tealColor);
-  doc.rect(0, 0, pageWidth, 45, 'F');
-  
-  // Company Logo area
-  doc.setFillColor(255, 255, 255);
-  doc.roundedRect(margin, 8, 50, 28, 3, 3, 'F');
-  
-  doc.setTextColor(...primaryColor);
-  doc.setFontSize(16);
+  doc.rect(0, 0, pageWidth, 3, 'F');
+
+  // Teal accent bar on right
+  doc.setFillColor(...tealColor);
+  doc.rect(pageWidth - 8, 0, 8, 50, 'F');
+
+  // Logo centered at top
+  if (logoData) {
+    doc.addImage(logoData, 'PNG', pageWidth / 2 - 25, 8, 50, 25);
+  } else {
+    // Fallback text logo
+    doc.setTextColor(...darkTeal);
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ATIVA', pageWidth / 2, 20, { align: 'center' });
+    doc.setFontSize(10);
+    doc.text('GRUPO ATIVA', pageWidth / 2, 28, { align: 'center' });
+  }
+
+  // Teal divider line below header
+  doc.setFillColor(...tealColor);
+  doc.rect(0, 40, pageWidth - 8, 2, 'F');
+
+  // ============= COMPANY AND CLIENT INFO =============
+  let y = 50;
+
+  // Left side - Company info
+  doc.setTextColor(...black);
+  doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text(COMPANY_INFO.name, margin + 25, 22, { align: 'center' });
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.text('Soluções Empresariais', margin + 25, 30, { align: 'center' });
-
-  // Quote title
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(22);
-  doc.setFont('helvetica', 'bold');
-  doc.text('ORÇAMENTO', pageWidth - margin, 20, { align: 'right' });
-
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'normal');
-  doc.text(quote.publicId, pageWidth - margin, 30, { align: 'right' });
-  doc.text(`Versão ${quote.version}`, pageWidth - margin, 38, { align: 'right' });
-
-  // Company info box
-  let y = 55;
-  doc.setFillColor(245, 245, 245);
-  doc.roundedRect(margin, y, (pageWidth - margin * 2) / 2 - 5, 35, 2, 2, 'F');
+  doc.text(COMPANY_INFO.name, margin, y);
   
-  doc.setTextColor(...darkGray);
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.setFont('helvetica', 'bold');
-  doc.text('DADOS DA EMPRESA', margin + 5, y + 8);
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.text(COMPANY_INFO.name, margin + 5, y + 15);
-  doc.text(`CNPJ: ${COMPANY_INFO.cnpj}`, margin + 5, y + 21);
-  doc.text(COMPANY_INFO.address, margin + 5, y + 27);
-  doc.text(`${COMPANY_INFO.city} | ${COMPANY_INFO.phone}`, margin + 5, y + 33);
+  doc.text(`CNPJ: ${COMPANY_INFO.cnpj}`, margin, y + 6);
+  doc.text(COMPANY_INFO.address, margin, y + 12);
+  doc.text(`Contato: ${COMPANY_INFO.phone}`, margin, y + 18);
+  doc.text(`E-mail: ${COMPANY_INFO.email}`, margin, y + 24);
 
-  // Client info box
-  const clientBoxX = pageWidth / 2 + 5;
-  doc.setFillColor(245, 245, 245);
-  doc.roundedRect(clientBoxX, y, (pageWidth - margin * 2) / 2 - 5, 35, 2, 2, 'F');
-  
-  doc.setFontSize(9);
+  // Right side - Client info
+  const clientX = pageWidth / 2 + 10;
   doc.setFont('helvetica', 'bold');
-  doc.text('DADOS DO CLIENTE', clientBoxX + 5, y + 8);
+  doc.setFontSize(10);
+  doc.text('DADOS DO CLIENTE', clientX, y);
   
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8);
-  doc.text(quote.clientName, clientBoxX + 5, y + 15);
-  if ('clientEmail' in quote && quote.clientEmail) {
-    doc.text(quote.clientEmail, clientBoxX + 5, y + 21);
+  doc.setFontSize(9);
+  doc.text(`(${quote.clientName})`, clientX, y + 6);
+  
+  if ('clientCnpj' in quote && quote.clientCnpj) {
+    doc.text(`(CNPJ: ${quote.clientCnpj})`, clientX, y + 12);
+  }
+  if ('clientAddress' in quote && quote.clientAddress) {
+    doc.text(`(${quote.clientAddress})`, clientX, y + 18);
   }
   if ('clientPhone' in quote && quote.clientPhone) {
-    doc.text(quote.clientPhone, clientBoxX + 5, y + 27);
+    doc.text(`Contato: ${quote.clientPhone}`, clientX, y + 24);
+  }
+  if ('clientSindico' in quote && quote.clientSindico) {
+    doc.text(`Síndico Responsável: ${quote.clientSindico}`, clientX, y + 30);
   }
 
-  // Date info
-  y += 42;
-  doc.setFillColor(...primaryColor);
-  doc.roundedRect(margin, y, pageWidth - margin * 2, 12, 2, 2, 'F');
-  
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(9);
+  // Quote ID on left
+  y = 82;
   doc.setFont('helvetica', 'bold');
-  
-  const createdDate = quote.createdAt instanceof Date ? quote.createdAt : new Date(quote.createdAt);
-  const validUntilDate = quote.validUntil instanceof Date ? quote.validUntil : new Date(quote.validUntil);
-  
-  doc.text(`Data de Emissão: ${format(createdDate, "dd/MM/yyyy", { locale: ptBR })}`, margin + 5, y + 8);
-  doc.text(`Válido até: ${format(validUntilDate, "dd/MM/yyyy", { locale: ptBR })}`, pageWidth - margin - 5, y + 8, { align: 'right' });
+  doc.setFontSize(10);
+  doc.text(`Orçamrnto: ${quote.publicId}`, margin, y);
 
-  // Items table with images
-  y += 20;
-  const imageSize = 12; // Image size in the table
+  // ============= TITLE "ORÇAMENTO" =============
+  y = 100;
+  doc.setTextColor(...darkTeal);
+  doc.setFontSize(28);
+  doc.setFont('helvetica', 'bold');
+  doc.text('ORÇAMENTO', pageWidth / 2, y, { align: 'center' });
+
+  // Underline
+  const textWidth = doc.getTextWidth('ORÇAMENTO');
+  doc.setDrawColor(...black);
+  doc.setLineWidth(0.8);
+  doc.line(pageWidth / 2 - textWidth / 2, y + 3, pageWidth / 2 + textWidth / 2, y + 3);
+
+  // ============= ITEMS TABLE =============
+  y = 115;
+  
   const tableData = quote.items.map((item, idx) => [
-    '', // Placeholder for image - will be drawn via didDrawCell
-    item.name,
-    item.description ? item.description.substring(0, 35) + (item.description.length > 35 ? '...' : '') : '-',
-    item.quantity.toString(),
+    '', // Image placeholder
+    `${item.name}\n${item.description || ''}`,
     formatCurrency(item.unitPrice),
+    item.quantity.toString(),
     formatCurrency(item.total),
   ]);
 
   autoTable(doc, {
     startY: y,
-    head: [['Foto', 'Item', 'Descrição', 'Qtd', 'Valor Un.', 'Total']],
+    head: [['ITEM', 'SERVIÇO/PRODUTO', 'VALOR UN.', 'QTD', 'TOTAL']],
     body: tableData,
     headStyles: {
-      fillColor: primaryColor,
+      fillColor: tealColor,
       textColor: [255, 255, 255],
-      fontStyle: 'bold',
+      fontStyle: 'bolditalic',
+      fontSize: 10,
+      halign: 'center',
+      cellPadding: 4,
+    },
+    bodyStyles: {
       fontSize: 9,
+      cellPadding: 6,
+      lineColor: [200, 200, 200],
+      lineWidth: 0.3,
     },
     alternateRowStyles: {
-      fillColor: [250, 250, 250],
+      fillColor: [255, 255, 255],
     },
     styles: {
-      fontSize: 8,
-      cellPadding: 4,
-      lineColor: [220, 220, 220],
-      lineWidth: 0.1,
-      minCellHeight: imageSize + 4,
+      overflow: 'linebreak',
+      minCellHeight: 22,
     },
     columnStyles: {
-      0: { cellWidth: 18, halign: 'center', valign: 'middle' },
-      1: { cellWidth: 38 },
-      2: { cellWidth: 50 },
-      3: { cellWidth: 15, halign: 'center' },
-      4: { cellWidth: 28, halign: 'right' },
-      5: { cellWidth: 28, halign: 'right' },
+      0: { cellWidth: 22, halign: 'center', valign: 'middle' },
+      1: { cellWidth: 75, halign: 'left', valign: 'middle', fontStyle: 'normal' },
+      2: { cellWidth: 28, halign: 'center', valign: 'middle' },
+      3: { cellWidth: 18, halign: 'center', valign: 'middle' },
+      4: { cellWidth: 30, halign: 'center', valign: 'middle', fontStyle: 'bold', textColor: darkTeal },
     },
     theme: 'grid',
+    tableLineColor: [200, 200, 200],
+    tableLineWidth: 0.3,
     didDrawCell: (data) => {
-      // Draw images in the first column (index 0) for body rows
+      // Draw images in the ITEM column for body rows
       if (data.section === 'body' && data.column.index === 0) {
         const rowIndex = data.row.index;
         const imageData = imageCache.get(rowIndex);
@@ -242,144 +259,101 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
           const cellWidth = data.cell.width;
           const cellHeight = data.cell.height;
           
-          // Center the image in the cell
-          const imgX = cellX + (cellWidth - imageSize) / 2;
-          const imgY = cellY + (cellHeight - imageSize) / 2;
+          const imgSize = 16;
+          const imgX = cellX + (cellWidth - imgSize) / 2;
+          const imgY = cellY + (cellHeight - imgSize) / 2;
           
           try {
-            doc.addImage(imageData, 'PNG', imgX, imgY, imageSize, imageSize);
+            doc.addImage(imageData, 'PNG', imgX, imgY, imgSize, imgSize);
           } catch (e) {
-            // If image fails, draw a simple placeholder rectangle
-            doc.setFillColor(240, 240, 240);
-            doc.rect(imgX, imgY, imageSize, imageSize, 'F');
-            doc.setDrawColor(200, 200, 200);
-            doc.rect(imgX, imgY, imageSize, imageSize, 'S');
+            // Fallback: draw placeholder box with "FOTO"
+            doc.setFillColor(255, 255, 255);
+            doc.rect(imgX, imgY, imgSize, imgSize, 'F');
+            doc.setDrawColor(180, 180, 180);
+            doc.rect(imgX, imgY, imgSize, imgSize, 'S');
+            doc.setTextColor(150, 150, 150);
+            doc.setFontSize(6);
+            doc.text('FOTO', imgX + imgSize / 2, imgY + imgSize / 2, { align: 'center' });
           }
         }
       }
     },
   });
 
-  // Financial Summary
-  const finalY = (doc as any).lastAutoTable.finalY + 8;
+  // ============= TOTAL VALUE =============
+  const finalY = (doc as any).lastAutoTable.finalY + 10;
   
-  // Summary box
-  const summaryBoxWidth = 80;
-  const summaryBoxX = pageWidth - margin - summaryBoxWidth;
+  doc.setTextColor(...black);
+  doc.setFontSize(14);
+  doc.setFont('helvetica', 'bolditalic');
+  doc.text('VALOR TOTAL:', pageWidth - margin - 60, finalY);
   
-  doc.setFillColor(250, 250, 250);
-  doc.roundedRect(summaryBoxX, finalY, summaryBoxWidth, 45, 2, 2, 'F');
-  
+  doc.setTextColor(...darkTeal);
+  doc.setFontSize(18);
+  doc.setFont('helvetica', 'bold');
+  doc.text(formatCurrency(quote.financials.total), pageWidth - margin, finalY, { align: 'right' });
+
+  // ============= SIGNATURE AREA (if signed) =============
+  let signatureEndY = finalY;
+  if (quote.signature && quote.signature.dataUrl) {
+    signatureEndY = finalY + 25;
+    
+    doc.setTextColor(...black);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Assinatura do Responsável:', margin, finalY + 15);
+    
+    try {
+      doc.addImage(quote.signature.dataUrl, 'PNG', margin, finalY + 20, 50, 20);
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      const signedAt = quote.signature.signedAt instanceof Date ? quote.signature.signedAt : new Date(quote.signature.signedAt);
+      doc.text(
+        `${quote.signature.name} - ${format(signedAt, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
+        margin,
+        finalY + 45
+      );
+      signatureEndY = finalY + 50;
+    } catch (error) {
+      console.error('Erro ao adicionar assinatura:', error);
+    }
+  }
+
+  // ============= FOOTER - INFORMAÇÕES IMPORTANTES =============
+  const footerY = Math.max(signatureEndY + 20, pageHeight - 70);
+
+  // Teal footer background
+  doc.setFillColor(235, 250, 248);
+  doc.rect(0, footerY, pageWidth, pageHeight - footerY, 'F');
+
+  // Left teal accent
+  doc.setFillColor(...tealColor);
+  doc.rect(0, footerY, 5, pageHeight - footerY, 'F');
+
+  doc.setTextColor(...darkTeal);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Informações Importantes:', margin + 5, footerY + 12);
+
   doc.setTextColor(...darkGray);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   
-  doc.text('Subtotal:', summaryBoxX + 5, finalY + 10);
-  doc.text(formatCurrency(quote.financials.subtotal), summaryBoxX + summaryBoxWidth - 5, finalY + 10, { align: 'right' });
-  
-  doc.text(`Impostos (${quote.financials.taxRate}%):`, summaryBoxX + 5, finalY + 20);
-  doc.text(formatCurrency(quote.financials.taxAmount), summaryBoxX + summaryBoxWidth - 5, finalY + 20, { align: 'right' });
-  
-  // Total highlight
-  doc.setFillColor(...primaryColor);
-  doc.roundedRect(summaryBoxX, finalY + 28, summaryBoxWidth, 14, 2, 2, 'F');
-  
-  doc.setTextColor(255, 255, 255);
-  doc.setFontSize(11);
-  doc.setFont('helvetica', 'bold');
-  doc.text('TOTAL:', summaryBoxX + 5, finalY + 38);
-  doc.text(formatCurrency(quote.financials.total), summaryBoxX + summaryBoxWidth - 5, finalY + 38, { align: 'right' });
+  const createdDate = quote.createdAt instanceof Date ? quote.createdAt : new Date(quote.createdAt);
+  const validUntilDate = quote.validUntil instanceof Date ? quote.validUntil : new Date(quote.validUntil);
+  const diasValidade = Math.ceil((validUntilDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
 
-  // Observations
-  let obsEndY = finalY;
-  if (quote.observations) {
-    doc.setTextColor(...darkGray);
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Observações:', margin, finalY + 10);
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    const splitObs = doc.splitTextToSize(quote.observations, summaryBoxX - margin - 10);
-    doc.text(splitObs, margin, finalY + 18);
-    obsEndY = finalY + 18 + (splitObs.length * 4);
-  }
+  const infoLines = [
+    `• Orçamento válido por ${diasValidade} dias a partir da data de criação`,
+    '• Preços sujeitos a alterações sem aviso prévio',
+    '• Descontos especiais podem ser aplicados conforme regras definidas',
+    '• Suporte técnico disponível durante horário comercial',
+  ];
 
-  // Signature area (if signed)
-  const signatureY = Math.max(finalY + 55, obsEndY + 15);
-  if (quote.signature) {
-    const signatureBoxHeight = 45; // Increased height to accommodate image
-    
-    doc.setDrawColor(...tealColor);
-    doc.setLineWidth(0.5);
-    doc.roundedRect(margin, signatureY, pageWidth - margin * 2, signatureBoxHeight, 2, 2, 'S');
-    
-    doc.setFillColor(240, 255, 245);
-    doc.roundedRect(margin, signatureY, pageWidth - margin * 2, signatureBoxHeight, 2, 2, 'F');
-    
-    doc.setTextColor(34, 139, 34);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('RESPONSÁVEL PELO ORÇAMENTO:', margin + 5, signatureY + 8);
-    
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...darkGray);
-    doc.setFontSize(8);
-    
-    const signedAt = quote.signature.signedAt instanceof Date ? quote.signature.signedAt : new Date(quote.signature.signedAt);
-    doc.text(
-      `Assinado por: ${quote.signature.name} em ${format(signedAt, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
-      margin + 5,
-      signatureY + 15
-    );
-    
-    // Add signature image if available
-    if (quote.signature.dataUrl) {
-      try {
-        const signatureImg = quote.signature.dataUrl;
-        const imgWidth = 50;
-        const imgHeight = 20;
-        const imgX = pageWidth - margin - imgWidth - 5;
-        const imgY = signatureY + 8;
-        
-        doc.addImage(signatureImg, 'PNG', imgX, imgY, imgWidth, imgHeight);
-      } catch (error) {
-        console.error('Erro ao adicionar imagem da assinatura:', error);
-      }
-    }
-  }
-
-  // Footer
-  const footerY = pageHeight - 25;
-  
-  doc.setDrawColor(220, 220, 220);
-  doc.setLineWidth(0.3);
-  doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
-  
-  doc.setTextColor(...lightGray);
-  doc.setFontSize(7);
-  doc.setFont('helvetica', 'normal');
-  doc.text(
-    'Este documento é válido como proposta comercial. Valores sujeitos a alteração após a data de validade.',
-    pageWidth / 2,
-    footerY,
-    { align: 'center' }
-  );
-  doc.text(
-    `${COMPANY_INFO.email} | ${COMPANY_INFO.phone}`,
-    pageWidth / 2,
-    footerY + 5,
-    { align: 'center' }
-  );
-  doc.text(
-    `© ${new Date().getFullYear()} ${COMPANY_INFO.name} - Todos os direitos reservados`,
-    pageWidth / 2,
-    footerY + 10,
-    { align: 'center' }
-  );
-
-  // Page number
-  doc.setFontSize(8);
-  doc.text(`Página 1 de 1`, pageWidth - margin, footerY + 10, { align: 'right' });
+  infoLines.forEach((line, idx) => {
+    doc.text(line, margin + 5, footerY + 22 + (idx * 6));
+  });
 
   return doc;
 }
@@ -394,7 +368,6 @@ export async function previewQuotePDF(quote: Quote | QuoteDataForPdf): Promise<v
   const pdfBlob = doc.output('blob');
   const pdfUrl = URL.createObjectURL(pdfBlob);
   
-  // Create a link element and trigger click to avoid popup blockers
   const link = document.createElement('a');
   link.href = pdfUrl;
   link.target = '_blank';
@@ -403,7 +376,6 @@ export async function previewQuotePDF(quote: Quote | QuoteDataForPdf): Promise<v
   link.click();
   document.body.removeChild(link);
   
-  // Cleanup URL after a delay
   setTimeout(() => URL.revokeObjectURL(pdfUrl), 1000);
 }
 
