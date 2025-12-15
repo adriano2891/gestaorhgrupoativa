@@ -28,6 +28,7 @@ import OrcamentosLista from "./pages/OrcamentosLista";
 import OrcamentosBuilder from "./pages/OrcamentosBuilder";
 import OrcamentosDetail from "./pages/OrcamentosDetail";
 import OrcamentosPublic from "./pages/OrcamentosPublic";
+import GestaoClientes from "./pages/GestaoClientes";
 
 const queryClient = new QueryClient();
 
@@ -145,6 +146,15 @@ const App = () => (
                     <Layout>
                       <Comunicados />
                     </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              {/* Gestão de Clientes Route */}
+              <Route
+                path="/gestao-clientes"
+                element={
+                  <ProtectedRoute>
+                    <GestaoClientes />
                   </ProtectedRoute>
                 }
               />
