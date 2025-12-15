@@ -85,10 +85,32 @@ const GestaoRH = () => {
       from { opacity: 0; transform: scale(0.7); }
       to { opacity: 1; transform: scale(1); }
     }
+    @keyframes rh-icon-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(255,255,255,0.3), 0 8px 30px rgba(0,0,0,0.2); }
+      50% { box-shadow: 0 0 35px rgba(255,255,255,0.5), 0 12px 40px rgba(0,0,0,0.25); }
+    }
     .rh-animate-header { animation: rh-fade-in 0.4s ease-out forwards; }
     .rh-animate-title { animation: rh-fade-in 0.5s ease-out 0.1s forwards; opacity: 0; }
     .rh-animate-logo { animation: rh-logo-scale 0.6s ease-out 0.2s forwards; opacity: 0; }
     .rh-animate-module { animation: rh-module-pop 0.4s ease-out forwards; opacity: 0; }
+    .rh-module-icon {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .rh-module-icon:hover {
+      transform: scale(1.15) translateY(-5px);
+    }
+    .rh-module-icon:hover .rh-icon-ring {
+      animation: rh-icon-glow 1.5s ease-in-out infinite;
+    }
+    .rh-module-icon:active {
+      transform: scale(1.05) translateY(-2px);
+    }
+    .rh-icon-ring {
+      transition: all 0.3s ease;
+    }
+    .rh-icon-ring:hover {
+      box-shadow: 0 0 30px rgba(255,255,255,0.4), 0 10px 35px rgba(0,0,0,0.2);
+    }
   `;
 
   // Mobile/Tablet layout
@@ -140,11 +162,11 @@ const GestaoRH = () => {
             {modules.map((module, index) => (
               <div
                 key={module.path}
-                className={`cursor-pointer active:scale-95 transition-transform duration-200 flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
+                className={`rh-module-icon cursor-pointer flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
                 style={isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {}}
                 onClick={() => navigate(module.path)}
               >
-                <div className="rounded-full shadow-lg overflow-hidden w-20 h-20 sm:w-24 sm:h-24 ring-2 ring-white/30">
+                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 sm:w-24 sm:h-24 ring-2 ring-white/30">
                   <img src={module.iconSrc} alt={module.title} className="w-full h-full object-cover" />
                 </div>
                 <p 
@@ -217,7 +239,7 @@ const GestaoRH = () => {
             return (
               <div
                 key={module.path}
-                className={`absolute cursor-pointer hover:scale-110 transition-transform duration-200 ${isAnimating ? 'rh-animate-module' : ''}`}
+                className={`absolute rh-module-icon cursor-pointer ${isAnimating ? 'rh-animate-module' : ''}`}
                 style={{ 
                   left: '50%', 
                   top: '50%', 
@@ -226,7 +248,7 @@ const GestaoRH = () => {
                 }}
                 onClick={() => navigate(module.path)}
               >
-                <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 ring-4 ring-white/30 hover:ring-white/50">
+                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-28 h-28 ring-4 ring-white/30">
                   <img src={module.iconSrc} alt={module.title} className="w-full h-full object-cover" />
                 </div>
                 <p className="text-center mt-3 font-semibold text-white text-sm max-w-[120px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
@@ -244,7 +266,7 @@ const GestaoRH = () => {
             return (
               <div
                 key={module.path}
-                className={`absolute cursor-pointer hover:scale-110 transition-transform duration-200 ${isAnimating ? 'rh-animate-module' : ''}`}
+                className={`absolute rh-module-icon cursor-pointer ${isAnimating ? 'rh-animate-module' : ''}`}
                 style={{ 
                   left: '50%', 
                   top: '50%', 
@@ -253,7 +275,7 @@ const GestaoRH = () => {
                 }}
                 onClick={() => navigate(module.path)}
               >
-                <div className="rounded-full shadow-lg overflow-hidden w-24 h-24 ring-3 ring-white/30">
+                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-24 h-24 ring-3 ring-white/30">
                   <img src={module.iconSrc} alt={module.title} className="w-full h-full object-cover" />
                 </div>
                 <p className="text-center mt-2 font-semibold text-white text-xs max-w-[100px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
@@ -271,7 +293,7 @@ const GestaoRH = () => {
             return (
               <div
                 key={module.path}
-                className={`absolute cursor-pointer hover:scale-105 transition-transform duration-200 ${isAnimating ? 'rh-animate-module' : ''}`}
+                className={`absolute rh-module-icon cursor-pointer ${isAnimating ? 'rh-animate-module' : ''}`}
                 style={{ 
                   left: '50%', 
                   top: '50%', 
@@ -280,7 +302,7 @@ const GestaoRH = () => {
                 }}
                 onClick={() => navigate(module.path)}
               >
-                <div className="rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
+                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
                   <img src={module.iconSrc} alt={module.title} className="w-full h-full object-cover" />
                 </div>
                 <p className="text-center mt-2 font-semibold text-white text-[10px] max-w-[80px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
@@ -297,11 +319,11 @@ const GestaoRH = () => {
             {modules.map((module, index) => (
               <div
                 key={module.path}
-                className={`cursor-pointer hover:scale-105 transition-transform duration-200 flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
+                className={`rh-module-icon cursor-pointer flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
                 style={isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {}}
                 onClick={() => navigate(module.path)}
               >
-                <div className="rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
+                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
                   <img src={module.iconSrc} alt={module.title} className="w-full h-full object-cover" />
                 </div>
                 <p className="text-center mt-2 font-semibold text-white text-[10px] max-w-[70px] leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
