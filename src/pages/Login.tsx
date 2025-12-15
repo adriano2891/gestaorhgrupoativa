@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import loginBackground from "@/assets/login-background.png";
+import logoAtiva from "@/assets/logo-ativa-login.png";
 
 const Login = () => {
   const { signIn } = useAuth();
@@ -44,6 +45,11 @@ const Login = () => {
     >
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
+          <img 
+            src={logoAtiva} 
+            alt="Logo Grupo Ativa" 
+            className="w-48 h-auto mx-auto mb-4"
+          />
           <CardTitle className="text-2xl font-bold">Sistema RH</CardTitle>
           <CardDescription>
             Gestão completa de recursos humanos
