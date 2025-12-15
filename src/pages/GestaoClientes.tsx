@@ -95,26 +95,26 @@ const GestaoClientes = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="text-slate-600">Carregando...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-black">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 shadow-sm">
+      <header className="sticky top-0 z-50 bg-[#3EE0CF] shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo e Título */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center">
                 <Building2 className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-slate-800">Gestão de Clientes</h1>
-                <p className="text-xs text-slate-500">Controle de Condomínios</p>
+                <h1 className="text-lg font-bold text-black">Gestão de Clientes</h1>
+                <p className="text-xs text-black/70">Controle de Condomínios</p>
               </div>
             </div>
 
@@ -124,7 +124,7 @@ const GestaoClientes = () => {
                 variant={view === "dashboard" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => { setView("dashboard"); setSelectedId(null); }}
-                className={view === "dashboard" ? "bg-blue-600 hover:bg-blue-700" : ""}
+                className={view === "dashboard" ? "bg-black hover:bg-black/90 text-white" : "text-black hover:bg-black/10"}
               >
                 <LayoutDashboard className="w-4 h-4 mr-2" />
                 Dashboard
@@ -133,7 +133,7 @@ const GestaoClientes = () => {
                 variant={view === "lista" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => { setView("lista"); setSelectedId(null); }}
-                className={view === "lista" ? "bg-blue-600 hover:bg-blue-700" : ""}
+                className={view === "lista" ? "bg-black hover:bg-black/90 text-white" : "text-black hover:bg-black/10"}
               >
                 <List className="w-4 h-4 mr-2" />
                 Lista
@@ -141,7 +141,7 @@ const GestaoClientes = () => {
               <Button
                 size="sm"
                 onClick={() => { setEditingCondo(null); setFormOpen(true); }}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-black hover:bg-black/90 text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Novo
@@ -150,7 +150,7 @@ const GestaoClientes = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/dashboard")}
-                className="text-slate-600"
+                className="text-black hover:bg-black/10"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 Sair
