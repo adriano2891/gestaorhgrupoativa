@@ -1,6 +1,7 @@
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useIsMobile } from "@/hooks/use-mobile";
 import logoAtiva from "@/assets/logo-ativa.png";
 import iconHr from "@/assets/icon-hr-new.png";
 import iconClients from "@/assets/icon-clients-new.png";
@@ -27,6 +28,7 @@ const modules: ModuleItem[] = [
 const Dashboard = () => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const isMobile = useIsMobile();
 
   const handleLogout = async () => {
     await signOut();
@@ -34,7 +36,6 @@ const Dashboard = () => {
 
   // Calculate position for each module in a circle
   const getModulePosition = (index: number, total: number, radius: number) => {
-    // Start from top (-90deg) and distribute evenly
     const angleStep = (2 * Math.PI) / total;
     const angle = -Math.PI / 2 + index * angleStep;
     
@@ -44,34 +45,103 @@ const Dashboard = () => {
     return { x, y };
   };
 
+  // Mobile layout - Grid based
+  if (isMobile) {
+    return (
+      <div 
+        className="min-h-screen relative overflow-hidden flex flex-col"
+        style={{ backgroundColor: '#40E0D0' }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+          <h1 
+            className="text-lg font-bold text-white flex-1 text-center pr-12"
+            style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}
+          >
+            Sistema Integrado GRUPO ATIVA
+          </h1>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity absolute right-4"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="text-sm">Sair</span>
+          </button>
+        </div>
+
+        {/* Logo Central */}
+        <div className="flex justify-center py-4">
+          <img 
+            src={logoAtiva} 
+            alt="Logo Grupo Ativa" 
+            className="w-32 h-auto"
+          />
+        </div>
+
+        {/* Grid de Módulos */}
+        <div className="flex-1 px-4 pb-6">
+          <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+            {modules.map((module) => (
+              <div
+                key={module.id}
+                className={`flex flex-col items-center ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer active:scale-95'} transition-all duration-200`}
+                onClick={() => !module.disabled && module.route && navigate(module.route)}
+              >
+                <div 
+                  className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
+                  style={{ width: '80px', height: '80px' }}
+                >
+                  <img 
+                    src={module.icon} 
+                    alt={module.label} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <p 
+                  className="text-center mt-2 font-semibold text-white text-xs max-w-[100px] leading-tight"
+                  style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}
+                >
+                  {module.label}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center pb-4 text-white/70 text-xs">
+          © {new Date().getFullYear()} Grupo Ativa
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
       className="min-h-screen relative overflow-hidden flex flex-col"
       style={{ backgroundColor: '#40E0D0' }}
     >
       {/* Título central no topo */}
-      <div className="text-center pt-6 md:pt-8 pb-2 md:pb-4 relative z-10 px-4">
+      <div className="text-center pt-4 sm:pt-6 lg:pt-8 pb-2 relative z-10 px-4">
         <h1 
-          className="text-xl sm:text-2xl md:text-3xl lg:text-4xl text-white font-bold"
-          style={{ 
-            textShadow: '2px 2px 4px rgba(0,0,0,0.2)'
-          }}
+          className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-white font-bold"
+          style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
         >
           Sistema Integrado de Gerenciamento GRUPO ATIVA
         </h1>
       </div>
 
-      {/* Botão Sair no canto superior direito */}
+      {/* Botão Sair */}
       <button
         onClick={handleLogout}
-        className="absolute top-4 md:top-6 right-4 md:right-8 flex items-center gap-2 text-white hover:opacity-80 transition-opacity z-20"
+        className="absolute top-3 sm:top-4 lg:top-6 right-3 sm:right-6 lg:right-8 flex items-center gap-1 sm:gap-2 text-white hover:opacity-80 transition-opacity z-20"
       >
-        <LogOut className="w-5 h-5 md:w-6 md:h-6" />
-        <span className="text-base md:text-lg font-medium">Sair</span>
+        <LogOut className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+        <span className="text-sm sm:text-base lg:text-lg font-medium">Sair</span>
       </button>
 
       {/* Container central com logo e módulos */}
-      <div className="flex-1 relative w-full flex items-center justify-center px-4 py-4">
+      <div className="flex-1 relative w-full flex items-center justify-center px-4 py-2">
         <div className="relative flex items-center justify-center">
           
           {/* Logo Central */}
@@ -79,19 +149,19 @@ const Dashboard = () => {
             <img 
               src={logoAtiva} 
               alt="Logo Grupo Ativa" 
-              className="w-40 h-auto sm:w-48 md:w-64 lg:w-80 xl:w-96 drop-shadow-lg"
+              className="w-32 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg"
             />
           </div>
 
-          {/* Módulos em círculo - Desktop */}
-          <div className="hidden md:block">
+          {/* Módulos em círculo - XL screens */}
+          <div className="hidden xl:block">
             {modules.map((module, index) => {
-              const { x, y } = getModulePosition(index, modules.length, 220);
+              const { x, y } = getModulePosition(index, modules.length, 240);
               
               return (
                 <div
                   key={module.id}
-                  className={`absolute ${module.disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:scale-110'} transition-all duration-300`}
+                  className={`absolute ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-110'} transition-all duration-300`}
                   style={{
                     left: '50%',
                     top: '50%',
@@ -102,16 +172,9 @@ const Dashboard = () => {
                   <div className="flex flex-col items-center">
                     <div 
                       className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-white/30 hover:ring-white/50 transition-all"
-                      style={{ 
-                        width: '110px', 
-                        height: '110px',
-                      }}
+                      style={{ width: '110px', height: '110px' }}
                     >
-                      <img 
-                        src={module.icon} 
-                        alt={module.label} 
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                     </div>
                     <p 
                       className="text-center mt-3 font-semibold text-white text-sm max-w-[130px] leading-tight"
@@ -125,15 +188,15 @@ const Dashboard = () => {
             })}
           </div>
 
-          {/* Módulos em círculo - Tablet */}
-          <div className="hidden sm:block md:hidden">
+          {/* Módulos em círculo - LG screens */}
+          <div className="hidden lg:block xl:hidden">
             {modules.map((module, index) => {
-              const { x, y } = getModulePosition(index, modules.length, 160);
+              const { x, y } = getModulePosition(index, modules.length, 200);
               
               return (
                 <div
                   key={module.id}
-                  className={`absolute ${module.disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:scale-110'} transition-all duration-300`}
+                  className={`absolute ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-110'} transition-all duration-300`}
                   style={{
                     left: '50%',
                     top: '50%',
@@ -144,16 +207,44 @@ const Dashboard = () => {
                   <div className="flex flex-col items-center">
                     <div 
                       className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-white/30"
-                      style={{ 
-                        width: '90px', 
-                        height: '90px',
-                      }}
+                      style={{ width: '100px', height: '100px' }}
                     >
-                      <img 
-                        src={module.icon} 
-                        alt={module.label} 
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
+                    </div>
+                    <p 
+                      className="text-center mt-2 font-semibold text-white text-sm max-w-[120px] leading-tight"
+                      style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}
+                    >
+                      {module.label}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Módulos em círculo - MD screens */}
+          <div className="hidden md:block lg:hidden">
+            {modules.map((module, index) => {
+              const { x, y } = getModulePosition(index, modules.length, 170);
+              
+              return (
+                <div
+                  key={module.id}
+                  className={`absolute ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-105'} transition-all duration-300`}
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                  }}
+                  onClick={() => !module.disabled && module.route && navigate(module.route)}
+                >
+                  <div className="flex flex-col items-center">
+                    <div 
+                      className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-3 ring-white/30"
+                      style={{ width: '85px', height: '85px' }}
+                    >
+                      <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                     </div>
                     <p 
                       className="text-center mt-2 font-semibold text-white text-xs max-w-[100px] leading-tight"
@@ -167,44 +258,46 @@ const Dashboard = () => {
             })}
           </div>
 
-          {/* Módulos - Mobile (Grid) */}
-          <div className="sm:hidden absolute inset-0 flex items-center justify-center">
-            <div className="grid grid-cols-2 gap-6 mt-48">
-              {modules.map((module) => (
+          {/* Módulos em círculo - SM screens (tablet) */}
+          <div className="hidden sm:block md:hidden">
+            {modules.map((module, index) => {
+              const { x, y } = getModulePosition(index, modules.length, 140);
+              
+              return (
                 <div
                   key={module.id}
-                  className={`flex flex-col items-center ${module.disabled ? 'cursor-not-allowed opacity-70' : 'cursor-pointer active:scale-95'} transition-all duration-200`}
+                  className={`absolute ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer hover:scale-105'} transition-all duration-300`}
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                  }}
                   onClick={() => !module.disabled && module.route && navigate(module.route)}
                 >
-                  <div 
-                    className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-3 ring-white/30"
-                    style={{ 
-                      width: '80px', 
-                      height: '80px',
-                    }}
-                  >
-                    <img 
-                      src={module.icon} 
-                      alt={module.label} 
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="flex flex-col items-center">
+                    <div 
+                      className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
+                      style={{ width: '70px', height: '70px' }}
+                    >
+                      <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
+                    </div>
+                    <p 
+                      className="text-center mt-1 font-semibold text-white text-[10px] max-w-[80px] leading-tight"
+                      style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.4)' }}
+                    >
+                      {module.label}
+                    </p>
                   </div>
-                  <p 
-                    className="text-center mt-2 font-semibold text-white text-xs max-w-[90px] leading-tight"
-                    style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}
-                  >
-                    {module.label}
-                  </p>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
         </div>
       </div>
 
       {/* Footer */}
-      <div className="text-center pb-4 text-white/70 text-xs md:text-sm">
+      <div className="text-center pb-3 sm:pb-4 text-white/70 text-[10px] sm:text-xs md:text-sm">
         © {new Date().getFullYear()} Grupo Ativa • Todos os direitos reservados
       </div>
     </div>

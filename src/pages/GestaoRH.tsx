@@ -16,155 +16,107 @@ import iconHolerites from "@/assets/icon-rh-holerites.png";
 import iconComunicados from "@/assets/icon-rh-comunicados.png";
 import iconAdmins from "@/assets/icon-rh-admins.png";
 
+interface ModuleItem {
+  title: string;
+  description: string;
+  iconSrc: string;
+  path: string;
+}
+
 const GestaoRH = () => {
   const navigate = useNavigate();
   const { roles, signOut } = useAuth();
   const isMobile = useIsMobile();
   
-  // Sincronização em tempo real para todos os módulos
   useMetricasRealtime();
   useFuncionariosRealtime();
   useComunicadosRealtime();
   const isAdmin = roles.includes("admin") || roles.includes("rh") || roles.includes("gestor");
 
-  const modules = [
-    {
-      title: "Funcionários",
-      description: "Gestão de colaboradores",
-      iconSrc: iconFuncionarios,
-      path: "/funcionarios",
-    },
-    {
-      title: "Banco de Talentos",
-      description: "Candidatos e recrutamento",
-      iconSrc: iconTalentos,
-      path: "/banco-talentos",
-    },
-    {
-      title: "Relatórios",
-      description: "Análises e indicadores",
-      iconSrc: iconRelatorios,
-      path: "/relatorios",
-    },
-    {
-      title: "Folha de Ponto",
-      description: "Controle de jornada",
-      iconSrc: iconPonto,
-      path: "/folha-ponto",
-    },
-    {
-      title: "Holerites",
-      description: "Gestão de pagamentos",
-      iconSrc: iconHolerites,
-      path: "/holerites",
-    },
-    {
-      title: "Comunicados",
-      description: "Avisos e notificações internas",
-      iconSrc: iconComunicados,
-      path: "/comunicados",
-    },
+  const modules: ModuleItem[] = [
+    { title: "Funcionários", description: "Gestão de colaboradores", iconSrc: iconFuncionarios, path: "/funcionarios" },
+    { title: "Banco de Talentos", description: "Candidatos e recrutamento", iconSrc: iconTalentos, path: "/banco-talentos" },
+    { title: "Relatórios", description: "Análises e indicadores", iconSrc: iconRelatorios, path: "/relatorios" },
+    { title: "Folha de Ponto", description: "Controle de jornada", iconSrc: iconPonto, path: "/folha-ponto" },
+    { title: "Holerites", description: "Gestão de pagamentos", iconSrc: iconHolerites, path: "/holerites" },
+    { title: "Comunicados", description: "Avisos e notificações internas", iconSrc: iconComunicados, path: "/comunicados" },
   ];
 
-  // Adicionar Gerenciar Admins apenas para admins
   if (isAdmin) {
-    modules.push({
-      title: "Gerenciar Admins",
-      description: "Controle de administradores",
-      iconSrc: iconAdmins,
-      path: "/admins",
-    });
+    modules.push({ title: "Gerenciar Admins", description: "Controle de administradores", iconSrc: iconAdmins, path: "/admins" });
   }
 
   const handleLogout = async () => {
     await signOut();
   };
 
-  // Layout mobile/tablet
+  // Calculate circular position
+  const getModulePosition = (index: number, total: number, radius: number) => {
+    const angleStep = (2 * Math.PI) / total;
+    const angle = -Math.PI / 2 + index * angleStep;
+    return {
+      x: Math.cos(angle) * radius,
+      y: Math.sin(angle) * radius,
+    };
+  };
+
+  // Mobile/Tablet layout
   if (isMobile) {
-    const topModules = modules.slice(0, 4);
-    const bottomModules = modules.slice(4);
-    
     return (
-      <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: '#40E0D0' }}>
+      <div className="min-h-screen relative overflow-hidden safe-bottom" style={{ backgroundColor: '#40E0D0' }}>
         {/* Header */}
-        <div className="flex items-center justify-between px-4 pt-4">
+        <div className="flex items-center justify-between px-4 pt-4 pb-2">
           <button
             onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity"
+            className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity touch-target"
           >
-            <ArrowLeft className="w-6 h-6" />
-            <span>Voltar</span>
+            <ArrowLeft className="w-5 h-5" />
+            <span className="text-sm">Voltar</span>
           </button>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity"
+            className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity touch-target"
           >
             <LogOut className="w-5 h-5" />
-            <span>Sair</span>
+            <span className="text-sm">Sair</span>
           </button>
         </div>
 
         {/* Título */}
-        <div className="text-center pt-4 pb-6 space-y-1 relative z-10 px-4">
+        <div className="text-center py-3 px-4">
           <h1 
-            className="text-3xl md:text-4xl text-white"
+            className="text-2xl sm:text-3xl text-white"
             style={{ 
               fontFamily: "'Brush Script MT', 'Segoe Script', cursive",
-              fontStyle: 'italic'
+              fontStyle: 'italic',
+              textShadow: '1px 1px 2px rgba(0,0,0,0.2)'
             }}
           >
             Gestão RH
           </h1>
         </div>
 
-        {/* Logo Central */}
-        <div className="flex justify-center mb-6 px-4">
-          <img 
-            src={logoAtiva} 
-            alt="Logo Grupo Ativa" 
-            className="w-32 md:w-48 h-auto opacity-40"
-          />
+        {/* Logo */}
+        <div className="flex justify-center mb-4">
+          <img src={logoAtiva} alt="Logo Grupo Ativa" className="w-24 sm:w-32 h-auto opacity-40" />
         </div>
 
         {/* Grid de Módulos */}
-        <div className="px-4 pb-8 space-y-4">
-          <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-            {topModules.map((module) => (
+        <div className="px-4 pb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-lg mx-auto">
+            {modules.map((module) => (
               <div
                 key={module.path}
-                className="cursor-pointer hover:scale-105 transition-transform duration-200"
+                className="cursor-pointer active:scale-95 transition-transform duration-200 flex flex-col items-center"
                 onClick={() => navigate(module.path)}
               >
-                <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 mx-auto">
-                  <img 
-                    src={module.iconSrc} 
-                    alt={module.title}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="rounded-full shadow-lg overflow-hidden w-20 h-20 sm:w-24 sm:h-24 ring-2 ring-white/30">
+                  <img src={module.iconSrc} alt={module.title} className="w-full h-full object-cover" />
                 </div>
-                <p className="text-center mt-2 font-semibold text-white text-xs leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
-                  {module.title}
-                </p>
-              </div>
-            ))}
-          </div>
-          
-          <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto">
-            {bottomModules.map((module) => (
-              <div
-                key={module.path}
-                className="cursor-pointer hover:scale-105 transition-transform duration-200"
-                onClick={() => navigate(module.path)}
-              >
-                <div className="rounded-full shadow-lg overflow-hidden w-20 h-20 mx-auto">
-                  <img 
-                    src={module.iconSrc} 
-                    alt={module.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <p className="text-center mt-2 font-semibold text-white text-[9px] leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+                <p 
+                  className="text-center mt-2 font-semibold text-white text-[10px] sm:text-xs leading-tight max-w-[90px]"
+                  style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}
+                >
                   {module.title}
                 </p>
               </div>
@@ -175,31 +127,31 @@ const GestaoRH = () => {
     );
   }
 
-  // Layout desktop (circular)
+  // Desktop layout (circular)
   return (
     <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: '#40E0D0' }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-8 pt-6">
+      <div className="flex items-center justify-between px-4 md:px-6 lg:px-8 pt-4 lg:pt-6">
         <button
           onClick={() => navigate("/dashboard")}
           className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity"
         >
-          <ArrowLeft className="w-6 h-6" />
-          <span className="text-lg">Voltar</span>
+          <ArrowLeft className="w-5 h-5 lg:w-6 lg:h-6" />
+          <span className="text-sm lg:text-lg">Voltar</span>
         </button>
         <button
           onClick={handleLogout}
           className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity"
         >
-          <LogOut className="w-6 h-6" />
-          <span className="text-lg font-medium">Sair</span>
+          <LogOut className="w-5 h-5 lg:w-6 lg:h-6" />
+          <span className="text-sm lg:text-lg font-medium">Sair</span>
         </button>
       </div>
 
       {/* Título */}
-      <div className="text-center pt-4 pb-8 space-y-2 relative z-10">
+      <div className="text-center pt-2 lg:pt-4 pb-4 lg:pb-8">
         <h1 
-          className="text-4xl lg:text-5xl text-white"
+          className="text-3xl md:text-4xl lg:text-5xl text-white"
           style={{ 
             fontFamily: "'Brush Script MT', 'Segoe Script', cursive",
             fontStyle: 'italic',
@@ -210,150 +162,104 @@ const GestaoRH = () => {
         </h1>
       </div>
 
-      {/* Container central com logo e módulos */}
-      <div className="relative w-full flex items-center justify-center px-8" style={{ height: 'calc(100vh - 200px)', minHeight: '500px' }}>
+      {/* Container central */}
+      <div className="relative w-full flex items-center justify-center px-4" style={{ height: 'calc(100vh - 180px)', minHeight: '400px' }}>
         
-        {/* Logo Central ATIVA */}
-        <div className="absolute inset-0 flex items-start justify-center pointer-events-none z-0" style={{ paddingTop: '20px' }}>
+        {/* Logo Central */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-[380px] h-auto opacity-90"
+            className="w-48 md:w-64 lg:w-80 xl:w-96 h-auto opacity-90"
           />
         </div>
 
-        {/* Layout Circular dos Módulos */}
-        <div className="relative w-full max-w-6xl mx-auto" style={{ height: '500px' }}>
-          
-          {/* Funcionários - Superior Esquerda */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
-            style={{ left: '18%', top: '5%' }}
-            onClick={() => navigate("/funcionarios")}
-          >
-            <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
-              <img 
-                src={iconFuncionarios} 
-                alt="Funcionários"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
-              Funcionários
-            </p>
-          </div>
-
-          {/* Banco de Talentos - Superior Direita */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
-            style={{ right: '18%', top: '5%' }}
-            onClick={() => navigate("/banco-talentos")}
-          >
-            <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
-              <img 
-                src={iconTalentos} 
-                alt="Banco de Talentos"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
-              Banco de Talentos
-            </p>
-          </div>
-
-          {/* Relatórios - Meio Esquerda */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
-            style={{ left: '5%', top: '40%' }}
-            onClick={() => navigate("/relatorios")}
-          >
-            <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
-              <img 
-                src={iconRelatorios} 
-                alt="Relatórios"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
-              Relatórios
-            </p>
-          </div>
-
-          {/* Folha de Ponto - Meio Direita */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
-            style={{ right: '5%', top: '40%' }}
-            onClick={() => navigate("/folha-ponto")}
-          >
-            <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
-              <img 
-                src={iconPonto} 
-                alt="Folha de Ponto"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
-              Folha de Ponto
-            </p>
-          </div>
-
-          {/* Holerites - Inferior Esquerda */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
-            style={{ left: '18%', bottom: '5%' }}
-            onClick={() => navigate("/holerites")}
-          >
-            <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
-              <img 
-                src={iconHolerites} 
-                alt="Holerites"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
-              Holerites
-            </p>
-          </div>
-
-          {/* Gerenciar Admins - Inferior Centro */}
-          {isAdmin && (
-            <div 
-              className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
-              style={{ left: '50%', transform: 'translateX(-50%)', bottom: '5%' }}
-              onClick={() => navigate("/admins")}
-            >
-              <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
-                <img 
-                  src={iconAdmins} 
-                  alt="Gerenciar Admins"
-                  className="w-full h-full object-cover"
-                />
+        {/* Layout Circular - XL */}
+        <div className="hidden xl:block relative" style={{ width: '700px', height: '500px' }}>
+          {modules.map((module, index) => {
+            const { x, y } = getModulePosition(index, modules.length, 260);
+            return (
+              <div
+                key={module.path}
+                className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
+                style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
+                onClick={() => navigate(module.path)}
+              >
+                <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 ring-4 ring-white/30 hover:ring-white/50">
+                  <img src={module.iconSrc} alt={module.title} className="w-full h-full object-cover" />
+                </div>
+                <p className="text-center mt-3 font-semibold text-white text-sm max-w-[120px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+                  {module.title}
+                </p>
               </div>
-              <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
-                Gerenciar Admins
-              </p>
-            </div>
-          )}
-
-          {/* Comunicados - Inferior Direita */}
-          <div 
-            className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
-            style={{ right: '18%', bottom: '5%' }}
-            onClick={() => navigate("/comunicados")}
-          >
-            <div className="rounded-full shadow-lg overflow-hidden w-28 h-28 lg:w-32 lg:h-32">
-              <img 
-                src={iconComunicados} 
-                alt="Comunicados"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <p className="text-center mt-3 font-semibold text-white text-sm lg:text-base" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
-              Comunicados
-            </p>
-          </div>
-
+            );
+          })}
         </div>
+
+        {/* Layout Circular - LG */}
+        <div className="hidden lg:block xl:hidden relative" style={{ width: '600px', height: '450px' }}>
+          {modules.map((module, index) => {
+            const { x, y } = getModulePosition(index, modules.length, 220);
+            return (
+              <div
+                key={module.path}
+                className="absolute cursor-pointer hover:scale-110 transition-transform duration-200"
+                style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
+                onClick={() => navigate(module.path)}
+              >
+                <div className="rounded-full shadow-lg overflow-hidden w-24 h-24 ring-3 ring-white/30">
+                  <img src={module.iconSrc} alt={module.title} className="w-full h-full object-cover" />
+                </div>
+                <p className="text-center mt-2 font-semibold text-white text-xs max-w-[100px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+                  {module.title}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Layout Circular - MD */}
+        <div className="hidden md:block lg:hidden relative" style={{ width: '500px', height: '400px' }}>
+          {modules.map((module, index) => {
+            const { x, y } = getModulePosition(index, modules.length, 180);
+            return (
+              <div
+                key={module.path}
+                className="absolute cursor-pointer hover:scale-105 transition-transform duration-200"
+                style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
+                onClick={() => navigate(module.path)}
+              >
+                <div className="rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
+                  <img src={module.iconSrc} alt={module.title} className="w-full h-full object-cover" />
+                </div>
+                <p className="text-center mt-2 font-semibold text-white text-[10px] max-w-[80px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+                  {module.title}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Layout Grid - SM (tablets pequenos) */}
+        <div className="block md:hidden relative">
+          <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+            {modules.map((module) => (
+              <div
+                key={module.path}
+                className="cursor-pointer hover:scale-105 transition-transform duration-200 flex flex-col items-center"
+                onClick={() => navigate(module.path)}
+              >
+                <div className="rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
+                  <img src={module.iconSrc} alt={module.title} className="w-full h-full object-cover" />
+                </div>
+                <p className="text-center mt-2 font-semibold text-white text-[10px] max-w-[70px] leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+                  {module.title}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
       </div>
     </div>
   );
