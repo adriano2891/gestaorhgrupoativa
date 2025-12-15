@@ -89,8 +89,8 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   const margin = 15;
 
   // Colors matching the model
-  const tealColor: [number, number, number] = [62, 224, 207]; // #3EE0CF
-  const darkTeal: [number, number, number] = [45, 180, 165];
+  const tealColor: [number, number, number] = [221, 217, 206]; // #ddd9ce
+  const darkTeal: [number, number, number] = [180, 175, 165];
   const black: [number, number, number] = [0, 0, 0];
   const darkGray: [number, number, number] = [80, 80, 80];
   const lightGray: [number, number, number] = [150, 150, 150];
