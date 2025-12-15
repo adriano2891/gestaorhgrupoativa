@@ -190,6 +190,142 @@ export type Database = {
           },
         ]
       }
+      documentos_fornecedor: {
+        Row: {
+          arquivo_url: string
+          created_at: string
+          fornecedor_id: string
+          id: string
+          nome_arquivo: string
+          tipo_documento: string
+        }
+        Insert: {
+          arquivo_url: string
+          created_at?: string
+          fornecedor_id: string
+          id?: string
+          nome_arquivo: string
+          tipo_documento: string
+        }
+        Update: {
+          arquivo_url?: string
+          created_at?: string
+          fornecedor_id?: string
+          id?: string
+          nome_arquivo?: string
+          tipo_documento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_fornecedor_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      enderecos_fornecedor: {
+        Row: {
+          bairro: string | null
+          cep: string | null
+          cidade: string | null
+          complemento: string | null
+          created_at: string
+          estado: string | null
+          fornecedor_id: string
+          id: string
+          logradouro: string | null
+          numero: string | null
+          updated_at: string
+        }
+        Insert: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
+          created_at?: string
+          estado?: string | null
+          fornecedor_id: string
+          id?: string
+          logradouro?: string | null
+          numero?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bairro?: string | null
+          cep?: string | null
+          cidade?: string | null
+          complemento?: string | null
+          created_at?: string
+          estado?: string | null
+          fornecedor_id?: string
+          id?: string
+          logradouro?: string | null
+          numero?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "enderecos_fornecedor_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fornecedores: {
+        Row: {
+          condicoes_pagamento: string | null
+          cpf_cnpj: string
+          created_at: string
+          email: string
+          id: string
+          nome_fantasia: string | null
+          observacoes: string | null
+          prazo_medio_entrega: number | null
+          razao_social: string
+          responsavel: string
+          status: string
+          telefone: string
+          tipo_fornecedor: string
+          updated_at: string
+        }
+        Insert: {
+          condicoes_pagamento?: string | null
+          cpf_cnpj: string
+          created_at?: string
+          email: string
+          id?: string
+          nome_fantasia?: string | null
+          observacoes?: string | null
+          prazo_medio_entrega?: number | null
+          razao_social: string
+          responsavel: string
+          status?: string
+          telefone: string
+          tipo_fornecedor: string
+          updated_at?: string
+        }
+        Update: {
+          condicoes_pagamento?: string | null
+          cpf_cnpj?: string
+          created_at?: string
+          email?: string
+          id?: string
+          nome_fantasia?: string | null
+          observacoes?: string | null
+          prazo_medio_entrega?: number | null
+          razao_social?: string
+          responsavel?: string
+          status?: string
+          telefone?: string
+          tipo_fornecedor?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       historico_ferias: {
         Row: {
           acao: string
@@ -244,6 +380,41 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historico_precos_fornecedor: {
+        Row: {
+          alterado_por: string | null
+          created_at: string
+          id: string
+          item_id: string
+          valor_anterior: number | null
+          valor_novo: number
+        }
+        Insert: {
+          alterado_por?: string | null
+          created_at?: string
+          id?: string
+          item_id: string
+          valor_anterior?: number | null
+          valor_novo: number
+        }
+        Update: {
+          alterado_por?: string | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          valor_anterior?: number | null
+          valor_novo?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_precos_fornecedor_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "itens_fornecedor"
             referencedColumns: ["id"]
           },
         ]
@@ -319,6 +490,59 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      itens_fornecedor: {
+        Row: {
+          ativo: boolean
+          categoria: string | null
+          created_at: string
+          descricao: string | null
+          fornecedor_id: string
+          id: string
+          imagem_url: string | null
+          nome: string
+          prazo_entrega: number | null
+          unidade: string | null
+          updated_at: string
+          valor: number
+        }
+        Insert: {
+          ativo?: boolean
+          categoria?: string | null
+          created_at?: string
+          descricao?: string | null
+          fornecedor_id: string
+          id?: string
+          imagem_url?: string | null
+          nome: string
+          prazo_entrega?: number | null
+          unidade?: string | null
+          updated_at?: string
+          valor?: number
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string | null
+          created_at?: string
+          descricao?: string | null
+          fornecedor_id?: string
+          id?: string
+          imagem_url?: string | null
+          nome?: string
+          prazo_entrega?: number | null
+          unidade?: string | null
+          updated_at?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_fornecedor_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       itens_orcamento: {
         Row: {
