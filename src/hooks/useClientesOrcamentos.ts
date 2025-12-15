@@ -15,6 +15,7 @@ export interface ClienteOrcamento {
   bairro: string | null;
   cidade: string | null;
   estado: string | null;
+  numero_unidades: number | null;
   observacoes: string | null;
   ativo: boolean;
   created_at: string;
@@ -33,6 +34,7 @@ export interface ClienteOrcamentoInput {
   bairro?: string;
   cidade?: string;
   estado?: string;
+  numero_unidades?: number;
   observacoes?: string;
 }
 

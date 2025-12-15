@@ -73,6 +73,7 @@ export type Database = {
           nome_condominio: string
           nome_sindico: string
           numero: string | null
+          numero_unidades: number | null
           observacoes: string | null
           rua: string | null
           telefone: string | null
@@ -91,6 +92,7 @@ export type Database = {
           nome_condominio: string
           nome_sindico: string
           numero?: string | null
+          numero_unidades?: number | null
           observacoes?: string | null
           rua?: string | null
           telefone?: string | null
@@ -109,6 +111,7 @@ export type Database = {
           nome_condominio?: string
           nome_sindico?: string
           numero?: string | null
+          numero_unidades?: number | null
           observacoes?: string | null
           rua?: string | null
           telefone?: string | null
