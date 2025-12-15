@@ -49,7 +49,7 @@ import { ptBR } from 'date-fns/locale';
 
 export default function OrcamentosLista() {
   const navigate = useNavigate();
-  const { quotes, deleteQuote, approveQuote, rejectQuote } = useQuotes();
+  const { quotes, deleteQuote, approveQuote, rejectQuote, updateQuote } = useQuotes();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('todos');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -94,6 +94,11 @@ export default function OrcamentosLista() {
     const link = `${window.location.origin}/public/${publicId}`;
     navigator.clipboard.writeText(link);
     toast.success('Link copiado para a área de transferência');
+  };
+
+  const handleStatusChange = (quoteId: string, newStatus: string) => {
+    updateQuote(quoteId, { status: newStatus as any });
+    toast.success(`Status alterado para "${QUOTE_STATUS_LABELS[newStatus as keyof typeof QUOTE_STATUS_LABELS]}"`);
   };
 
   return (
@@ -191,12 +196,30 @@ export default function OrcamentosLista() {
                         {format(quote.validUntil, "dd/MM/yyyy", { locale: ptBR })}
                       </td>
                       <td className="px-6 py-4">
-                        <span className={cn(
-                          "inline-flex px-2.5 py-1 rounded-full text-xs font-medium text-white",
-                          QUOTE_STATUS_COLORS[quote.status]
-                        )}>
-                          {QUOTE_STATUS_LABELS[quote.status]}
-                        </span>
+                        <Select 
+                          value={quote.status} 
+                          onValueChange={(value) => handleStatusChange(quote.id, value)}
+                        >
+                          <SelectTrigger className={cn(
+                            "w-[160px] h-8 text-xs font-medium text-white border-0",
+                            QUOTE_STATUS_COLORS[quote.status]
+                          )}>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(QUOTE_STATUS_LABELS).map(([value, label]) => (
+                              <SelectItem key={value} value={value}>
+                                <div className="flex items-center gap-2">
+                                  <span className={cn(
+                                    "w-2 h-2 rounded-full",
+                                    QUOTE_STATUS_COLORS[value as keyof typeof QUOTE_STATUS_COLORS]
+                                  )} />
+                                  {label}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </td>
                       <td className="px-6 py-4 text-right font-medium text-zinc-800">
                         {formatCurrency(quote.financials.total)}
