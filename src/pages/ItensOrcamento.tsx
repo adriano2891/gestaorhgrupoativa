@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { Plus, Edit, Trash2, Search, Package } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Plus, Edit, Trash2, Search, Package, Upload, X, Image as ImageIcon } from 'lucide-react';
 import { QuotesLayout } from '@/components/orcamentos/QuotesLayout';
 import { GlassPanel } from '@/components/orcamentos/GlassPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useItensOrcamento, ItemOrcamentoInput } from '@/hooks/useItensOrcamento';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -32,11 +34,15 @@ export default function ItensOrcamento() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState<ItemOrcamentoInput>({
     nome: '',
     descricao: '',
     preco_base: 0,
     categoria: '',
+    imagem_url: '',
     ativo: true
   });
 
@@ -59,8 +65,10 @@ export default function ItensOrcamento() {
       descricao: '',
       preco_base: 0,
       categoria: '',
+      imagem_url: '',
       ativo: true
     });
+    setImagePreview(null);
     setDialogOpen(true);
   };
 
@@ -71,14 +79,67 @@ export default function ItensOrcamento() {
       descricao: item.descricao || '',
       preco_base: Number(item.preco_base),
       categoria: item.categoria || '',
+      imagem_url: item.imagem_url || '',
       ativo: item.ativo
     });
+    setImagePreview(item.imagem_url || null);
     setDialogOpen(true);
   };
 
   const handleOpenDelete = (id: string) => {
     setSelectedItem(id);
     setDeleteDialogOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast.error('Por favor, selecione apenas arquivos de imagem.');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 5MB.');
+      return;
+    }
+
+    setUploading(true);
+
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `items/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('produtos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('produtos')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, imagem_url: publicUrl });
+      setImagePreview(publicUrl);
+      toast.success('Imagem enviada com sucesso!');
+    } catch (error: any) {
+      toast.error('Erro ao enviar imagem: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    setFormData({ ...formData, imagem_url: '' });
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -137,6 +198,7 @@ export default function ItensOrcamento() {
             <table className="w-full">
               <thead className="bg-zinc-50 border-b border-zinc-200">
                 <tr>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">Imagem</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">Nome</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">Descrição</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-zinc-600">Categoria</th>
@@ -148,13 +210,13 @@ export default function ItensOrcamento() {
               <tbody>
                 {isLoading ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-12 text-zinc-500">
+                    <td colSpan={7} className="text-center py-12 text-zinc-500">
                       Carregando...
                     </td>
                   </tr>
                 ) : filteredItens.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-12 text-zinc-500">
+                    <td colSpan={7} className="text-center py-12 text-zinc-500">
                       <div className="flex flex-col items-center gap-3">
                         <Package className="w-12 h-12 text-zinc-300" />
                         <p>Nenhum item cadastrado ainda. Clique em "Novo Item" para começar.</p>
@@ -169,6 +231,19 @@ export default function ItensOrcamento() {
                         index % 2 === 0 ? 'bg-white' : 'bg-zinc-50/30'
                       }`}
                     >
+                      <td className="px-6 py-4">
+                        {item.imagem_url ? (
+                          <img 
+                            src={item.imagem_url} 
+                            alt={item.nome}
+                            className="w-12 h-12 object-cover rounded-lg border border-zinc-200"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-zinc-100 rounded-lg flex items-center justify-center">
+                            <ImageIcon className="w-5 h-5 text-zinc-400" />
+                          </div>
+                        )}
+                      </td>
                       <td className="px-6 py-4 font-medium text-zinc-800">{item.nome}</td>
                       <td className="px-6 py-4 text-sm text-zinc-600 max-w-xs truncate">
                         {item.descricao || '-'}
@@ -223,6 +298,58 @@ export default function ItensOrcamento() {
           </DialogHeader>
           <form onSubmit={handleSubmit}>
             <div className="space-y-4 py-4">
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <Label>Imagem do Produto</Label>
+                <div className="flex items-start gap-4">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="w-24 h-24 object-cover rounded-lg border border-zinc-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleRemoveImage}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-24 h-24 border-2 border-dashed border-zinc-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-colors"
+                    >
+                      <Upload className="w-6 h-6 text-zinc-400" />
+                      <span className="text-xs text-zinc-500 mt-1">Upload</span>
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      {uploading ? 'Enviando...' : 'Selecionar Imagem'}
+                    </Button>
+                    <p className="text-xs text-zinc-500 mt-2">
+                      Formatos: JPG, PNG, GIF. Máximo 5MB.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="nome">Nome *</Label>
                 <Input
@@ -282,7 +409,7 @@ export default function ItensOrcamento() {
               <Button 
                 type="submit" 
                 className="bg-[#006fee] hover:bg-[#0058c4]"
-                disabled={createItem.isPending || updateItem.isPending}
+                disabled={createItem.isPending || updateItem.isPending || uploading}
               >
                 {selectedItem ? 'Salvar' : 'Criar'}
               </Button>
