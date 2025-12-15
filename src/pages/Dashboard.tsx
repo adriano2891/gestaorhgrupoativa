@@ -5,6 +5,7 @@ import logoAtiva from "@/assets/logo-ativa.png";
 import iconHr from "@/assets/icon-hr-new.png";
 import iconClients from "@/assets/icon-clients-new.png";
 import iconSuppliers from "@/assets/icon-suppliers-new.png";
+import iconBudget from "@/assets/icon-budget-new.png";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -153,20 +154,17 @@ const Dashboard = () => {
             onClick={() => navigate("/orcamentos")}
           >
             <div 
-              className="rounded-full flex items-center justify-center shadow-lg"
+              className="rounded-full flex items-center justify-center shadow-lg overflow-hidden"
               style={{ 
                 width: '120px', 
                 height: '120px',
-                background: 'linear-gradient(180deg, #2C5F5D 0%, #1A3D3C 100%)'
               }}
             >
-              <div className="bg-white rounded-sm p-1">
-                <div className="w-10 h-12 flex flex-col items-center justify-center">
-                  <div className="w-6 h-0.5 bg-gray-400 mb-1"></div>
-                  <div className="w-6 h-0.5 bg-gray-400 mb-1"></div>
-                  <div className="text-teal-500 font-bold text-lg">$</div>
-                </div>
-              </div>
+              <img 
+                src={iconBudget} 
+                alt="Orçamentos" 
+                className="w-full h-full object-cover"
+              />
             </div>
             <p 
               className="text-center mt-2 font-semibold text-white text-sm"
