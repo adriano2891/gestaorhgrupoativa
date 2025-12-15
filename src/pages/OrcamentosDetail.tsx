@@ -9,6 +9,7 @@ import { Edit, FileDown, Link, CheckCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { downloadQuotePDF } from '@/utils/quotePdfGenerator';
 
 export default function OrcamentosDetail() {
   const { id } = useParams();
@@ -38,6 +39,16 @@ export default function OrcamentosDetail() {
     toast.success('Link copiado!');
   };
 
+  const handleDownloadPDF = async () => {
+    toast.info('Gerando PDF...');
+    try {
+      await downloadQuotePDF(quote);
+      toast.success('PDF baixado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao gerar PDF');
+    }
+  };
+
   return (
     <QuotesLayout>
       <div className="space-y-6">
@@ -50,7 +61,7 @@ export default function OrcamentosDetail() {
             <Button variant="outline" onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
               <Edit className="w-4 h-4 mr-2" />Editar
             </Button>
-            <Button variant="outline"><FileDown className="w-4 h-4 mr-2" />PDF</Button>
+            <Button variant="outline" onClick={handleDownloadPDF}><FileDown className="w-4 h-4 mr-2" />PDF</Button>
             <Button onClick={handleCopyLink} className="bg-[#006fee] text-white">
               <Link className="w-4 h-4 mr-2" />Link
             </Button>
