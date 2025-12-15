@@ -7,7 +7,8 @@ import {
   Menu, 
   X, 
   ChevronLeft,
-  LogOut 
+  LogOut,
+  Package
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/components/auth/AuthProvider';
@@ -20,6 +21,7 @@ const navItems = [
   { path: '/orcamentos', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/orcamentos/lista', label: 'Orçamentos', icon: FileText },
   { path: '/orcamentos/novo', label: 'Novo Orçamento', icon: PlusCircle },
+  { path: '/orcamentos/itens', label: 'Cadastrar Itens', icon: Package },
 ];
 
 export function QuotesLayout({ children }: QuotesLayoutProps) {

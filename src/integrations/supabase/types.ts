@@ -260,6 +260,42 @@ export type Database = {
         }
         Relationships: []
       }
+      itens_orcamento: {
+        Row: {
+          ativo: boolean
+          categoria: string | null
+          created_at: string
+          descricao: string | null
+          id: string
+          imagem_url: string | null
+          nome: string
+          preco_base: number
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          categoria?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          imagem_url?: string | null
+          nome: string
+          preco_base?: number
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          categoria?: string | null
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          imagem_url?: string | null
+          nome?: string
+          preco_base?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       logs_envio_holerites: {
         Row: {
           created_at: string
