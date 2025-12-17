@@ -495,6 +495,7 @@ export type Database = {
         Row: {
           cor: string | null
           created_at: string
+          detalhe_localizacao: string | null
           id: string
           localizacao: string
           modelo_marca: string | null
@@ -506,6 +507,7 @@ export type Database = {
         Insert: {
           cor?: string | null
           created_at?: string
+          detalhe_localizacao?: string | null
           id?: string
           localizacao: string
           modelo_marca?: string | null
@@ -517,6 +519,7 @@ export type Database = {
         Update: {
           cor?: string | null
           created_at?: string
+          detalhe_localizacao?: string | null
           id?: string
           localizacao?: string
           modelo_marca?: string | null

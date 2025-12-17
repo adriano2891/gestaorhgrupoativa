@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Search, Edit, Trash2, Building2, Home, Monitor } from "lucide-react";
+import { ArrowLeft, Plus, Search, Edit, Trash2, Building2, Home, Monitor, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -28,6 +28,7 @@ const InventarioEquipamentos = () => {
     modelo_marca: "",
     cor: "",
     localizacao: "central",
+    detalhe_localizacao: "",
     observacoes: "",
   });
 
@@ -46,6 +47,7 @@ const InventarioEquipamentos = () => {
     total: equipamentos.length,
     central: equipamentos.filter(e => e.localizacao === "central").length,
     homeOffice: equipamentos.filter(e => e.localizacao === "home_office").length,
+    cliente: equipamentos.filter(e => e.localizacao === "cliente").length,
   };
 
   const resetForm = () => {
@@ -55,6 +57,7 @@ const InventarioEquipamentos = () => {
       modelo_marca: "",
       cor: "",
       localizacao: "central",
+      detalhe_localizacao: "",
       observacoes: "",
     });
     setEditingEquipamento(null);
@@ -69,6 +72,7 @@ const InventarioEquipamentos = () => {
         modelo_marca: equipamento.modelo_marca || "",
         cor: equipamento.cor || "",
         localizacao: equipamento.localizacao,
+        detalhe_localizacao: equipamento.detalhe_localizacao || "",
         observacoes: equipamento.observacoes || "",
       });
     } else {
@@ -170,7 +174,7 @@ const InventarioEquipamentos = () => {
                     <Label htmlFor="localizacao">Localização *</Label>
                     <Select
                       value={formData.localizacao}
-                      onValueChange={(value: 'central' | 'home_office') => setFormData({ ...formData, localizacao: value })}
+                      onValueChange={(value: 'central' | 'home_office' | 'cliente') => setFormData({ ...formData, localizacao: value, detalhe_localizacao: value === 'central' ? '' : formData.detalhe_localizacao })}
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -178,9 +182,24 @@ const InventarioEquipamentos = () => {
                       <SelectContent>
                         <SelectItem value="central">Central</SelectItem>
                         <SelectItem value="home_office">Home Office</SelectItem>
+                        <SelectItem value="cliente">Cliente</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+                  {(formData.localizacao === 'home_office' || formData.localizacao === 'cliente') && (
+                    <div className="space-y-2">
+                      <Label htmlFor="detalhe_localizacao">
+                        {formData.localizacao === 'home_office' ? 'Qual Home Office?' : 'Qual Cliente?'} *
+                      </Label>
+                      <Input
+                        id="detalhe_localizacao"
+                        value={formData.detalhe_localizacao || ""}
+                        onChange={(e) => setFormData({ ...formData, detalhe_localizacao: e.target.value })}
+                        placeholder={formData.localizacao === 'home_office' ? 'Ex: João Silva' : 'Ex: Condomínio Aurora'}
+                        required
+                      />
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="observacoes">Observações</Label>
                     <Textarea
@@ -208,7 +227,7 @@ const InventarioEquipamentos = () => {
 
       <div className="container mx-auto px-4 py-6 space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
             <CardContent className="p-6 flex items-center gap-4">
               <div className="p-3 bg-teal-100 rounded-full">
@@ -242,6 +261,17 @@ const InventarioEquipamentos = () => {
               </div>
             </CardContent>
           </Card>
+          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+            <CardContent className="p-6 flex items-center gap-4">
+              <div className="p-3 bg-purple-100 rounded-full">
+                <Users className="h-6 w-6 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-sm text-gray-500">Em Cliente</p>
+                <p className="text-2xl font-bold text-gray-900">{stats.cliente}</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Filters */}
@@ -265,6 +295,7 @@ const InventarioEquipamentos = () => {
                   <SelectItem value="todos">Todas Localizações</SelectItem>
                   <SelectItem value="central">Central</SelectItem>
                   <SelectItem value="home_office">Home Office</SelectItem>
+                  <SelectItem value="cliente">Cliente</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -306,20 +337,29 @@ const InventarioEquipamentos = () => {
                         <TableCell>{equipamento.modelo_marca || "-"}</TableCell>
                         <TableCell>{equipamento.cor || "-"}</TableCell>
                         <TableCell>
-                          <Badge
-                            variant="outline"
-                            className={
-                              equipamento.localizacao === "central"
-                                ? "bg-blue-100 text-blue-700 border-blue-200"
-                                : "bg-orange-100 text-orange-700 border-orange-200"
-                            }
-                          >
-                            {equipamento.localizacao === "central" ? (
-                              <><Building2 className="h-3 w-3 mr-1" />Central</>
-                            ) : (
-                              <><Home className="h-3 w-3 mr-1" />Home Office</>
+                          <div className="flex flex-col gap-1">
+                            <Badge
+                              variant="outline"
+                              className={
+                                equipamento.localizacao === "central"
+                                  ? "bg-blue-100 text-blue-700 border-blue-200"
+                                  : equipamento.localizacao === "home_office"
+                                  ? "bg-orange-100 text-orange-700 border-orange-200"
+                                  : "bg-purple-100 text-purple-700 border-purple-200"
+                              }
+                            >
+                              {equipamento.localizacao === "central" ? (
+                                <><Building2 className="h-3 w-3 mr-1" />Central</>
+                              ) : equipamento.localizacao === "home_office" ? (
+                                <><Home className="h-3 w-3 mr-1" />Home Office</>
+                              ) : (
+                                <><Users className="h-3 w-3 mr-1" />Cliente</>
+                              )}
+                            </Badge>
+                            {equipamento.detalhe_localizacao && (
+                              <span className="text-xs text-gray-500">{equipamento.detalhe_localizacao}</span>
                             )}
-                          </Badge>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
