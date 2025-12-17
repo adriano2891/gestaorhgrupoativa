@@ -7,6 +7,7 @@ import iconHr from "@/assets/icon-hr-new.png";
 import iconClients from "@/assets/icon-clients-new.png";
 import iconSuppliers from "@/assets/icon-suppliers-new.png";
 import iconBudget from "@/assets/icon-orcamentos-new.png";
+import iconInventario from "@/assets/icon-inventario.png";
 import iconEmBreve from "@/assets/icon-em-breve.png";
 
 interface ModuleItem {
@@ -22,6 +23,7 @@ const modules: ModuleItem[] = [
   { id: 'clients', icon: iconClients, label: 'Gestão de Controle de Clientes', route: '/gestao-clientes' },
   { id: 'suppliers', icon: iconSuppliers, label: 'Fornecedores', route: '/fornecedores' },
   { id: 'budget', icon: iconBudget, label: 'Orçamentos', route: '/orcamentos' },
+  { id: 'inventario', icon: iconInventario, label: 'Inventário de Equipamentos', route: '/inventario' },
   { id: 'soon', icon: iconEmBreve, label: 'Em Breve', disabled: true },
 ];
 
