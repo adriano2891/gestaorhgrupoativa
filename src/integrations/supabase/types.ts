@@ -491,6 +491,42 @@ export type Database = {
         }
         Relationships: []
       }
+      inventario_equipamentos: {
+        Row: {
+          cor: string | null
+          created_at: string
+          id: string
+          localizacao: string
+          modelo_marca: string | null
+          nome_equipamento: string
+          numero_equipamento: string
+          observacoes: string | null
+          updated_at: string
+        }
+        Insert: {
+          cor?: string | null
+          created_at?: string
+          id?: string
+          localizacao: string
+          modelo_marca?: string | null
+          nome_equipamento: string
+          numero_equipamento: string
+          observacoes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cor?: string | null
+          created_at?: string
+          id?: string
+          localizacao?: string
+          modelo_marca?: string | null
+          nome_equipamento?: string
+          numero_equipamento?: string
+          observacoes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       itens_fornecedor: {
         Row: {
           ativo: boolean

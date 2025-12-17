@@ -35,6 +35,7 @@ import GestaoClientes from "./pages/GestaoClientes";
 import Fornecedores from "./pages/Fornecedores";
 import FornecedorForm from "./pages/FornecedorForm";
 import FornecedorDetalhes from "./pages/FornecedorDetalhes";
+import InventarioEquipamentos from "./pages/InventarioEquipamentos";
 
 const queryClient = new QueryClient();
 
@@ -267,6 +268,15 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <FornecedorForm />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Inventário de Equipamentos Route */}
+              <Route
+                path="/inventario"
+                element={
+                  <ProtectedRoute>
+                    <InventarioEquipamentos />
                   </ProtectedRoute>
                 }
               />
