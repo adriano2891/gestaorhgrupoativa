@@ -8,7 +8,8 @@ export interface Equipamento {
   nome_equipamento: string;
   modelo_marca: string | null;
   cor: string | null;
-  localizacao: 'central' | 'home_office';
+  localizacao: 'central' | 'home_office' | 'cliente';
+  detalhe_localizacao: string | null;
   observacoes: string | null;
   created_at: string;
   updated_at: string;
