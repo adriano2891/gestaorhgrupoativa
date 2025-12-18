@@ -50,9 +50,22 @@ const InventarioEquipamentos = () => {
     cliente: equipamentos.filter(e => e.localizacao === "cliente").length,
   };
 
-  const resetForm = () => {
+  const generateNextNumber = () => {
+    const numbers = equipamentos
+      .map(eq => {
+        const match = eq.numero_equipamento.match(/EQ-(\d+)/i);
+        return match ? parseInt(match[1], 10) : 0;
+      })
+      .filter(n => !isNaN(n));
+    
+    const maxNumber = numbers.length > 0 ? Math.max(...numbers) : 0;
+    const nextNumber = maxNumber + 1;
+    return `EQ-${String(nextNumber).padStart(3, '0')}`;
+  };
+
+  const resetForm = (autoNumber?: string) => {
     setFormData({
-      numero_equipamento: "",
+      numero_equipamento: autoNumber || "",
       nome_equipamento: "",
       modelo_marca: "",
       cor: "",
@@ -76,7 +89,8 @@ const InventarioEquipamentos = () => {
         observacoes: equipamento.observacoes || "",
       });
     } else {
-      resetForm();
+      const nextNumber = generateNextNumber();
+      resetForm(nextNumber);
     }
     setIsDialogOpen(true);
   };
@@ -140,7 +154,12 @@ const InventarioEquipamentos = () => {
                       onChange={(e) => setFormData({ ...formData, numero_equipamento: e.target.value })}
                       placeholder="Ex: EQ-001"
                       required
+                      readOnly={!editingEquipamento}
+                      className={!editingEquipamento ? "bg-gray-100 cursor-not-allowed" : ""}
                     />
+                    {!editingEquipamento && (
+                      <p className="text-xs text-gray-500">Gerado automaticamente</p>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="nome">Nome do Equipamento *</Label>
