@@ -337,27 +337,26 @@ const InventarioEquipamentos = () => {
                         <TableCell>{equipamento.modelo_marca || "-"}</TableCell>
                         <TableCell>{equipamento.cor || "-"}</TableCell>
                         <TableCell>
-                          <div className="flex flex-col gap-1">
-                            <Badge
-                              variant="outline"
-                              className={
-                                equipamento.localizacao === "central"
-                                  ? "bg-blue-100 text-blue-700 border-blue-200"
-                                  : equipamento.localizacao === "home_office"
-                                  ? "bg-orange-100 text-orange-700 border-orange-200"
-                                  : "bg-purple-100 text-purple-700 border-purple-200"
-                              }
-                            >
+                          <div 
+                            className={`inline-flex flex-col items-start px-3 py-1.5 rounded-md border ${
+                              equipamento.localizacao === "central"
+                                ? "bg-blue-100 text-blue-700 border-blue-200"
+                                : equipamento.localizacao === "home_office"
+                                ? "bg-orange-100 text-orange-700 border-orange-200"
+                                : "bg-purple-100 text-purple-700 border-purple-200"
+                            }`}
+                          >
+                            <span className="flex items-center gap-1 text-sm font-medium">
                               {equipamento.localizacao === "central" ? (
-                                <><Building2 className="h-3 w-3 mr-1" />Central</>
+                                <><Building2 className="h-3.5 w-3.5" /> Central</>
                               ) : equipamento.localizacao === "home_office" ? (
-                                <><Home className="h-3 w-3 mr-1" />Home Office</>
+                                <><Home className="h-3.5 w-3.5" /> Home Office</>
                               ) : (
-                                <><Users className="h-3 w-3 mr-1" />Cliente</>
+                                <><Users className="h-3.5 w-3.5" /> Cliente</>
                               )}
-                            </Badge>
+                            </span>
                             {equipamento.detalhe_localizacao && (
-                              <span className="text-xs text-gray-500">{equipamento.detalhe_localizacao}</span>
+                              <span className="text-xs uppercase">{equipamento.detalhe_localizacao}</span>
                             )}
                           </div>
                         </TableCell>
