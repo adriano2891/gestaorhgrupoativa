@@ -7,7 +7,7 @@ import iconHr from "@/assets/icon-hr-new.png";
 import iconClients from "@/assets/icon-clients-new.png";
 import iconSuppliers from "@/assets/icon-suppliers-new.png";
 import iconBudget from "@/assets/icon-orcamentos-new.png";
-import iconInventario from "@/assets/icon-inventario.png";
+import iconInventario from "@/assets/icon-inventario-new.png";
 import iconEmBreve from "@/assets/icon-em-breve.png";
 
 interface ModuleItem {
