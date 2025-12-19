@@ -182,14 +182,14 @@ const Dashboard = () => {
             <img 
               src={logoAtiva} 
               alt="Logo Grupo Ativa" 
-              className="w-32 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg"
+              className="w-48 md:w-64 lg:w-80 xl:w-96 h-auto drop-shadow-lg opacity-90"
             />
           </div>
 
           {/* Módulos em círculo - XL screens */}
-          <div className="hidden xl:block">
+          <div className="hidden xl:block relative" style={{ width: '700px', height: '500px' }}>
             {modules.map((module, index) => {
-              const { x, y } = getModulePosition(index, modules.length, 240);
+              const { x, y } = getModulePosition(index, modules.length, 260);
               
               return (
                 <div
@@ -205,12 +205,12 @@ const Dashboard = () => {
                   <div className="flex flex-col items-center">
                     <div 
                       className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-white/30"
-                      style={{ width: '110px', height: '110px' }}
+                      style={{ width: '112px', height: '112px' }}
                     >
                       <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                     </div>
                     <p 
-                      className="text-center mt-3 font-semibold text-white text-sm max-w-[130px] leading-tight"
+                      className="text-center mt-3 font-semibold text-white text-sm max-w-[120px] leading-tight"
                       style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}
                     >
                       {module.label}
@@ -222,44 +222,9 @@ const Dashboard = () => {
           </div>
 
           {/* Módulos em círculo - LG screens */}
-          <div className="hidden lg:block xl:hidden">
+          <div className="hidden lg:block xl:hidden relative" style={{ width: '600px', height: '450px' }}>
             {modules.map((module, index) => {
-              const { x, y } = getModulePosition(index, modules.length, 200);
-              
-              return (
-                <div
-                  key={module.id}
-                  className={`absolute module-icon-container ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-                  style={{
-                    left: '50%',
-                    top: '50%',
-                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                  }}
-                  onClick={() => !module.disabled && module.route && navigate(module.route)}
-                >
-                  <div className="flex flex-col items-center">
-                    <div 
-                      className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-white/30"
-                      style={{ width: '100px', height: '100px' }}
-                    >
-                      <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
-                    </div>
-                    <p 
-                      className="text-center mt-2 font-semibold text-white text-sm max-w-[120px] leading-tight"
-                      style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}
-                    >
-                      {module.label}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Módulos em círculo - MD screens */}
-          <div className="hidden md:block lg:hidden">
-            {modules.map((module, index) => {
-              const { x, y } = getModulePosition(index, modules.length, 170);
+              const { x, y } = getModulePosition(index, modules.length, 220);
               
               return (
                 <div
@@ -275,7 +240,7 @@ const Dashboard = () => {
                   <div className="flex flex-col items-center">
                     <div 
                       className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-3 ring-white/30"
-                      style={{ width: '85px', height: '85px' }}
+                      style={{ width: '96px', height: '96px' }}
                     >
                       <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                     </div>
@@ -291,10 +256,10 @@ const Dashboard = () => {
             })}
           </div>
 
-          {/* Módulos em círculo - SM screens (tablet) */}
-          <div className="hidden sm:block md:hidden">
+          {/* Módulos em círculo - MD screens */}
+          <div className="hidden md:block lg:hidden relative" style={{ width: '500px', height: '400px' }}>
             {modules.map((module, index) => {
-              const { x, y } = getModulePosition(index, modules.length, 140);
+              const { x, y } = getModulePosition(index, modules.length, 180);
               
               return (
                 <div
@@ -310,12 +275,47 @@ const Dashboard = () => {
                   <div className="flex flex-col items-center">
                     <div 
                       className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
-                      style={{ width: '70px', height: '70px' }}
+                      style={{ width: '80px', height: '80px' }}
                     >
                       <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                     </div>
                     <p 
-                      className="text-center mt-1 font-semibold text-white text-[10px] max-w-[80px] leading-tight"
+                      className="text-center mt-2 font-semibold text-white text-[10px] max-w-[80px] leading-tight"
+                      style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}
+                    >
+                      {module.label}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Módulos em círculo - SM screens (tablet) */}
+          <div className="hidden sm:block md:hidden relative" style={{ width: '400px', height: '350px' }}>
+            {modules.map((module, index) => {
+              const { x, y } = getModulePosition(index, modules.length, 150);
+              
+              return (
+                <div
+                  key={module.id}
+                  className={`absolute module-icon-container ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                  }}
+                  onClick={() => !module.disabled && module.route && navigate(module.route)}
+                >
+                  <div className="flex flex-col items-center">
+                    <div 
+                      className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
+                      style={{ width: '72px', height: '72px' }}
+                    >
+                      <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
+                    </div>
+                    <p 
+                      className="text-center mt-2 font-semibold text-white text-[10px] max-w-[80px] leading-tight"
                       style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.4)' }}
                     >
                       {module.label}
