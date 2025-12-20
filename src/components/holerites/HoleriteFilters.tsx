@@ -40,21 +40,21 @@ export const HoleriteFilters = ({
 }: HoleriteFiltersProps) => {
   return (
     <Card>
-      <CardContent className="pt-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <CardContent className="p-3 sm:p-4 md:pt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar por nome..."
+              placeholder="Buscar..."
               value={searchTerm}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-9"
+              className="pl-9 text-sm"
             />
           </div>
 
           <Select value={selectedMonth} onValueChange={onMonthChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o mês" />
+            <SelectTrigger className="text-sm">
+              <SelectValue placeholder="Mês" />
             </SelectTrigger>
             <SelectContent>
               {months.map((month, index) => (
@@ -66,8 +66,8 @@ export const HoleriteFilters = ({
           </Select>
 
           <Select value={selectedDepartment} onValueChange={onDepartmentChange}>
-            <SelectTrigger>
-              <SelectValue placeholder="Departamento" />
+            <SelectTrigger className="text-sm">
+              <SelectValue placeholder="Depto" />
             </SelectTrigger>
             <SelectContent>
               {departments.map((dept) => (
@@ -79,7 +79,7 @@ export const HoleriteFilters = ({
           </Select>
 
           <Select value={selectedPosition} onValueChange={onPositionChange}>
-            <SelectTrigger>
+            <SelectTrigger className="text-sm">
               <SelectValue placeholder="Cargo" />
             </SelectTrigger>
             <SelectContent>

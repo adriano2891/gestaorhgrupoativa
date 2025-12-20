@@ -599,54 +599,52 @@ const Funcionarios = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-primary-foreground">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary-foreground">
             Funcionários
           </h1>
-          <p className="text-primary-foreground/80 mt-1">
+          <p className="text-primary-foreground/80 mt-1 text-xs sm:text-sm md:text-base">
             Gerencie todos os funcionários da empresa
           </p>
         </div>
-        <Button onClick={handleAddEmployee}>
+        <Button onClick={handleAddEmployee} className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           Adicionar Funcionário
         </Button>
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <CardHeader className="p-3 sm:p-4 md:p-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
             <div>
-              <CardTitle>Lista de Funcionários</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-base sm:text-lg">Lista de Funcionários</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 {filteredEmployees.length} funcionário(s) encontrado(s)
               </CardDescription>
             </div>
-            <div className="flex gap-2">
-              <div className="relative flex-1 md:w-64">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Buscar funcionário..."
+                  placeholder="Buscar..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 text-sm"
                 />
               </div>
               <Select
                 value={selectedDepartment}
                 onValueChange={setSelectedDepartment}
               >
-                <SelectTrigger className="w-[180px]">
+                <SelectTrigger className="w-full sm:w-[160px] text-sm">
                   <SelectValue placeholder="Departamento" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todos">Todos</SelectItem>
                   <SelectItem value="Tecnologia">Tecnologia</SelectItem>
-                  <SelectItem value="Recursos Humanos">
-                    Recursos Humanos
-                  </SelectItem>
+                  <SelectItem value="Recursos Humanos">RH</SelectItem>
                   <SelectItem value="Comercial">Comercial</SelectItem>
                   <SelectItem value="Financeiro">Financeiro</SelectItem>
                   <SelectItem value="Operações">Operações</SelectItem>
@@ -655,121 +653,97 @@ const Funcionarios = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Funcionário</TableHead>
-                <TableHead>Cargo</TableHead>
-                <TableHead>Departamento</TableHead>
-                <TableHead>Salário Atual</TableHead>
-                <TableHead>Contato</TableHead>
-                <TableHead>Admissão</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEmployees.map((employee) => (
-                <TableRow key={employee.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <Avatar>
-                        <AvatarFallback className="bg-primary text-primary-foreground">
-                          {getInitials(employee.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium">{employee.name}</div>
+        <CardContent className="p-0 sm:p-4 md:p-6 pt-0">
+          <div className="overflow-x-auto">
+            <Table className="min-w-[700px]">
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-xs sm:text-sm">Funcionário</TableHead>
+                  <TableHead className="text-xs sm:text-sm hidden md:table-cell">Cargo</TableHead>
+                  <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Depto</TableHead>
+                  <TableHead className="text-xs sm:text-sm hidden xl:table-cell">Salário</TableHead>
+                  <TableHead className="text-xs sm:text-sm hidden md:table-cell">Contato</TableHead>
+                  <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Admissão</TableHead>
+                  <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                  <TableHead className="text-xs sm:text-sm text-right">Ações</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredEmployees.map((employee) => (
+                  <TableRow key={employee.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
+                          <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-sm">
+                            {getInitials(employee.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="min-w-0">
+                          <div className="font-medium text-xs sm:text-sm truncate max-w-[100px] sm:max-w-[150px]">{employee.name}</div>
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{employee.position}</TableCell>
-                  <TableCell>{employee.department}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1">
-                      {employeeSalaries[employee.id]?.salario ? (
-                        <>
-                          <div className="font-medium">
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-xs sm:text-sm">{employee.position}</TableCell>
+                    <TableCell className="hidden lg:table-cell text-xs sm:text-sm">{employee.department}</TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      <div className="flex flex-col gap-1">
+                        {employeeSalaries[employee.id]?.salario ? (
+                          <div className="font-medium text-xs sm:text-sm">
                             R$ {employeeSalaries[employee.id].salario!.toLocaleString('pt-BR', {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2
                             })}
                           </div>
-                          {employeeSalaries[employee.id].ultimaAlteracao && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <TrendingUp className="h-3 w-3" />
-                              <span>
-                                Última alteração: R$ {employeeSalaries[employee.id].ultimaAlteracao!.valor.toLocaleString('pt-BR', {
-                                  minimumFractionDigits: 2,
-                                  maximumFractionDigits: 2
-                                })}
-                              </span>
-                              <span className="text-xs">
-                                ({employeeSalaries[employee.id].ultimaAlteracao!.data})
-                              </span>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-sm text-muted-foreground">Não informado</span>
-                      )}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-1 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs">{employee.email}</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">-</span>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-3 w-3 text-muted-foreground" />
-                        <span className="text-xs">{employee.phone}</span>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1 text-xs">
+                          <Mail className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                          <span className="truncate max-w-[120px]">{employee.email}</span>
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {new Date(employee.admissionDate).toLocaleDateString(
-                      "pt-BR"
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        employee.status === "ativo" 
-                          ? "default" 
-                          : employee.status === "demitido"
-                          ? "destructive"
-                          : "outline"
-                      }
-                      className={employee.status === "afastado" ? "bg-yellow-500 text-white hover:bg-yellow-600 border-transparent" : ""}
-                    >
-                      {employee.status === "ativo" 
-                        ? "Ativo" 
-                        : employee.status === "afastado"
-                        ? "Afastado"
-                        : "Demitido"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(employee.id)}>
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(employee.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell text-xs sm:text-sm">
+                      {new Date(employee.admissionDate).toLocaleDateString("pt-BR")}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          employee.status === "ativo" 
+                            ? "default" 
+                            : employee.status === "demitido"
+                            ? "destructive"
+                            : "outline"
+                        }
+                        className={`text-[10px] sm:text-xs ${employee.status === "afastado" ? "bg-yellow-500 text-white hover:bg-yellow-600 border-transparent" : ""}`}
+                      >
+                        {employee.status === "ativo" ? "Ativo" : employee.status === "afastado" ? "Afast." : "Demit."}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => handleEdit(employee.id)}>
+                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => handleDelete(employee.id)}>
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
 
           {filteredEmployees.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">
-                Nenhum funcionário encontrado com os filtros selecionados.
+            <div className="text-center py-8 sm:py-12">
+              <p className="text-muted-foreground text-sm">
+                Nenhum funcionário encontrado.
               </p>
             </div>
           )}

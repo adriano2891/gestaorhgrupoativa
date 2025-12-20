@@ -438,26 +438,26 @@ const FolhaPonto = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Cabeçalho */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
             Folha de Ponto
           </h1>
-          <p className="text-muted-foreground mt-1">
+          <p className="text-muted-foreground mt-1 text-xs sm:text-sm md:text-base">
             Controle mensal de ponto e horas trabalhadas
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap sm:flex-nowrap">
           <Dialog open={showFilters} onOpenChange={setShowFilters}>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="outline" className="flex-1 sm:flex-none text-sm">
                 <Filter className="h-4 w-4 mr-2" />
                 Filtros
               </Button>
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-w-[95vw] sm:max-w-lg max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Filtros Avançados</DialogTitle>
                 <DialogDescription>
