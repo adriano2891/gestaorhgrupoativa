@@ -116,32 +116,32 @@ const InventarioEquipamentos = () => {
     <div className="min-h-screen" style={{ backgroundColor: '#40E0D0' }}>
       {/* Header */}
       <div className="bg-black/10 backdrop-blur-sm border-b border-white/20">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-4">
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate("/dashboard")}
-                className="text-white hover:bg-white/20"
+                className="text-white hover:bg-white/20 h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0"
               >
-                <ArrowLeft className="h-5 w-5" />
+                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
-              <div>
-                <h1 className="text-2xl font-bold text-white">Gestão de Inventário de Equipamentos</h1>
-                <p className="text-white/70 text-sm">Controle de equipamentos da Central e Home Office</p>
+              <div className="min-w-0">
+                <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Gestão de Inventário</h1>
+                <p className="text-white/70 text-xs sm:text-sm">Controle de equipamentos</p>
               </div>
             </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button onClick={() => handleOpenDialog()} className="bg-white text-teal-600 hover:bg-white/90">
+                <Button onClick={() => handleOpenDialog()} className="bg-white text-teal-600 hover:bg-white/90 text-sm w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
                   Novo Equipamento
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>
+                  <DialogTitle className="text-base sm:text-lg">
                     {editingEquipamento ? "Editar Equipamento" : "Cadastrar Equipamento"}
                   </DialogTitle>
                 </DialogHeader>
@@ -244,50 +244,50 @@ const InventarioEquipamentos = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
           <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="p-3 bg-teal-100 rounded-full">
-                <Monitor className="h-6 w-6 text-teal-600" />
+            <CardContent className="p-3 sm:p-4 md:p-6 flex items-center gap-2 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-teal-100 rounded-full flex-shrink-0">
+                <Monitor className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-teal-600" />
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Total de Equipamentos</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 truncate">Total</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{stats.total}</p>
               </div>
             </CardContent>
           </Card>
           <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <Building2 className="h-6 w-6 text-blue-600" />
+            <CardContent className="p-3 sm:p-4 md:p-6 flex items-center gap-2 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-blue-100 rounded-full flex-shrink-0">
+                <Building2 className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-blue-600" />
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Na Central</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.central}</p>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="p-3 bg-orange-100 rounded-full">
-                <Home className="h-6 w-6 text-orange-600" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-500">Home Office</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.homeOffice}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 truncate">Central</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{stats.central}</p>
               </div>
             </CardContent>
           </Card>
           <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
-            <CardContent className="p-6 flex items-center gap-4">
-              <div className="p-3 bg-purple-100 rounded-full">
-                <Users className="h-6 w-6 text-purple-600" />
+            <CardContent className="p-3 sm:p-4 md:p-6 flex items-center gap-2 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-orange-100 rounded-full flex-shrink-0">
+                <Home className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-orange-600" />
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Em Cliente</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.cliente}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 truncate">Home Office</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{stats.homeOffice}</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+            <CardContent className="p-3 sm:p-4 md:p-6 flex items-center gap-2 sm:gap-4">
+              <div className="p-2 sm:p-3 bg-purple-100 rounded-full flex-shrink-0">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-purple-600" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs md:text-sm text-gray-500 truncate">Cliente</p>
+                <p className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900">{stats.cliente}</p>
               </div>
             </CardContent>
           </Card>
@@ -295,19 +295,19 @@ const InventarioEquipamentos = () => {
 
         {/* Filters */}
         <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
-          <CardContent className="p-4">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1 relative">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col gap-3 sm:gap-4">
+              <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  placeholder="Buscar por número, nome ou modelo..."
+                  placeholder="Buscar..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 text-sm"
                 />
               </div>
               <Select value={filterLocalizacao} onValueChange={setFilterLocalizacao}>
-                <SelectTrigger className="w-full md:w-48">
+                <SelectTrigger className="w-full text-sm">
                   <SelectValue placeholder="Localização" />
                 </SelectTrigger>
                 <SelectContent>
@@ -322,42 +322,43 @@ const InventarioEquipamentos = () => {
         </Card>
 
         {/* Table */}
-        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-lg">Lista de Equipamentos</CardTitle>
+        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg overflow-hidden">
+          <CardHeader className="p-3 sm:p-4 md:p-6">
+            <CardTitle className="text-base sm:text-lg">Lista de Equipamentos</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0 sm:p-4 md:p-6 pt-0">
             {isLoading ? (
-              <div className="text-center py-8 text-gray-500">Carregando...</div>
+              <div className="text-center py-8 text-gray-500 text-sm">Carregando...</div>
             ) : filteredEquipamentos.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-gray-500 text-sm px-4">
                 {search || filterLocalizacao !== "todos" 
-                  ? "Nenhum equipamento encontrado com os filtros aplicados."
-                  : "Nenhum equipamento cadastrado. Clique em 'Novo Equipamento' para começar."}
+                  ? "Nenhum equipamento encontrado."
+                  : "Nenhum equipamento cadastrado."}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table>
+              <div className="overflow-x-auto -mx-0">
+                <Table className="min-w-[600px]">
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Número</TableHead>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Modelo/Marca</TableHead>
-                      <TableHead>Cor</TableHead>
-                      <TableHead>Localização</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Número</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Nome</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Modelo</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden md:table-cell">Cor</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Local</TableHead>
+                      <TableHead className="text-xs sm:text-sm text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredEquipamentos.map((equipamento) => (
                       <TableRow key={equipamento.id}>
-                        <TableCell className="font-medium">{equipamento.numero_equipamento}</TableCell>
-                        <TableCell>{equipamento.nome_equipamento}</TableCell>
-                        <TableCell>{equipamento.modelo_marca || "-"}</TableCell>
-                        <TableCell>{equipamento.cor || "-"}</TableCell>
+                        <TableCell className="font-medium text-xs sm:text-sm">{equipamento.numero_equipamento}</TableCell>
+                        <TableCell className="text-xs sm:text-sm">{equipamento.nome_equipamento}</TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden sm:table-cell">{equipamento.modelo_marca || "-"}</TableCell>
+                        <TableCell className="text-xs sm:text-sm hidden md:table-cell">{equipamento.cor || "-"}</TableCell>
                         <TableCell>
-                          <div 
-                            className={`inline-flex flex-col items-start px-3 py-1.5 rounded-md border ${
+                          <Badge 
+                            variant="outline"
+                            className={`text-[10px] sm:text-xs ${
                               equipamento.localizacao === "central"
                                 ? "bg-blue-100 text-blue-700 border-blue-200"
                                 : equipamento.localizacao === "home_office"
@@ -365,19 +366,10 @@ const InventarioEquipamentos = () => {
                                 : "bg-purple-100 text-purple-700 border-purple-200"
                             }`}
                           >
-                            <span className="flex items-center gap-1 text-sm font-medium">
-                              {equipamento.localizacao === "central" ? (
-                                <><Building2 className="h-3.5 w-3.5" /> Central</>
-                              ) : equipamento.localizacao === "home_office" ? (
-                                <><Home className="h-3.5 w-3.5" /> Home Office</>
-                              ) : (
-                                <><Users className="h-3.5 w-3.5" /> Cliente</>
-                              )}
-                            </span>
-                            {equipamento.detalhe_localizacao && (
-                              <span className="text-xs uppercase">{equipamento.detalhe_localizacao}</span>
-                            )}
-                          </div>
+                            {equipamento.localizacao === "central" ? "Central" 
+                              : equipamento.localizacao === "home_office" ? "Home" 
+                              : "Cliente"}
+                          </Badge>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">

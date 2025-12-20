@@ -274,18 +274,18 @@ const Relatorios = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary via-primary to-primary-dark">
-      <div className="container mx-auto px-4 py-12">
-        <div className="mb-12 text-center animate-fade-in">
-          <div className="inline-block mb-4">
-            <div className="w-20 h-1 bg-white/40 rounded-full mx-auto"></div>
+      <div className="container mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 md:py-12">
+        <div className="mb-6 sm:mb-8 md:mb-12 text-center animate-fade-in">
+          <div className="inline-block mb-2 sm:mb-4">
+            <div className="w-12 sm:w-20 h-1 bg-white/40 rounded-full mx-auto"></div>
           </div>
-          <h1 className="text-5xl font-bold text-white mb-3 tracking-tight">
-            Relatórios e Análises de RH
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 tracking-tight px-2">
+            Relatórios e Análises
           </h1>
-          <p className="text-lg text-primary-foreground/90 max-w-2xl mx-auto">
-            Escolha o relatório desejado para análise detalhada e insights estratégicos
+          <p className="text-sm sm:text-base md:text-lg text-primary-foreground/90 max-w-2xl mx-auto px-4">
+            Escolha o relatório para análise
           </p>
-          <div className="mt-6 flex items-center justify-center gap-2">
+          <div className="mt-4 sm:mt-6 flex items-center justify-center gap-2">
             <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse"></div>
             <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
             <div className="w-2 h-2 bg-white/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
