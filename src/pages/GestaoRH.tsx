@@ -23,6 +23,7 @@ interface ModuleItem {
   iconSrc: string;
   path: string;
   scaleIcon?: boolean;
+  iconScale?: string;
 }
 
 const GestaoRH = () => {
@@ -49,7 +50,7 @@ const GestaoRH = () => {
     { title: "Funcionários", description: "Gestão de colaboradores", iconSrc: iconFuncionarios, path: "/funcionarios" },
     { title: "Banco de Talentos", description: "Candidatos e recrutamento", iconSrc: iconTalentos, path: "/banco-talentos", scaleIcon: true },
     { title: "Relatórios", description: "Análises e indicadores", iconSrc: iconRelatorios, path: "/relatorios" },
-    { title: "Folha de Ponto", description: "Controle de jornada", iconSrc: iconPonto, path: "/folha-ponto", scaleIcon: true },
+    { title: "Folha de Ponto", description: "Controle de jornada", iconSrc: iconPonto, path: "/folha-ponto", iconScale: "scale-150" },
     { title: "Holerites", description: "Gestão de pagamentos", iconSrc: iconHolerites, path: "/holerites", scaleIcon: true },
     { title: "Comunicados", description: "Avisos e notificações internas", iconSrc: iconComunicados, path: "/comunicados", scaleIcon: true },
   ];
@@ -200,7 +201,7 @@ const GestaoRH = () => {
                 onClick={() => navigate(module.path)}
               >
                 <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 sm:w-24 sm:h-24 ring-2 ring-white/30">
-                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.scaleIcon ? 'scale-125' : ''}`} />
+                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                 </div>
                 <p 
                   className="text-center mt-2 font-semibold text-white text-[10px] sm:text-xs leading-tight max-w-[90px]"
@@ -282,7 +283,7 @@ const GestaoRH = () => {
                 onClick={() => navigate(module.path)}
               >
                 <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-28 h-28 ring-4 ring-white/30">
-                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.scaleIcon ? 'scale-125' : ''}`} />
+                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                 </div>
                 <p className="text-center mt-3 font-semibold text-white text-sm max-w-[120px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
                   {module.title}
@@ -309,7 +310,7 @@ const GestaoRH = () => {
                 onClick={() => navigate(module.path)}
               >
                 <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-24 h-24 ring-3 ring-white/30">
-                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.scaleIcon ? 'scale-125' : ''}`} />
+                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                 </div>
                 <p className="text-center mt-2 font-semibold text-white text-xs max-w-[100px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
                   {module.title}
@@ -336,7 +337,7 @@ const GestaoRH = () => {
                 onClick={() => navigate(module.path)}
               >
                 <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
-                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.scaleIcon ? 'scale-125' : ''}`} />
+                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                 </div>
                 <p className="text-center mt-2 font-semibold text-white text-[10px] max-w-[80px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
                   {module.title}
@@ -357,7 +358,7 @@ const GestaoRH = () => {
                 onClick={() => navigate(module.path)}
               >
                 <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
-                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.scaleIcon ? 'scale-125' : ''}`} />
+                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                 </div>
                 <p className="text-center mt-2 font-semibold text-white text-[10px] max-w-[70px] leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
                   {module.title}
