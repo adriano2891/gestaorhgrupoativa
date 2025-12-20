@@ -89,8 +89,8 @@ const Login = () => {
               {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
-          <p className="text-center text-[10px] sm:text-xs text-white mt-4">
-            © 2025 Grupo Ativa. Todos os direitos reservados.
+          <p className="text-center text-[10px] sm:text-xs text-muted-foreground mt-4">
+            © 2025 Grupo Ativa • Todos os direitos reservados
           </p>
         </CardContent>
       </Card>
