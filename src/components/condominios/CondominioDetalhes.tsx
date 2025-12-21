@@ -58,8 +58,34 @@ export const CondominioDetalhes = ({
     link.click();
   };
 
-  const handleView = (doc: { url: string }) => {
-    window.open(doc.url, "_blank");
+  const handleView = (doc: { url: string; name: string }) => {
+    // Se for um data URL (base64), converter para blob para visualização correta
+    if (doc.url.startsWith('data:')) {
+      try {
+        const [header, base64] = doc.url.split(',');
+        const mimeMatch = header.match(/data:([^;]+)/);
+        const mimeType = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+        
+        const byteCharacters = atob(base64);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mimeType });
+        
+        const blobUrl = URL.createObjectURL(blob);
+        window.open(blobUrl, "_blank");
+        
+        // Limpar o blob URL após um tempo para evitar memory leak
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+      } catch (error) {
+        console.error('Erro ao abrir documento:', error);
+        toast.error("Erro ao abrir o documento.");
+      }
+    } else {
+      window.open(doc.url, "_blank");
+    }
   };
 
   return (
