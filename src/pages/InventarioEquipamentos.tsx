@@ -356,20 +356,27 @@ const InventarioEquipamentos = () => {
                         <TableCell className="text-xs sm:text-sm hidden sm:table-cell">{equipamento.modelo_marca || "-"}</TableCell>
                         <TableCell className="text-xs sm:text-sm hidden md:table-cell">{equipamento.cor || "-"}</TableCell>
                         <TableCell>
-                          <Badge 
-                            variant="outline"
-                            className={`text-[10px] sm:text-xs ${
-                              equipamento.localizacao === "central"
-                                ? "bg-blue-100 text-blue-700 border-blue-200"
-                                : equipamento.localizacao === "home_office"
-                                ? "bg-orange-100 text-orange-700 border-orange-200"
-                                : "bg-purple-100 text-purple-700 border-purple-200"
-                            }`}
-                          >
-                            {equipamento.localizacao === "central" ? "Central" 
-                              : equipamento.localizacao === "home_office" ? "Home" 
-                              : "Cliente"}
-                          </Badge>
+                          <div className="flex flex-col gap-0.5">
+                            <Badge 
+                              variant="outline"
+                              className={`text-[10px] sm:text-xs w-fit ${
+                                equipamento.localizacao === "central"
+                                  ? "bg-blue-100 text-blue-700 border-blue-200"
+                                  : equipamento.localizacao === "home_office"
+                                  ? "bg-orange-100 text-orange-700 border-orange-200"
+                                  : "bg-purple-100 text-purple-700 border-purple-200"
+                              }`}
+                            >
+                              {equipamento.localizacao === "central" ? "Central" 
+                                : equipamento.localizacao === "home_office" ? "Home Office" 
+                                : "Cliente"}
+                            </Badge>
+                            {equipamento.detalhe_localizacao && (
+                              <span className="text-[10px] sm:text-xs text-gray-600 pl-1">
+                                {equipamento.detalhe_localizacao}
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
