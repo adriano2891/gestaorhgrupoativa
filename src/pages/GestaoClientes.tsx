@@ -105,55 +105,55 @@ const GestaoClientes = () => {
     <div className="min-h-screen bg-white">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-[#3EE0CF] shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-0 sm:h-16 gap-2 sm:gap-0">
             {/* Logo e Título */}
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-black flex items-center justify-center">
-                <Building2 className="w-5 h-5 text-white" />
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
-              <div>
-                <h1 className="text-lg font-bold text-black">Gestão de Clientes</h1>
-                <p className="text-xs text-black/70">Controle de Condomínios</p>
+              <div className="min-w-0">
+                <h1 className="text-sm sm:text-lg font-bold text-black truncate">Gestão de Clientes</h1>
+                <p className="text-[10px] sm:text-xs text-black/70 truncate">Controle de Condomínios</p>
               </div>
             </div>
 
             {/* Navegação */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-end">
               <Button
                 variant={view === "dashboard" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => { setView("dashboard"); setSelectedId(null); }}
-                className={view === "dashboard" ? "bg-black hover:bg-black/90 text-white" : "text-black hover:bg-black/10"}
+                className={`h-8 px-2 sm:px-3 text-xs sm:text-sm ${view === "dashboard" ? "bg-black hover:bg-black/90 text-white" : "text-black hover:bg-black/10"}`}
               >
-                <LayoutDashboard className="w-4 h-4 mr-2" />
-                Dashboard
+                <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Dashboard</span>
               </Button>
               <Button
                 variant={view === "lista" ? "default" : "ghost"}
                 size="sm"
                 onClick={() => { setView("lista"); setSelectedId(null); }}
-                className={view === "lista" ? "bg-black hover:bg-black/90 text-white" : "text-black hover:bg-black/10"}
+                className={`h-8 px-2 sm:px-3 text-xs sm:text-sm ${view === "lista" ? "bg-black hover:bg-black/90 text-white" : "text-black hover:bg-black/10"}`}
               >
-                <List className="w-4 h-4 mr-2" />
-                Lista
+                <List className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Lista</span>
               </Button>
               <Button
                 size="sm"
                 onClick={() => { setEditingCondo(null); setFormOpen(true); }}
-                className="bg-black hover:bg-black/90 text-white"
+                className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-black hover:bg-black/90 text-white"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Novo
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Novo</span>
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/dashboard")}
-                className="text-black hover:bg-black/10"
+                className="h-8 px-2 sm:px-3 text-xs sm:text-sm text-black hover:bg-black/10"
               >
-                <LogOut className="w-4 h-4 mr-2" />
-                Sair
+                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Sair</span>
               </Button>
             </div>
           </div>
