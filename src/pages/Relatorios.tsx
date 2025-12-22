@@ -24,10 +24,19 @@ import { ReportSelector } from "@/components/relatorios/ReportSelector";
 import { ReportFilters } from "@/components/relatorios/ReportFilters";
 import { ReportViewer } from "@/components/relatorios/ReportViewer";
 import { ExportOptions } from "@/components/relatorios/ExportOptions";
+import { DownloadedReports } from "@/components/relatorios/DownloadedReports";
 import { useFuncionarios, useFuncionariosPorDepartamento } from "@/hooks/useFuncionarios";
 import { useRegistrosPonto, useAbsenteismoPorDepartamento } from "@/hooks/useRegistrosPonto";
 import { useMetricas } from "@/hooks/useMetricas";
 import { format } from "date-fns";
+
+interface DownloadedReport {
+  id: string;
+  type: string;
+  filename: string;
+  reportTitle: string;
+  date: string;
+}
 
 const Relatorios = () => {
   useFuncionariosRealtime();
@@ -36,6 +45,7 @@ const Relatorios = () => {
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
   const [filters, setFilters] = useState<any>({});
   const [reportData, setReportData] = useState<any>(null);
+  const [downloadedReports, setDownloadedReports] = useState<DownloadedReport[]>([]);
 
   // Hooks para buscar dados reais
   const { data: funcionarios, isLoading: loadingFuncionarios } = useFuncionarios();
@@ -523,6 +533,17 @@ const Relatorios = () => {
                 <ExportOptions
                   data={reportData.details || []}
                   reportTitle={reportTypes.find(r => r.id === selectedReport)?.name || "Relatório"}
+                  summary={reportData.summary}
+                  onExportComplete={(exportInfo) => {
+                    const newReport: DownloadedReport = {
+                      id: Date.now().toString(),
+                      type: exportInfo.type,
+                      filename: exportInfo.filename,
+                      reportTitle: reportTypes.find(r => r.id === selectedReport)?.name || "Relatório",
+                      date: exportInfo.date,
+                    };
+                    setDownloadedReports(prev => [newReport, ...prev]);
+                  }}
                 />
               )}
             </div>
@@ -568,6 +589,12 @@ const Relatorios = () => {
                   />
                 )}
               </div>
+              
+              {/* Seção de Documentos para Download */}
+              <DownloadedReports 
+                reports={downloadedReports} 
+                onClear={() => setDownloadedReports([])}
+              />
             </div>
           </div>
         )}
