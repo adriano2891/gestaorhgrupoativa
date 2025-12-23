@@ -156,16 +156,17 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                   <CardDescription>{chart.description}</CardDescription>
                 )}
               </CardHeader>
-              <CardContent className="pt-6">
-                <ResponsiveContainer width="100%" height={320}>
-                  {chart.type === "line" ? (
-                    <AreaChart data={chart.data}>
-                      <defs>
-                        <linearGradient id={`colorGradient${index}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={CHART_COLORS[0]} stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor={CHART_COLORS[0]} stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
+                <CardContent className="pt-6">
+                  <div id={`report-chart-${index}`} data-chart-index={index}>
+                    <ResponsiveContainer width="100%" height={320}>
+                      {chart.type === "line" ? (
+                        <AreaChart data={chart.data}>
+                          <defs>
+                            <linearGradient id={`colorGradient${index}`} x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor={CHART_COLORS[0]} stopOpacity={0.3}/>
+                              <stop offset="95%" stopColor={CHART_COLORS[0]} stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis 
                         dataKey={Object.keys(chart.data[0])[0]} 
@@ -298,15 +299,16 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                       )}
                     </BarChart>
                   )}
-                </ResponsiveContainer>
-                {chart.insight && (
-                  <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-border">
-                    <div className="flex items-start gap-2">
-                      <AlertCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-muted-foreground">{chart.insight}</p>
-                    </div>
+                    </ResponsiveContainer>
                   </div>
-                )}
+                  {chart.insight && (
+                    <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-border">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-muted-foreground">{chart.insight}</p>
+                      </div>
+                    </div>
+                  )}
               </CardContent>
             </Card>
           ))}
