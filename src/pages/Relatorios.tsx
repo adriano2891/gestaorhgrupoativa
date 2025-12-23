@@ -534,6 +534,7 @@ const Relatorios = () => {
                   data={reportData.details || []}
                   reportTitle={reportTypes.find(r => r.id === selectedReport)?.name || "Relatório"}
                   summary={reportData.summary}
+                  charts={reportData.charts}
                   onExportComplete={(exportInfo) => {
                     const newReport: DownloadedReport = {
                       id: Date.now().toString(),
