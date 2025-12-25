@@ -31,8 +31,11 @@ interface ReportViewerProps {
   data: any;
 }
 
+// Cor padrão para gráficos de barras (Torre): #4cdecf
+const BAR_CHART_COLOR = "#4cdecf";
+
 const CHART_COLORS = [
-  "hsl(var(--primary))",
+  BAR_CHART_COLOR,
   "hsl(var(--destructive))",
   "#10b981",
   "#f59e0b",
@@ -258,8 +261,8 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                     <BarChart data={chart.data}>
                       <defs>
                         <linearGradient id={`barGradient${index}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={1}/>
-                          <stop offset="100%" stopColor={CHART_COLORS[0]} stopOpacity={0.7}/>
+                          <stop offset="0%" stopColor={BAR_CHART_COLOR} stopOpacity={1}/>
+                          <stop offset="100%" stopColor={BAR_CHART_COLOR} stopOpacity={0.7}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
