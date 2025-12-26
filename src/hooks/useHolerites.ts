@@ -11,11 +11,14 @@ export interface Holerite {
   salario_liquido: number;
   arquivo_url: string | null;
   created_at: string;
+  updated_at?: string;
 }
 
+// Hook para buscar holerites - se userId for fornecido, filtra por ele
+// Se não, busca todos (para visão admin)
 export const useHolerites = (userId?: string) => {
   return useQuery({
-    queryKey: ["holerites", userId],
+    queryKey: ["holerites", userId || "all"],
     queryFn: async () => {
       let query = supabase
         .from("holerites")
@@ -29,10 +32,15 @@ export const useHolerites = (userId?: string) => {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao buscar holerites:", error);
+        throw error;
+      }
+      
       return data as Holerite[];
     },
-    enabled: !!userId,
+    // Sempre habilitado - para admin busca todos, para funcionário busca os seus
+    enabled: true,
   });
 };
 
