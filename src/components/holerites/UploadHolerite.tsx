@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,12 +19,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { useUploadHolerite } from "@/hooks/useHoleritesMutation";
 
 interface UploadHoleriteProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   employees: Array<{ id: string; name: string }>;
-  onUpload: (employeeId: string, file: File, month: string, year: string) => void;
+  onUploadSuccess?: () => void;
 }
 
 const months = [
@@ -39,13 +40,14 @@ export const UploadHolerite = ({
   open,
   onOpenChange,
   employees,
-  onUpload,
+  onUploadSuccess,
 }: UploadHoleriteProps) => {
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState(String(currentYear));
   const [file, setFile] = useState<File | null>(null);
   const { toast } = useToast();
+  const uploadHolerite = useUploadHolerite();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -70,7 +72,7 @@ export const UploadHolerite = ({
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!selectedEmployee || !selectedMonth || !file) {
       toast({
         title: "Campos obrigatórios",
@@ -80,18 +82,24 @@ export const UploadHolerite = ({
       return;
     }
 
-    onUpload(selectedEmployee, file, selectedMonth, selectedYear);
-    
-    // Reset form
-    setSelectedEmployee("");
-    setSelectedMonth("");
-    setFile(null);
-    onOpenChange(false);
-
-    toast({
-      title: "Holerite enviado!",
-      description: "O holerite foi carregado com sucesso.",
-    });
+    try {
+      await uploadHolerite.mutateAsync({
+        userId: selectedEmployee,
+        mes: parseInt(selectedMonth),
+        ano: parseInt(selectedYear),
+        file,
+      });
+      
+      // Reset form
+      setSelectedEmployee("");
+      setSelectedMonth("");
+      setFile(null);
+      onOpenChange(false);
+      onUploadSuccess?.();
+    } catch (error) {
+      // Erro já tratado pelo hook
+      console.error("Erro no upload:", error);
+    }
   };
 
   return (
@@ -192,12 +200,21 @@ export const UploadHolerite = ({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={uploadHolerite.isPending}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit}>
-            <Upload className="h-4 w-4 mr-2" />
-            Enviar Holerite
+          <Button onClick={handleSubmit} disabled={uploadHolerite.isPending}>
+            {uploadHolerite.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4 mr-2" />
+                Enviar Holerite
+              </>
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
