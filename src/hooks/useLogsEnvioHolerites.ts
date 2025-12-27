@@ -47,6 +47,12 @@ export const useEnviarHolerite = () => {
       });
 
       if (error) throw error;
+      
+      // Verificar se a resposta indica erro
+      if (data && !data.success) {
+        throw new Error(data.error || "Erro ao enviar holerite");
+      }
+      
       return data;
     },
     onSuccess: () => {
@@ -55,6 +61,7 @@ export const useEnviarHolerite = () => {
         description: "O holerite foi enviado com sucesso para o e-mail do colaborador.",
       });
       queryClient.invalidateQueries({ queryKey: ["logs-envio-holerites"] });
+      queryClient.invalidateQueries({ queryKey: ["holerites"] });
     },
     onError: (error: any) => {
       toast({

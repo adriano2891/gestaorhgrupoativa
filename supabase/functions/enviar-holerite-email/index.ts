@@ -111,11 +111,46 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
+  
+  // Guardar o body parseado para uso no catch
+  let requestBody: EnviarHoleriteRequest | null = null;
 
   try {
-    const { holerite_id, user_id, manual = false }: EnviarHoleriteRequest = await req.json();
+    requestBody = await req.json() as EnviarHoleriteRequest;
+    const { holerite_id, user_id, manual = false } = requestBody as EnviarHoleriteRequest;
 
     console.log(`Iniciando envio de holerite: ${holerite_id} para usuário: ${user_id}`);
+
+    // Verificar autenticação do requisitante
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("Autorização necessária");
+    }
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(token);
+    
+    if (authError || !authUser) {
+      throw new Error("Usuário não autenticado");
+    }
+
+    // Verificar se o requisitante é admin ou RH
+    const { data: roles, error: rolesError } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", authUser.id);
+
+    if (rolesError) {
+      console.error("Erro ao verificar roles:", rolesError);
+      throw new Error("Erro ao verificar permissões");
+    }
+
+    const userRoles = roles?.map(r => r.role) || [];
+    const isAdminOrHR = userRoles.includes("admin") || userRoles.includes("rh");
+
+    if (!isAdminOrHR) {
+      throw new Error("Apenas administradores e RH podem enviar holerites por e-mail");
+    }
 
     // Buscar dados do holerite
     const { data: holerite, error: holeriteError } = await supabase
@@ -144,6 +179,12 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!profile.email) {
       throw new Error("E-mail do usuário não cadastrado");
+    }
+
+    // Validar formato do e-mail
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(profile.email)) {
+      throw new Error("E-mail do usuário inválido");
     }
 
     console.log(`Gerando PDF para ${profile.nome}`);
@@ -203,7 +244,8 @@ const handler = async (req: Request): Promise<Response> => {
         user_id,
         email_destino: profile.email,
         status: "sucesso",
-        enviado_por: manual ? user_id : null,
+        enviado_por: authUser.id,
+        tentativas: 1,
       });
 
     if (logError) {
@@ -224,20 +266,27 @@ const handler = async (req: Request): Promise<Response> => {
   } catch (error: any) {
     console.error("Erro ao enviar holerite:", error);
 
-    // Tentar registrar log de erro
-    try {
-      const { holerite_id, user_id } = await req.json();
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-      
-      await supabase.from("logs_envio_holerites").insert({
-        holerite_id,
-        user_id,
-        email_destino: "",
-        status: "erro",
-        mensagem_erro: error.message || "Erro desconhecido",
-      });
-    } catch (logError) {
-      console.error("Erro ao registrar log de erro:", logError);
+    // Registrar log de erro se temos os dados necessários
+    if (requestBody?.holerite_id && requestBody?.user_id) {
+      try {
+        // Buscar email do usuário para o log
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("email")
+          .eq("id", requestBody.user_id)
+          .single();
+
+        await supabase.from("logs_envio_holerites").insert({
+          holerite_id: requestBody.holerite_id,
+          user_id: requestBody.user_id,
+          email_destino: profile?.email || "desconhecido",
+          status: "erro",
+          mensagem_erro: error.message || "Erro desconhecido",
+          tentativas: 1,
+        });
+      } catch (logError) {
+        console.error("Erro ao registrar log de erro:", logError);
+      }
     }
 
     return new Response(
