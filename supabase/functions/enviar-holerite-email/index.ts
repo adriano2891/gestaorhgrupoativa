@@ -234,7 +234,13 @@ const handler = async (req: Request): Promise<Response> => {
       ],
     });
 
-    console.log("E-mail enviado com sucesso:", emailResponse);
+    // IMPORTANTE: Verificar se o Resend retornou erro
+    if (emailResponse.error) {
+      console.error("Erro do Resend:", emailResponse.error);
+      throw new Error(`Falha no envio: ${emailResponse.error.message}`);
+    }
+
+    console.log("E-mail enviado com sucesso! ID:", emailResponse.data?.id);
 
     // Registrar log de sucesso
     const { error: logError } = await supabase
