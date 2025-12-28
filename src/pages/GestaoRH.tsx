@@ -56,7 +56,7 @@ const GestaoRH = () => {
   ];
 
   if (isAdmin) {
-    modules.push({ title: "Gerenciar Admins", description: "Controle de administradores", iconSrc: iconAdmins, path: "/admins" });
+    modules.push({ title: "Gerenciar Admins", description: "Controle de administradores", iconSrc: iconAdmins, path: "/admins", scaleIcon: true });
   }
 
   const handleLogout = async () => {
