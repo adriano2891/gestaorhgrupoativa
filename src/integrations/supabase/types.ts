@@ -275,6 +275,237 @@ export type Database = {
           },
         ]
       }
+      formulario_atribuicoes: {
+        Row: {
+          assinado: boolean
+          created_at: string
+          data_assinatura: string | null
+          data_limite: string | null
+          formulario_id: string
+          id: string
+          ip_assinatura: string | null
+          notificado: boolean
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assinado?: boolean
+          created_at?: string
+          data_assinatura?: string | null
+          data_limite?: string | null
+          formulario_id: string
+          id?: string
+          ip_assinatura?: string | null
+          notificado?: boolean
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assinado?: boolean
+          created_at?: string
+          data_assinatura?: string | null
+          data_limite?: string | null
+          formulario_id?: string
+          id?: string
+          ip_assinatura?: string | null
+          notificado?: boolean
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formulario_atribuicoes_formulario_id_fkey"
+            columns: ["formulario_id"]
+            isOneToOne: false
+            referencedRelation: "formularios_rh"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "formulario_atribuicoes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      formulario_campos: {
+        Row: {
+          created_at: string
+          formulario_id: string
+          id: string
+          label: string
+          obrigatorio: boolean
+          opcoes: Json | null
+          ordem: number
+          placeholder: string | null
+          tipo: Database["public"]["Enums"]["form_field_type"]
+          updated_at: string
+          valor_padrao: string | null
+        }
+        Insert: {
+          created_at?: string
+          formulario_id: string
+          id?: string
+          label: string
+          obrigatorio?: boolean
+          opcoes?: Json | null
+          ordem?: number
+          placeholder?: string | null
+          tipo?: Database["public"]["Enums"]["form_field_type"]
+          updated_at?: string
+          valor_padrao?: string | null
+        }
+        Update: {
+          created_at?: string
+          formulario_id?: string
+          id?: string
+          label?: string
+          obrigatorio?: boolean
+          opcoes?: Json | null
+          ordem?: number
+          placeholder?: string | null
+          tipo?: Database["public"]["Enums"]["form_field_type"]
+          updated_at?: string
+          valor_padrao?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formulario_campos_formulario_id_fkey"
+            columns: ["formulario_id"]
+            isOneToOne: false
+            referencedRelation: "formularios_rh"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      formulario_respostas: {
+        Row: {
+          arquivo_url: string | null
+          atribuicao_id: string
+          campo_id: string
+          created_at: string
+          id: string
+          updated_at: string
+          valor: string | null
+        }
+        Insert: {
+          arquivo_url?: string | null
+          atribuicao_id: string
+          campo_id: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          valor?: string | null
+        }
+        Update: {
+          arquivo_url?: string | null
+          atribuicao_id?: string
+          campo_id?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          valor?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formulario_respostas_atribuicao_id_fkey"
+            columns: ["atribuicao_id"]
+            isOneToOne: false
+            referencedRelation: "formulario_atribuicoes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "formulario_respostas_campo_id_fkey"
+            columns: ["campo_id"]
+            isOneToOne: false
+            referencedRelation: "formulario_campos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      formularios_rh: {
+        Row: {
+          aprovado_por: string | null
+          arquivo_externo_nome: string | null
+          arquivo_externo_url: string | null
+          categoria: Database["public"]["Enums"]["form_category"]
+          created_at: string
+          criado_por: string | null
+          data_aprovacao: string | null
+          departamento_destino: string | null
+          descricao: string | null
+          id: string
+          is_template: boolean
+          requer_assinatura: boolean
+          status: Database["public"]["Enums"]["form_status"]
+          template_origem_id: string | null
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          aprovado_por?: string | null
+          arquivo_externo_nome?: string | null
+          arquivo_externo_url?: string | null
+          categoria?: Database["public"]["Enums"]["form_category"]
+          created_at?: string
+          criado_por?: string | null
+          data_aprovacao?: string | null
+          departamento_destino?: string | null
+          descricao?: string | null
+          id?: string
+          is_template?: boolean
+          requer_assinatura?: boolean
+          status?: Database["public"]["Enums"]["form_status"]
+          template_origem_id?: string | null
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          aprovado_por?: string | null
+          arquivo_externo_nome?: string | null
+          arquivo_externo_url?: string | null
+          categoria?: Database["public"]["Enums"]["form_category"]
+          created_at?: string
+          criado_por?: string | null
+          data_aprovacao?: string | null
+          departamento_destino?: string | null
+          descricao?: string | null
+          id?: string
+          is_template?: boolean
+          requer_assinatura?: boolean
+          status?: Database["public"]["Enums"]["form_status"]
+          template_origem_id?: string | null
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formularios_rh_aprovado_por_fkey"
+            columns: ["aprovado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "formularios_rh_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "formularios_rh_template_origem_id_fkey"
+            columns: ["template_origem_id"]
+            isOneToOne: false
+            referencedRelation: "formularios_rh"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       fornecedores: {
         Row: {
           condicoes_pagamento: string | null
@@ -1156,6 +1387,31 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gestor" | "rh" | "funcionario"
+      form_category:
+        | "admissao"
+        | "desligamento"
+        | "avaliacao_desempenho"
+        | "feedback"
+        | "solicitacao"
+        | "treinamento"
+        | "documentos"
+        | "outro"
+      form_field_type:
+        | "text"
+        | "textarea"
+        | "select"
+        | "checkbox"
+        | "date"
+        | "file"
+        | "number"
+        | "email"
+        | "phone"
+      form_status:
+        | "rascunho"
+        | "pendente_aprovacao"
+        | "aprovado"
+        | "publicado"
+        | "arquivado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1284,6 +1540,34 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gestor", "rh", "funcionario"],
+      form_category: [
+        "admissao",
+        "desligamento",
+        "avaliacao_desempenho",
+        "feedback",
+        "solicitacao",
+        "treinamento",
+        "documentos",
+        "outro",
+      ],
+      form_field_type: [
+        "text",
+        "textarea",
+        "select",
+        "checkbox",
+        "date",
+        "file",
+        "number",
+        "email",
+        "phone",
+      ],
+      form_status: [
+        "rascunho",
+        "pendente_aprovacao",
+        "aprovado",
+        "publicado",
+        "arquivado",
+      ],
     },
   },
 } as const
