@@ -16,6 +16,7 @@ import iconPonto from "@/assets/icon-rh-ponto.png";
 import iconHolerites from "@/assets/icon-rh-holerites.png";
 import iconComunicados from "@/assets/icon-rh-comunicados.png";
 import iconAdmins from "@/assets/icon-rh-admins.png";
+import iconFormularios from "@/assets/icon-rh-formularios.png";
 
 interface ModuleItem {
   title: string;
@@ -53,6 +54,7 @@ const GestaoRH = () => {
     { title: "Folha de Ponto", description: "Controle de jornada", iconSrc: iconPonto, path: "/folha-ponto", iconScale: "scale-150" },
     { title: "Holerites", description: "Gestão de pagamentos", iconSrc: iconHolerites, path: "/holerites", scaleIcon: true },
     { title: "Comunicados", description: "Avisos e notificações internas", iconSrc: iconComunicados, path: "/comunicados", scaleIcon: true },
+    { title: "Formulários", description: "Formulários de RH", iconSrc: iconFormularios, path: "/formularios-rh", scaleIcon: true },
   ];
 
   if (isAdmin) {

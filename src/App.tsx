@@ -36,6 +36,8 @@ import Fornecedores from "./pages/Fornecedores";
 import FornecedorForm from "./pages/FornecedorForm";
 import FornecedorDetalhes from "./pages/FornecedorDetalhes";
 import InventarioEquipamentos from "./pages/InventarioEquipamentos";
+import FormulariosRH from "./pages/FormulariosRH";
+import FormularioDetalhes from "./pages/FormularioDetalhes";
 
 const queryClient = new QueryClient();
 
@@ -277,6 +279,23 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <InventarioEquipamentos />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Formulários RH Routes */}
+              <Route
+                path="/formularios-rh"
+                element={
+                  <ProtectedRoute>
+                    <FormulariosRH />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/formularios-rh/:id"
+                element={
+                  <ProtectedRoute>
+                    <FormularioDetalhes />
                   </ProtectedRoute>
                 }
               />
