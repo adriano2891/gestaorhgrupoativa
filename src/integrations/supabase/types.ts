@@ -190,6 +190,259 @@ export type Database = {
           },
         ]
       }
+      documentos: {
+        Row: {
+          arquivo_nome: string
+          arquivo_tamanho: number | null
+          arquivo_url: string
+          atualizado_por: string | null
+          categoria_id: string | null
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          id: string
+          mime_type: string | null
+          publico: boolean | null
+          tags: string[] | null
+          tipo: Database["public"]["Enums"]["documento_tipo"]
+          titulo: string
+          updated_at: string
+          versao_atual: number
+          visualizacoes: number | null
+        }
+        Insert: {
+          arquivo_nome: string
+          arquivo_tamanho?: number | null
+          arquivo_url: string
+          atualizado_por?: string | null
+          categoria_id?: string | null
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          mime_type?: string | null
+          publico?: boolean | null
+          tags?: string[] | null
+          tipo?: Database["public"]["Enums"]["documento_tipo"]
+          titulo: string
+          updated_at?: string
+          versao_atual?: number
+          visualizacoes?: number | null
+        }
+        Update: {
+          arquivo_nome?: string
+          arquivo_tamanho?: number | null
+          arquivo_url?: string
+          atualizado_por?: string | null
+          categoria_id?: string | null
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          id?: string
+          mime_type?: string | null
+          publico?: boolean | null
+          tags?: string[] | null
+          tipo?: Database["public"]["Enums"]["documento_tipo"]
+          titulo?: string
+          updated_at?: string
+          versao_atual?: number
+          visualizacoes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_atualizado_por_fkey"
+            columns: ["atualizado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_categorias"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_acessos: {
+        Row: {
+          acao: string
+          created_at: string
+          documento_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          documento_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          documento_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_acessos_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_acessos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_categorias: {
+        Row: {
+          categoria_pai_id: string | null
+          cor: string | null
+          created_at: string
+          descricao: string | null
+          icone: string | null
+          id: string
+          nome: string
+          ordem: number | null
+          updated_at: string
+        }
+        Insert: {
+          categoria_pai_id?: string | null
+          cor?: string | null
+          created_at?: string
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome: string
+          ordem?: number | null
+          updated_at?: string
+        }
+        Update: {
+          categoria_pai_id?: string | null
+          cor?: string | null
+          created_at?: string
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          ordem?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_categorias_categoria_pai_id_fkey"
+            columns: ["categoria_pai_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_comentarios: {
+        Row: {
+          conteudo: string
+          created_at: string
+          documento_id: string
+          id: string
+          parent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          documento_id: string
+          id?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          documento_id?: string
+          id?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_comentarios_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_comentarios_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_comentarios"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_comentarios_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_favoritos: {
+        Row: {
+          created_at: string
+          documento_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          documento_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          documento_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_favoritos_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_favoritos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos_fornecedor: {
         Row: {
           arquivo_url: string
@@ -221,6 +474,108 @@ export type Database = {
             columns: ["fornecedor_id"]
             isOneToOne: false
             referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_permissoes: {
+        Row: {
+          created_at: string
+          departamento: string | null
+          documento_id: string
+          id: string
+          pode_comentar: boolean | null
+          pode_editar: boolean | null
+          pode_excluir: boolean | null
+          pode_visualizar: boolean | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          departamento?: string | null
+          documento_id: string
+          id?: string
+          pode_comentar?: boolean | null
+          pode_editar?: boolean | null
+          pode_excluir?: boolean | null
+          pode_visualizar?: boolean | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          departamento?: string | null
+          documento_id?: string
+          id?: string
+          pode_comentar?: boolean | null
+          pode_editar?: boolean | null
+          pode_excluir?: boolean | null
+          pode_visualizar?: boolean | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_permissoes_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_permissoes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_versoes: {
+        Row: {
+          alteracoes: string | null
+          arquivo_nome: string
+          arquivo_tamanho: number | null
+          arquivo_url: string
+          created_at: string
+          criado_por: string | null
+          documento_id: string
+          id: string
+          versao: number
+        }
+        Insert: {
+          alteracoes?: string | null
+          arquivo_nome: string
+          arquivo_tamanho?: number | null
+          arquivo_url: string
+          created_at?: string
+          criado_por?: string | null
+          documento_id: string
+          id?: string
+          versao: number
+        }
+        Update: {
+          alteracoes?: string | null
+          arquivo_nome?: string
+          arquivo_tamanho?: number | null
+          arquivo_url?: string
+          created_at?: string
+          criado_por?: string | null
+          documento_id?: string
+          id?: string
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_versoes_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documentos_versoes_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos"
             referencedColumns: ["id"]
           },
         ]
@@ -1387,6 +1742,15 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gestor" | "rh" | "funcionario"
+      documento_tipo:
+        | "pdf"
+        | "docx"
+        | "xlsx"
+        | "pptx"
+        | "imagem"
+        | "video"
+        | "audio"
+        | "outro"
       form_category:
         | "admissao"
         | "desligamento"
@@ -1540,6 +1904,16 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gestor", "rh", "funcionario"],
+      documento_tipo: [
+        "pdf",
+        "docx",
+        "xlsx",
+        "pptx",
+        "imagem",
+        "video",
+        "audio",
+        "outro",
+      ],
       form_category: [
         "admissao",
         "desligamento",
