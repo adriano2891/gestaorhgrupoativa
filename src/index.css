@@ -194,3 +194,101 @@ All colors MUST be HSL.
     @apply min-w-full;
   }
 }
+
+/* HRFlow Pro Print Styles */
+@media print {
+  /* Hide all UI elements */
+  .no-print,
+  button,
+  nav,
+  aside,
+  header,
+  footer,
+  .sidebar,
+  .toast,
+  .dialog-overlay {
+    display: none !important;
+  }
+
+  /* Reset page margins */
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  /* Body reset for print */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 12pt !important;
+    line-height: 1.5 !important;
+  }
+
+  /* A4 canvas should be full width in print */
+  .print-container {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Form fields styling for print */
+  .print-field {
+    page-break-inside: avoid;
+    margin-bottom: 8pt;
+  }
+
+  /* Ensure form title is visible */
+  .print-title {
+    font-size: 18pt;
+    font-weight: bold;
+    margin-bottom: 12pt;
+    color: black !important;
+  }
+
+  /* Input fields should have visible borders */
+  .print-input {
+    border: 1pt solid #ccc !important;
+    padding: 6pt !important;
+    background: white !important;
+  }
+
+  /* Checkboxes and radio buttons */
+  .print-checkbox {
+    width: 12pt !important;
+    height: 12pt !important;
+    border: 1pt solid black !important;
+  }
+
+  /* Signature area */
+  .print-signature {
+    border-bottom: 1pt solid black;
+    height: 40pt;
+    margin-top: 20pt;
+  }
+
+  /* Page break control */
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+  }
+
+  /* LGPD badge for print */
+  .lgpd-badge-print {
+    font-size: 8pt;
+    border: 1pt solid #22c55e;
+    padding: 4pt 8pt;
+    border-radius: 4pt;
+    display: inline-block;
+    margin-top: 10pt;
+  }
+}

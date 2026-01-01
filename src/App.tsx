@@ -38,6 +38,8 @@ import FornecedorDetalhes from "./pages/FornecedorDetalhes";
 import InventarioEquipamentos from "./pages/InventarioEquipamentos";
 import FormulariosRH from "./pages/FormulariosRH";
 import FormularioDetalhes from "./pages/FormularioDetalhes";
+import HRFlowPro from "./pages/HRFlowPro";
+import Documentacoes from "./pages/Documentacoes";
 
 const queryClient = new QueryClient();
 
@@ -296,6 +298,26 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <FormularioDetalhes />
+                  </ProtectedRoute>
+                }
+              />
+              {/* HRFlow Pro Route */}
+              <Route
+                path="/hrflow-pro"
+                element={
+                  <ProtectedRoute>
+                    <HRFlowPro />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Documentações Route */}
+              <Route
+                path="/documentacoes"
+                element={
+                  <ProtectedRoute>
+                    <Layout>
+                      <Documentacoes />
+                    </Layout>
                   </ProtectedRoute>
                 }
               />
