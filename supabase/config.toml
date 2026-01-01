@@ -1,1 +1,16 @@
 project_id = "rzcjwfxmogfsmfbwtwfc"
+
+[functions.create-admin-user]
+verify_jwt = false
+
+[functions.delete-all-users]
+verify_jwt = false
+
+[functions.enviar-holerite-email]
+verify_jwt = false
+
+[functions.setup-admin]
+verify_jwt = false
+
+[functions.generate-hrflow-form]
+verify_jwt = false
