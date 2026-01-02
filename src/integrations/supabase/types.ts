@@ -1739,6 +1739,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_document_creator: {
+        Args: { _user_id: string; doc_id: string }
+        Returns: boolean
+      }
+      user_has_document_permission: {
+        Args: { _user_id: string; doc_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "gestor" | "rh" | "funcionario"
