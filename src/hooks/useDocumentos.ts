@@ -174,6 +174,12 @@ export const useUploadDocumento = () => {
       publico?: boolean;
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
+      
+      // Verificar se usuário está autenticado
+      if (!user) {
+        throw new Error("Você precisa estar autenticado para fazer upload de documentos");
+      }
+
       const fileName = `${Date.now()}_${file.name}`;
       
       // Upload file
@@ -201,7 +207,7 @@ export const useUploadDocumento = () => {
           arquivo_tamanho: file.size,
           mime_type: file.type,
           tags: tags || [],
-          criado_por: user?.id,
+          criado_por: user.id,
           publico: publico || false,
         })
         .select()
@@ -210,15 +216,20 @@ export const useUploadDocumento = () => {
       if (error) throw error;
 
       // Create first version
-      await supabase.from("documentos_versoes").insert({
+      const { error: versionError } = await supabase.from("documentos_versoes").insert({
         documento_id: data.id,
         versao: 1,
         arquivo_url: publicUrl,
         arquivo_nome: file.name,
         arquivo_tamanho: file.size,
         alteracoes: "Versão inicial",
-        criado_por: user?.id,
+        criado_por: user.id,
       });
+
+      if (versionError) {
+        console.error("Erro ao criar versão:", versionError);
+        // Não falhar o upload por causa da versão, o documento principal foi criado
+      }
 
       return data;
     },
@@ -227,6 +238,7 @@ export const useUploadDocumento = () => {
       toast({ title: "Documento enviado com sucesso!" });
     },
     onError: (error: Error) => {
+      console.error("Erro no upload:", error);
       toast({ title: "Erro ao enviar documento", description: error.message, variant: "destructive" });
     },
   });
