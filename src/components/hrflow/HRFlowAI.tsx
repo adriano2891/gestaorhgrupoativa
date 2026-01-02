@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Sparkles, Wand2, Loader2, FileText, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,10 +24,78 @@ const examplePrompts = [
 ];
 
 export const HRFlowAI = () => {
+  const navigate = useNavigate();
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedForm, setGeneratedForm] = useState<AIGeneratedForm | null>(null);
   const [copied, setCopied] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+
+  // Map HRFlow field types to database field types
+  const mapFieldType = (type: string): "text" | "textarea" | "select" | "checkbox" | "date" | "file" | "number" | "email" | "phone" => {
+    const typeMap: Record<string, "text" | "textarea" | "select" | "checkbox" | "date" | "file" | "number" | "email" | "phone"> = {
+      text: "text",
+      textarea: "textarea",
+      select: "select",
+      checkbox: "checkbox",
+      date: "date",
+      file: "file",
+      number: "number",
+      email: "email",
+      phone: "phone",
+      likert: "select",
+      rating: "number",
+      multiple_choice: "select",
+    };
+    return typeMap[type] || "text";
+  };
+
+  const handleUseTemplate = async () => {
+    if (!generatedForm) return;
+
+    setIsCreating(true);
+    try {
+      // Create the form
+      const { data: formData, error: formError } = await supabase
+        .from('formularios_rh')
+        .insert({
+          titulo: generatedForm.title,
+          descricao: generatedForm.description,
+          categoria: 'outro',
+          status: 'rascunho',
+          requer_assinatura: false,
+        })
+        .select()
+        .single();
+
+      if (formError) throw formError;
+
+      // Create all fields
+      const fieldsToInsert = generatedForm.fields.map((field, index) => ({
+        formulario_id: formData.id,
+        label: field.label,
+        tipo: mapFieldType(field.type),
+        obrigatorio: field.required || false,
+        ordem: index,
+        placeholder: field.placeholder || null,
+        opcoes: field.options ? { choices: field.options } : null,
+      }));
+
+      const { error: fieldsError } = await supabase
+        .from('formulario_campos')
+        .insert(fieldsToInsert);
+
+      if (fieldsError) throw fieldsError;
+
+      toast.success("Formulário criado com sucesso!");
+      navigate(`/formulario/${formData.id}`);
+    } catch (error) {
+      console.error("Error creating form:", error);
+      toast.error("Erro ao criar formulário. Tente novamente.");
+    } finally {
+      setIsCreating(false);
+    }
+  };
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -159,9 +228,18 @@ export const HRFlowAI = () => {
                   {copied ? <Check className="w-4 h-4 mr-1" /> : <Copy className="w-4 h-4 mr-1" />}
                   {copied ? 'Copiado!' : 'Copiar JSON'}
                 </Button>
-                <Button size="sm" className="bg-[#2563eb] hover:bg-[#1d4ed8]">
-                  <FileText className="w-4 h-4 mr-1" />
-                  Usar Template
+                <Button 
+                  size="sm" 
+                  className="bg-[#2563eb] hover:bg-[#1d4ed8]"
+                  onClick={handleUseTemplate}
+                  disabled={isCreating}
+                >
+                  {isCreating ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <FileText className="w-4 h-4 mr-1" />
+                  )}
+                  {isCreating ? 'Criando...' : 'Usar Template'}
                 </Button>
               </div>
             </div>
