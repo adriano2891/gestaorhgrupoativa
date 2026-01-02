@@ -1,58 +1,46 @@
 import { useState, useEffect } from "react";
 import { 
-  LayoutDashboard, 
   FileText, 
   LayoutTemplate, 
-  BarChart3, 
   Sparkles,
   Settings,
   ArrowLeft,
-  Plus,
-  Search,
   Shield
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { HRFlowDashboard } from "@/components/hrflow/HRFlowDashboard";
 import { HRFlowFormsList } from "@/components/hrflow/HRFlowFormsList";
 import { HRFlowTemplates } from "@/components/hrflow/HRFlowTemplates";
-import { HRFlowAnalytics } from "@/components/hrflow/HRFlowAnalytics";
 import { HRFlowAI } from "@/components/hrflow/HRFlowAI";
 import { HRFlowSettings } from "@/components/hrflow/HRFlowSettings";
 import { cn } from "@/lib/utils";
 
-type HRFlowTab = 'dashboard' | 'forms' | 'templates' | 'analytics' | 'ai' | 'settings';
+type HRFlowTab = 'forms' | 'templates' | 'ai' | 'settings';
 
 const navItems = [
-  { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
   { id: 'forms' as const, label: 'Meus Formulários', icon: FileText },
   { id: 'templates' as const, label: 'Templates', icon: LayoutTemplate },
-  { id: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
   { id: 'ai' as const, label: 'Criar com IA', icon: Sparkles },
   { id: 'settings' as const, label: 'Configurações', icon: Settings },
 ];
 
 const HRFlowPro = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<HRFlowTab>('dashboard');
+  const [activeTab, setActiveTab] = useState<HRFlowTab>('forms');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const renderContent = () => {
     switch (activeTab) {
-      case 'dashboard':
-        return <HRFlowDashboard onNavigate={setActiveTab} />;
       case 'forms':
         return <HRFlowFormsList />;
       case 'templates':
         return <HRFlowTemplates />;
-      case 'analytics':
-        return <HRFlowAnalytics />;
       case 'ai':
         return <HRFlowAI />;
       case 'settings':
         return <HRFlowSettings />;
       default:
-        return <HRFlowDashboard onNavigate={setActiveTab} />;
+        return <HRFlowFormsList />;
     }
   };
 
