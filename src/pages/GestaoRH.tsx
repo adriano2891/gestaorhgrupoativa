@@ -176,10 +176,9 @@ const GestaoRH = () => {
         {/* Título */}
         <div className={`text-center py-3 px-4 ${isAnimating ? 'rh-animate-title' : ''}`}>
           <h1 
-            className="text-2xl sm:text-3xl text-white"
+            className="text-2xl sm:text-3xl text-white font-bold"
             style={{ 
-              fontFamily: "'Brush Script MT', 'Segoe Script', cursive",
-              fontStyle: 'italic',
+              fontFamily: "Arial, sans-serif",
               textShadow: '1px 1px 2px rgba(0,0,0,0.2)'
             }}
           >
@@ -236,10 +235,9 @@ const GestaoRH = () => {
           </button>
           {/* Título */}
           <h1 
-            className={`text-3xl md:text-4xl lg:text-5xl text-white mt-2 ${isAnimating ? 'rh-animate-title' : ''}`}
+            className={`text-3xl md:text-4xl lg:text-5xl text-white mt-2 font-bold ${isAnimating ? 'rh-animate-title' : ''}`}
             style={{ 
-              fontFamily: "'Brush Script MT', 'Segoe Script', cursive",
-              fontStyle: 'italic',
+              fontFamily: "Arial, sans-serif",
               textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
             }}
           >
