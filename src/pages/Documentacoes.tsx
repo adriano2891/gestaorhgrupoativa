@@ -33,10 +33,12 @@ import { useDocumentos, useDocumentosCategorias, useMeusFavoritos, useDeleteDocu
 import { UploadDocumentoDialog } from "@/components/documentos/UploadDocumentoDialog";
 import { CriarCategoriaDialog } from "@/components/documentos/CriarCategoriaDialog";
 import { DocumentoDetalhesDialog } from "@/components/documentos/DocumentoDetalhesDialog";
+import { EditarDocumentoDialog } from "@/components/documentos/EditarDocumentoDialog";
 import { TIPO_LABELS, type Documento, type DocumentoTipo } from "@/types/documentos";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 const Documentacoes = () => {
   const navigate = useNavigate();
@@ -47,6 +49,7 @@ const Documentacoes = () => {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showCategoriaDialog, setShowCategoriaDialog] = useState(false);
   const [selectedDocumento, setSelectedDocumento] = useState<Documento | null>(null);
+  const [editingDocumento, setEditingDocumento] = useState<Documento | null>(null);
   const [deleteDocId, setDeleteDocId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("todos");
 
@@ -84,6 +87,11 @@ const Documentacoes = () => {
       documentoId: doc.id, 
       isFavorito: favoritos?.includes(doc.id) || false 
     });
+  };
+
+  const handleDownload = (doc: Documento) => {
+    window.open(doc.arquivo_url, '_blank');
+    toast({ title: "Download iniciado", description: doc.arquivo_nome });
   };
 
   const formatFileSize = (bytes: number | null) => {
@@ -259,7 +267,11 @@ const Documentacoes = () => {
                                 <Eye className="h-4 w-4 mr-2" />
                                 Visualizar
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => window.open(doc.arquivo_url, '_blank')}>
+                              <DropdownMenuItem onClick={() => setEditingDocumento(doc)}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Editar
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleDownload(doc)}>
                                 <Download className="h-4 w-4 mr-2" />
                                 Download
                               </DropdownMenuItem>
@@ -344,7 +356,7 @@ const Documentacoes = () => {
                           variant="outline"
                           size="sm"
                           className="h-8 gap-1.5"
-                          onClick={() => setSelectedDocumento(doc)}
+                          onClick={() => setEditingDocumento(doc)}
                         >
                           <Edit className="h-4 w-4" />
                           Editar
@@ -363,7 +375,7 @@ const Documentacoes = () => {
                               )} />
                               {favoritos?.includes(doc.id) ? "Remover Favorito" : "Favoritar"}
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => window.open(doc.arquivo_url, '_blank')}>
+                            <DropdownMenuItem onClick={() => handleDownload(doc)}>
                               <Download className="h-4 w-4 mr-2" />
                               Download
                             </DropdownMenuItem>
@@ -407,6 +419,12 @@ const Documentacoes = () => {
           onToggleFavorito={() => handleToggleFavorito(selectedDocumento)}
         />
       )}
+      <EditarDocumentoDialog
+        documento={editingDocumento}
+        open={!!editingDocumento}
+        onOpenChange={(open) => !open && setEditingDocumento(null)}
+        categorias={categorias || []}
+      />
 
       {/* Delete Dialog */}
       <AlertDialog open={!!deleteDocId} onOpenChange={() => setDeleteDocId(null)}>
