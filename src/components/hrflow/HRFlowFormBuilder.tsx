@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ArrowLeft, Save, Eye, Download, Plus, GripVertical, Trash2, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { HRFlowForm, FormField, HRFlowFieldType, FIELD_TYPE_LABELS, CATEGORY_LABELS, FormCategory } from "@/types/hrflow";
 import { FormTemplate } from "@/types/hrflow";
+import { cn } from "@/lib/utils";
 
 interface HRFlowFormBuilderProps {
   form?: HRFlowForm | null;
@@ -30,6 +31,11 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
   const [category, setCategory] = useState<FormCategory>(form?.category || template?.category as FormCategory || 'outros');
   const [fields, setFields] = useState<FormField[]>(form?.fields || template?.fields || []);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
+  
+  // Drag and drop state
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const dragNodeRef = useRef<HTMLDivElement | null>(null);
 
   const addField = (type: HRFlowFieldType) => {
     const newField: FormField = {
@@ -49,6 +55,55 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
   const deleteField = (id: string) => {
     setFields(fields.filter(f => f.id !== id));
     if (selectedFieldId === id) setSelectedFieldId(null);
+  };
+
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    setDraggedIndex(index);
+    dragNodeRef.current = e.currentTarget;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+    
+    // Add a slight delay to allow the drag image to be created
+    setTimeout(() => {
+      if (dragNodeRef.current) {
+        dragNodeRef.current.style.opacity = '0.5';
+      }
+    }, 0);
+  };
+
+  const handleDragEnd = () => {
+    if (dragNodeRef.current) {
+      dragNodeRef.current.style.opacity = '1';
+    }
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    dragNodeRef.current = null;
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
+
+    const newFields = [...fields];
+    const [draggedField] = newFields.splice(draggedIndex, 1);
+    newFields.splice(dropIndex, 0, draggedField);
+    
+    setFields(newFields);
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+    toast.success("Campo reordenado!");
   };
 
   const handleSave = () => {
@@ -139,19 +194,33 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
                   <p>Clique nos campos à esquerda para adicionar</p>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-2">
                   {fields.map((field, index) => (
                     <div
                       key={field.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, index)}
+                      onDragEnd={handleDragEnd}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, index)}
                       onClick={() => setSelectedFieldId(field.id)}
-                      className={`p-4 rounded-lg border-2 transition-all cursor-pointer ${
+                      className={cn(
+                        "p-4 rounded-lg border-2 transition-all cursor-pointer",
                         selectedFieldId === field.id
                           ? 'border-[#2563eb] bg-blue-50/50'
-                          : 'border-transparent hover:border-gray-200 bg-gray-50'
-                      }`}
+                          : 'border-transparent hover:border-gray-200 bg-gray-50',
+                        draggedIndex === index && 'opacity-50',
+                        dragOverIndex === index && draggedIndex !== index && 'border-[#2563eb] border-dashed'
+                      )}
                     >
                       <div className="flex items-start gap-3">
-                        <GripVertical className="w-4 h-4 text-gray-400 mt-1 cursor-grab" />
+                        <div 
+                          className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-gray-200 transition-colors"
+                          onMouseDown={(e) => e.stopPropagation()}
+                        >
+                          <GripVertical className="w-4 h-4 text-gray-400" />
+                        </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-2">
                             <span className="font-medium text-gray-900">{field.label}</span>
