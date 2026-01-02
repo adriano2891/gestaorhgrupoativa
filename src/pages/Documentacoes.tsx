@@ -332,23 +332,22 @@ const Documentacoes = () => {
                           </Badge>
                         )}
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => handleToggleFavorito(doc)}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 gap-1.5"
+                          onClick={() => setSelectedDocumento(doc)}
                         >
-                          <Star className={cn(
-                            "h-4 w-4",
-                            favoritos?.includes(doc.id) ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground"
-                          )} />
+                          <Eye className="h-4 w-4" />
+                          Ver
                         </Button>
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => window.open(doc.arquivo_url, '_blank')}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 gap-1.5"
+                          onClick={() => setSelectedDocumento(doc)}
                         >
-                          <Download className="h-4 w-4" />
+                          <Edit className="h-4 w-4" />
+                          Editar
                         </Button>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -357,9 +356,16 @@ const Documentacoes = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setSelectedDocumento(doc)}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Detalhes
+                            <DropdownMenuItem onClick={() => handleToggleFavorito(doc)}>
+                              <Star className={cn(
+                                "h-4 w-4 mr-2",
+                                favoritos?.includes(doc.id) ? "fill-yellow-500 text-yellow-500" : ""
+                              )} />
+                              {favoritos?.includes(doc.id) ? "Remover Favorito" : "Favoritar"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => window.open(doc.arquivo_url, '_blank')}>
+                              <Download className="h-4 w-4 mr-2" />
+                              Download
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
