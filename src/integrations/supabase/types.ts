@@ -14,6 +14,113 @@ export type Database = {
   }
   public: {
     Tables: {
+      aulas: {
+        Row: {
+          created_at: string | null
+          descricao: string | null
+          duracao: number | null
+          id: string
+          material_apoio_url: string | null
+          modulo_id: string
+          ordem: number | null
+          tempo_minimo: number | null
+          titulo: string
+          updated_at: string | null
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          descricao?: string | null
+          duracao?: number | null
+          id?: string
+          material_apoio_url?: string | null
+          modulo_id: string
+          ordem?: number | null
+          tempo_minimo?: number | null
+          titulo: string
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          descricao?: string | null
+          duracao?: number | null
+          id?: string
+          material_apoio_url?: string | null
+          modulo_id?: string
+          ordem?: number | null
+          tempo_minimo?: number | null
+          titulo?: string
+          updated_at?: string | null
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aulas_modulo_id_fkey"
+            columns: ["modulo_id"]
+            isOneToOne: false
+            referencedRelation: "modulos_curso"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      avaliacoes_curso: {
+        Row: {
+          aula_id: string | null
+          created_at: string | null
+          curso_id: string | null
+          descricao: string | null
+          id: string
+          ordem: number | null
+          tempo_limite: number | null
+          tentativas_permitidas: number | null
+          tipo: string | null
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          aula_id?: string | null
+          created_at?: string | null
+          curso_id?: string | null
+          descricao?: string | null
+          id?: string
+          ordem?: number | null
+          tempo_limite?: number | null
+          tentativas_permitidas?: number | null
+          tipo?: string | null
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          aula_id?: string | null
+          created_at?: string | null
+          curso_id?: string | null
+          descricao?: string | null
+          id?: string
+          ordem?: number | null
+          tempo_limite?: number | null
+          tentativas_permitidas?: number | null
+          tipo?: string | null
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avaliacoes_curso_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avaliacoes_curso_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           applied_date: string
@@ -58,6 +165,97 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      categorias_curso: {
+        Row: {
+          ativo: boolean | null
+          cor: string | null
+          created_at: string | null
+          descricao: string | null
+          icone: string | null
+          id: string
+          nome: string
+          ordem: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          cor?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome: string
+          ordem?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          cor?: string | null
+          created_at?: string | null
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          ordem?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      certificados: {
+        Row: {
+          codigo_validacao: string
+          created_at: string | null
+          curso_id: string
+          data_emissao: string | null
+          id: string
+          matricula_id: string
+          url_certificado: string | null
+          user_id: string
+        }
+        Insert: {
+          codigo_validacao: string
+          created_at?: string | null
+          curso_id: string
+          data_emissao?: string | null
+          id?: string
+          matricula_id: string
+          url_certificado?: string | null
+          user_id: string
+        }
+        Update: {
+          codigo_validacao?: string
+          created_at?: string | null
+          curso_id?: string
+          data_emissao?: string | null
+          id?: string
+          matricula_id?: string
+          url_certificado?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificados_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificados_matricula_id_fkey"
+            columns: ["matricula_id"]
+            isOneToOne: false
+            referencedRelation: "matriculas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certificados_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       clientes_orcamentos: {
         Row: {
@@ -186,6 +384,84 @@ export type Database = {
             columns: ["comunicado_id"]
             isOneToOne: false
             referencedRelation: "comunicados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cursos: {
+        Row: {
+          capa_url: string | null
+          carga_horaria: number | null
+          cargos_permitidos: string[] | null
+          categoria_id: string | null
+          created_at: string | null
+          criado_por: string | null
+          departamentos_permitidos: string[] | null
+          descricao: string | null
+          id: string
+          instrutor: string | null
+          meses_recorrencia: number | null
+          nivel: Database["public"]["Enums"]["curso_nivel"] | null
+          nota_minima: number | null
+          obrigatorio: boolean | null
+          recorrente: boolean | null
+          status: Database["public"]["Enums"]["curso_status"] | null
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          capa_url?: string | null
+          carga_horaria?: number | null
+          cargos_permitidos?: string[] | null
+          categoria_id?: string | null
+          created_at?: string | null
+          criado_por?: string | null
+          departamentos_permitidos?: string[] | null
+          descricao?: string | null
+          id?: string
+          instrutor?: string | null
+          meses_recorrencia?: number | null
+          nivel?: Database["public"]["Enums"]["curso_nivel"] | null
+          nota_minima?: number | null
+          obrigatorio?: boolean | null
+          recorrente?: boolean | null
+          status?: Database["public"]["Enums"]["curso_status"] | null
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          capa_url?: string | null
+          carga_horaria?: number | null
+          cargos_permitidos?: string[] | null
+          categoria_id?: string | null
+          created_at?: string | null
+          criado_por?: string | null
+          departamentos_permitidos?: string[] | null
+          descricao?: string | null
+          id?: string
+          instrutor?: string | null
+          meses_recorrencia?: number | null
+          nivel?: Database["public"]["Enums"]["curso_nivel"] | null
+          nota_minima?: number | null
+          obrigatorio?: boolean | null
+          recorrente?: boolean | null
+          status?: Database["public"]["Enums"]["curso_status"] | null
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cursos_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_curso"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cursos_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -626,6 +902,48 @@ export type Database = {
             columns: ["fornecedor_id"]
             isOneToOne: false
             referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feedback_curso: {
+        Row: {
+          comentario: string | null
+          created_at: string | null
+          curso_id: string
+          id: string
+          nota: number | null
+          user_id: string
+        }
+        Insert: {
+          comentario?: string | null
+          created_at?: string | null
+          curso_id: string
+          id?: string
+          nota?: number | null
+          user_id: string
+        }
+        Update: {
+          comentario?: string | null
+          created_at?: string | null
+          curso_id?: string
+          id?: string
+          nota?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feedback_curso_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "feedback_curso_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1205,6 +1523,61 @@ export type Database = {
         }
         Relationships: []
       }
+      logs_acesso_curso: {
+        Row: {
+          acao: string
+          aula_id: string | null
+          created_at: string | null
+          curso_id: string | null
+          detalhes: Json | null
+          id: string
+          ip_address: string | null
+          user_id: string | null
+        }
+        Insert: {
+          acao: string
+          aula_id?: string | null
+          created_at?: string | null
+          curso_id?: string | null
+          detalhes?: Json | null
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          acao?: string
+          aula_id?: string | null
+          created_at?: string | null
+          curso_id?: string | null
+          detalhes?: Json | null
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logs_acesso_curso_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logs_acesso_curso_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "logs_acesso_curso_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       logs_envio_holerites: {
         Row: {
           created_at: string
@@ -1291,6 +1664,60 @@ export type Database = {
           },
         ]
       }
+      matriculas: {
+        Row: {
+          created_at: string | null
+          curso_id: string
+          data_conclusao: string | null
+          data_inicio: string | null
+          id: string
+          nota_final: number | null
+          progresso: number | null
+          status: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          curso_id: string
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          id?: string
+          nota_final?: number | null
+          progresso?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          curso_id?: string
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          id?: string
+          nota_final?: number | null
+          progresso?: number | null
+          status?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matriculas_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matriculas_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       metricas: {
         Row: {
           created_at: string | null
@@ -1353,6 +1780,88 @@ export type Database = {
           variacao_mensal?: number | null
         }
         Relationships: []
+      }
+      modulos_curso: {
+        Row: {
+          created_at: string | null
+          curso_id: string
+          descricao: string | null
+          id: string
+          ordem: number | null
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          curso_id: string
+          descricao?: string | null
+          id?: string
+          ordem?: number | null
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          curso_id?: string
+          descricao?: string | null
+          id?: string
+          ordem?: number | null
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modulos_curso_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      perguntas_avaliacao: {
+        Row: {
+          avaliacao_id: string
+          created_at: string | null
+          id: string
+          opcoes: Json | null
+          ordem: number | null
+          pergunta: string
+          pontuacao: number | null
+          resposta_correta: string | null
+          tipo: string | null
+        }
+        Insert: {
+          avaliacao_id: string
+          created_at?: string | null
+          id?: string
+          opcoes?: Json | null
+          ordem?: number | null
+          pergunta: string
+          pontuacao?: number | null
+          resposta_correta?: string | null
+          tipo?: string | null
+        }
+        Update: {
+          avaliacao_id?: string
+          created_at?: string | null
+          id?: string
+          opcoes?: Json | null
+          ordem?: number | null
+          pergunta?: string
+          pontuacao?: number | null
+          resposta_correta?: string | null
+          tipo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "perguntas_avaliacao_avaliacao_id_fkey"
+            columns: ["avaliacao_id"]
+            isOneToOne: false
+            referencedRelation: "avaliacoes_curso"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       periodos_aquisitivos: {
         Row: {
@@ -1442,6 +1951,57 @@ export type Database = {
           usuario?: string | null
         }
         Relationships: []
+      }
+      progresso_aulas: {
+        Row: {
+          aula_id: string
+          concluida: boolean | null
+          created_at: string | null
+          data_conclusao: string | null
+          id: string
+          posicao_video: number | null
+          tempo_assistido: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          aula_id: string
+          concluida?: boolean | null
+          created_at?: string | null
+          data_conclusao?: string | null
+          id?: string
+          posicao_video?: number | null
+          tempo_assistido?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          aula_id?: string
+          concluida?: boolean | null
+          created_at?: string | null
+          data_conclusao?: string | null
+          id?: string
+          posicao_video?: number | null
+          tempo_assistido?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progresso_aulas_aula_id_fkey"
+            columns: ["aula_id"]
+            isOneToOne: false
+            referencedRelation: "aulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progresso_aulas_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       registros_ponto: {
         Row: {
@@ -1670,6 +2230,96 @@ export type Database = {
           },
         ]
       }
+      tentativas_avaliacao: {
+        Row: {
+          aprovado: boolean | null
+          avaliacao_id: string
+          created_at: string | null
+          data_conclusao: string | null
+          data_inicio: string | null
+          id: string
+          nota: number | null
+          respostas: Json | null
+          tempo_gasto: number | null
+          user_id: string
+        }
+        Insert: {
+          aprovado?: boolean | null
+          avaliacao_id: string
+          created_at?: string | null
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          id?: string
+          nota?: number | null
+          respostas?: Json | null
+          tempo_gasto?: number | null
+          user_id: string
+        }
+        Update: {
+          aprovado?: boolean | null
+          avaliacao_id?: string
+          created_at?: string | null
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          id?: string
+          nota?: number | null
+          respostas?: Json | null
+          tempo_gasto?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tentativas_avaliacao_avaliacao_id_fkey"
+            columns: ["avaliacao_id"]
+            isOneToOne: false
+            referencedRelation: "avaliacoes_curso"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tentativas_avaliacao_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trilhas_aprendizado: {
+        Row: {
+          ativo: boolean | null
+          cor: string | null
+          created_at: string | null
+          cursos_ids: string[] | null
+          descricao: string | null
+          icone: string | null
+          id: string
+          nome: string
+          updated_at: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          cor?: string | null
+          created_at?: string | null
+          cursos_ids?: string[] | null
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome: string
+          updated_at?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          cor?: string | null
+          created_at?: string | null
+          cursos_ids?: string[] | null
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1750,6 +2400,8 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gestor" | "rh" | "funcionario"
+      curso_nivel: "basico" | "intermediario" | "avancado"
+      curso_status: "rascunho" | "publicado" | "arquivado"
       documento_tipo:
         | "pdf"
         | "docx"
@@ -1912,6 +2564,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gestor", "rh", "funcionario"],
+      curso_nivel: ["basico", "intermediario", "avancado"],
+      curso_status: ["rascunho", "publicado", "arquivado"],
       documento_tipo: [
         "pdf",
         "docx",
