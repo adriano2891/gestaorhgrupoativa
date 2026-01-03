@@ -141,6 +141,14 @@ export const AulaFormDialog = ({
     setUploadProgress(0);
 
     try {
+      // Verificar se o usuário está autenticado
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Você precisa estar logado para fazer upload de vídeos");
+        setIsUploading(false);
+        return;
+      }
+
       const fileExt = file.name.split(".").pop();
       const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
       const filePath = `videos/${fileName}`;
@@ -152,7 +160,14 @@ export const AulaFormDialog = ({
           upsert: false,
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        if (uploadError.message.includes("row-level security") || uploadError.message.includes("policy")) {
+          toast.error("Você não tem permissão para fazer upload de vídeos. Apenas administradores e RH podem realizar esta ação.");
+        } else {
+          toast.error("Erro ao enviar vídeo: " + uploadError.message);
+        }
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from("cursos")
@@ -163,7 +178,6 @@ export const AulaFormDialog = ({
       toast.success("Vídeo enviado com sucesso!");
     } catch (error: any) {
       console.error("Erro ao fazer upload:", error);
-      toast.error("Erro ao enviar vídeo: " + error.message);
     } finally {
       setIsUploading(false);
     }
@@ -189,23 +203,36 @@ export const AulaFormDialog = ({
     setIsSaving(true);
 
     try {
+      // Verificar se o usuário está autenticado
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Você precisa estar logado para criar aulas");
+        return;
+      }
+
       const { error } = await supabase.from("aulas").insert({
         modulo_id: moduloId,
         titulo: formData.titulo,
-        descricao: formData.descricao,
-        duracao: formData.duracao * 60,
-        video_url: formData.video_url,
+        descricao: formData.descricao || null,
+        duracao: formData.duracao ? formData.duracao * 60 : 0,
+        video_url: formData.video_url || null,
         ordem,
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes("row-level security")) {
+          toast.error("Você não tem permissão para criar aulas. Apenas administradores e RH podem realizar esta ação.");
+        } else {
+          toast.error("Erro ao criar aula: " + error.message);
+        }
+        throw error;
+      }
 
       toast.success("Aula criada com sucesso!");
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
       console.error("Erro ao criar aula:", error);
-      toast.error("Erro ao criar aula: " + error.message);
     } finally {
       setIsSaving(false);
     }
