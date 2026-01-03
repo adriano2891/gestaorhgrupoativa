@@ -80,9 +80,9 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
       iconColor: "text-pink-600",
     },
     {
-      id: "treinamentos",
-      title: "Treinamentos",
-      description: "Cursos internos e certificados",
+      id: "cursos",
+      title: "Cursos",
+      description: "Treinamentos, certificados e capacitação",
       icon: GraduationCap,
       color: "from-indigo-500/10 to-indigo-500/5",
       iconColor: "text-indigo-600",
