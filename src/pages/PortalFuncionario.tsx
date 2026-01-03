@@ -8,7 +8,6 @@ import { PortalFerias } from "@/components/ponto/PortalFerias";
 import { PortalComunicados } from "@/components/ponto/PortalComunicados";
 import { PortalPerfil } from "@/components/ponto/PortalPerfil";
 import { PortalBeneficios } from "@/components/ponto/PortalBeneficios";
-import { PortalTreinamentos } from "@/components/ponto/PortalTreinamentos";
 import { PortalCursos } from "@/components/ponto/PortalCursos";
 import { PortalSuporte } from "@/components/ponto/PortalSuporte";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -64,8 +63,6 @@ const PortalContent = () => {
       return <PortalPerfil onBack={handleBack} />;
     case "beneficios":
       return <PortalBeneficios onBack={handleBack} />;
-    case "treinamentos":
-      return <PortalTreinamentos onBack={handleBack} />;
     case "cursos":
       return <PortalCursos onBack={handleBack} />;
     case "suporte":
