@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/ui/back-button";
 import { useFeriasRealtime } from "@/hooks/useRealtimeUpdates";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Download, FileText } from "lucide-react";
@@ -42,6 +43,8 @@ const ControleFerias = () => {
     <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/50">
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-8">
+          <BackButton to="/gestao-rh" variant="default" />
+          
           {/* Cabeçalho */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>

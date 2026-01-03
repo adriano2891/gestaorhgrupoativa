@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Search, UserPlus, Download, Eye, Trash2 } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import { useCandidatosRealtime } from "@/hooks/useRealtimeUpdates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -422,6 +423,8 @@ const BancoTalentos = () => {
 
   return (
     <div className="space-y-6">
+      <BackButton to="/gestao-rh" variant="light" />
+      
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-primary-foreground">

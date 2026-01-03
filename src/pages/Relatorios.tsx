@@ -20,6 +20,7 @@ import {
   BarChart3,
   Calendar,
 } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import { ReportSelector } from "@/components/relatorios/ReportSelector";
 import { ReportFilters } from "@/components/relatorios/ReportFilters";
 import { ReportViewer } from "@/components/relatorios/ReportViewer";
@@ -885,7 +886,9 @@ const Relatorios = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary via-primary to-primary-dark">
       <div className="container mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 md:py-12">
-        <div className="mb-6 sm:mb-8 md:mb-12 text-center animate-fade-in">
+        <BackButton to="/gestao-rh" variant="light" />
+        
+        <div className="mb-6 sm:mb-8 md:mb-12 text-center animate-fade-in mt-4">
           <div className="inline-block mb-2 sm:mb-4">
             <div className="w-12 sm:w-20 h-1 bg-white/40 rounded-full mx-auto"></div>
           </div>

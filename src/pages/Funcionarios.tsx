@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Plus, Search, Mail, Phone, Edit, Trash2, TrendingUp } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import { useFuncionariosRealtime, useSalariosRealtime } from "@/hooks/useRealtimeUpdates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -600,6 +601,8 @@ const Funcionarios = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <BackButton to="/gestao-rh" variant="light" />
+      
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary-foreground">

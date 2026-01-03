@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Shield, UserPlus, Edit, Trash2, Mail, Loader2 } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import { useAdmins, useDeleteAdmin, type Admin } from "@/hooks/useAdmins";
 import { useAdminsRealtime } from "@/hooks/useRealtimeUpdates";
 import { AdminDialog } from "@/components/admins/AdminDialog";
@@ -116,6 +117,8 @@ const GerenciarAdmins = () => {
 
   return (
     <div className="space-y-6">
+      <BackButton to="/gestao-rh" variant="light" />
+      
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-primary-foreground">
