@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Search, Edit, Trash2, Building2, Home, Monitor, Users } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Building2, Home, Monitor, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/ui/back-button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -119,14 +120,11 @@ const InventarioEquipamentos = () => {
         <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/dashboard")}
-                className="text-white hover:bg-white/20 h-8 w-8 sm:h-10 sm:w-10 flex-shrink-0"
-              >
-                <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-              </Button>
+              <BackButton 
+                to="/dashboard" 
+                variant="light"
+                className="text-white hover:bg-white/20"
+              />
               <div className="min-w-0">
                 <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-white">Gestão de Inventário</h1>
                 <p className="text-white/70 text-xs sm:text-sm">Controle de equipamentos</p>

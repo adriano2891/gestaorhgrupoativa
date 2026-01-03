@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { LogOut, ArrowLeft } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { 
@@ -8,6 +8,7 @@ import {
   useComunicadosRealtime 
 } from "@/hooks/useRealtimeUpdates";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { BackButton } from "@/components/ui/back-button";
 import logoAtiva from "@/assets/logo-ativa.png";
 import iconFuncionarios from "@/assets/icon-rh-funcionarios.png";
 import iconTalentos from "@/assets/icon-rh-talentos.png";
@@ -157,13 +158,11 @@ const GestaoRH = () => {
         
         {/* Header */}
         <div className={`flex items-center justify-between px-4 pt-4 pb-2 ${isAnimating ? 'rh-animate-header' : ''}`}>
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity touch-target"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm">Voltar</span>
-          </button>
+          <BackButton 
+            to="/dashboard" 
+            variant="light" 
+            className="touch-target"
+          />
           <button
             onClick={handleLogout}
             className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity touch-target"
@@ -226,13 +225,10 @@ const GestaoRH = () => {
       {/* Header */}
       <div className={`flex items-center justify-between px-4 md:px-6 lg:px-8 pt-4 lg:pt-6 ${isAnimating ? 'rh-animate-header' : ''}`}>
         <div className="flex flex-col items-start">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity"
-          >
-            <ArrowLeft className="w-5 h-5 lg:w-6 lg:h-6" />
-            <span className="text-sm lg:text-lg">Voltar</span>
-          </button>
+          <BackButton 
+            to="/dashboard" 
+            variant="light"
+          />
           {/* Título */}
           <h1 
             className={`text-3xl md:text-4xl lg:text-5xl text-white mt-2 font-bold ${isAnimating ? 'rh-animate-title' : ''}`}

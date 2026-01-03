@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  ArrowLeft, Plus, Upload, Search, Filter, Grid, List, Star, 
+  Plus, Upload, Search, Filter, Grid, List, Star, 
   FileText, FolderOpen, Download, MoreVertical, Eye, Trash2, 
   Edit, Clock, Tag, ArrowUpDown, ArrowUp, ArrowDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/ui/back-button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -169,9 +170,7 @@ const Documentacoes = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/dashboard")}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
+              <BackButton to="/dashboard" />
               <div>
                 <h1 className="text-2xl font-bold text-foreground">Documentações</h1>
                 <p className="text-sm text-muted-foreground">Gestão centralizada de documentos</p>
