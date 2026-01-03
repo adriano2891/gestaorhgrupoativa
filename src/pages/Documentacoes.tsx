@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, Plus, Upload, Search, Filter, Grid, List, Star, 
   FileText, FolderOpen, Download, MoreVertical, Eye, Trash2, 
-  Edit, Clock, Tag
+  Edit, Clock, Tag, ArrowUpDown, ArrowUp, ArrowDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +40,9 @@ import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 
+type SortField = "titulo" | "created_at" | "tipo" | "arquivo_tamanho";
+type SortDirection = "asc" | "desc";
+
 const Documentacoes = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
@@ -52,7 +55,8 @@ const Documentacoes = () => {
   const [editingDocumento, setEditingDocumento] = useState<Documento | null>(null);
   const [deleteDocId, setDeleteDocId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("todos");
-
+  const [sortField, setSortField] = useState<SortField>("created_at");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const { data: documentos, isLoading } = useDocumentos({
     categoriaId: selectedCategoria,
     search: searchTerm,
@@ -63,17 +67,62 @@ const Documentacoes = () => {
   const deleteDocumento = useDeleteDocumento();
   const toggleFavorito = useToggleFavorito();
 
-  const filteredDocumentos = documentos?.filter(doc => {
-    if (activeTab === "favoritos") {
-      return favoritos?.includes(doc.id);
+  const filteredDocumentos = documentos
+    ?.filter(doc => {
+      if (activeTab === "favoritos") {
+        return favoritos?.includes(doc.id);
+      }
+      if (activeTab === "recentes") {
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return new Date(doc.created_at) > weekAgo;
+      }
+      return true;
+    })
+    ?.sort((a, b) => {
+      let comparison = 0;
+      switch (sortField) {
+        case "titulo":
+          comparison = a.titulo.localeCompare(b.titulo);
+          break;
+        case "created_at":
+          comparison = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+          break;
+        case "tipo":
+          comparison = a.tipo.localeCompare(b.tipo);
+          break;
+        case "arquivo_tamanho":
+          comparison = (a.arquivo_tamanho || 0) - (b.arquivo_tamanho || 0);
+          break;
+      }
+      return sortDirection === "asc" ? comparison : -comparison;
+    });
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
     }
-    if (activeTab === "recentes") {
-      const weekAgo = new Date();
-      weekAgo.setDate(weekAgo.getDate() - 7);
-      return new Date(doc.created_at) > weekAgo;
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) return <ArrowUpDown className="h-4 w-4 text-muted-foreground" />;
+    return sortDirection === "asc" 
+      ? <ArrowUp className="h-4 w-4 text-primary" /> 
+      : <ArrowDown className="h-4 w-4 text-primary" />;
+  };
+
+  const handleUploadDialogChange = (open: boolean) => {
+    setShowUploadDialog(open);
+    if (!open) {
+      // Após fechar o dialog de upload (upload concluído), muda para modo lista
+      setViewMode("list");
+      setSortField("created_at");
+      setSortDirection("desc");
     }
-    return true;
-  });
+  };
 
   const handleDelete = async () => {
     if (deleteDocId) {
@@ -321,6 +370,40 @@ const Documentacoes = () => {
               </div>
             ) : (
               <div className="space-y-2">
+                {/* Cabeçalho de ordenação */}
+                <div className="bg-muted/50 rounded-lg p-3 flex items-center gap-4 text-sm font-medium text-muted-foreground">
+                  <div className="w-10" /> {/* Espaço para ícone */}
+                  <button 
+                    className="flex-1 min-w-0 flex items-center gap-2 hover:text-foreground transition-colors text-left"
+                    onClick={() => handleSort("titulo")}
+                  >
+                    Nome
+                    <SortIcon field="titulo" />
+                  </button>
+                  <button 
+                    className="hidden md:flex items-center gap-2 w-28 hover:text-foreground transition-colors"
+                    onClick={() => handleSort("created_at")}
+                  >
+                    Data
+                    <SortIcon field="created_at" />
+                  </button>
+                  <button 
+                    className="hidden sm:flex items-center gap-2 w-24 hover:text-foreground transition-colors"
+                    onClick={() => handleSort("tipo")}
+                  >
+                    Tipo
+                    <SortIcon field="tipo" />
+                  </button>
+                  <button 
+                    className="hidden lg:flex items-center gap-2 w-20 hover:text-foreground transition-colors"
+                    onClick={() => handleSort("arquivo_tamanho")}
+                  >
+                    Tamanho
+                    <SortIcon field="arquivo_tamanho" />
+                  </button>
+                  <div className="w-48" /> {/* Espaço para ações */}
+                </div>
+
                 {filteredDocumentos?.map((doc) => (
                   <Card key={doc.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-3 flex items-center gap-4">
@@ -329,9 +412,20 @@ const Documentacoes = () => {
                       </div>
                       <div className="flex-1 min-w-0 cursor-pointer" onClick={() => setSelectedDocumento(doc)}>
                         <h3 className="font-medium truncate hover:text-primary transition-colors">{doc.titulo}</h3>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(doc.created_at), "dd/MM/yyyy")} • {formatFileSize(doc.arquivo_tamanho)} • {TIPO_LABELS[doc.tipo]}
+                        <p className="text-xs text-muted-foreground md:hidden">
+                          {format(new Date(doc.created_at), "dd/MM/yyyy")} • {TIPO_LABELS[doc.tipo]}
                         </p>
+                      </div>
+                      <div className="hidden md:block w-28 text-sm text-muted-foreground">
+                        {format(new Date(doc.created_at), "dd/MM/yyyy")}
+                      </div>
+                      <div className="hidden sm:block w-24">
+                        <Badge variant="secondary" className="text-xs">
+                          {TIPO_LABELS[doc.tipo]}
+                        </Badge>
+                      </div>
+                      <div className="hidden lg:block w-20 text-sm text-muted-foreground">
+                        {formatFileSize(doc.arquivo_tamanho)}
                       </div>
                       <div className="flex items-center gap-2">
                         {doc.categoria && (
@@ -402,7 +496,7 @@ const Documentacoes = () => {
       {/* Dialogs */}
       <UploadDocumentoDialog 
         open={showUploadDialog} 
-        onOpenChange={setShowUploadDialog}
+        onOpenChange={handleUploadDialogChange}
         categorias={categorias || []}
       />
       <CriarCategoriaDialog 
