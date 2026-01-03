@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,19 +7,13 @@ import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   ArrowLeft, 
-  Play, 
-  Pause,
+  Play,
   CheckCircle,
   Circle,
   ChevronDown,
   ChevronUp,
   Clock,
   BookOpen,
-  Award,
-  Volume2,
-  VolumeX,
-  Maximize,
-  Settings
 } from "lucide-react";
 import { useCurso, useProgressoAulas, useProgressoMutations } from "@/hooks/useCursos";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -28,12 +22,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { VideoPlayer } from "./VideoPlayer";
 import type { Aula } from "@/types/cursos";
 
 interface CursoPlayerProps {
@@ -47,14 +36,8 @@ export const CursoPlayer = ({ onBack }: CursoPlayerProps) => {
   const { updateProgresso } = useProgressoMutations();
 
   const [selectedAula, setSelectedAula] = useState<Aula | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
   const [expandedModulos, setExpandedModulos] = useState<Set<string>>(new Set());
-  
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [lastSavedTime, setLastSavedTime] = useState(0);
 
   // Selecionar primeira aula não concluída ao carregar
   useEffect(() => {
@@ -113,30 +96,14 @@ export const CursoPlayer = ({ onBack }: CursoPlayerProps) => {
     return totalAulas > 0 ? Math.round((aulasConcluidas / totalAulas) * 100) : 0;
   };
 
-  const handlePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current && selectedAula) {
-      const time = videoRef.current.currentTime;
-      setCurrentTime(time);
-      
-      // Salvar progresso a cada 10 segundos
-      if (Math.floor(time) % 10 === 0) {
-        updateProgresso.mutate({
-          aula_id: selectedAula.id,
-          tempo_assistido: Math.floor(time),
-          posicao_video: Math.floor(time),
-        });
-      }
+  const handleTimeUpdate = (currentTime: number, duration: number) => {
+    if (selectedAula && Math.floor(currentTime) !== lastSavedTime && Math.floor(currentTime) % 10 === 0) {
+      setLastSavedTime(Math.floor(currentTime));
+      updateProgresso.mutate({
+        aula_id: selectedAula.id,
+        tempo_assistido: Math.floor(currentTime),
+        posicao_video: Math.floor(currentTime),
+      });
     }
   };
 
@@ -146,9 +113,7 @@ export const CursoPlayer = ({ onBack }: CursoPlayerProps) => {
         aula_id: selectedAula.id,
         concluida: true,
         data_conclusao: new Date().toISOString(),
-        tempo_assistido: duration,
       });
-      setIsPlaying(false);
       
       // Avançar para próxima aula
       if (curso?.modulos) {
@@ -171,10 +136,11 @@ export const CursoPlayer = ({ onBack }: CursoPlayerProps) => {
     }
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  // Obter posição inicial do vídeo
+  const getInitialPosition = () => {
+    if (!selectedAula || !progressoAulas) return 0;
+    const progresso = progressoAulas.find(p => p.aula_id === selectedAula.id);
+    return progresso?.posicao_video || 0;
   };
 
   if (isLoading) {
@@ -238,100 +204,13 @@ export const CursoPlayer = ({ onBack }: CursoPlayerProps) => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Video Player */}
           <div className="lg:col-span-2 space-y-4">
-            {/* Player */}
-            <Card className="overflow-hidden bg-black">
-              <div className="relative aspect-video">
-                {selectedAula?.video_url ? (
-                  <video
-                    ref={videoRef}
-                    src={selectedAula.video_url}
-                    className="w-full h-full object-contain"
-                    onTimeUpdate={handleTimeUpdate}
-                    onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-                    onEnded={handleVideoEnded}
-                    onPlay={() => setIsPlaying(true)}
-                    onPause={() => setIsPlaying(false)}
-                    muted={isMuted}
-                    playsInline
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-muted">
-                    <div className="text-center">
-                      <Play className="h-16 w-16 mx-auto text-muted-foreground/50 mb-2" />
-                      <p className="text-muted-foreground">
-                        {selectedAula ? "Vídeo não disponível" : "Selecione uma aula"}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* Controles customizados */}
-                {selectedAula?.video_url && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                    {/* Barra de progresso */}
-                    <div className="mb-2">
-                      <input
-                        type="range"
-                        min={0}
-                        max={duration}
-                        value={currentTime}
-                        onChange={(e) => {
-                          const time = Number(e.target.value);
-                          if (videoRef.current) {
-                            videoRef.current.currentTime = time;
-                          }
-                          setCurrentTime(time);
-                        }}
-                        className="w-full h-1 bg-white/30 rounded-lg appearance-none cursor-pointer accent-primary"
-                      />
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <Button size="icon" variant="ghost" onClick={handlePlayPause} className="text-white hover:bg-white/20">
-                          {isPlaying ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
-                        </Button>
-                        <Button size="icon" variant="ghost" onClick={() => setIsMuted(!isMuted)} className="text-white hover:bg-white/20">
-                          {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                        </Button>
-                        <span className="text-white text-sm">
-                          {formatTime(currentTime)} / {formatTime(duration)}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button size="sm" variant="ghost" className="text-white hover:bg-white/20">
-                              <Settings className="h-4 w-4 mr-1" />
-                              {playbackSpeed}x
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            {[0.5, 0.75, 1, 1.25, 1.5, 2].map(speed => (
-                              <DropdownMenuItem
-                                key={speed}
-                                onClick={() => {
-                                  setPlaybackSpeed(speed);
-                                  if (videoRef.current) {
-                                    videoRef.current.playbackRate = speed;
-                                  }
-                                }}
-                              >
-                                {speed}x
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                        <Button size="icon" variant="ghost" className="text-white hover:bg-white/20" onClick={() => videoRef.current?.requestFullscreen()}>
-                          <Maximize className="h-5 w-5" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Card>
+            {/* Player unificado */}
+            <VideoPlayer
+              url={selectedAula?.video_url || ""}
+              onTimeUpdate={handleTimeUpdate}
+              onEnded={handleVideoEnded}
+              initialPosition={getInitialPosition()}
+            />
 
             {/* Info da aula atual */}
             {selectedAula && (
