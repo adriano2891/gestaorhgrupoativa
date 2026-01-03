@@ -41,6 +41,7 @@ import FormularioDetalhes from "./pages/FormularioDetalhes";
 import HRFlowPro from "./pages/HRFlowPro";
 import Documentacoes from "./pages/Documentacoes";
 import CursosAdmin from "./pages/CursosAdmin";
+import { PortalCursoPlayer } from "./components/ponto/PortalCursoPlayer";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,7 @@ const App = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/criar-admin" element={<CreateAdmin />} />
               <Route path="/portal-funcionario" element={<PortalFuncionario />} />
+              <Route path="/portal-funcionario/cursos/:cursoId" element={<PortalCursoPlayer />} />
               <Route path="/public/:publicId" element={<OrcamentosPublic />} />
               <Route
                 path="/"
