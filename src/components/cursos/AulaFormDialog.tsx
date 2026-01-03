@@ -347,6 +347,9 @@ export const AulaFormDialog = ({
               <div className="space-y-3">
                 <Label>Arquivo de Vídeo</Label>
                 <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
+                  <p className="text-xs text-muted-foreground mb-2">
+                    ⚠️ Use vídeos em <strong>H.264 (AVC)</strong>. Vídeos H.265 (HEVC) não são suportados pelos navegadores.
+                  </p>
                   <input
                     type="file"
                     accept="video/mp4,video/webm,video/quicktime"

@@ -181,7 +181,10 @@ const DirectVideoPlayer = ({
           setErrorMessage("Erro ao decodificar o vídeo");
           break;
         case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-          setErrorMessage("Formato de vídeo não suportado. Para MP4, use codificação H.264 (vídeo) + AAC (áudio). ");
+          setErrorMessage(
+            "Formato não suportado. Seu vídeo pode estar em H.265 (HEVC). " +
+            "Converta para H.264 (AVC) usando HandBrake, VLC ou Adobe Media Encoder."
+          );
           break;
         default:
           setErrorMessage("Erro ao carregar o vídeo");
