@@ -18,6 +18,7 @@ import iconHolerites from "@/assets/icon-rh-holerites.png";
 import iconComunicados from "@/assets/icon-rh-comunicados.png";
 import iconAdmins from "@/assets/icon-rh-admins.png";
 import iconFormularios from "@/assets/icon-rh-formularios.png";
+import iconCursos from "@/assets/icon-rh-cursos.png";
 
 interface ModuleItem {
   title: string;
@@ -56,7 +57,7 @@ const GestaoRH = () => {
     { title: "Holerites", description: "Gestão de pagamentos", iconSrc: iconHolerites, path: "/holerites", scaleIcon: true },
     { title: "Comunicados", description: "Avisos e notificações internas", iconSrc: iconComunicados, path: "/comunicados", scaleIcon: true },
     { title: "HRFlow Pro", description: "Gestão de Formulários", iconSrc: iconFormularios, path: "/hrflow-pro", scaleIcon: true },
-    { title: "Cursos", description: "Treinamentos corporativos", iconSrc: iconTalentos, path: "/cursos", scaleIcon: true },
+    { title: "Cursos", description: "Treinamentos corporativos", iconSrc: iconCursos, path: "/cursos", scaleIcon: true },
   ];
 
   if (isAdmin) {
