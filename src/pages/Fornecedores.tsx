@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Building2, Phone, Mail, MoreHorizontal, Pencil, Trash2, Eye, ArrowLeft } from 'lucide-react';
+import { Plus, Search, Building2, Phone, Mail, MoreHorizontal, Pencil, Trash2, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { BackButton } from "@/components/ui/back-button";
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -43,9 +44,7 @@ export default function Fornecedores() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#3EE0CF] rounded-xl p-4 shadow-md">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/dashboard')} className="text-black hover:bg-black/10">
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <BackButton to="/dashboard" variant="light" className="text-black hover:bg-black/10" />
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-black">Fornecedores</h1>
               <p className="text-black/70 text-sm">Gerencie seus fornecedores e produtos</p>
