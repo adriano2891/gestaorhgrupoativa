@@ -56,6 +56,7 @@ const GestaoRH = () => {
     { title: "Holerites", description: "Gestão de pagamentos", iconSrc: iconHolerites, path: "/holerites", scaleIcon: true },
     { title: "Comunicados", description: "Avisos e notificações internas", iconSrc: iconComunicados, path: "/comunicados", scaleIcon: true },
     { title: "HRFlow Pro", description: "Gestão de Formulários", iconSrc: iconFormularios, path: "/hrflow-pro", scaleIcon: true },
+    { title: "Cursos", description: "Treinamentos corporativos", iconSrc: iconTalentos, path: "/cursos", scaleIcon: true },
   ];
 
   if (isAdmin) {

@@ -9,6 +9,7 @@ import { PortalComunicados } from "@/components/ponto/PortalComunicados";
 import { PortalPerfil } from "@/components/ponto/PortalPerfil";
 import { PortalBeneficios } from "@/components/ponto/PortalBeneficios";
 import { PortalTreinamentos } from "@/components/ponto/PortalTreinamentos";
+import { PortalCursos } from "@/components/ponto/PortalCursos";
 import { PortalSuporte } from "@/components/ponto/PortalSuporte";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHoleritesRealtime, useComunicadosRealtime, useFeriasRealtime } from "@/hooks/useRealtimeUpdates";
@@ -65,6 +66,8 @@ const PortalContent = () => {
       return <PortalBeneficios onBack={handleBack} />;
     case "treinamentos":
       return <PortalTreinamentos onBack={handleBack} />;
+    case "cursos":
+      return <PortalCursos onBack={handleBack} />;
     case "suporte":
       return <PortalSuporte onBack={handleBack} />;
     default:
