@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Upload as UploadIcon, RefreshCw } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import { useFuncionariosRealtime, useHoleritesRealtime } from "@/hooks/useRealtimeUpdates";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -174,6 +175,8 @@ const Holerites = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <BackButton to="/gestao-rh" variant="light" />
+      
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary-foreground">Holerites (Visão ADM)</h1>

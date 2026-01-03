@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bell, Plus, Trash2, Eye, EyeOff } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useComunicadosRealtime } from "@/hooks/useRealtimeUpdates";
@@ -137,6 +138,8 @@ const Comunicados = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <BackButton to="/gestao-rh" variant="light" />
+      
       <Card>
         <CardHeader className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Calendar, Clock, Download, Filter, AlertTriangle, CheckCircle, XCircle, FileText, Eye, FileSpreadsheet, Pencil } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import { usePontoRealtime, useFuncionariosRealtime } from "@/hooks/useRealtimeUpdates";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import jsPDF from "jspdf";
@@ -439,6 +440,8 @@ const FolhaPonto = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
+      <BackButton to="/gestao-rh" variant="light" />
+      
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
