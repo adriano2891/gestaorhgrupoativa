@@ -17,12 +17,12 @@ import {
   GripVertical,
   Video,
   Trash2,
-  Edit,
-  Save,
-  X,
-  Upload,
   Clock,
-  BookOpen
+  BookOpen,
+  Youtube,
+  HardDrive,
+  Link,
+  Upload
 } from "lucide-react";
 import { useCurso, useModuloMutations, useAulaMutations } from "@/hooks/useCursos";
 import { NIVEL_LABELS, STATUS_LABELS } from "@/types/cursos";
@@ -32,7 +32,8 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import type { ModuloCurso, Aula } from "@/types/cursos";
+import { AulaFormDialog } from "./AulaFormDialog";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CursoDetalhesDialogProps {
   open: boolean;
@@ -40,16 +41,27 @@ interface CursoDetalhesDialogProps {
   cursoId: string;
 }
 
+// Detectar fonte do vídeo para exibir ícone
+const getVideoSourceIcon = (url: string | null) => {
+  if (!url) return null;
+  if (url.includes("youtube.com")) return Youtube;
+  if (url.includes("drive.google.com")) return HardDrive;
+  if (url.includes("supabase")) return Upload;
+  return Link;
+};
+
 export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalhesDialogProps) => {
+  const queryClient = useQueryClient();
   const { data: curso, isLoading } = useCurso(cursoId);
   const { createModulo, deleteModulo } = useModuloMutations();
-  const { createAula, deleteAula } = useAulaMutations();
+  const { deleteAula } = useAulaMutations();
 
   const [expandedModulos, setExpandedModulos] = useState<Set<string>>(new Set());
   const [novoModulo, setNovoModulo] = useState({ titulo: "", descricao: "" });
   const [showNovoModulo, setShowNovoModulo] = useState(false);
-  const [novaAulaModulo, setNovaAulaModulo] = useState<string | null>(null);
-  const [novaAula, setNovaAula] = useState({ titulo: "", descricao: "", duracao: 0 });
+  const [aulaFormOpen, setAulaFormOpen] = useState(false);
+  const [selectedModuloId, setSelectedModuloId] = useState<string | null>(null);
+  const [selectedModuloOrdem, setSelectedModuloOrdem] = useState(1);
 
   const toggleModulo = (id: string) => {
     setExpandedModulos(prev => {
@@ -77,21 +89,15 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
     setShowNovoModulo(false);
   };
 
-  const handleCreateAula = async (moduloId: string) => {
-    if (!novaAula.titulo.trim()) return;
-    
+  const handleOpenAulaForm = (moduloId: string) => {
     const modulo = curso?.modulos?.find(m => m.id === moduloId);
-    
-    await createAula.mutateAsync({
-      modulo_id: moduloId,
-      titulo: novaAula.titulo,
-      descricao: novaAula.descricao,
-      duracao: novaAula.duracao * 60, // converter para segundos
-      ordem: (modulo?.aulas?.length || 0) + 1,
-    });
-    
-    setNovaAula({ titulo: "", descricao: "", duracao: 0 });
-    setNovaAulaModulo(null);
+    setSelectedModuloId(moduloId);
+    setSelectedModuloOrdem((modulo?.aulas?.length || 0) + 1);
+    setAulaFormOpen(true);
+  };
+
+  const handleAulaCreated = () => {
+    queryClient.invalidateQueries({ queryKey: ["curso", cursoId] });
   };
 
   const formatDuration = (seconds: number) => {
@@ -170,11 +176,9 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
                 />
                 <div className="flex justify-end gap-2">
                   <Button size="sm" variant="ghost" onClick={() => setShowNovoModulo(false)}>
-                    <X className="h-4 w-4 mr-1" />
                     Cancelar
                   </Button>
                   <Button size="sm" onClick={handleCreateModulo} disabled={createModulo.isPending}>
-                    <Save className="h-4 w-4 mr-1" />
                     Salvar
                   </Button>
                 </div>
@@ -235,85 +239,62 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
                         <div className="space-y-2 ml-10">
                           {/* Aulas do módulo */}
                           {modulo.aulas && modulo.aulas.length > 0 ? (
-                            modulo.aulas.map((aula, aulaIndex) => (
-                              <div
-                                key={aula.id}
-                                className="flex items-center justify-between p-3 bg-muted/30 rounded-lg group"
-                              >
-                                <div className="flex items-center gap-3">
-                                  <Video className="h-4 w-4 text-primary" />
-                                  <div>
-                                    <p className="font-medium text-sm">{aula.titulo}</p>
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                      <span>{formatDuration(aula.duracao)}</span>
+                            modulo.aulas.map((aula) => {
+                              const SourceIcon = getVideoSourceIcon(aula.video_url);
+                              
+                              return (
+                                <div
+                                  key={aula.id}
+                                  className="flex items-center justify-between p-3 bg-muted/30 rounded-lg group"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {SourceIcon ? (
+                                      <SourceIcon className="h-4 w-4 text-primary" />
+                                    ) : (
+                                      <Video className="h-4 w-4 text-muted-foreground" />
+                                    )}
+                                    <div>
+                                      <p className="font-medium text-sm">{aula.titulo}</p>
+                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        <Clock className="h-3 w-3" />
+                                        <span>{formatDuration(aula.duracao)}</span>
+                                        {aula.video_url && (
+                                          <Badge variant="outline" className="text-xs px-1.5 py-0">
+                                            {aula.video_url.includes("youtube") ? "YouTube" : 
+                                             aula.video_url.includes("drive.google") ? "Drive" :
+                                             aula.video_url.includes("supabase") ? "Upload" : "Link"}
+                                          </Badge>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
+                                  <Button 
+                                    size="icon" 
+                                    variant="ghost"
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                    onClick={() => deleteAula.mutate(aula.id)}
+                                  >
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
                                 </div>
-                                <Button 
-                                  size="icon" 
-                                  variant="ghost"
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                  onClick={() => deleteAula.mutate(aula.id)}
-                                >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                              </div>
-                            ))
+                              );
+                            })
                           ) : (
                             <p className="text-sm text-muted-foreground py-2">
                               Nenhuma aula cadastrada
                             </p>
                           )}
 
-                          {/* Form para nova aula */}
-                          {novaAulaModulo === modulo.id ? (
-                            <div className="p-3 border border-dashed rounded-lg space-y-2">
-                              <Input
-                                placeholder="Título da aula"
-                                value={novaAula.titulo}
-                                onChange={(e) => setNovaAula(prev => ({ ...prev, titulo: e.target.value }))}
-                              />
-                              <div className="flex gap-2">
-                                <Input
-                                  type="number"
-                                  placeholder="Duração (min)"
-                                  min={0}
-                                  value={novaAula.duracao || ""}
-                                  onChange={(e) => setNovaAula(prev => ({ ...prev, duracao: Number(e.target.value) }))}
-                                  className="w-32"
-                                />
-                                <Textarea
-                                  placeholder="Descrição (opcional)"
-                                  rows={1}
-                                  value={novaAula.descricao}
-                                  onChange={(e) => setNovaAula(prev => ({ ...prev, descricao: e.target.value }))}
-                                  className="flex-1"
-                                />
-                              </div>
-                              <div className="flex justify-end gap-2">
-                                <Button size="sm" variant="ghost" onClick={() => setNovaAulaModulo(null)}>
-                                  Cancelar
-                                </Button>
-                                <Button 
-                                  size="sm" 
-                                  onClick={() => handleCreateAula(modulo.id)}
-                                  disabled={createAula.isPending}
-                                >
-                                  Adicionar Aula
-                                </Button>
-                              </div>
-                            </div>
-                          ) : (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="w-full border border-dashed"
-                              onClick={() => setNovaAulaModulo(modulo.id)}
-                            >
-                              <Plus className="h-4 w-4 mr-1" />
-                              Adicionar Aula
-                            </Button>
-                          )}
+                          {/* Botão para nova aula */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full border border-dashed"
+                            onClick={() => handleOpenAulaForm(modulo.id)}
+                          >
+                            <Plus className="h-4 w-4 mr-1" />
+                            Adicionar Aula
+                          </Button>
                         </div>
                       </CardContent>
                     </CollapsibleContent>
@@ -332,6 +313,17 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
             </Card>
           )}
         </div>
+
+        {/* Dialog para criar aula */}
+        {selectedModuloId && (
+          <AulaFormDialog
+            open={aulaFormOpen}
+            onOpenChange={setAulaFormOpen}
+            moduloId={selectedModuloId}
+            ordem={selectedModuloOrdem}
+            onSuccess={handleAulaCreated}
+          />
+        )}
       </DialogContent>
     </Dialog>
   );
