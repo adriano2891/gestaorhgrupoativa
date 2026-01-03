@@ -40,6 +40,7 @@ import FormulariosRH from "./pages/FormulariosRH";
 import FormularioDetalhes from "./pages/FormularioDetalhes";
 import HRFlowPro from "./pages/HRFlowPro";
 import Documentacoes from "./pages/Documentacoes";
+import CursosAdmin from "./pages/CursosAdmin";
 
 const queryClient = new QueryClient();
 
@@ -318,6 +319,15 @@ const App = () => {
                     <Layout>
                       <Documentacoes />
                     </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              {/* Cursos Admin Route */}
+              <Route
+                path="/cursos"
+                element={
+                  <ProtectedRoute>
+                    <CursosAdmin />
                   </ProtectedRoute>
                 }
               />
