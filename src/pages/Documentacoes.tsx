@@ -139,8 +139,20 @@ const Documentacoes = () => {
   };
 
   const handleDownload = (doc: Documento) => {
-    window.open(doc.arquivo_url, '_blank');
+    // Força download criando um link com atributo download
+    const link = document.createElement('a');
+    link.href = doc.arquivo_url;
+    link.download = doc.arquivo_nome;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
     toast({ title: "Download iniciado", description: doc.arquivo_nome });
+  };
+
+  const handlePreview = (doc: Documento) => {
+    // Abre o arquivo em nova aba para visualização (sem download)
+    window.open(doc.arquivo_url, '_blank', 'noopener,noreferrer');
   };
 
   const formatFileSize = (bytes: number | null) => {
@@ -441,7 +453,7 @@ const Documentacoes = () => {
                           variant="outline"
                           size="sm"
                           className="h-8 gap-1.5"
-                          onClick={() => setSelectedDocumento(doc)}
+                          onClick={() => handlePreview(doc)}
                         >
                           <Eye className="h-4 w-4" />
                           Ver
