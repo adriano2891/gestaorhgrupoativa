@@ -126,8 +126,14 @@ export const AulaFormDialog = ({
   }, [open]);
 
   const handleFileUpload = async (file: File) => {
-    if (!file.type.startsWith("video/")) {
-      toast.error("Por favor, selecione um arquivo de vídeo válido");
+    const fileExt = (file.name.split(".").pop() || "").toLowerCase();
+
+    // Aceitar apenas formatos comuns (prioridade para MP4)
+    const allowedExts = ["mp4", "webm", "mov"];
+    const isVideoMime = file.type.startsWith("video/");
+
+    if (!isVideoMime && !allowedExts.includes(fileExt)) {
+      toast.error("Por favor, selecione um arquivo de vídeo válido (MP4, WebM, MOV)");
       return;
     }
 
@@ -142,38 +148,45 @@ export const AulaFormDialog = ({
 
     try {
       // Verificar se o usuário está autenticado
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         toast.error("Você precisa estar logado para fazer upload de vídeos");
         setIsUploading(false);
         return;
       }
 
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+      const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt || "mp4"}`;
       const filePath = `videos/${fileName}`;
+
+      // Garantir Content-Type correto (essencial para o navegador tocar MP4)
+      const contentType = file.type || (fileExt === "mp4" ? "video/mp4" : undefined);
 
       const { error: uploadError } = await supabase.storage
         .from("cursos")
         .upload(filePath, file, {
           cacheControl: "3600",
           upsert: false,
+          contentType,
         });
 
       if (uploadError) {
         if (uploadError.message.includes("row-level security") || uploadError.message.includes("policy")) {
-          toast.error("Você não tem permissão para fazer upload de vídeos. Apenas administradores e RH podem realizar esta ação.");
+          toast.error(
+            "Você não tem permissão para fazer upload de vídeos. Apenas administradores e RH podem realizar esta ação."
+          );
         } else {
           toast.error("Erro ao enviar vídeo: " + uploadError.message);
         }
         throw uploadError;
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("cursos")
-        .getPublicUrl(filePath);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("cursos").getPublicUrl(filePath);
 
-      setFormData(prev => ({ ...prev, video_url: publicUrl }));
+      setFormData((prev) => ({ ...prev, video_url: publicUrl }));
       setUploadProgress(100);
       toast.success("Vídeo enviado com sucesso!");
     } catch (error: any) {
@@ -336,7 +349,7 @@ export const AulaFormDialog = ({
                 <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
                   <input
                     type="file"
-                    accept="video/*"
+                    accept="video/mp4,video/webm,video/quicktime"
                     className="hidden"
                     id="video-upload"
                     onChange={(e) => {

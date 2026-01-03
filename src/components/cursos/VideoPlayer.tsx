@@ -181,7 +181,7 @@ const DirectVideoPlayer = ({
           setErrorMessage("Erro ao decodificar o vídeo");
           break;
         case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-          setErrorMessage("Formato de vídeo não suportado");
+          setErrorMessage("Formato de vídeo não suportado. Para MP4, use codificação H.264 (vídeo) + AAC (áudio). ");
           break;
         default:
           setErrorMessage("Erro ao carregar o vídeo");
@@ -206,7 +206,6 @@ const DirectVideoPlayer = ({
     >
       <video
         ref={videoRef}
-        src={url}
         className="w-full h-full object-contain"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={(e) => {
@@ -233,7 +232,11 @@ const DirectVideoPlayer = ({
         controlsList="nodownload noremoteplayback"
         disablePictureInPicture
         onContextMenu={(e) => e.preventDefault()}
-      />
+      >
+        {/* Ajuda o navegador a identificar MP4 mesmo quando o servidor não envia o Content-Type ideal */}
+        <source src={url} type="video/mp4" />
+        <source src={url} />
+      </video>
 
       {/* Error overlay */}
       {hasError && (
