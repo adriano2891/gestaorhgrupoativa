@@ -18,7 +18,7 @@ import {
   BarChart3,
   Filter
 } from "lucide-react";
-import { useCursos, useCursosStats, useCategoriasCurso } from "@/hooks/useCursos";
+import { useCursos, useCursosStats, useCategoriasCurso, useCursoMutations } from "@/hooks/useCursos";
 import { CursoCard } from "@/components/cursos/CursoCard";
 import { CursoFormDialog } from "@/components/cursos/CursoFormDialog";
 import { CursoDetalhesDialog } from "@/components/cursos/CursoDetalhesDialog";
@@ -39,6 +39,11 @@ const CursosAdmin = () => {
   const { data: cursos, isLoading } = useCursos();
   const { data: stats } = useCursosStats();
   const { data: categorias } = useCategoriasCurso();
+  const { deleteCurso } = useCursoMutations();
+
+  const handleDeleteCurso = (cursoId: string) => {
+    deleteCurso.mutate(cursoId);
+  };
 
   const filteredCursos = cursos?.filter(curso => {
     const matchesSearch = curso.titulo.toLowerCase().includes(search.toLowerCase()) ||
@@ -198,6 +203,7 @@ const CursosAdmin = () => {
                 onView={() => setCursoDetalhes(curso)}
                 onEdit={() => setCursoEditar(curso)}
                 onViewMatriculas={() => setCursoMatriculas(curso)}
+                onDelete={() => handleDeleteCurso(curso.id)}
               />
             ))}
           </div>
