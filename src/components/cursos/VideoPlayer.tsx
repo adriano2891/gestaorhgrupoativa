@@ -131,7 +131,28 @@ const DirectVideoPlayer = ({
   const [hasError, setHasError] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [showControls, setShowControls] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const maxRetries = 3;
+
+  // Adicionar cache-busting e validação de URL
+  const getOptimizedUrl = useCallback((originalUrl: string): string => {
+    if (!originalUrl) return '';
+    
+    try {
+      const urlObj = new URL(originalUrl);
+      
+      // Adicionar timestamp para evitar cache problemático
+      urlObj.searchParams.set('t', Date.now().toString());
+      
+      return urlObj.toString();
+    } catch {
+      // Se não for URL válida, retornar original
+      return originalUrl;
+    }
+  }, []);
+
+  const [optimizedUrl, setOptimizedUrl] = useState(() => getOptimizedUrl(url));
 
   useEffect(() => {
     // Reset states quando URL muda
@@ -141,13 +162,33 @@ const DirectVideoPlayer = ({
     setIsPlaying(false);
     setCurrentTime(0);
     setDuration(0);
-  }, [url]);
+    setRetryCount(0);
+    setOptimizedUrl(getOptimizedUrl(url));
+  }, [url, getOptimizedUrl]);
 
   useEffect(() => {
     if (videoRef.current && initialPosition && !isLoading) {
       videoRef.current.currentTime = initialPosition;
     }
   }, [initialPosition, isLoading]);
+
+  // Auto-retry com delay progressivo
+  useEffect(() => {
+    if (hasError && retryCount < maxRetries && retryCount > 0) {
+      const retryDelay = Math.min(1000 * Math.pow(2, retryCount - 1), 5000);
+      const timer = setTimeout(() => {
+        console.log(`Tentativa ${retryCount + 1} de ${maxRetries}...`);
+        setHasError(false);
+        setIsLoading(true);
+        setOptimizedUrl(getOptimizedUrl(url));
+        if (videoRef.current) {
+          videoRef.current.load();
+        }
+      }, retryDelay);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [hasError, retryCount, url, getOptimizedUrl]);
 
   const hideControlsAfterDelay = useCallback(() => {
     if (controlsTimeoutRef.current) {
@@ -207,6 +248,8 @@ const DirectVideoPlayer = ({
     setHasError(false);
     setErrorMessage("");
     setIsLoading(true);
+    setRetryCount(0);
+    setOptimizedUrl(getOptimizedUrl(url));
     if (videoRef.current) {
       videoRef.current.load();
     }
@@ -216,7 +259,14 @@ const DirectVideoPlayer = ({
     const video = e.currentTarget;
     const error = video.error;
     
-    console.error("Erro no vídeo:", error, "URL:", url);
+    console.error("Erro no vídeo:", error, "URL:", url, "Tentativa:", retryCount + 1);
+    
+    // Tentar novamente automaticamente
+    if (retryCount < maxRetries) {
+      setRetryCount(prev => prev + 1);
+      return;
+    }
+    
     setIsLoading(false);
     setHasError(true);
     
@@ -239,7 +289,7 @@ const DirectVideoPlayer = ({
           setErrorMessage("O carregamento do vídeo foi interrompido");
           break;
         case MediaError.MEDIA_ERR_NETWORK:
-          setErrorMessage("Erro de rede ao carregar o vídeo. Verifique sua conexão.");
+          setErrorMessage("Erro de rede ao carregar o vídeo. Verifique sua conexão e se o arquivo existe no storage.");
           break;
         case MediaError.MEDIA_ERR_DECODE:
           if (isMov) {
@@ -288,10 +338,10 @@ const DirectVideoPlayer = ({
           }
           break;
         default:
-          setErrorMessage("Erro ao carregar o vídeo. Verifique se o arquivo é válido.");
+          setErrorMessage("Erro ao carregar o vídeo. Verifique se o arquivo existe e é válido.");
       }
     } else {
-      setErrorMessage("Erro ao carregar o vídeo");
+      setErrorMessage("Erro ao carregar o vídeo. Verifique se a URL está correta.");
     }
   };
 
@@ -314,13 +364,14 @@ const DirectVideoPlayer = ({
     >
       <video
         ref={videoRef}
-        src={url}
+        src={optimizedUrl}
         className="w-full h-full object-contain"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={(e) => {
           setDuration(e.currentTarget.duration);
           setIsLoading(false);
           setHasError(false);
+          setRetryCount(0);
         }}
         onLoadedData={() => {
           setIsLoading(false);
@@ -332,11 +383,19 @@ const DirectVideoPlayer = ({
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onWaiting={() => setIsLoading(true)}
-        onCanPlay={() => setIsLoading(false)}
+        onCanPlay={() => {
+          setIsLoading(false);
+          setHasError(false);
+        }}
+        onCanPlayThrough={() => {
+          setIsLoading(false);
+          setHasError(false);
+        }}
         onError={handleError}
         muted={isMuted}
         playsInline
-        preload="auto"
+        preload="metadata"
+        crossOrigin="anonymous"
         controlsList="nodownload noremoteplayback"
         disablePictureInPicture
         onContextMenu={(e) => e.preventDefault()}
