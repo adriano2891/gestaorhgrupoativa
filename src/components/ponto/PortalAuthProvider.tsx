@@ -9,6 +9,7 @@ interface Profile {
   cpf: string | null;
   departamento: string | null;
   cargo: string | null;
+  data_nascimento: string | null;
 }
 
 interface PortalAuthContextType {

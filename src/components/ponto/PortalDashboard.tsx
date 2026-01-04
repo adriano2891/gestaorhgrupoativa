@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogOut, Clock, FileText, Calendar, Bell, User, Gift, GraduationCap, MessageCircle } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { toast } from "sonner";
+import { BirthdayPopup } from "./BirthdayPopup";
 
 interface PortalDashboardProps {
   onNavigate: (section: string) => void;
@@ -99,6 +100,14 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/50">
+      {/* Pop-up de Aniversário */}
+      {profile && (
+        <BirthdayPopup 
+          nome={profile.nome} 
+          dataNascimento={profile.data_nascimento} 
+        />
+      )}
+      
       {/* Cabeçalho */}
       <header className="bg-card border-b shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
