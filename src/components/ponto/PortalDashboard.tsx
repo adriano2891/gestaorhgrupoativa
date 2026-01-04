@@ -130,12 +130,27 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Bem-vindo */}
-          <div className="mb-8">
+          <div className="mb-6">
             <h1 className="text-3xl font-bold text-foreground mb-2">Portal do Funcionário</h1>
             <p className="text-muted-foreground">
               Acesse rapidamente as funcionalidades disponíveis para você
             </p>
           </div>
+
+          {/* Card de Boas-vindas */}
+          <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
+            <CardContent className="pt-6">
+              <div className="flex items-start gap-3">
+                <Bell className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="font-medium text-foreground">Bem-vindo ao Portal!</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Use os cards abaixo para navegar pelas funcionalidades disponíveis.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Grid de Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -155,21 +170,6 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
               </Card>
             ))}
           </div>
-
-          {/* Notificações/Alertas (se houver) */}
-          <Card className="mt-8 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <Bell className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="font-medium text-foreground">Bem-vindo ao Portal!</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Use os cards acima para navegar pelas funcionalidades disponíveis.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </main>
     </div>
