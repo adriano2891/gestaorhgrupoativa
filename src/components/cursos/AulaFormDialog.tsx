@@ -42,7 +42,7 @@ interface AulaFormData {
   video_source: VideoSourceType;
 }
 
-// Função para converter URL do YouTube para embed
+// Função para converter URL do YouTube para embed com branding mínimo
 const getYouTubeEmbedUrl = (url: string): string | null => {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/,
@@ -52,8 +52,18 @@ const getYouTubeEmbedUrl = (url: string): string | null => {
   for (const pattern of patterns) {
     const match = url.match(pattern);
     if (match && match[1]) {
-      // Embed sem controles extras do YouTube
-      return `https://www.youtube.com/embed/${match[1]}?rel=0&modestbranding=1&showinfo=0&controls=1&disablekb=0&fs=1&iv_load_policy=3`;
+      // Parâmetros para ocultar branding do YouTube ao máximo permitido:
+      // - modestbranding=1: minimiza logo do YouTube
+      // - rel=0: não mostra vídeos relacionados
+      // - showinfo=0: oculta título (deprecated mas ainda funciona em alguns casos)
+      // - controls=0: oculta barra de controles
+      // - iv_load_policy=3: oculta anotações
+      // - fs=0: oculta botão fullscreen (que mostra logo)
+      // - disablekb=1: desabilita controles de teclado
+      // - cc_load_policy=0: não carrega legendas automaticamente
+      // - playsinline=1: reproduz inline no mobile
+      // Usando youtube-nocookie.com para maior privacidade
+      return `https://www.youtube-nocookie.com/embed/${match[1]}?modestbranding=1&rel=0&showinfo=0&controls=0&iv_load_policy=3&fs=0&disablekb=1&cc_load_policy=0&playsinline=1`;
     }
   }
   return null;

@@ -44,10 +44,19 @@ const detectVideoSource = (url: string): VideoSourceType => {
 // Converter URLs para formato de embed quando necessário
 const getEmbedUrl = (url: string, sourceType: VideoSourceType): string | null => {
   if (sourceType === "youtube") {
-    // Converter youtube.com/watch?v=ID para youtube.com/embed/ID
+    // Converter youtube.com/watch?v=ID para embed com branding mínimo
     const videoIdMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&\s?]+)/);
     if (videoIdMatch) {
-      return `https://www.youtube.com/embed/${videoIdMatch[1]}`;
+      // Parâmetros para ocultar identificação da plataforma:
+      // - modestbranding=1: minimiza logo do YouTube
+      // - rel=0: não mostra vídeos relacionados
+      // - showinfo=0: oculta título
+      // - controls=0: oculta barra de controles
+      // - iv_load_policy=3: oculta anotações
+      // - fs=0: oculta botão fullscreen
+      // - disablekb=1: desabilita atalhos de teclado
+      // Usando youtube-nocookie.com para maior privacidade
+      return `https://www.youtube-nocookie.com/embed/${videoIdMatch[1]}?modestbranding=1&rel=0&showinfo=0&controls=0&iv_load_policy=3&fs=0&disablekb=1&cc_load_policy=0&playsinline=1`;
     }
   }
   
