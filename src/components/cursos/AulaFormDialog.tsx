@@ -25,7 +25,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type VideoSourceType = "upload" | "youtube" | "drive" | "drive_pdf" | "link";
+type VideoSourceType = "upload" | "youtube" | "drive" | "drive_pdf" | "link" | "link_pdf";
 
 interface AulaFormDialogProps {
   open: boolean;
@@ -106,8 +106,42 @@ const getGoogleDriveEmbedUrl = (url: string, isPdf: boolean = false): { embedUrl
   };
 };
 
+// Função para validar URL de PDF externa
+const validateExternalPdfUrl = (url: string): { url: string | null; error: string | null } => {
+  const trimmedUrl = url.trim();
+  
+  // Verificar se é uma URL válida
+  try {
+    new URL(trimmedUrl);
+  } catch {
+    return { url: null, error: "URL inválida. Insira uma URL completa começando com https://" };
+  }
+  
+  // Verificar se começa com https (segurança)
+  if (!trimmedUrl.startsWith('https://')) {
+    return { url: null, error: "Por segurança, use apenas links HTTPS." };
+  }
+  
+  // Verificar se parece ser um PDF
+  const lowerUrl = trimmedUrl.toLowerCase();
+  const isPdf = lowerUrl.includes('.pdf') || 
+                lowerUrl.includes('type=pdf') || 
+                lowerUrl.includes('format=pdf') ||
+                lowerUrl.includes('/pdf/') ||
+                lowerUrl.includes('mimetype=application/pdf');
+  
+  if (!isPdf) {
+    return { 
+      url: trimmedUrl, 
+      error: "⚠️ A URL não parece ser de um PDF. Confirme se o link está correto." 
+    };
+  }
+  
+  return { url: trimmedUrl, error: null };
+};
+
 // Função para processar URL genérica de vídeo
-const processVideoUrl = (url: string, source: VideoSourceType): { url: string | null; error: string | null } => {
+const processVideoUrl = (url: string, source: VideoSourceType): { url: string | null; error: string | null; warning?: boolean } => {
   if (!url.trim()) return { url: null, error: null };
   
   switch (source) {
@@ -120,6 +154,13 @@ const processVideoUrl = (url: string, source: VideoSourceType): { url: string | 
     case "drive_pdf":
       const pdfResult = getGoogleDriveEmbedUrl(url, true);
       return { url: pdfResult.embedUrl, error: pdfResult.error };
+    case "link_pdf":
+      const externalPdfResult = validateExternalPdfUrl(url);
+      return { 
+        url: externalPdfResult.url, 
+        error: externalPdfResult.error?.startsWith("⚠️") ? null : externalPdfResult.error,
+        warning: externalPdfResult.error?.startsWith("⚠️")
+      };
     case "link":
     case "upload":
       return { url, error: null };
@@ -300,7 +341,8 @@ export const AulaFormDialog = ({
     { value: "youtube", label: "YouTube", icon: Youtube, description: "Cole o link de um vídeo do YouTube" },
     { value: "drive", label: "Vídeo Google Drive", icon: HardDrive, description: "Cole o link de um vídeo do Drive" },
     { value: "drive_pdf", label: "PDF Google Drive", icon: FileText, description: "Cole o link de um PDF do Drive" },
-    { value: "link", label: "Outro Link", icon: Link, description: "Cole um link direto para o vídeo" },
+    { value: "link", label: "Link de Vídeo", icon: Link, description: "Cole um link direto para vídeo" },
+    { value: "link_pdf", label: "Link de PDF", icon: FileText, description: "Cole um link direto para PDF" },
   ];
 
   return (
@@ -497,7 +539,7 @@ export const AulaFormDialog = ({
                 <Label htmlFor="other-url">Link do Vídeo</Label>
                 <Input
                   id="other-url"
-                  placeholder="https://..."
+                  placeholder="https://exemplo.com/video.mp4"
                   value={rawUrl}
                   onChange={(e) => {
                     setRawUrl(e.target.value);
@@ -509,14 +551,37 @@ export const AulaFormDialog = ({
                 </p>
               </div>
             )}
+
+            {formData.video_source === "link_pdf" && (
+              <div className="space-y-2">
+                <Label htmlFor="pdf-url">Link do PDF</Label>
+                <Input
+                  id="pdf-url"
+                  placeholder="https://exemplo.com/documento.pdf"
+                  value={rawUrl}
+                  onChange={(e) => handleUrlChange(e.target.value)}
+                />
+                {rawUrl && urlError && (
+                  <p className="text-xs text-destructive">{urlError}</p>
+                )}
+                {rawUrl && !urlError && formData.video_url && (
+                  <p className="text-xs text-green-600">✓ Link válido</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Cole um link direto para o arquivo PDF. O link deve ser HTTPS e acessível publicamente.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Preview do conteúdo */}
           {formData.video_url && (
             <div className="space-y-2">
               <Label>Prévia</Label>
-              <div className={`rounded-lg overflow-hidden bg-black border ${
-                formData.video_source === "drive_pdf" ? "aspect-[3/4] min-h-[400px]" : "aspect-video"
+              <div className={`rounded-lg overflow-hidden border ${
+                formData.video_source === "drive_pdf" || formData.video_source === "link_pdf" 
+                  ? "aspect-[3/4] min-h-[400px] bg-white" 
+                  : "aspect-video bg-black"
               }`}>
                 {formData.video_source === "youtube" || formData.video_source === "drive" || formData.video_source === "drive_pdf" ? (
                   <iframe
@@ -524,6 +589,13 @@ export const AulaFormDialog = ({
                     className="w-full h-full"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
+                    style={{ border: 0 }}
+                  />
+                ) : formData.video_source === "link_pdf" ? (
+                  <iframe
+                    src={formData.video_url}
+                    className="w-full h-full"
+                    title="Preview PDF"
                     style={{ border: 0 }}
                   />
                 ) : (
