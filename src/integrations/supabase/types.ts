@@ -1912,6 +1912,7 @@ export type Database = {
           cargo: string | null
           cpf: string | null
           created_at: string | null
+          data_nascimento: string | null
           departamento: string | null
           email: string
           id: string
@@ -1926,6 +1927,7 @@ export type Database = {
           cargo?: string | null
           cpf?: string | null
           created_at?: string | null
+          data_nascimento?: string | null
           departamento?: string | null
           email: string
           id: string
@@ -1940,6 +1942,7 @@ export type Database = {
           cargo?: string | null
           cpf?: string | null
           created_at?: string | null
+          data_nascimento?: string | null
           departamento?: string | null
           email?: string
           id?: string
