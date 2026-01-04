@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Save, Send, Trash2, GripVertical, Settings, Users, FileText } from "lucide-react";
+import { Plus, Save, Send, Trash2, GripVertical, Settings, Users, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/ui/back-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -82,9 +83,7 @@ const FormularioDetalhes = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/formularios-rh")}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
+              <BackButton to="/formularios-rh" />
               <div>
                 <h1 className="text-xl font-bold text-foreground">{formulario.titulo}</h1>
                 <div className="flex items-center gap-2 mt-1">

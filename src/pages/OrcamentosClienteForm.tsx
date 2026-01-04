@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Save, X, Building2, User, Mail, Phone, MapPin, FileText } from 'lucide-react';
+import { Save, X, Building2, User, Mail, Phone, MapPin, FileText } from 'lucide-react';
 import { QuotesLayout } from '@/components/orcamentos/QuotesLayout';
 import { GlassPanel } from '@/components/orcamentos/GlassPanel';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/ui/back-button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -133,14 +134,11 @@ export default function OrcamentosClienteForm() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/orcamentos/novo')}
-            className="text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
+          <BackButton 
+            to="/orcamentos/novo" 
+            variant="light" 
+            className="text-white hover:bg-white/10" 
+          />
           <div>
             <h1 className="text-2xl font-bold text-white">Cadastrar Cliente</h1>
             <p className="text-white/80">Preencha os dados do novo cliente</p>

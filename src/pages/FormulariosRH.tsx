@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, FileText, Upload, LayoutTemplate, Search, Filter } from "lucide-react";
+import { Plus, FileText, Upload, LayoutTemplate, Search, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/ui/back-button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,9 +41,7 @@ const FormulariosRH = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="icon" onClick={() => navigate("/gestao-rh")}>
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
+              <BackButton to="/gestao-rh" />
               <div>
                 <h1 className="text-2xl font-bold text-foreground">Formulários de RH</h1>
                 <p className="text-sm text-muted-foreground">Gerencie formulários de gestão de pessoas</p>
