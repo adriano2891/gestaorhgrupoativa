@@ -128,12 +128,16 @@ export const AulaFormDialog = ({
   const handleFileUpload = async (file: File) => {
     const fileExt = (file.name.split(".").pop() || "").toLowerCase();
 
-    // Aceitar apenas formatos comuns (prioridade para MP4)
-    const allowedExts = ["mp4", "webm", "mov"];
-    const isVideoMime = file.type.startsWith("video/");
+    // Aceitar formatos comuns - validar por extensão OU MIME type
+    const allowedExts = ["mp4", "webm", "mov", "m4v", "avi", "mkv"];
+    const allowedMimes = ["video/mp4", "video/webm", "video/quicktime", "video/x-m4v", "video/avi", "video/x-matroska"];
+    
+    const hasValidExt = allowedExts.includes(fileExt);
+    const hasValidMime = file.type && (file.type.startsWith("video/") || allowedMimes.includes(file.type));
 
-    if (!isVideoMime && !allowedExts.includes(fileExt)) {
-      toast.error("Por favor, selecione um arquivo de vídeo válido (MP4, WebM, MOV)");
+    // Aceitar se tiver extensão válida OU MIME type válido
+    if (!hasValidExt && !hasValidMime) {
+      toast.error("Por favor, selecione um arquivo de vídeo válido (MP4, WebM, MOV, M4V, AVI, MKV)");
       return;
     }
 
@@ -352,7 +356,7 @@ export const AulaFormDialog = ({
                   </p>
                   <input
                     type="file"
-                    accept="video/mp4,video/webm,video/quicktime"
+                    accept="video/*,.mp4,.webm,.mov,.m4v,.avi,.mkv"
                     className="hidden"
                     id="video-upload"
                     onChange={(e) => {
