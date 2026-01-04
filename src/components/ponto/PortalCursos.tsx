@@ -15,9 +15,7 @@ import {
   Clock,
   CheckCircle,
   Star,
-  Filter,
-  Download,
-  FileText
+  Filter
 } from "lucide-react";
 import { 
   useCursos, 
@@ -33,7 +31,7 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Curso } from "@/types/cursos";
-import { CursosBackground } from "@/components/cursos/CursosBackground";
+import { PortalBackground } from "./PortalBackground";
 
 interface PortalCursosProps {
   onBack: () => void;
@@ -73,7 +71,7 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
   };
 
   return (
-    <CursosBackground>
+    <PortalBackground>
       {/* Header */}
       <header className="bg-card border-b shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
@@ -264,22 +262,9 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
                         <Badge variant="outline" className="text-xs">
                           {cert.codigo_validacao}
                         </Badge>
-                        {cert.url_certificado ? (
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            className="gap-1"
-                            onClick={() => window.open(cert.url_certificado, '_blank')}
-                          >
-                            <Download className="h-3 w-3" />
-                            Download
-                          </Button>
-                        ) : (
-                          <Badge variant="secondary" className="gap-1">
-                            <FileText className="h-3 w-3" />
-                            Pendente
-                          </Badge>
-                        )}
+                        <Button size="sm" variant="outline">
+                          Download
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
@@ -302,6 +287,6 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
           </TabsContent>
         </Tabs>
       </main>
-    </CursosBackground>
+    </PortalBackground>
   );
 };

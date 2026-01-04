@@ -23,7 +23,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { VideoPlayer } from "./VideoPlayer";
-import { CursosBackground } from "./CursosBackground";
 import type { Aula } from "@/types/cursos";
 
 interface CursoPlayerProps {
@@ -146,7 +145,7 @@ export const CursoPlayer = ({ onBack }: CursoPlayerProps) => {
 
   if (isLoading) {
     return (
-      <CursosBackground>
+      <div className="min-h-screen bg-background">
         <div className="container mx-auto p-4">
           <Skeleton className="h-12 w-48 mb-4" />
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -154,32 +153,30 @@ export const CursoPlayer = ({ onBack }: CursoPlayerProps) => {
             <Skeleton className="h-[500px]" />
           </div>
         </div>
-      </CursosBackground>
+      </div>
     );
   }
 
   if (!curso) {
     return (
-      <CursosBackground>
-        <div className="min-h-screen flex items-center justify-center">
-          <Card>
-            <CardContent className="py-12 text-center">
-              <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-medium">Curso não encontrado</h3>
-              <Button className="mt-4" onClick={onBack}>
-                Voltar
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </CursosBackground>
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Card>
+          <CardContent className="py-12 text-center">
+            <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-medium">Curso não encontrado</h3>
+            <Button className="mt-4" onClick={onBack}>
+              Voltar
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   const progressoCurso = getProgressoCurso();
 
   return (
-    <CursosBackground>
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card border-b sticky top-0 z-10">
         <div className="container mx-auto px-4 py-3">
@@ -303,6 +300,6 @@ export const CursoPlayer = ({ onBack }: CursoPlayerProps) => {
           </div>
         </div>
       </div>
-    </CursosBackground>
+    </div>
   );
 };

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Layout } from "@/components/Layout";
 import { BackButton } from "@/components/ui/back-button";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +25,6 @@ import { CursoDetalhesDialog } from "@/components/cursos/CursoDetalhesDialog";
 import { MatriculasDialog } from "@/components/cursos/MatriculasDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CursosBackground } from "@/components/cursos/CursosBackground";
 import type { Curso } from "@/types/cursos";
 
 const CursosAdmin = () => {
@@ -54,7 +54,7 @@ const CursosAdmin = () => {
   });
 
   return (
-    <CursosBackground>
+    <Layout>
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-3 sm:gap-4">
@@ -259,7 +259,7 @@ const CursosAdmin = () => {
           />
         )}
       </div>
-    </CursosBackground>
+    </Layout>
   );
 };
 
