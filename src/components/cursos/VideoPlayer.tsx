@@ -222,9 +222,16 @@ const DirectVideoPlayer = ({
     
     // Detectar formato pela URL
     const lowerUrl = url.toLowerCase();
-    const isNonNativeFormat = lowerUrl.includes('.avi') || 
-                              lowerUrl.includes('.mkv') || 
-                              lowerUrl.includes('.wmv');
+    const extension = lowerUrl.split('.').pop()?.split('?')[0] || '';
+    
+    // Formatos que não são suportados nativamente
+    const isNonNativeFormat = ['avi', 'mkv', 'wmv'].includes(extension);
+    
+    // MOV pode funcionar se for H.264, mas frequentemente usa HEVC
+    const isMov = extension === 'mov';
+    
+    // M4V geralmente funciona mas pode ter problemas
+    const isM4v = extension === 'm4v';
     
     if (error) {
       switch (error.code) {
@@ -235,28 +242,53 @@ const DirectVideoPlayer = ({
           setErrorMessage("Erro de rede ao carregar o vídeo. Verifique sua conexão.");
           break;
         case MediaError.MEDIA_ERR_DECODE:
-          setErrorMessage(
-            isNonNativeFormat
-              ? `Não foi possível decodificar o vídeo. O formato ${lowerUrl.split('.').pop()?.toUpperCase()} não é suportado nativamente pelos navegadores. ` +
-                "Converta para MP4 (H.264) usando HandBrake ou VLC."
-              : "Erro ao decodificar o vídeo. O codec pode não ser compatível com seu navegador."
-          );
-          break;
-        case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-          if (isNonNativeFormat) {
+          if (isMov) {
             setErrorMessage(
-              `Formato ${lowerUrl.split('.').pop()?.toUpperCase()} não suportado pelos navegadores. ` +
-              "Baixe o vídeo ou converta para MP4 (H.264)."
+              "Não foi possível decodificar o vídeo MOV. Provavelmente está usando codec HEVC/H.265 ou ProRes, " +
+              "que não são suportados pelos navegadores. Converta para MP4 (H.264 + AAC) usando:\n" +
+              "• HandBrake (gratuito)\n• VLC Media Player\n• Adobe Media Encoder"
+            );
+          } else if (isNonNativeFormat) {
+            setErrorMessage(
+              `Não foi possível decodificar o vídeo ${extension.toUpperCase()}. ` +
+              "Este formato não é suportado nativamente pelos navegadores. " +
+              "Converta para MP4 (H.264) usando HandBrake ou VLC."
             );
           } else {
             setErrorMessage(
-              "Formato não suportado. Seu vídeo pode estar em H.265 (HEVC). " +
-              "Converta para H.264 (AVC) usando HandBrake, VLC ou Adobe Media Encoder."
+              "Erro ao decodificar o vídeo. O codec pode não ser compatível com seu navegador. " +
+              "Se for H.265/HEVC, converta para H.264."
+            );
+          }
+          break;
+        case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
+          if (isMov) {
+            setErrorMessage(
+              "Vídeo MOV não suportado. Arquivos MOV de iPhones/Macs frequentemente usam codec HEVC/H.265, " +
+              "que navegadores não reproduzem. Soluções:\n\n" +
+              "1. Converta para MP4 (H.264) usando HandBrake ou VLC\n" +
+              "2. Ao gravar no iPhone, use 'Mais Compatível' em Ajustes > Câmera > Formatos\n" +
+              "3. Baixe o vídeo e use um player como VLC"
+            );
+          } else if (isM4v) {
+            setErrorMessage(
+              "Vídeo M4V não suportado. Este formato pode conter DRM ou codec incompatível. " +
+              "Converta para MP4 (H.264) usando HandBrake."
+            );
+          } else if (isNonNativeFormat) {
+            setErrorMessage(
+              `Formato ${extension.toUpperCase()} não suportado pelos navegadores. ` +
+              "Converta para MP4 (H.264) ou baixe para assistir com VLC."
+            );
+          } else {
+            setErrorMessage(
+              "Formato ou codec não suportado. Se for MP4 com H.265 (HEVC), " +
+              "converta para H.264 (AVC) usando HandBrake, VLC ou Adobe Media Encoder."
             );
           }
           break;
         default:
-          setErrorMessage("Erro ao carregar o vídeo");
+          setErrorMessage("Erro ao carregar o vídeo. Verifique se o arquivo é válido.");
       }
     } else {
       setErrorMessage("Erro ao carregar o vídeo");
