@@ -42,7 +42,7 @@ const detectVideoSource = (url: string): VideoSourceType => {
 };
 
 // Converter URLs para formato de embed quando necessário
-const getEmbedUrl = (url: string, sourceType: VideoSourceType): string => {
+const getEmbedUrl = (url: string, sourceType: VideoSourceType): string | null => {
   if (sourceType === "youtube") {
     // Converter youtube.com/watch?v=ID para youtube.com/embed/ID
     const videoIdMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&\s?]+)/);
@@ -52,11 +52,25 @@ const getEmbedUrl = (url: string, sourceType: VideoSourceType): string => {
   }
   
   if (sourceType === "drive") {
-    // Converter drive.google.com/file/d/ID para formato de embed
-    const fileIdMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-    if (fileIdMatch) {
-      return `https://drive.google.com/file/d/${fileIdMatch[1]}/preview`;
+    // Detectar links de pasta (inválidos para embed)
+    if (url.includes('/folders/') || url.includes('drive/folders')) {
+      return null; // Link de pasta não pode ser convertido
     }
+    
+    // Converter drive.google.com/file/d/ID para formato de embed
+    const patterns = [
+      /drive\.google\.com\/file\/d\/([^/]+)/,
+      /drive\.google\.com\/open\?id=([^&]+)/,
+      /drive\.google\.com\/uc\?id=([^&]+)/,
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return `https://drive.google.com/file/d/${match[1]}/preview`;
+      }
+    }
+    return null; // Link inválido
   }
   
   return url;
@@ -442,8 +456,25 @@ export const VideoPlayer = ({
   const sourceType = detectVideoSource(url);
   const embedUrl = getEmbedUrl(url, sourceType);
 
+  // Se não conseguiu gerar embed URL (ex: link de pasta do Drive)
+  if (!embedUrl && (sourceType === "youtube" || sourceType === "drive")) {
+    return (
+      <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+        <div className="text-center px-4">
+          <AlertCircle className="h-12 w-12 mx-auto text-amber-500 mb-4" />
+          <p className="text-muted-foreground font-medium mb-2">Link de vídeo inválido</p>
+          <p className="text-sm text-muted-foreground">
+            {sourceType === "drive" 
+              ? "O link parece ser de uma pasta do Google Drive. É necessário o link direto do arquivo de vídeo."
+              : "Não foi possível processar este link. Verifique se é um link válido de vídeo."}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (sourceType === "youtube" || sourceType === "drive") {
-    return <IframeVideoPlayer url={embedUrl} />;
+    return <IframeVideoPlayer url={embedUrl!} />;
   }
 
   return (

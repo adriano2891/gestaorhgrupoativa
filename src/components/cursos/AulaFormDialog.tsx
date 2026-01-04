@@ -59,36 +59,54 @@ const getYouTubeEmbedUrl = (url: string): string | null => {
   return null;
 };
 
-// Função para converter URL do Google Drive para embed
-const getGoogleDriveEmbedUrl = (url: string): string | null => {
+// Função para validar e converter URL do Google Drive para embed
+const getGoogleDriveEmbedUrl = (url: string): { embedUrl: string | null; error: string | null } => {
+  // Detectar links de pasta (inválidos para vídeo)
+  if (url.includes('/folders/') || url.includes('drive/folders')) {
+    return { 
+      embedUrl: null, 
+      error: "Este é um link de pasta do Google Drive. Use o link direto do arquivo de vídeo (Botão direito > Obter link)." 
+    };
+  }
+
   const patterns = [
     /drive\.google\.com\/file\/d\/([^/]+)/,
     /drive\.google\.com\/open\?id=([^&]+)/,
+    /drive\.google\.com\/uc\?id=([^&]+)/,
+    /id=([a-zA-Z0-9_-]+)/,
   ];
   
   for (const pattern of patterns) {
     const match = url.match(pattern);
     if (match && match[1]) {
-      return `https://drive.google.com/file/d/${match[1]}/preview`;
+      return { 
+        embedUrl: `https://drive.google.com/file/d/${match[1]}/preview`,
+        error: null 
+      };
     }
   }
-  return null;
+  return { 
+    embedUrl: null, 
+    error: "Link inválido. Use o formato: drive.google.com/file/d/ID ou clique com botão direito no arquivo e copie o link." 
+  };
 };
 
 // Função para processar URL genérica de vídeo
-const processVideoUrl = (url: string, source: VideoSourceType): string | null => {
-  if (!url.trim()) return null;
+const processVideoUrl = (url: string, source: VideoSourceType): { url: string | null; error: string | null } => {
+  if (!url.trim()) return { url: null, error: null };
   
   switch (source) {
     case "youtube":
-      return getYouTubeEmbedUrl(url);
+      const ytUrl = getYouTubeEmbedUrl(url);
+      return { url: ytUrl, error: ytUrl ? null : "Link inválido. Use o formato padrão do YouTube." };
     case "drive":
-      return getGoogleDriveEmbedUrl(url);
+      const driveResult = getGoogleDriveEmbedUrl(url);
+      return { url: driveResult.embedUrl, error: driveResult.error };
     case "link":
     case "upload":
-      return url;
+      return { url, error: null };
     default:
-      return null;
+      return { url: null, error: null };
   }
 };
 
@@ -107,6 +125,7 @@ export const AulaFormDialog = ({
     video_source: "upload",
   });
   const [rawUrl, setRawUrl] = useState("");
+  const [urlError, setUrlError] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -121,6 +140,7 @@ export const AulaFormDialog = ({
         video_source: "upload",
       });
       setRawUrl("");
+      setUrlError(null);
       setUploadProgress(0);
     }
   }, [open]);
@@ -202,13 +222,15 @@ export const AulaFormDialog = ({
 
   const handleUrlChange = (url: string) => {
     setRawUrl(url);
-    const processedUrl = processVideoUrl(url, formData.video_source);
-    setFormData(prev => ({ ...prev, video_url: processedUrl || "" }));
+    const result = processVideoUrl(url, formData.video_source);
+    setUrlError(result.error);
+    setFormData(prev => ({ ...prev, video_url: result.url || "" }));
   };
 
   const handleSourceChange = (source: VideoSourceType) => {
     setFormData(prev => ({ ...prev, video_source: source, video_url: "" }));
     setRawUrl("");
+    setUrlError(null);
   };
 
   const handleSubmit = async () => {
@@ -398,10 +420,10 @@ export const AulaFormDialog = ({
                   value={rawUrl}
                   onChange={(e) => handleUrlChange(e.target.value)}
                 />
-                {rawUrl && !formData.video_url && (
-                  <p className="text-xs text-destructive">Link inválido. Use o formato padrão do YouTube.</p>
+                {rawUrl && urlError && (
+                  <p className="text-xs text-destructive">{urlError}</p>
                 )}
-                {formData.video_url && (
+                {rawUrl && !urlError && formData.video_url && (
                   <p className="text-xs text-green-600">✓ Link válido</p>
                 )}
               </div>
@@ -416,14 +438,15 @@ export const AulaFormDialog = ({
                   value={rawUrl}
                   onChange={(e) => handleUrlChange(e.target.value)}
                 />
-                {rawUrl && !formData.video_url && (
-                  <p className="text-xs text-destructive">Link inválido. Certifique-se de usar o link de compartilhamento.</p>
+                {rawUrl && urlError && (
+                  <p className="text-xs text-destructive">{urlError}</p>
                 )}
-                {formData.video_url && (
+                {rawUrl && !urlError && formData.video_url && (
                   <p className="text-xs text-green-600">✓ Link válido</p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Certifique-se de que o vídeo está com acesso "Qualquer pessoa com o link"
+                  ⚠️ Use o link do <strong>arquivo de vídeo</strong>, não da pasta. 
+                  Clique com o botão direito no vídeo → "Obter link".
                 </p>
               </div>
             )}
