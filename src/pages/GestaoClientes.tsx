@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Building2, LayoutDashboard, List, LogOut, Plus } from "lucide-react";
+import { Building2, LayoutDashboard, List, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/ui/back-button";
 import { useCondominios } from "@/hooks/useCondominios";
 import { CondominiosDashboard } from "@/components/condominios/CondominiosDashboard";
 import { CondominiosLista } from "@/components/condominios/CondominiosLista";
@@ -109,6 +110,7 @@ const GestaoClientes = () => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-0 sm:h-16 gap-2 sm:gap-0">
             {/* Logo e Título */}
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <BackButton to="/dashboard" variant="light" className="text-black hover:bg-black/10" />
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex items-center justify-center flex-shrink-0">
                 <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
@@ -149,11 +151,11 @@ const GestaoClientes = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate("/dashboard")}
-                className="h-8 px-2 sm:px-3 text-xs sm:text-sm text-black hover:bg-black/10"
+                onClick={() => setFormOpen(true)}
+                className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-black hover:bg-black/90 text-white"
               >
-                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Sair</span>
+                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Novo</span>
               </Button>
             </div>
           </div>

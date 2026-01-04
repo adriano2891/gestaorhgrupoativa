@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/ui/back-button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
@@ -53,7 +54,10 @@ const CreateAdmin = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary via-primary to-primary-dark p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-primary via-primary to-primary-dark p-4">
+      <div className="w-full max-w-md mb-4">
+        <BackButton to="/login" variant="light" />
+      </div>
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl">Criar Administrador</CardTitle>
@@ -94,14 +98,6 @@ const CreateAdmin = () => {
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Criando..." : "Criar Administrador"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate("/login")}
-            >
-              Voltar ao Login
             </Button>
           </form>
         </CardContent>

@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { BackButton } from "@/components/ui/back-button";
 import { HRFlowFormsList } from "@/components/hrflow/HRFlowFormsList";
 import { HRFlowTemplates } from "@/components/hrflow/HRFlowTemplates";
 import { HRFlowAI } from "@/components/hrflow/HRFlowAI";
@@ -89,13 +90,11 @@ const HRFlowPro = () => {
 
         {/* Footer */}
         <div className="p-3 border-t border-gray-200">
-          <button
-            onClick={() => navigate("/gestao-rh")}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5 flex-shrink-0" />
-            {!sidebarCollapsed && <span>Voltar</span>}
-          </button>
+          <BackButton 
+            to="/gestao-rh" 
+            label={sidebarCollapsed ? "" : "Voltar"}
+            className="w-full justify-start px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
+          />
           
           {/* LGPD Badge */}
           {!sidebarCollapsed && (

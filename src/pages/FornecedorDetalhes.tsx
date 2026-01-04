@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Pencil, Building2, Phone, Mail, MapPin, Calendar, Package, FileText, History, Plus, Trash2, Upload, Download, Image } from 'lucide-react';
+import { Pencil, Building2, Phone, Mail, MapPin, Calendar, Package, FileText, History, Plus, Trash2, Upload, Download, Image } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/ui/back-button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -210,9 +211,7 @@ export default function FornecedorDetalhes() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/fornecedores')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
+            <BackButton to="/fornecedores" />
             <div className="flex items-center gap-3">
               <div className="h-12 w-12 rounded-full bg-slate-100 flex items-center justify-center">
                 <Building2 className="h-6 w-6 text-slate-500" />

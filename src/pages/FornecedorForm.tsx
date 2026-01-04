@@ -3,8 +3,9 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, Save, X } from 'lucide-react';
+import { Save, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { BackButton } from '@/components/ui/back-button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -167,9 +168,7 @@ export default function FornecedorForm() {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={() => navigate('/fornecedores')}>
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
+          <BackButton to="/fornecedores" />
           <div>
             <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
               {isEditing ? 'Editar Fornecedor' : 'Novo Fornecedor'}
