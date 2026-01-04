@@ -19,12 +19,13 @@ import {
   Save,
   X,
   Video,
-  Loader2
+  Loader2,
+  FileText
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type VideoSourceType = "upload" | "youtube" | "drive" | "link";
+type VideoSourceType = "upload" | "youtube" | "drive" | "drive_pdf" | "link";
 
 interface AulaFormDialogProps {
   open: boolean;
@@ -40,6 +41,7 @@ interface AulaFormData {
   duracao: number;
   video_url: string;
   video_source: VideoSourceType;
+  material_apoio_url?: string;
 }
 
 // Função para converter URL do YouTube para embed com branding mínimo
@@ -70,12 +72,12 @@ const getYouTubeEmbedUrl = (url: string): string | null => {
 };
 
 // Função para validar e converter URL do Google Drive para embed
-const getGoogleDriveEmbedUrl = (url: string): { embedUrl: string | null; error: string | null } => {
-  // Detectar links de pasta (inválidos para vídeo)
+const getGoogleDriveEmbedUrl = (url: string, isPdf: boolean = false): { embedUrl: string | null; error: string | null } => {
+  // Detectar links de pasta (inválidos para embed)
   if (url.includes('/folders/') || url.includes('drive/folders')) {
     return { 
       embedUrl: null, 
-      error: "Este é um link de pasta do Google Drive. Use o link direto do arquivo de vídeo (Botão direito > Obter link)." 
+      error: "Este é um link de pasta do Google Drive. Use o link direto do arquivo." 
     };
   }
 
@@ -89,6 +91,7 @@ const getGoogleDriveEmbedUrl = (url: string): { embedUrl: string | null; error: 
   for (const pattern of patterns) {
     const match = url.match(pattern);
     if (match && match[1]) {
+      // Usar preview para ambos os tipos
       return { 
         embedUrl: `https://drive.google.com/file/d/${match[1]}/preview`,
         error: null 
@@ -97,7 +100,9 @@ const getGoogleDriveEmbedUrl = (url: string): { embedUrl: string | null; error: 
   }
   return { 
     embedUrl: null, 
-    error: "Link inválido. Use o formato: drive.google.com/file/d/ID ou clique com botão direito no arquivo e copie o link." 
+    error: isPdf 
+      ? "Link inválido. Use o formato: drive.google.com/file/d/ID do arquivo PDF."
+      : "Link inválido. Use o formato: drive.google.com/file/d/ID ou clique com botão direito no arquivo e copie o link." 
   };
 };
 
@@ -110,8 +115,11 @@ const processVideoUrl = (url: string, source: VideoSourceType): { url: string | 
       const ytUrl = getYouTubeEmbedUrl(url);
       return { url: ytUrl, error: ytUrl ? null : "Link inválido. Use o formato padrão do YouTube." };
     case "drive":
-      const driveResult = getGoogleDriveEmbedUrl(url);
+      const driveResult = getGoogleDriveEmbedUrl(url, false);
       return { url: driveResult.embedUrl, error: driveResult.error };
+    case "drive_pdf":
+      const pdfResult = getGoogleDriveEmbedUrl(url, true);
+      return { url: pdfResult.embedUrl, error: pdfResult.error };
     case "link":
     case "upload":
       return { url, error: null };
@@ -290,7 +298,8 @@ export const AulaFormDialog = ({
   const sourceOptions = [
     { value: "upload", label: "Upload de Arquivo", icon: Upload, description: "Envie um vídeo do seu computador" },
     { value: "youtube", label: "YouTube", icon: Youtube, description: "Cole o link de um vídeo do YouTube" },
-    { value: "drive", label: "Google Drive", icon: HardDrive, description: "Cole o link de compartilhamento do Drive" },
+    { value: "drive", label: "Vídeo Google Drive", icon: HardDrive, description: "Cole o link de um vídeo do Drive" },
+    { value: "drive_pdf", label: "PDF Google Drive", icon: FileText, description: "Cole o link de um PDF do Drive" },
     { value: "link", label: "Outro Link", icon: Link, description: "Cole um link direto para o vídeo" },
   ];
 
@@ -441,7 +450,7 @@ export const AulaFormDialog = ({
 
             {formData.video_source === "drive" && (
               <div className="space-y-2">
-                <Label htmlFor="drive-url">Link do Google Drive</Label>
+                <Label htmlFor="drive-url">Link do Vídeo no Google Drive</Label>
                 <Input
                   id="drive-url"
                   placeholder="https://drive.google.com/file/d/..."
@@ -455,8 +464,30 @@ export const AulaFormDialog = ({
                   <p className="text-xs text-green-600">✓ Link válido</p>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  ⚠️ Use o link do <strong>arquivo de vídeo</strong>, não da pasta. 
-                  Clique com o botão direito no vídeo → "Obter link".
+                  ⚠️ O arquivo deve estar compartilhado como <strong>"Qualquer pessoa com o link"</strong>. 
+                  Clique com o botão direito no vídeo → "Obter link" → Configure a permissão.
+                </p>
+              </div>
+            )}
+
+            {formData.video_source === "drive_pdf" && (
+              <div className="space-y-2">
+                <Label htmlFor="drive-pdf-url">Link do PDF no Google Drive</Label>
+                <Input
+                  id="drive-pdf-url"
+                  placeholder="https://drive.google.com/file/d/..."
+                  value={rawUrl}
+                  onChange={(e) => handleUrlChange(e.target.value)}
+                />
+                {rawUrl && urlError && (
+                  <p className="text-xs text-destructive">{urlError}</p>
+                )}
+                {rawUrl && !urlError && formData.video_url && (
+                  <p className="text-xs text-green-600">✓ Link válido</p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  ⚠️ O PDF deve estar compartilhado como <strong>"Qualquer pessoa com o link"</strong>. 
+                  O documento será exibido diretamente no portal.
                 </p>
               </div>
             )}
@@ -480,12 +511,14 @@ export const AulaFormDialog = ({
             )}
           </div>
 
-          {/* Preview do vídeo */}
+          {/* Preview do conteúdo */}
           {formData.video_url && (
             <div className="space-y-2">
               <Label>Prévia</Label>
-              <div className="aspect-video rounded-lg overflow-hidden bg-black border">
-                {formData.video_source === "youtube" || formData.video_source === "drive" ? (
+              <div className={`rounded-lg overflow-hidden bg-black border ${
+                formData.video_source === "drive_pdf" ? "aspect-[3/4] min-h-[400px]" : "aspect-video"
+              }`}>
+                {formData.video_source === "youtube" || formData.video_source === "drive" || formData.video_source === "drive_pdf" ? (
                   <iframe
                     src={formData.video_url}
                     className="w-full h-full"
