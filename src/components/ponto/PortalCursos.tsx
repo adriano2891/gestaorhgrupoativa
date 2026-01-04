@@ -31,6 +31,7 @@ import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Curso } from "@/types/cursos";
+import { PortalBackground } from "./PortalBackground";
 
 interface PortalCursosProps {
   onBack: () => void;
@@ -70,7 +71,7 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/50">
+    <PortalBackground>
       {/* Header */}
       <header className="bg-card border-b shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
@@ -286,6 +287,6 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
           </TabsContent>
         </Tabs>
       </main>
-    </div>
+    </PortalBackground>
   );
 };

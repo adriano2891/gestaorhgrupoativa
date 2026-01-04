@@ -9,6 +9,7 @@ import { HistoricoPonto } from "./HistoricoPonto";
 import { RelogioTurno } from "./RelogioTurno";
 import { CronometroPausa } from "./CronometroPausa";
 import { supabase } from "@/integrations/supabase/client";
+import { PortalBackground } from "./PortalBackground";
 
 export const PainelPonto = () => {
   const { profile } = usePortalAuth();
@@ -50,7 +51,7 @@ export const PainelPonto = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/50">
+    <PortalBackground>
       {/* Cabeçalho */}
       <header className="bg-card border-b shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
@@ -101,6 +102,6 @@ export const PainelPonto = () => {
           <HistoricoPonto />
         </div>
       </main>
-    </div>
+    </PortalBackground>
   );
 };

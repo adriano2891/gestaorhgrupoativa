@@ -7,6 +7,7 @@ import { useComunicados, useMarcarComunicadoLido } from "@/hooks/useComunicados"
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { PortalBackground } from "./PortalBackground";
 
 interface PortalComunicadosProps {
   onBack: () => void;
@@ -27,7 +28,7 @@ export const PortalComunicados = ({ onBack }: PortalComunicadosProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/50">
+    <PortalBackground>
       <header className="bg-card border-b shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <Button variant="ghost" onClick={onBack}>
@@ -98,6 +99,6 @@ export const PortalComunicados = ({ onBack }: PortalComunicadosProps) => {
           </Card>
         </div>
       </main>
-    </div>
+    </PortalBackground>
   );
 };

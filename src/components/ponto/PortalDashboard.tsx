@@ -5,6 +5,7 @@ import { LogOut, Clock, FileText, Calendar, Bell, User, Gift, GraduationCap, Mes
 import { usePortalAuth } from "./PortalAuthProvider";
 import { toast } from "sonner";
 import { BirthdayPopup } from "./BirthdayPopup";
+import { PortalBackground } from "./PortalBackground";
 
 interface PortalDashboardProps {
   onNavigate: (section: string) => void;
@@ -99,7 +100,7 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/50">
+    <PortalBackground>
       {/* Pop-up de Aniversário */}
       {profile && (
         <BirthdayPopup 
@@ -175,6 +176,6 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
           </div>
         </div>
       </main>
-    </div>
+    </PortalBackground>
   );
 };

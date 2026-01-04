@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Clock, LogIn, Eye, EyeOff } from "lucide-react";
+import loginBackground from "@/assets/login-background.png";
+import logoAtiva from "@/assets/logo-ativa-login.png";
 
 export const LoginFuncionario = () => {
   const [cpf, setCpf] = useState("");
@@ -60,15 +62,20 @@ export const LoginFuncionario = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary via-primary to-primary-dark flex items-center justify-center p-4">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: `url(${loginBackground})` }}
+    >
       <div className="w-full max-w-md animate-fade-in">
-        {/* Logo e Título */}
+        {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-4 border-2 border-white/20">
-            <Clock className="w-10 h-10 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2">Portal do Funcionário</h1>
-          <p className="text-white/80">Sistema de Registro de Ponto</p>
+          <img 
+            src={logoAtiva} 
+            alt="Logo Grupo Ativa" 
+            className="w-40 md:w-48 h-auto mx-auto mb-4"
+          />
+          <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Portal do Funcionário</h1>
+          <p className="text-white/90 drop-shadow">Sistema de Registro de Ponto</p>
         </div>
 
         {/* Card de Login */}
@@ -149,8 +156,8 @@ export const LoginFuncionario = () => {
           </CardContent>
         </Card>
 
-        <p className="text-center text-white/60 text-sm mt-6">
-          © {new Date().getFullYear()} Sistema de RH - Todos os direitos reservados
+        <p className="text-center text-white/80 text-xs mt-6 drop-shadow">
+          © {new Date().getFullYear()} Grupo Ativa • Todos os direitos reservados
         </p>
       </div>
     </div>

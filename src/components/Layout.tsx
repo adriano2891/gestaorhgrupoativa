@@ -4,6 +4,7 @@ import { Button } from "./ui/button";
 import { useState } from "react";
 import { useAuth } from "./auth/AuthProvider";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
+import loginBackground from "@/assets/login-background.png";
 
 const navItems = [
   { path: "/", label: "Dashboard", icon: "📊" },
@@ -35,7 +36,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   }).format(new Date());
 
   return (
-    <div className="min-h-screen bg-primary">
+    <div 
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+      style={{ backgroundImage: `url(${loginBackground})` }}
+    >
+      {/* Overlay para melhorar legibilidade */}
+      <div className="min-h-screen bg-background/85 backdrop-blur-[2px]">
       {/* Header */}
       <header className="bg-card shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 flex items-center justify-between">
@@ -140,6 +146,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Main Content */}
       <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 lg:py-8">{children}</main>
+      </div>
     </div>
   );
 };
