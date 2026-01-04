@@ -9,7 +9,8 @@ import {
   Settings,
   Loader2,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from "lucide-react";
 import { 
   DropdownMenu,
@@ -25,7 +26,7 @@ interface VideoPlayerProps {
   initialPosition?: number;
 }
 
-type VideoSourceType = "youtube" | "drive" | "direct";
+type VideoSourceType = "youtube" | "drive" | "drive_pdf" | "direct";
 
 // Detectar tipo de fonte
 const detectVideoSource = (url: string): VideoSourceType => {
@@ -34,8 +35,18 @@ const detectVideoSource = (url: string): VideoSourceType => {
   // YouTube - diversos formatos
   if (url.includes("youtube.com") || url.includes("youtu.be")) return "youtube";
   
-  // Google Drive
-  if (url.includes("drive.google.com")) return "drive";
+  // Google Drive - verificar se é PDF pela extensão ou padrão
+  if (url.includes("drive.google.com")) {
+    // Detectar PDFs por URL ou extensão
+    const lowerUrl = url.toLowerCase();
+    if (lowerUrl.includes('.pdf') || 
+        lowerUrl.includes('type=pdf') ||
+        lowerUrl.includes('mimetype=pdf') ||
+        lowerUrl.includes('/pdf')) {
+      return "drive_pdf";
+    }
+    return "drive";
+  }
   
   // Qualquer outro link (incluindo Supabase Storage) é tratado como direto
   return "direct";
@@ -60,7 +71,7 @@ const getEmbedUrl = (url: string, sourceType: VideoSourceType): string | null =>
     }
   }
   
-  if (sourceType === "drive") {
+  if (sourceType === "drive" || sourceType === "drive_pdf") {
     // Detectar links de pasta (inválidos para embed)
     if (url.includes('/folders/') || url.includes('drive/folders')) {
       return null; // Link de pasta não pode ser convertido
@@ -400,7 +411,7 @@ const DirectVideoPlayer = ({
   );
 };
 
-// Componente para player de iframe (YouTube/Drive)
+// Componente para player de iframe (YouTube/Drive Video)
 const IframeVideoPlayer = ({ url }: { url: string }) => {
   const [isLoading, setIsLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -444,6 +455,59 @@ const IframeVideoPlayer = ({ url }: { url: string }) => {
   );
 };
 
+// Componente para visualização de PDF do Google Drive
+const DrivePdfViewer = ({ url }: { url: string }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleFullscreen = () => {
+    if (containerRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        containerRef.current.requestFullscreen();
+      }
+    }
+  };
+
+  return (
+    <div ref={containerRef} className="relative aspect-[3/4] min-h-[500px] bg-white rounded-lg overflow-hidden border">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm">Carregando documento...</p>
+          </div>
+        </div>
+      )}
+      <iframe
+        src={url}
+        className="w-full h-full"
+        allow="autoplay"
+        style={{ border: 0 }}
+        onLoad={() => setIsLoading(false)}
+      />
+      
+      {/* Indicador de tipo e botão fullscreen */}
+      <div className="absolute top-3 left-3 z-10">
+        <div className="flex items-center gap-1.5 px-2 py-1 bg-black/60 rounded text-white/80 text-xs">
+          <FileText className="h-3.5 w-3.5" />
+          <span>PDF</span>
+        </div>
+      </div>
+      
+      <Button
+        size="icon"
+        variant="ghost"
+        className="absolute bottom-4 right-4 text-white hover:bg-white/20 h-9 w-9 z-10 opacity-70 hover:opacity-100 bg-black/50"
+        onClick={handleFullscreen}
+      >
+        <Maximize className="h-5 w-5" />
+      </Button>
+    </div>
+  );
+};
+
 // Player unificado que escolhe o componente correto
 export const VideoPlayer = ({ 
   url, 
@@ -466,26 +530,37 @@ export const VideoPlayer = ({
   const embedUrl = getEmbedUrl(url, sourceType);
 
   // Se não conseguiu gerar embed URL (ex: link de pasta do Drive)
-  if (!embedUrl && (sourceType === "youtube" || sourceType === "drive")) {
+  if (!embedUrl && (sourceType === "youtube" || sourceType === "drive" || sourceType === "drive_pdf")) {
     return (
-      <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+      <div className={`bg-muted rounded-lg flex items-center justify-center ${
+        sourceType === "drive_pdf" ? "aspect-[3/4] min-h-[500px]" : "aspect-video"
+      }`}>
         <div className="text-center px-4">
           <AlertCircle className="h-12 w-12 mx-auto text-amber-500 mb-4" />
-          <p className="text-muted-foreground font-medium mb-2">Link de vídeo inválido</p>
+          <p className="text-muted-foreground font-medium mb-2">
+            {sourceType === "drive_pdf" ? "Link de PDF inválido" : "Link de vídeo inválido"}
+          </p>
           <p className="text-sm text-muted-foreground">
-            {sourceType === "drive" 
-              ? "O link parece ser de uma pasta do Google Drive. É necessário o link direto do arquivo de vídeo."
-              : "Não foi possível processar este link. Verifique se é um link válido de vídeo."}
+            {sourceType === "drive" || sourceType === "drive_pdf"
+              ? "O link parece ser de uma pasta do Google Drive. É necessário o link direto do arquivo."
+              : "Não foi possível processar este link. Verifique se é um link válido."}
           </p>
         </div>
       </div>
     );
   }
 
+  // PDF do Google Drive - usa visualizador específico
+  if (sourceType === "drive_pdf") {
+    return <DrivePdfViewer url={embedUrl!} />;
+  }
+
+  // YouTube ou Drive video - usa iframe player
   if (sourceType === "youtube" || sourceType === "drive") {
     return <IframeVideoPlayer url={embedUrl!} />;
   }
 
+  // Vídeo direto (upload ou link externo)
   return (
     <DirectVideoPlayer 
       url={url} 
