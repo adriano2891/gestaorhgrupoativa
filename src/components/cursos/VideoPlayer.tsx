@@ -209,6 +209,7 @@ const DirectVideoPlayer = ({
     >
       <video
         ref={videoRef}
+        src={url}
         className="w-full h-full object-contain"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={(e) => {
@@ -230,16 +231,11 @@ const DirectVideoPlayer = ({
         onError={handleError}
         muted={isMuted}
         playsInline
-        preload="metadata"
-        crossOrigin="anonymous"
+        preload="auto"
         controlsList="nodownload noremoteplayback"
         disablePictureInPicture
         onContextMenu={(e) => e.preventDefault()}
-      >
-        {/* Ajuda o navegador a identificar MP4 mesmo quando o servidor não envia o Content-Type ideal */}
-        <source src={url} type="video/mp4" />
-        <source src={url} />
-      </video>
+      />
 
       {/* Error overlay */}
       {hasError && (
