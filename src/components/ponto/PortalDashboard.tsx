@@ -129,23 +129,17 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
       {/* Conteúdo Principal */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          {/* Bem-vindo */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-foreground mb-2">Portal do Funcionário</h1>
-            <p className="text-muted-foreground">
-              Acesse rapidamente as funcionalidades disponíveis para você
-            </p>
-          </div>
-
-          {/* Card de Boas-vindas */}
-          <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
-            <CardContent className="pt-6">
-              <div className="flex items-start gap-3">
-                <Bell className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="font-medium text-foreground">Bem-vindo ao Portal!</p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Use os cards abaixo para navegar pelas funcionalidades disponíveis.
+          {/* Card de Boas-vindas Unificado */}
+          <Card className="mb-8 border-primary/20 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent overflow-hidden">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="h-14 w-14 rounded-xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-lg">
+                  <Bell className="h-7 w-7 text-primary-foreground" />
+                </div>
+                <div className="flex-1">
+                  <h1 className="text-2xl font-bold text-foreground">Portal do Funcionário</h1>
+                  <p className="text-muted-foreground mt-1">
+                    Bem-vindo! Acesse rapidamente as funcionalidades disponíveis para você.
                   </p>
                 </div>
               </div>
