@@ -446,6 +446,92 @@ export const useProgressoMutations = () => {
   return { updateProgresso };
 };
 
+// Atualizar progresso na matrícula
+export const useAtualizarProgressoMatricula = () => {
+  const queryClient = useQueryClient();
+
+  const atualizarMatricula = useMutation({
+    mutationFn: async ({ cursoId, progresso, status }: { cursoId: string; progresso: number; status?: string }) => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Usuário não autenticado");
+
+      const updateData: Record<string, unknown> = { progresso };
+      
+      if (status) {
+        updateData.status = status;
+        if (status === 'concluido') {
+          updateData.data_conclusao = new Date().toISOString();
+        }
+      }
+
+      const { data, error } = await supabase
+        .from("matriculas")
+        .update(updateData)
+        .eq("curso_id", cursoId)
+        .eq("user_id", user.user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["minhas-matriculas"] });
+      queryClient.invalidateQueries({ queryKey: ["matriculas"] });
+    },
+  });
+
+  return { atualizarMatricula };
+};
+
+// Progresso detalhado por funcionário (para admin)
+export const useProgressoFuncionario = (cursoId: string, userId: string) => {
+  return useQuery({
+    queryKey: ["progresso-funcionario", cursoId, userId],
+    queryFn: async () => {
+      // Buscar aulas do curso
+      const { data: modulos } = await supabase
+        .from("modulos_curso")
+        .select("id")
+        .eq("curso_id", cursoId);
+
+      if (!modulos || modulos.length === 0) return [];
+
+      const moduloIds = modulos.map(m => m.id);
+
+      const { data: aulas } = await supabase
+        .from("aulas")
+        .select("id, titulo, ordem, modulo_id")
+        .in("modulo_id", moduloIds)
+        .order("ordem");
+
+      if (!aulas || aulas.length === 0) return [];
+
+      const aulaIds = aulas.map(a => a.id);
+
+      const { data: progresso, error } = await supabase
+        .from("progresso_aulas")
+        .select("*")
+        .eq("user_id", userId)
+        .in("aula_id", aulaIds);
+
+      if (error) throw error;
+
+      // Combinar aulas com progresso
+      return aulas.map(aula => {
+        const prog = progresso?.find(p => p.aula_id === aula.id);
+        return {
+          ...aula,
+          concluida: prog?.concluida || false,
+          tempo_assistido: prog?.tempo_assistido || 0,
+          data_conclusao: prog?.data_conclusao,
+        };
+      });
+    },
+    enabled: !!cursoId && !!userId,
+  });
+};
+
 // Certificados
 export const useMeusCertificados = () => {
   return useQuery({

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,8 +13,10 @@ import {
   ChevronUp,
   Clock,
   BookOpen,
+  Lock,
+  Trophy
 } from "lucide-react";
-import { useCurso, useProgressoAulas, useProgressoMutations } from "@/hooks/useCursos";
+import { useCurso, useProgressoAulas, useProgressoMutations, useAtualizarProgressoMatricula } from "@/hooks/useCursos";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Collapsible,
@@ -22,6 +24,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { VideoPlayer } from "@/components/cursos/VideoPlayer";
+import { toast } from "sonner";
 import type { Aula } from "@/types/cursos";
 
 export const PortalCursoPlayer = () => {
@@ -30,33 +33,66 @@ export const PortalCursoPlayer = () => {
   const { data: curso, isLoading } = useCurso(cursoId);
   const { data: progressoAulas } = useProgressoAulas(cursoId);
   const { updateProgresso } = useProgressoMutations();
+  const { atualizarMatricula } = useAtualizarProgressoMatricula();
 
   const [selectedAula, setSelectedAula] = useState<Aula | null>(null);
   const [expandedModulos, setExpandedModulos] = useState<Set<string>>(new Set());
   const [lastSavedTime, setLastSavedTime] = useState(0);
 
+  // Criar lista ordenada de todas as aulas para controle de progressão linear
+  const aulasOrdenadas = useMemo(() => {
+    if (!curso?.modulos) return [];
+    const aulas: (Aula & { moduloIndex: number; aulaIndex: number; globalIndex: number })[] = [];
+    let globalIndex = 0;
+    curso.modulos.forEach((modulo, moduloIndex) => {
+      modulo.aulas?.forEach((aula, aulaIndex) => {
+        aulas.push({ ...aula, moduloIndex, aulaIndex, globalIndex });
+        globalIndex++;
+      });
+    });
+    return aulas;
+  }, [curso]);
+
+  // Verificar se uma aula está desbloqueada (progressão linear)
+  const isAulaDesbloqueada = (aulaId: string): boolean => {
+    const aulaIndex = aulasOrdenadas.findIndex(a => a.id === aulaId);
+    if (aulaIndex === 0) return true; // Primeira aula sempre desbloqueada
+    
+    // Verificar se todas as aulas anteriores foram concluídas
+    for (let i = 0; i < aulaIndex; i++) {
+      const aulaAnterior = aulasOrdenadas[i];
+      const progresso = progressoAulas?.find(p => p.aula_id === aulaAnterior.id);
+      if (!progresso?.concluida) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   // Selecionar primeira aula não concluída ao carregar
   useEffect(() => {
-    if (curso?.modulos && !selectedAula) {
-      for (const modulo of curso.modulos) {
-        if (modulo.aulas) {
-          for (const aula of modulo.aulas) {
-            const progresso = progressoAulas?.find(p => p.aula_id === aula.id);
-            if (!progresso?.concluida) {
-              setSelectedAula(aula);
-              setExpandedModulos(new Set([modulo.id]));
-              return;
-            }
+    if (curso?.modulos && !selectedAula && aulasOrdenadas.length > 0) {
+      // Encontrar primeira aula não concluída que está desbloqueada
+      for (const aula of aulasOrdenadas) {
+        const progresso = progressoAulas?.find(p => p.aula_id === aula.id);
+        if (!progresso?.concluida && isAulaDesbloqueada(aula.id)) {
+          setSelectedAula(aula);
+          const modulo = curso.modulos[aula.moduloIndex];
+          if (modulo) {
+            setExpandedModulos(new Set([modulo.id]));
           }
+          return;
         }
       }
       // Se todas concluídas, seleciona a primeira
-      if (curso.modulos[0]?.aulas?.[0]) {
-        setSelectedAula(curso.modulos[0].aulas[0]);
-        setExpandedModulos(new Set([curso.modulos[0].id]));
+      if (aulasOrdenadas[0]) {
+        setSelectedAula(aulasOrdenadas[0]);
+        if (curso.modulos[0]) {
+          setExpandedModulos(new Set([curso.modulos[0].id]));
+        }
       }
     }
-  }, [curso, progressoAulas, selectedAula]);
+  }, [curso, progressoAulas, selectedAula, aulasOrdenadas]);
 
   const toggleModulo = (id: string) => {
     setExpandedModulos(prev => {
@@ -75,21 +111,13 @@ export const PortalCursoPlayer = () => {
   };
 
   const getProgressoCurso = () => {
-    if (!curso?.modulos || !progressoAulas) return 0;
+    if (!aulasOrdenadas.length || !progressoAulas) return 0;
     
-    let totalAulas = 0;
-    let aulasConcluidas = 0;
+    const aulasConcluidas = aulasOrdenadas.filter(aula => 
+      progressoAulas.find(p => p.aula_id === aula.id)?.concluida
+    ).length;
     
-    curso.modulos.forEach(modulo => {
-      modulo.aulas?.forEach(aula => {
-        totalAulas++;
-        if (isAulaConcluida(aula.id)) {
-          aulasConcluidas++;
-        }
-      });
-    });
-    
-    return totalAulas > 0 ? Math.round((aulasConcluidas / totalAulas) * 100) : 0;
+    return Math.round((aulasConcluidas / aulasOrdenadas.length) * 100);
   };
 
   const handleTimeUpdate = (currentTime: number, duration: number) => {
@@ -103,33 +131,63 @@ export const PortalCursoPlayer = () => {
     }
   };
 
-  const handleVideoEnded = () => {
-    if (selectedAula) {
-      updateProgresso.mutate({
+  const handleVideoEnded = async () => {
+    if (selectedAula && cursoId) {
+      // Marcar aula como concluída
+      await updateProgresso.mutateAsync({
         aula_id: selectedAula.id,
         concluida: true,
         data_conclusao: new Date().toISOString(),
       });
       
+      // Calcular novo progresso
+      const aulasConcluidas = aulasOrdenadas.filter(aula => {
+        if (aula.id === selectedAula.id) return true; // Incluir a aula recém concluída
+        return progressoAulas?.find(p => p.aula_id === aula.id)?.concluida;
+      }).length;
+      
+      const novoProgresso = Math.round((aulasConcluidas / aulasOrdenadas.length) * 100);
+      
+      // Atualizar progresso na matrícula
+      atualizarMatricula.mutate({
+        cursoId,
+        progresso: novoProgresso,
+        status: novoProgresso >= 100 ? 'concluido' : 'em_andamento'
+      });
+
+      // Notificar usuário
+      if (novoProgresso >= 100) {
+        toast.success("🎉 Parabéns! Você concluiu o curso!", {
+          description: "Seu certificado estará disponível em breve."
+        });
+      } else {
+        toast.success("Aula concluída!", {
+          description: `Progresso: ${novoProgresso}%`
+        });
+      }
+
       // Avançar para próxima aula
-      if (curso?.modulos) {
-        let foundCurrent = false;
-        for (const modulo of curso.modulos) {
-          if (modulo.aulas) {
-            for (const aula of modulo.aulas) {
-              if (foundCurrent) {
-                setSelectedAula(aula);
-                setExpandedModulos(prev => new Set([...prev, modulo.id]));
-                return;
-              }
-              if (aula.id === selectedAula.id) {
-                foundCurrent = true;
-              }
-            }
-          }
+      const currentIndex = aulasOrdenadas.findIndex(a => a.id === selectedAula.id);
+      const nextAula = aulasOrdenadas[currentIndex + 1];
+      
+      if (nextAula) {
+        setSelectedAula(nextAula);
+        const modulo = curso?.modulos?.[nextAula.moduloIndex];
+        if (modulo) {
+          setExpandedModulos(prev => new Set([...prev, modulo.id]));
         }
       }
     }
+  };
+
+  const handleSelecionarAula = (aula: Aula) => {
+    if (!isAulaDesbloqueada(aula.id)) {
+      toast.error("Aula bloqueada", {
+        description: "Complete as aulas anteriores para desbloquear esta aula."
+      });
+      return;
+    }
+    setSelectedAula(aula);
   };
 
   const handleBack = () => {
@@ -191,6 +249,12 @@ export const PortalCursoPlayer = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {progressoCurso >= 100 && (
+                <Badge className="bg-green-100 text-green-700 gap-1">
+                  <Trophy className="h-3 w-3" />
+                  Concluído
+                </Badge>
+              )}
               <div className="text-sm text-muted-foreground">
                 {progressoCurso}% concluído
               </div>
@@ -216,7 +280,15 @@ export const PortalCursoPlayer = () => {
             {selectedAula && (
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">{selectedAula.titulo}</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{selectedAula.titulo}</CardTitle>
+                    {isAulaConcluida(selectedAula.id) && (
+                      <Badge className="bg-green-100 text-green-700 gap-1">
+                        <CheckCircle className="h-3 w-3" />
+                        Concluída
+                      </Badge>
+                    )}
+                  </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">{selectedAula.descricao || "Sem descrição"}</p>
@@ -233,6 +305,9 @@ export const PortalCursoPlayer = () => {
                   <BookOpen className="h-4 w-4" />
                   Conteúdo do Curso
                 </CardTitle>
+                <p className="text-xs text-muted-foreground">
+                  {aulasOrdenadas.filter(a => isAulaConcluida(a.id)).length} de {aulasOrdenadas.length} aulas concluídas
+                </p>
               </CardHeader>
               <CardContent className="p-0">
                 <ScrollArea className="h-[60vh]">
@@ -263,21 +338,27 @@ export const PortalCursoPlayer = () => {
                             {modulo.aulas?.map((aula) => {
                               const isConcluida = isAulaConcluida(aula.id);
                               const isSelected = selectedAula?.id === aula.id;
+                              const isDesbloqueada = isAulaDesbloqueada(aula.id);
 
                               return (
                                 <button
                                   key={aula.id}
-                                  onClick={() => setSelectedAula(aula)}
+                                  onClick={() => handleSelecionarAula(aula)}
+                                  disabled={!isDesbloqueada}
                                   className={`w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors ${
                                     isSelected 
                                       ? 'bg-primary/10 text-primary' 
-                                      : 'hover:bg-muted/50'
+                                      : isDesbloqueada
+                                        ? 'hover:bg-muted/50'
+                                        : 'opacity-50 cursor-not-allowed'
                                   }`}
                                 >
                                   {isConcluida ? (
                                     <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                                  ) : (
+                                  ) : isDesbloqueada ? (
                                     <Circle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                  ) : (
+                                    <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                                   )}
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium truncate">{aula.titulo}</p>
