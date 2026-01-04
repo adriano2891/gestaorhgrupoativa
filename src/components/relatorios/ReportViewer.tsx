@@ -73,35 +73,36 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
     if (!data.summary || Object.keys(data.summary).length === 0) return null;
 
     const summaryItems = Object.entries(data.summary);
-    const gridCols = summaryItems.length <= 3 ? "grid-cols-1 sm:grid-cols-3" : 
+    const gridCols = summaryItems.length <= 2 ? "grid-cols-1 sm:grid-cols-2" :
+                     summaryItems.length <= 3 ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3" : 
                      summaryItems.length <= 4 ? "grid-cols-2 lg:grid-cols-4" : 
-                     "grid-cols-2 md:grid-cols-3 lg:grid-cols-6";
+                     "grid-cols-2 md:grid-cols-3 xl:grid-cols-6";
 
     return (
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <Target className="w-5 h-5 text-primary" />
+      <div className="mb-6 sm:mb-8">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+          <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           Resumo Executivo
         </h3>
-        <div className={`grid ${gridCols} gap-4`}>
+        <div className={`grid ${gridCols} gap-2 sm:gap-3 md:gap-4`}>
           {summaryItems.map(([key, value], index) => {
             const colorClass = getStatusColor(key, String(value));
             return (
               <Card key={key} className="overflow-hidden border-l-4 border-l-primary hover:shadow-lg transition-all duration-300 group">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-0.5 sm:space-y-1 min-w-0">
+                      <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
                         {key.replace(/([A-Z])/g, " $1").trim()}
                       </p>
-                      <p className={`text-2xl font-bold ${colorClass.split(' ')[0]} group-hover:scale-105 transition-transform`}>
+                      <p className={`text-lg sm:text-xl md:text-2xl font-bold ${colorClass.split(' ')[0]} group-hover:scale-105 transition-transform truncate`}>
                         {value as string}
                       </p>
                     </div>
-                    <div className={`p-2 rounded-full ${colorClass}`}>
-                      {index === 0 ? <Users className="w-4 h-4" /> :
-                       index === 1 ? <Clock className="w-4 h-4" /> :
-                       <CheckCircle2 className="w-4 h-4" />}
+                    <div className={`p-1.5 sm:p-2 rounded-full ${colorClass} flex-shrink-0`}>
+                      {index === 0 ? <Users className="w-3 h-3 sm:w-4 sm:h-4" /> :
+                       index === 1 ? <Clock className="w-3 h-3 sm:w-4 sm:h-4" /> :
+                       <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4" />}
                     </div>
                   </div>
                 </CardContent>
@@ -140,28 +141,28 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
     if (!data.charts || data.charts.length === 0) return null;
 
     return (
-      <div className="mb-8">
-        <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-primary" />
+      <div className="mb-6 sm:mb-8">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
+          <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           Análise Gráfica
         </h3>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
           {data.charts.map((chart: any, index: number) => (
             <Card key={index} className="overflow-hidden hover:shadow-lg transition-all duration-300">
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-                <CardTitle className="text-base flex items-center gap-2">
+              <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b p-3 sm:p-4 md:p-6">
+                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                   {chart.type === 'pie' ? <Target className="w-4 h-4 text-primary" /> :
                    chart.type === 'line' ? <TrendingUp className="w-4 h-4 text-primary" /> :
                    <BarChart className="w-4 h-4 text-primary" />}
-                  {chart.title}
+                  <span className="truncate">{chart.title}</span>
                 </CardTitle>
                 {chart.description && (
-                  <CardDescription>{chart.description}</CardDescription>
+                  <CardDescription className="text-xs sm:text-sm mt-1">{chart.description}</CardDescription>
                 )}
               </CardHeader>
-                <CardContent className="pt-6">
+                <CardContent className="p-3 sm:p-4 md:pt-6">
                   <div id={`report-chart-${index}`} data-chart-index={index}>
-                    <ResponsiveContainer width="100%" height={320}>
+                    <ResponsiveContainer width="100%" height={280}>
                       {chart.type === "line" ? (
                         <AreaChart data={chart.data}>
                           <defs>
@@ -305,10 +306,10 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                     </ResponsiveContainer>
                   </div>
                   {chart.insight && (
-                    <div className="mt-4 p-3 bg-muted/50 rounded-lg border border-border">
+                    <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-muted/50 rounded-lg border border-border">
                       <div className="flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-muted-foreground">{chart.insight}</p>
+                        <AlertCircle className="w-3 h-3 sm:w-4 sm:h-4 text-primary mt-0.5 flex-shrink-0" />
+                        <p className="text-xs sm:text-sm text-muted-foreground">{chart.insight}</p>
                       </div>
                     </div>
                   )}
@@ -327,18 +328,18 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
 
     return (
       <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
-          <div className="flex items-center justify-between">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b p-3 sm:p-4 md:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-primary" />
+              <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
+                <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                 Dados Detalhados
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs sm:text-sm">
                 {data.details.length} registro{data.details.length !== 1 ? 's' : ''} encontrado{data.details.length !== 1 ? 's' : ''}
               </CardDescription>
             </div>
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-[10px] sm:text-xs self-start sm:self-auto">
               Atualizado agora
             </Badge>
           </div>
@@ -349,7 +350,7 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
                   {columns.map(col => (
-                    <TableHead key={col} className="font-semibold text-foreground capitalize whitespace-nowrap">
+                    <TableHead key={col} className="font-semibold text-foreground capitalize whitespace-nowrap text-xs sm:text-sm px-2 sm:px-4">
                       {col.replace(/([A-Z])/g, " $1").trim()}
                     </TableHead>
                   ))}
@@ -362,13 +363,14 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                     className="hover:bg-muted/30 transition-colors"
                   >
                     {columns.map(col => (
-                      <TableCell key={col} className="py-3">
+                      <TableCell key={col} className="py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">
                         {col.toLowerCase().includes('status') ? (
                           <Badge 
                             variant={
                               String(row[col]).toLowerCase().includes('ativo') ? 'default' : 
                               String(row[col]).toLowerCase().includes('pendente') ? 'secondary' : 'outline'
                             }
+                            className="text-[10px] sm:text-xs"
                           >
                             {row[col]}
                           </Badge>
@@ -395,9 +397,9 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-        <CheckCircle2 className="w-4 h-4 text-green-500" />
+    <div className="space-y-4 sm:space-y-6 animate-fade-in">
+      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
+        <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
         <span>Relatório gerado em {new Date(data.generatedAt).toLocaleString('pt-BR')}</span>
       </div>
       {renderEnhancedSummary()}

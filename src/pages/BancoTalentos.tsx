@@ -422,48 +422,48 @@ const BancoTalentos = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <BackButton to="/gestao-rh" variant="light" />
       
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-primary-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary-foreground">
             Banco de Talentos
           </h1>
-          <p className="text-primary-foreground/80 mt-1">
+          <p className="text-primary-foreground/80 mt-1 text-xs sm:text-sm md:text-base">
             Gerencie candidatos e processos seletivos
           </p>
         </div>
-        <Button onClick={handleAddCandidate}>
+        <Button onClick={handleAddCandidate} className="w-full sm:w-auto">
           <UserPlus className="h-4 w-4 mr-2" />
-          Adicionar Candidato
+          <span className="sm:inline">Adicionar Candidato</span>
         </Button>
       </div>
 
       <Card>
-        <CardHeader>
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <CardHeader className="p-4 sm:p-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
             <div>
-              <CardTitle>Candidatos</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-base sm:text-lg">Candidatos</CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
                 {filteredCandidates.length} candidato(s) encontrado(s)
               </CardDescription>
             </div>
-            <div className="flex gap-2">
-              <div className="relative flex-1 md:w-64">
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Buscar candidato..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9"
+                  className="pl-9 text-sm"
                 />
               </div>
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-[160px]">
+                <SelectTrigger className="w-full sm:w-[160px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background">
                   <SelectItem value="Todos">Todos</SelectItem>
                   <SelectItem value="disponivel">Disponível</SelectItem>
                   <SelectItem value="em-processo">Em Processo</SelectItem>
@@ -473,31 +473,31 @@ const BancoTalentos = () => {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-4 sm:p-6">
           {loading ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Carregando candidatos...</p>
+            <div className="text-center py-8 sm:py-12">
+              <p className="text-muted-foreground text-sm sm:text-base">Carregando candidatos...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
               {filteredCandidates.map((candidate) => (
                 <Card key={candidate.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <Avatar className="h-12 w-12">
-                          <AvatarFallback className="bg-primary text-primary-foreground">
+                  <CardHeader className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-3">
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <Avatar className="h-10 w-10 sm:h-12 sm:w-12 flex-shrink-0">
+                          <AvatarFallback className="bg-primary text-primary-foreground text-sm sm:text-base">
                             {getInitials(candidate.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <CardTitle className="text-lg">
+                        <div className="min-w-0">
+                          <CardTitle className="text-base sm:text-lg truncate">
                             {candidate.name}
                           </CardTitle>
-                          <CardDescription>{candidate.position}</CardDescription>
+                          <CardDescription className="text-xs sm:text-sm truncate">{candidate.position}</CardDescription>
                         </div>
                       </div>
-                      <Badge variant={getStatusVariant(candidate.status) as any}>
+                      <Badge variant={getStatusVariant(candidate.status) as any} className="self-start flex-shrink-0 text-xs">
                         {getStatusLabel(candidate.status)}
                       </Badge>
                     </div>
