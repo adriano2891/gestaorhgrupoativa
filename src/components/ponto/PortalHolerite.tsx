@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { PortalBackground } from "./PortalBackground";
 
 interface PortalHoleriteProps {
   onBack: () => void;
@@ -67,7 +68,7 @@ export const PortalHolerite = ({ onBack }: PortalHoleriteProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/50">
+    <PortalBackground>
       <header className="bg-card border-b shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Button variant="ghost" onClick={onBack}>
@@ -158,6 +159,6 @@ export const PortalHolerite = ({ onBack }: PortalHoleriteProps) => {
           </Card>
         </div>
       </main>
-    </div>
+    </PortalBackground>
   );
 };

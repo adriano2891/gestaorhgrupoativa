@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, User } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
+import { PortalBackground } from "./PortalBackground";
 
 interface PortalPerfilProps {
   onBack: () => void;
@@ -13,7 +14,7 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
   const { profile } = usePortalAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/50">
+    <PortalBackground>
       <header className="bg-card border-b shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <Button variant="ghost" onClick={onBack}>
@@ -69,6 +70,6 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
           </Card>
         </div>
       </main>
-    </div>
+    </PortalBackground>
   );
 };
