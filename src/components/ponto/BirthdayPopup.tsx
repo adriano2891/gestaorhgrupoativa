@@ -3,11 +3,14 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/compone
 import { Button } from "@/components/ui/button";
 import { Cake, PartyPopper, Gift } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { toZonedTime, format } from "date-fns-tz";
 
 interface BirthdayPopupProps {
   nome: string;
   dataNascimento: string | null;
 }
+
+const BRAZIL_TIMEZONE = "America/Sao_Paulo";
 
 export const BirthdayPopup = ({ nome, dataNascimento }: BirthdayPopupProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,18 +19,20 @@ export const BirthdayPopup = ({ nome, dataNascimento }: BirthdayPopupProps) => {
   useEffect(() => {
     if (!dataNascimento) return;
 
-    const today = new Date();
-    const birthDate = new Date(dataNascimento);
+    // Converter para horário de Brasília
+    const nowInBrazil = toZonedTime(new Date(), BRAZIL_TIMEZONE);
+    const birthDate = new Date(dataNascimento + "T12:00:00"); // Adiciona horário para evitar problemas de timezone
     
     // Verificar se hoje é o aniversário (mesmo dia e mês)
     const isBirthday = 
-      today.getDate() === birthDate.getDate() && 
-      today.getMonth() === birthDate.getMonth();
+      nowInBrazil.getDate() === birthDate.getDate() && 
+      nowInBrazil.getMonth() === birthDate.getMonth();
 
     if (!isBirthday) return;
 
-    // Verificar se já foi exibido hoje
-    const storageKey = `birthday_popup_${today.toISOString().split('T')[0]}`;
+    // Verificar se já foi exibido hoje (usando data no formato Brasil)
+    const todayBrazil = format(nowInBrazil, "yyyy-MM-dd", { timeZone: BRAZIL_TIMEZONE });
+    const storageKey = `birthday_popup_${todayBrazil}`;
     const alreadyShown = localStorage.getItem(storageKey);
 
     if (alreadyShown) return;
