@@ -10,7 +10,9 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
-  FileText
+  FileText,
+  Download,
+  ExternalLink
 } from "lucide-react";
 import { 
   DropdownMenu,
@@ -214,9 +216,15 @@ const DirectVideoPlayer = ({
     const video = e.currentTarget;
     const error = video.error;
     
-    console.error("Erro no vídeo:", error);
+    console.error("Erro no vídeo:", error, "URL:", url);
     setIsLoading(false);
     setHasError(true);
+    
+    // Detectar formato pela URL
+    const lowerUrl = url.toLowerCase();
+    const isNonNativeFormat = lowerUrl.includes('.avi') || 
+                              lowerUrl.includes('.mkv') || 
+                              lowerUrl.includes('.wmv');
     
     if (error) {
       switch (error.code) {
@@ -224,16 +232,28 @@ const DirectVideoPlayer = ({
           setErrorMessage("O carregamento do vídeo foi interrompido");
           break;
         case MediaError.MEDIA_ERR_NETWORK:
-          setErrorMessage("Erro de rede ao carregar o vídeo");
+          setErrorMessage("Erro de rede ao carregar o vídeo. Verifique sua conexão.");
           break;
         case MediaError.MEDIA_ERR_DECODE:
-          setErrorMessage("Erro ao decodificar o vídeo");
+          setErrorMessage(
+            isNonNativeFormat
+              ? `Não foi possível decodificar o vídeo. O formato ${lowerUrl.split('.').pop()?.toUpperCase()} não é suportado nativamente pelos navegadores. ` +
+                "Converta para MP4 (H.264) usando HandBrake ou VLC."
+              : "Erro ao decodificar o vídeo. O codec pode não ser compatível com seu navegador."
+          );
           break;
         case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED:
-          setErrorMessage(
-            "Formato não suportado. Seu vídeo pode estar em H.265 (HEVC). " +
-            "Converta para H.264 (AVC) usando HandBrake, VLC ou Adobe Media Encoder."
-          );
+          if (isNonNativeFormat) {
+            setErrorMessage(
+              `Formato ${lowerUrl.split('.').pop()?.toUpperCase()} não suportado pelos navegadores. ` +
+              "Baixe o vídeo ou converta para MP4 (H.264)."
+            );
+          } else {
+            setErrorMessage(
+              "Formato não suportado. Seu vídeo pode estar em H.265 (HEVC). " +
+              "Converta para H.264 (AVC) usando HandBrake, VLC ou Adobe Media Encoder."
+            );
+          }
           break;
         default:
           setErrorMessage("Erro ao carregar o vídeo");
@@ -241,6 +261,10 @@ const DirectVideoPlayer = ({
     } else {
       setErrorMessage("Erro ao carregar o vídeo");
     }
+  };
+
+  const handleDownload = () => {
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const formatTime = (seconds: number) => {
@@ -286,19 +310,32 @@ const DirectVideoPlayer = ({
         onContextMenu={(e) => e.preventDefault()}
       />
 
-      {/* Error overlay */}
+      {/* Error overlay with download fallback */}
       {hasError && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 p-4">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-          <p className="text-white text-center mb-4 px-4">{errorMessage}</p>
-          <Button 
-            variant="outline" 
-            onClick={handleRetry}
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Tentar novamente
-          </Button>
+          <p className="text-white text-center mb-4 px-4 max-w-md text-sm">{errorMessage}</p>
+          <div className="flex flex-wrap gap-2 justify-center">
+            <Button 
+              variant="outline" 
+              onClick={handleRetry}
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Tentar novamente
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleDownload}
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Baixar vídeo
+            </Button>
+          </div>
+          <p className="text-white/60 text-xs mt-4 text-center max-w-sm">
+            💡 Dica: Use um player de vídeo como VLC para reproduzir o arquivo baixado.
+          </p>
         </div>
       )}
 

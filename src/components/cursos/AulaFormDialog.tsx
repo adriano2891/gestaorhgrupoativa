@@ -207,17 +207,42 @@ export const AulaFormDialog = ({
   const handleFileUpload = async (file: File) => {
     const fileExt = (file.name.split(".").pop() || "").toLowerCase();
 
-    // Aceitar formatos comuns - validar por extensão OU MIME type
-    const allowedExts = ["mp4", "webm", "mov", "m4v", "avi", "mkv"];
-    const allowedMimes = ["video/mp4", "video/webm", "video/quicktime", "video/x-m4v", "video/avi", "video/x-matroska"];
+    // Formatos aceitos para upload (incluindo WMV)
+    const allowedExts = ["mp4", "webm", "mov", "m4v", "avi", "mkv", "wmv"];
+    const allowedMimes = [
+      "video/mp4", 
+      "video/webm", 
+      "video/quicktime", 
+      "video/x-m4v", 
+      "video/avi", 
+      "video/x-matroska",
+      "video/x-msvideo",
+      "video/x-ms-wmv",
+      "video/wmv"
+    ];
+    
+    // Formatos com reprodução garantida nos navegadores
+    const nativelySupportedExts = ["mp4", "webm", "mov", "m4v"];
+    
+    // Formatos que podem precisar de conversão
+    const mayNeedConversion = ["avi", "mkv", "wmv"];
     
     const hasValidExt = allowedExts.includes(fileExt);
     const hasValidMime = file.type && (file.type.startsWith("video/") || allowedMimes.includes(file.type));
 
     // Aceitar se tiver extensão válida OU MIME type válido
     if (!hasValidExt && !hasValidMime) {
-      toast.error("Por favor, selecione um arquivo de vídeo válido (MP4, WebM, MOV, M4V, AVI, MKV)");
+      toast.error("Selecione um vídeo válido: MP4, WebM, MOV, M4V, AVI, MKV ou WMV");
       return;
+    }
+
+    // Alertar sobre formatos que podem não reproduzir
+    if (mayNeedConversion.includes(fileExt)) {
+      toast.warning(
+        `Formato ${fileExt.toUpperCase()} detectado. Este formato pode não reproduzir em alguns navegadores. ` +
+        `Recomendamos converter para MP4 (H.264) para garantir compatibilidade.`,
+        { duration: 6000 }
+      );
     }
 
     const maxSize = 500 * 1024 * 1024; // 500MB
@@ -433,13 +458,29 @@ export const AulaFormDialog = ({
             {formData.video_source === "upload" && (
               <div className="space-y-3">
                 <Label>Arquivo de Vídeo</Label>
-                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
-                  <p className="text-xs text-muted-foreground mb-2">
-                    ⚠️ Use vídeos em <strong>H.264 (AVC)</strong>. Vídeos H.265 (HEVC) não são suportados pelos navegadores.
+                
+                {/* Guia de compatibilidade */}
+                <div className="bg-muted/50 rounded-lg p-3 text-xs space-y-2">
+                  <p className="font-medium text-foreground">📋 Guia de Compatibilidade:</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-green-600 font-medium">✓ Reprodução garantida:</p>
+                      <p className="text-muted-foreground">MP4 (H.264), WebM, MOV</p>
+                    </div>
+                    <div>
+                      <p className="text-amber-600 font-medium">⚠️ Pode não reproduzir:</p>
+                      <p className="text-muted-foreground">AVI, MKV, WMV, H.265</p>
+                    </div>
+                  </div>
+                  <p className="text-muted-foreground">
+                    💡 <strong>Dica:</strong> Use ferramentas gratuitas como <strong>HandBrake</strong> ou <strong>VLC</strong> para converter vídeos para MP4 (H.264).
                   </p>
+                </div>
+
+                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
                   <input
                     type="file"
-                    accept="video/*,.mp4,.webm,.mov,.m4v,.avi,.mkv"
+                    accept="video/*,.mp4,.webm,.mov,.m4v,.avi,.mkv,.wmv"
                     className="hidden"
                     id="video-upload"
                     onChange={(e) => {
@@ -464,7 +505,7 @@ export const AulaFormDialog = ({
                       <div className="space-y-2">
                         <Upload className="h-8 w-8 mx-auto text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">Clique para selecionar ou arraste o vídeo</p>
-                        <p className="text-xs text-muted-foreground">MP4, WebM, MOV (máx. 500MB)</p>
+                        <p className="text-xs text-muted-foreground">MP4, WebM, MOV, AVI, MKV, WMV (máx. 500MB)</p>
                       </div>
                     )}
                   </label>
