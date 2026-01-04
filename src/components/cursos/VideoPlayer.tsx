@@ -12,6 +12,7 @@ import {
   RefreshCw,
   FileText,
   Download,
+  CheckCircle,
   ExternalLink
 } from "lucide-react";
 import { 
@@ -555,8 +556,9 @@ const DirectVideoPlayer = ({
 };
 
 // Componente para player de iframe (YouTube/Drive Video)
-const IframeVideoPlayer = ({ url }: { url: string }) => {
+const IframeVideoPlayer = ({ url, onEnded }: { url: string; onEnded?: () => void }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [showCompleteButton, setShowCompleteButton] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleFullscreen = () => {
@@ -567,6 +569,11 @@ const IframeVideoPlayer = ({ url }: { url: string }) => {
         containerRef.current.requestFullscreen();
       }
     }
+  };
+
+  const handleMarkComplete = () => {
+    setShowCompleteButton(false);
+    onEnded?.();
   };
 
   return (
@@ -585,15 +592,28 @@ const IframeVideoPlayer = ({ url }: { url: string }) => {
         onLoad={() => setIsLoading(false)}
       />
       
-      {/* Botão de fullscreen overlay */}
-      <Button
-        size="icon"
-        variant="ghost"
-        className="absolute bottom-4 right-4 text-white hover:bg-white/20 h-9 w-9 z-10 opacity-70 hover:opacity-100"
-        onClick={handleFullscreen}
-      >
-        <Maximize className="h-5 w-5" />
-      </Button>
+      {/* Botões de controle overlay */}
+      <div className="absolute bottom-4 right-4 flex gap-2 z-10">
+        {showCompleteButton && onEnded && (
+          <Button
+            size="sm"
+            variant="secondary"
+            className="opacity-90 hover:opacity-100 bg-green-600 hover:bg-green-700 text-white"
+            onClick={handleMarkComplete}
+          >
+            <CheckCircle className="h-4 w-4 mr-1" />
+            Concluir aula
+          </Button>
+        )}
+        <Button
+          size="icon"
+          variant="ghost"
+          className="text-white hover:bg-white/20 h-9 w-9 opacity-70 hover:opacity-100"
+          onClick={handleFullscreen}
+        >
+          <Maximize className="h-5 w-5" />
+        </Button>
+      </div>
     </div>
   );
 };
@@ -803,7 +823,7 @@ export const VideoPlayer = ({
 
   // YouTube ou Drive video - usa iframe player
   if (sourceType === "youtube" || sourceType === "drive") {
-    return <IframeVideoPlayer url={embedUrl!} />;
+    return <IframeVideoPlayer url={embedUrl!} onEnded={onEnded} />;
   }
 
   // Vídeo direto (upload ou link externo)
