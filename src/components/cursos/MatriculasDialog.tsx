@@ -21,11 +21,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Users, CheckCircle, Clock, XCircle, ChevronDown, ChevronRight, Eye } from "lucide-react";
+import { Users, CheckCircle, Clock, XCircle, ChevronDown, ChevronRight, Award } from "lucide-react";
 import { useMatriculas, useProgressoFuncionario } from "@/hooks/useCursos";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { EnviarCertificadoDialog } from "./EnviarCertificadoDialog";
 import type { Curso, Matricula } from "@/types/cursos";
 
 interface MatriculasDialogProps {
@@ -96,6 +97,7 @@ const ProgressoDetalhes = ({ cursoId, userId }: { cursoId: string; userId: strin
 export const MatriculasDialog = ({ open, onOpenChange, curso }: MatriculasDialogProps) => {
   const { data: matriculas, isLoading } = useMatriculas(curso.id);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [matriculaParaCertificado, setMatriculaParaCertificado] = useState<Matricula | null>(null);
 
   const toggleRow = (id: string) => {
     setExpandedRows(prev => {
@@ -197,6 +199,7 @@ export const MatriculasDialog = ({ open, onOpenChange, curso }: MatriculasDialog
                   <TableHead>Status</TableHead>
                   <TableHead>Data Início</TableHead>
                   <TableHead>Conclusão</TableHead>
+                  <TableHead className="w-24">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -253,10 +256,23 @@ export const MatriculasDialog = ({ open, onOpenChange, curso }: MatriculasDialog
                           <span className="text-sm text-muted-foreground">-</span>
                         )}
                       </TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        {matricula.status === 'concluido' && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="gap-1 text-amber-600 border-amber-300 hover:bg-amber-50"
+                            onClick={() => setMatriculaParaCertificado(matricula)}
+                          >
+                            <Award className="h-3 w-3" />
+                            Certificado
+                          </Button>
+                        )}
+                      </TableCell>
                     </TableRow>
                     {expandedRows.has(matricula.id) && (
                       <TableRow>
-                        <TableCell colSpan={7} className="bg-muted/30 p-0">
+                        <TableCell colSpan={8} className="bg-muted/30 p-0">
                           <div className="px-4 py-2">
                             <ProgressoDetalhes 
                               cursoId={curso.id} 
@@ -278,6 +294,15 @@ export const MatriculasDialog = ({ open, onOpenChange, curso }: MatriculasDialog
               Nenhum funcionário matriculado neste curso ainda.
             </p>
           </div>
+        )}
+
+        {/* Dialog de enviar certificado */}
+        {matriculaParaCertificado && (
+          <EnviarCertificadoDialog
+            open={!!matriculaParaCertificado}
+            onOpenChange={(open) => !open && setMatriculaParaCertificado(null)}
+            matricula={matriculaParaCertificado}
+          />
         )}
       </DialogContent>
     </Dialog>

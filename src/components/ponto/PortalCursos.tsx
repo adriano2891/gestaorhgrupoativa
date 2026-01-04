@@ -15,7 +15,9 @@ import {
   Clock,
   CheckCircle,
   Star,
-  Filter
+  Filter,
+  Download,
+  FileText
 } from "lucide-react";
 import { 
   useCursos, 
@@ -262,9 +264,22 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
                         <Badge variant="outline" className="text-xs">
                           {cert.codigo_validacao}
                         </Badge>
-                        <Button size="sm" variant="outline">
-                          Download
-                        </Button>
+                        {cert.url_certificado ? (
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="gap-1"
+                            onClick={() => window.open(cert.url_certificado, '_blank')}
+                          >
+                            <Download className="h-3 w-3" />
+                            Download
+                          </Button>
+                        ) : (
+                          <Badge variant="secondary" className="gap-1">
+                            <FileText className="h-3 w-3" />
+                            Pendente
+                          </Badge>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
