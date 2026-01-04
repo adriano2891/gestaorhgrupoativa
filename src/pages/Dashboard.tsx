@@ -84,38 +84,38 @@ const Dashboard = () => {
   if (isMobile) {
     return (
       <div 
-        className="min-h-screen relative overflow-hidden flex flex-col"
+        className="min-h-screen relative overflow-x-hidden overflow-y-auto flex flex-col safe-top safe-bottom"
         style={{ backgroundColor: '#40E0D0' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        <div className="flex items-center justify-between px-3 sm:px-4 pt-3 sm:pt-4 pb-2">
           <h1 
-            className="text-lg font-bold text-white flex-1 text-center pr-12"
+            className="text-sm sm:text-base font-bold text-white flex-1 text-center pr-10 sm:pr-12 truncate"
             style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}
           >
             Sistema Integrado GRUPO ATIVA
           </h1>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity absolute right-4"
+            className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity absolute right-3 sm:right-4 touch-target"
           >
-            <LogOut className="w-5 h-5" />
-            <span className="text-sm">Sair</span>
+            <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-xs sm:text-sm">Sair</span>
           </button>
         </div>
 
         {/* Logo Central */}
-        <div className="flex justify-center py-4">
+        <div className="flex justify-center py-3 sm:py-4">
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-32 h-auto"
+            className="w-24 sm:w-32 h-auto"
           />
         </div>
 
         {/* Grid de Módulos */}
-        <div className="flex-1 px-4 pb-6">
-          <div className="grid grid-cols-2 gap-4 max-w-sm mx-auto">
+        <div className="flex-1 px-3 sm:px-4 pb-4 sm:pb-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-sm mx-auto">
             {modules.map((module) => (
               <div
                 key={module.id}
@@ -124,7 +124,7 @@ const Dashboard = () => {
               >
                 <div 
                   className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
-                  style={{ width: '80px', height: '80px' }}
+                  style={{ width: '70px', height: '70px' }}
                 >
                   <img 
                     src={module.icon} 
@@ -133,7 +133,7 @@ const Dashboard = () => {
                   />
                 </div>
                 <p 
-                  className="text-center mt-2 font-semibold text-white text-xs max-w-[100px] leading-tight"
+                  className="text-center mt-1.5 sm:mt-2 font-semibold text-white text-[10px] sm:text-xs max-w-[90px] sm:max-w-[100px] leading-tight"
                   style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}
                 >
                   {module.label}
@@ -144,7 +144,7 @@ const Dashboard = () => {
         </div>
 
         {/* Footer */}
-        <div className="text-center pb-4 text-white/70 text-xs">
+        <div className="text-center pb-3 sm:pb-4 text-white/70 text-[10px] sm:text-xs">
           © {new Date().getFullYear()} Grupo Ativa
         </div>
       </div>
@@ -153,7 +153,7 @@ const Dashboard = () => {
 
   return (
     <div 
-      className="min-h-screen relative overflow-hidden flex flex-col"
+      className="min-h-screen relative overflow-x-hidden overflow-y-auto flex flex-col"
       style={{ backgroundColor: '#40E0D0' }}
     >
       <style>{hoverStyles}</style>
@@ -161,29 +161,29 @@ const Dashboard = () => {
       {/* Header com título e botão sair */}
       <div className="flex items-start justify-between px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 relative z-10">
         <h1 
-          className="text-base sm:text-lg md:text-xl lg:text-2xl text-white italic"
+          className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-white italic max-w-[70%]"
           style={{ fontFamily: "'Pacifico', cursive", textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
         >
           Sistema Integrado de Gerenciamento GRUPO ATIVA
         </h1>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1 sm:gap-2 text-white hover:opacity-80 transition-opacity"
+          className="flex items-center gap-1 sm:gap-2 text-white hover:opacity-80 transition-opacity flex-shrink-0"
         >
           <LogOut className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-          <span className="text-sm sm:text-base lg:text-lg font-medium">Sair</span>
+          <span className="text-xs sm:text-sm lg:text-lg font-medium">Sair</span>
         </button>
       </div>
 
       {/* Container central com logo e módulos */}
-      <div className="flex-1 relative w-full flex items-center justify-center px-4 py-2">
+      <div className="flex-1 relative w-full flex items-center justify-center px-4 py-2 min-h-[400px]">
         
         {/* Logo Central - Absolutamente centralizada */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-40 sm:w-48 md:w-56 lg:w-64 xl:w-72 h-auto drop-shadow-lg opacity-90"
+            className="w-32 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg opacity-90"
           />
         </div>
 
@@ -293,9 +293,9 @@ const Dashboard = () => {
         </div>
 
         {/* Módulos em círculo - SM screens (tablet) */}
-        <div className="hidden sm:block md:hidden relative" style={{ width: '400px', height: '350px' }}>
+        <div className="hidden sm:block md:hidden relative" style={{ width: '380px', height: '340px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 150);
+            const { x, y } = getModulePosition(index, modules.length, 140);
             
             return (
               <div
@@ -311,12 +311,12 @@ const Dashboard = () => {
                 <div className="flex flex-col items-center">
                   <div 
                     className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
-                    style={{ width: '72px', height: '72px' }}
+                    style={{ width: '68px', height: '68px' }}
                   >
                     <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                   </div>
                   <p 
-                    className="text-center mt-2 font-semibold text-white text-[10px] max-w-[80px] leading-tight"
+                    className="text-center mt-2 font-semibold text-white text-[9px] max-w-[70px] leading-tight"
                     style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.4)' }}
                   >
                     {module.label}

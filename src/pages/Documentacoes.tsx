@@ -167,104 +167,108 @@ const Documentacoes = () => {
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               <BackButton to="/dashboard" />
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Documentações</h1>
-                <p className="text-sm text-muted-foreground">Gestão centralizada de documentos</p>
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">Documentações</h1>
+                <p className="text-xs sm:text-sm text-muted-foreground">Gestão centralizada de documentos</p>
               </div>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowCategoriaDialog(true)}>
-                <FolderOpen className="h-4 w-4 mr-2" />
-                Nova Categoria
+              <Button variant="outline" onClick={() => setShowCategoriaDialog(true)} className="text-xs sm:text-sm">
+                <FolderOpen className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Nova Categoria</span>
               </Button>
-              <Button onClick={() => setShowUploadDialog(true)}>
-                <Upload className="h-4 w-4 mr-2" />
-                Upload
+              <Button onClick={() => setShowUploadDialog(true)} className="text-xs sm:text-sm">
+                <Upload className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Upload</span>
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar documentos..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={selectedCategoria || "todas"} onValueChange={(v) => setSelectedCategoria(v === "todas" ? undefined : v)}>
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <FolderOpen className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todas">Todas Categorias</SelectItem>
-              {categorias?.map((cat) => (
-                <SelectItem key={cat.id} value={cat.id}>
-                  <span className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.cor }} />
-                    {cat.nome}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedTipo || "todos"} onValueChange={(v) => setSelectedTipo(v === "todos" ? undefined : v as DocumentoTipo)}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Tipo" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos Tipos</SelectItem>
-              {Object.entries(TIPO_LABELS).map(([key, label]) => (
-                <SelectItem key={key} value={key}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex gap-1 border rounded-lg p-1">
-            <Button
-              variant={viewMode === "grid" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setViewMode("grid")}
-            >
-              <Grid className="h-4 w-4" />
-            </Button>
-            <Button
-              variant={viewMode === "list" ? "secondary" : "ghost"}
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => setViewMode("list")}
-            >
-              <List className="h-4 w-4" />
-            </Button>
+        <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar documentos..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 text-sm"
+              />
+            </div>
+            <div className="flex gap-2 flex-wrap sm:flex-nowrap">
+              <Select value={selectedCategoria || "todas"} onValueChange={(v) => setSelectedCategoria(v === "todas" ? undefined : v)}>
+                <SelectTrigger className="flex-1 sm:w-[180px]">
+                  <FolderOpen className="h-4 w-4 mr-2 hidden sm:block" />
+                  <SelectValue placeholder="Categoria" />
+                </SelectTrigger>
+                <SelectContent className="bg-background">
+                  <SelectItem value="todas">Todas Categorias</SelectItem>
+                  {categorias?.map((cat) => (
+                    <SelectItem key={cat.id} value={cat.id}>
+                      <span className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.cor }} />
+                        {cat.nome}
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedTipo || "todos"} onValueChange={(v) => setSelectedTipo(v === "todos" ? undefined : v as DocumentoTipo)}>
+                <SelectTrigger className="flex-1 sm:w-[160px]">
+                  <Filter className="h-4 w-4 mr-2 hidden sm:block" />
+                  <SelectValue placeholder="Tipo" />
+                </SelectTrigger>
+                <SelectContent className="bg-background">
+                  <SelectItem value="todos">Todos Tipos</SelectItem>
+                  {Object.entries(TIPO_LABELS).map(([key, label]) => (
+                    <SelectItem key={key} value={key}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <div className="flex gap-1 border rounded-lg p-1 flex-shrink-0">
+                <Button
+                  variant={viewMode === "grid" ? "secondary" : "ghost"}
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setViewMode("grid")}
+                >
+                  <Grid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "list" ? "secondary" : "ghost"}
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setViewMode("list")}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="todos" className="gap-2">
-              <FileText className="h-4 w-4" />
-              Todos ({documentos?.length || 0})
+          <TabsList className="mb-4 sm:mb-6 flex-wrap h-auto gap-1 p-1">
+            <TabsTrigger value="todos" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+              <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Todos</span> ({documentos?.length || 0})
             </TabsTrigger>
-            <TabsTrigger value="recentes" className="gap-2">
-              <Clock className="h-4 w-4" />
+            <TabsTrigger value="recentes" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+              <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
               Recentes
             </TabsTrigger>
-            <TabsTrigger value="favoritos" className="gap-2">
-              <Star className="h-4 w-4" />
-              Favoritos ({favoritos?.length || 0})
+            <TabsTrigger value="favoritos" className="gap-1 sm:gap-2 text-xs sm:text-sm px-2 sm:px-3">
+              <Star className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Favoritos</span> ({favoritos?.length || 0})
             </TabsTrigger>
           </TabsList>
 

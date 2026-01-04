@@ -908,12 +908,12 @@ const Relatorios = () => {
         {!selectedReport ? (
           <ReportSelector reports={reportTypes} onSelectReport={handleSelectReport} />
         ) : (
-          <div className="space-y-6 animate-fade-in">
-            <div className="flex items-center justify-between">
+          <div className="space-y-4 sm:space-y-6 animate-fade-in">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
               <Button 
                 variant="secondary"
                 onClick={() => setSelectedReport(null)}
-                className="bg-white/95 hover:bg-white text-primary shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                className="bg-white/95 hover:bg-white text-primary shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -940,25 +940,25 @@ const Relatorios = () => {
               )}
             </div>
 
-            <div className="bg-white rounded-2xl shadow-2xl p-8">
-              <div className="mb-8">
-                <div className="flex items-center gap-4 mb-2">
+            <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8">
+              <div className="mb-4 sm:mb-6 md:mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-2">
                   {reportTypes.find(r => r.id === selectedReport)?.icon && (
-                    <div className="relative">
+                    <div className="relative flex-shrink-0">
                       <div className="absolute inset-0 bg-destructive/20 rounded-full blur-lg"></div>
-                      <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-destructive/10 to-destructive/5 flex items-center justify-center shadow-lg">
+                      <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-destructive/10 to-destructive/5 flex items-center justify-center shadow-lg">
                         {(() => {
                           const Icon = reportTypes.find(r => r.id === selectedReport)!.icon;
-                          return <Icon className="h-7 w-7 text-destructive" />;
+                          return <Icon className="h-5 w-5 sm:h-6 sm:w-6 md:h-7 md:w-7 text-destructive" />;
                         })()}
                       </div>
                     </div>
                   )}
-                  <div>
-                    <h2 className="text-3xl font-bold text-foreground">
+                  <div className="min-w-0">
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground truncate">
                       {reportTypes.find(r => r.id === selectedReport)?.name}
                     </h2>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                       {reportTypes.find(r => r.id === selectedReport)?.description}
                     </p>
                   </div>
@@ -966,7 +966,7 @@ const Relatorios = () => {
                 <div className="h-1 w-full bg-gradient-to-r from-primary via-destructive/20 to-transparent rounded-full"></div>
               </div>
               
-              <div className="space-y-6">
+              <div className="space-y-4 sm:space-y-6">
                 <ReportFilters
                   reportType={selectedReport}
                   filters={filters}

@@ -155,11 +155,11 @@ const GestaoRH = () => {
   // Mobile/Tablet layout
   if (isMobile) {
     return (
-      <div className="min-h-screen relative overflow-hidden safe-bottom" style={{ backgroundColor: '#40E0D0' }}>
+      <div className="min-h-screen relative overflow-x-hidden overflow-y-auto safe-bottom safe-top" style={{ backgroundColor: '#40E0D0' }}>
         <style>{animationStyles}</style>
         
         {/* Header */}
-        <div className={`flex items-center justify-between px-4 pt-4 pb-2 ${isAnimating ? 'rh-animate-header' : ''}`}>
+        <div className={`flex items-center justify-between px-3 sm:px-4 pt-3 sm:pt-4 pb-2 ${isAnimating ? 'rh-animate-header' : ''}`}>
           <BackButton 
             to="/dashboard" 
             variant="light" 
@@ -169,15 +169,15 @@ const GestaoRH = () => {
             onClick={handleLogout}
             className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity touch-target"
           >
-            <LogOut className="w-5 h-5" />
-            <span className="text-sm">Sair</span>
+            <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+            <span className="text-xs sm:text-sm">Sair</span>
           </button>
         </div>
 
         {/* Título */}
-        <div className={`text-center py-3 px-4 ${isAnimating ? 'rh-animate-title' : ''}`}>
+        <div className={`text-center py-2 sm:py-3 px-3 sm:px-4 ${isAnimating ? 'rh-animate-title' : ''}`}>
           <h1 
-            className="text-2xl sm:text-3xl text-white font-bold"
+            className="text-xl sm:text-2xl md:text-3xl text-white font-bold"
             style={{ 
               fontFamily: "Arial, sans-serif",
               textShadow: '1px 1px 2px rgba(0,0,0,0.2)'
@@ -188,13 +188,13 @@ const GestaoRH = () => {
         </div>
 
         {/* Logo */}
-        <div className={`flex justify-center mb-4 ${isAnimating ? 'rh-animate-logo' : 'opacity-40'}`}>
-          <img src={logoAtiva} alt="Logo Grupo Ativa" className="w-24 sm:w-32 h-auto" />
+        <div className={`flex justify-center mb-3 sm:mb-4 ${isAnimating ? 'rh-animate-logo' : 'opacity-40'}`}>
+          <img src={logoAtiva} alt="Logo Grupo Ativa" className="w-20 sm:w-24 md:w-32 h-auto" />
         </div>
 
         {/* Grid de Módulos */}
-        <div className="px-4 pb-8">
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-lg mx-auto">
+        <div className="px-3 sm:px-4 pb-6 sm:pb-8">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 max-w-lg mx-auto">
             {modules.map((module, index) => (
               <div
                 key={module.path}
@@ -202,11 +202,11 @@ const GestaoRH = () => {
                 style={isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {}}
                 onClick={() => navigate(module.path)}
               >
-                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 sm:w-24 sm:h-24 ring-2 ring-white/30">
+                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 ring-2 ring-white/30">
                   <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                 </div>
                 <p 
-                  className="text-center mt-2 font-semibold text-white text-[10px] sm:text-xs leading-tight max-w-[90px]"
+                  className="text-center mt-1.5 sm:mt-2 font-semibold text-white text-[9px] sm:text-[10px] md:text-xs leading-tight max-w-[80px] sm:max-w-[90px]"
                   style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}
                 >
                   {module.title}
@@ -221,19 +221,19 @@ const GestaoRH = () => {
 
   // Desktop layout (circular)
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{ backgroundColor: '#40E0D0' }}>
+    <div className="min-h-screen relative overflow-x-hidden overflow-y-auto" style={{ backgroundColor: '#40E0D0' }}>
       <style>{animationStyles}</style>
       
       {/* Header */}
       <div className={`flex items-center justify-between px-4 md:px-6 lg:px-8 pt-4 lg:pt-6 ${isAnimating ? 'rh-animate-header' : ''}`}>
-        <div className="flex flex-col items-start">
+        <div className="flex flex-col items-start min-w-0">
           <BackButton 
             to="/dashboard" 
             variant="light"
           />
           {/* Título */}
           <h1 
-            className={`text-3xl md:text-4xl lg:text-5xl text-white mt-2 font-bold ${isAnimating ? 'rh-animate-title' : ''}`}
+            className={`text-2xl md:text-3xl lg:text-4xl xl:text-5xl text-white mt-2 font-bold truncate ${isAnimating ? 'rh-animate-title' : ''}`}
             style={{ 
               fontFamily: "Arial, sans-serif",
               textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
@@ -244,7 +244,7 @@ const GestaoRH = () => {
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity self-start"
+          className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity self-start flex-shrink-0"
         >
           <LogOut className="w-5 h-5 lg:w-6 lg:h-6" />
           <span className="text-sm lg:text-lg font-medium">Sair</span>
@@ -252,14 +252,14 @@ const GestaoRH = () => {
       </div>
 
       {/* Container central */}
-      <div className="relative w-full flex items-center justify-center px-4" style={{ height: 'calc(100vh - 180px)', minHeight: '400px' }}>
+      <div className="relative w-full flex items-center justify-center px-4 min-h-[400px]" style={{ height: 'calc(100vh - 180px)' }}>
         
         {/* Logo Central */}
         <div className={`absolute inset-0 flex items-center justify-center pointer-events-none z-0 ${isAnimating ? 'rh-animate-logo' : 'opacity-90'}`}>
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-48 md:w-64 lg:w-80 xl:w-96 h-auto"
+            className="w-40 md:w-56 lg:w-72 xl:w-80 2xl:w-96 h-auto"
             style={!isAnimating ? { opacity: 0.9 } : {}}
           />
         </div>
@@ -347,7 +347,7 @@ const GestaoRH = () => {
 
         {/* Layout Grid - SM (tablets pequenos) */}
         <div className="block md:hidden relative">
-          <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-md mx-auto">
             {modules.map((module, index) => (
               <div
                 key={module.path}
@@ -355,10 +355,10 @@ const GestaoRH = () => {
                 style={isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {}}
                 onClick={() => navigate(module.path)}
               >
-                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
+                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-16 h-16 sm:w-20 sm:h-20 ring-2 ring-white/30">
                   <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                 </div>
-                <p className="text-center mt-2 font-semibold text-white text-[10px] max-w-[70px] leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+                <p className="text-center mt-2 font-semibold text-white text-[9px] sm:text-[10px] max-w-[65px] sm:max-w-[70px] leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
                   {module.title}
                 </p>
               </div>
