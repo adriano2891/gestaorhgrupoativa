@@ -26,11 +26,13 @@ interface VideoPlayerProps {
   initialPosition?: number;
 }
 
-type VideoSourceType = "youtube" | "drive" | "drive_pdf" | "direct";
+type VideoSourceType = "youtube" | "drive" | "drive_pdf" | "external_pdf" | "direct";
 
 // Detectar tipo de fonte
 const detectVideoSource = (url: string): VideoSourceType => {
   if (!url) return "direct";
+  
+  const lowerUrl = url.toLowerCase();
   
   // YouTube - diversos formatos
   if (url.includes("youtube.com") || url.includes("youtu.be")) return "youtube";
@@ -38,7 +40,6 @@ const detectVideoSource = (url: string): VideoSourceType => {
   // Google Drive - verificar se é PDF pela extensão ou padrão
   if (url.includes("drive.google.com")) {
     // Detectar PDFs por URL ou extensão
-    const lowerUrl = url.toLowerCase();
     if (lowerUrl.includes('.pdf') || 
         lowerUrl.includes('type=pdf') ||
         lowerUrl.includes('mimetype=pdf') ||
@@ -46,6 +47,15 @@ const detectVideoSource = (url: string): VideoSourceType => {
       return "drive_pdf";
     }
     return "drive";
+  }
+  
+  // Detectar PDFs externos por extensão ou padrão
+  if (lowerUrl.includes('.pdf') || 
+      lowerUrl.includes('type=pdf') || 
+      lowerUrl.includes('format=pdf') ||
+      lowerUrl.includes('/pdf/') ||
+      lowerUrl.includes('mimetype=application/pdf')) {
+    return "external_pdf";
   }
   
   // Qualquer outro link (incluindo Supabase Storage) é tratado como direto
@@ -91,6 +101,11 @@ const getEmbedUrl = (url: string, sourceType: VideoSourceType): string | null =>
       }
     }
     return null; // Link inválido
+  }
+  
+  // PDF externo - retornar URL diretamente
+  if (sourceType === "external_pdf") {
+    return url;
   }
   
   return url;
@@ -508,6 +523,104 @@ const DrivePdfViewer = ({ url }: { url: string }) => {
   );
 };
 
+// Componente para visualização de PDF externo
+const ExternalPdfViewer = ({ url }: { url: string }) => {
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleFullscreen = () => {
+    if (containerRef.current) {
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        containerRef.current.requestFullscreen();
+      }
+    }
+  };
+
+  const handleOpenExternal = () => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  return (
+    <div ref={containerRef} className="relative aspect-[3/4] min-h-[500px] bg-white rounded-lg overflow-hidden border">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted z-10">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm">Carregando documento...</p>
+          </div>
+        </div>
+      )}
+      
+      {hasError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-muted z-10">
+          <div className="text-center px-4">
+            <AlertCircle className="h-12 w-12 mx-auto text-amber-500 mb-4" />
+            <p className="text-foreground font-medium mb-2">Não foi possível exibir o PDF</p>
+            <p className="text-muted-foreground text-sm mb-4">
+              O servidor pode estar bloqueando a incorporação. Clique abaixo para abrir em uma nova aba.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleOpenExternal}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Abrir PDF
+            </Button>
+          </div>
+        </div>
+      )}
+
+      <iframe
+        src={url}
+        className="w-full h-full"
+        title="Visualizador de PDF"
+        style={{ border: 0 }}
+        onLoad={() => {
+          setIsLoading(false);
+          setHasError(false);
+        }}
+        onError={() => {
+          setIsLoading(false);
+          setHasError(true);
+        }}
+      />
+      
+      {/* Indicador de tipo e botões */}
+      <div className="absolute top-3 left-3 z-10">
+        <div className="flex items-center gap-1.5 px-2 py-1 bg-black/60 rounded text-white/80 text-xs">
+          <FileText className="h-3.5 w-3.5" />
+          <span>PDF</span>
+        </div>
+      </div>
+      
+      <div className="absolute bottom-3 right-3 flex gap-2 z-10">
+        <Button
+          size="icon"
+          variant="ghost"
+          className="text-white hover:bg-white/20 h-9 w-9 opacity-70 hover:opacity-100 bg-black/50"
+          onClick={handleOpenExternal}
+          title="Abrir em nova aba"
+        >
+          <FileText className="h-5 w-5" />
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className="text-white hover:bg-white/20 h-9 w-9 opacity-70 hover:opacity-100 bg-black/50"
+          onClick={handleFullscreen}
+          title="Tela cheia"
+        >
+          <Maximize className="h-5 w-5" />
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 // Player unificado que escolhe o componente correto
 export const VideoPlayer = ({ 
   url, 
@@ -553,6 +666,11 @@ export const VideoPlayer = ({
   // PDF do Google Drive - usa visualizador específico
   if (sourceType === "drive_pdf") {
     return <DrivePdfViewer url={embedUrl!} />;
+  }
+
+  // PDF externo - usa visualizador de PDF externo
+  if (sourceType === "external_pdf") {
+    return <ExternalPdfViewer url={embedUrl!} />;
   }
 
   // YouTube ou Drive video - usa iframe player
