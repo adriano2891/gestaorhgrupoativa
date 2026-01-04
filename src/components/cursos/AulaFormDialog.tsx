@@ -44,13 +44,110 @@ interface AulaFormData {
   material_apoio_url?: string;
 }
 
+// ===== Upload: validação de performance/compatibilidade =====
+// Objetivo: evitar travamentos no Portal garantindo arquivos “streaming-friendly”.
+// Regras:
+// - Apenas MP4 (H.264/AAC) ou WebM
+// - MP4 deve ser “fast start” (moov atom no início)
+// - Bitrate estimado dentro do recomendado por resolução
+
+type VideoProbe = {
+  durationSec: number;
+  width: number;
+  height: number;
+  bitrateMbps: number; // estimado
+};
+
+const probeVideoFile = async (file: File): Promise<VideoProbe> => {
+  const url = URL.createObjectURL(file);
+
+  try {
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.muted = true;
+    video.src = url;
+
+    const meta = await new Promise<VideoProbe>((resolve, reject) => {
+      const onLoaded = () => {
+        const durationSec = Number.isFinite(video.duration) ? video.duration : 0;
+        const width = video.videoWidth || 0;
+        const height = video.videoHeight || 0;
+        const bitrateMbps = durationSec > 0 ? (file.size * 8) / durationSec / 1_000_000 : 0;
+        cleanup();
+        resolve({ durationSec, width, height, bitrateMbps });
+      };
+
+      const onError = () => {
+        cleanup();
+        reject(new Error("Não foi possível ler os metadados do vídeo"));
+      };
+
+      const cleanup = () => {
+        video.removeEventListener("loadedmetadata", onLoaded);
+        video.removeEventListener("error", onError);
+      };
+
+      video.addEventListener("loadedmetadata", onLoaded);
+      video.addEventListener("error", onError);
+    });
+
+    return meta;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+};
+
+const sliceContainsAscii = async (blob: Blob, asciiNeedle: string): Promise<boolean> => {
+  const buf = await blob.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+
+  // Busca simples por sequência ASCII (suficiente para achar 'moov')
+  const needle = new TextEncoder().encode(asciiNeedle);
+  for (let i = 0; i <= bytes.length - needle.length; i++) {
+    let ok = true;
+    for (let j = 0; j < needle.length; j++) {
+      if (bytes[i + j] !== needle[j]) {
+        ok = false;
+        break;
+      }
+    }
+    if (ok) return true;
+  }
+  return false;
+};
+
+const isMp4FastStart = async (file: File): Promise<boolean> => {
+  // Heurística: se 'moov' aparece no início, é fast start.
+  // Se aparece apenas no final, não é.
+  // (não é um parser completo, mas é uma validação prática e rápida)
+  const head = file.slice(0, Math.min(file.size, 2 * 1024 * 1024));
+  const tail = file.slice(Math.max(0, file.size - 2 * 1024 * 1024));
+
+  const hasMoovInHead = await sliceContainsAscii(head, "moov");
+  if (hasMoovInHead) return true;
+
+  const hasMoovInTail = await sliceContainsAscii(tail, "moov");
+  if (hasMoovInTail) return false;
+
+  // Se não achou, assume não confiável → tratar como não otimizado
+  return false;
+};
+
+const getRecommendedMaxBitrateMbps = (height: number): number => {
+  if (!height) return 8;
+  if (height <= 480) return 2.5;
+  if (height <= 720) return 5;
+  if (height <= 1080) return 8;
+  return 12;
+};
+
 // Função para converter URL do YouTube para embed com branding mínimo
 const getYouTubeEmbedUrl = (url: string): string | null => {
   const patterns = [
     /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&?/]+)/,
     /youtube\.com\/shorts\/([^&?/]+)/,
   ];
-  
+
   for (const pattern of patterns) {
     const match = url.match(pattern);
     if (match && match[1]) {
@@ -207,47 +304,56 @@ export const AulaFormDialog = ({
   const handleFileUpload = async (file: File) => {
     const fileExt = (file.name.split(".").pop() || "").toLowerCase();
 
-    // Formatos aceitos para upload (incluindo WMV)
-    const allowedExts = ["mp4", "webm", "mov", "m4v", "avi", "mkv", "wmv"];
-    const allowedMimes = [
-      "video/mp4", 
-      "video/webm", 
-      "video/quicktime", 
-      "video/x-m4v", 
-      "video/avi", 
-      "video/x-matroska",
-      "video/x-msvideo",
-      "video/x-ms-wmv",
-      "video/wmv"
-    ];
-    
-    // Formatos com reprodução garantida nos navegadores
-    const nativelySupportedExts = ["mp4", "webm", "mov", "m4v"];
-    
-    // Formatos que podem precisar de conversão
-    const mayNeedConversion = ["avi", "mkv", "wmv"];
-    
+    // Para reprodução fluida no Portal do Funcionário, restringimos uploads a formatos realmente estáveis em HTML5.
+    // (links externos podem funcionar por já virem otimizados/streaming-friendly)
+    const allowedExts = ["mp4", "webm"];
+    const allowedMimes = ["video/mp4", "video/webm"];
+
     const hasValidExt = allowedExts.includes(fileExt);
-    const hasValidMime = file.type && (file.type.startsWith("video/") || allowedMimes.includes(file.type));
+    const hasValidMime = file.type ? allowedMimes.includes(file.type) : false;
 
     // Aceitar se tiver extensão válida OU MIME type válido
     if (!hasValidExt && !hasValidMime) {
-      toast.error("Selecione um vídeo válido: MP4, WebM, MOV, M4V, AVI, MKV ou WMV");
+      toast.error("Para garantir reprodução fluida, envie apenas MP4 ou WebM.");
       return;
-    }
-
-    // Alertar sobre formatos que podem não reproduzir
-    if (mayNeedConversion.includes(fileExt)) {
-      toast.warning(
-        `Formato ${fileExt.toUpperCase()} detectado. Este formato pode não reproduzir em alguns navegadores. ` +
-        `Recomendamos converter para MP4 (H.264) para garantir compatibilidade.`,
-        { duration: 6000 }
-      );
     }
 
     const maxSize = 500 * 1024 * 1024; // 500MB
     if (file.size > maxSize) {
       toast.error("O arquivo excede o limite de 500MB");
+      return;
+    }
+
+    // Validações definitivas (antes de enviar):
+    // 1) MP4 precisa ser 'fast start' (moov no início)
+    // 2) Bitrate estimado dentro do recomendado para a resolução
+    try {
+      if (fileExt === "mp4" || file.type === "video/mp4") {
+        const fastStart = await isMp4FastStart(file);
+        if (!fastStart) {
+          toast.error(
+            "Este MP4 não está otimizado para streaming (fast start). Reexporte/converta com 'Fast Start' para evitar travamentos." 
+          );
+          return;
+        }
+      }
+
+      const meta = await probeVideoFile(file);
+      const maxBitrate = getRecommendedMaxBitrateMbps(meta.height);
+
+      // margem pequena (10%) para evitar falso positivo
+      if (meta.bitrateMbps && meta.bitrateMbps > maxBitrate * 1.1) {
+        toast.error(
+          `Bitrate alto (${meta.bitrateMbps.toFixed(1)} Mbps) para ${meta.height || "?"}p. ` +
+            `Recomendado até ~${maxBitrate} Mbps para evitar travamentos. Converta/reesporte e tente novamente.`
+        );
+        return;
+      }
+    } catch (err) {
+      console.error("Falha ao validar vídeo antes do upload:", err);
+      toast.error(
+        "Não foi possível validar o vídeo antes do upload. Tente novamente ou converta para MP4 (H.264 + AAC) com Fast Start."
+      );
       return;
     }
 
@@ -461,26 +567,26 @@ export const AulaFormDialog = ({
                 
                 {/* Guia de compatibilidade */}
                 <div className="bg-muted/50 rounded-lg p-3 text-xs space-y-2">
-                  <p className="font-medium text-foreground">📋 Guia de Compatibilidade:</p>
+                  <p className="font-medium text-foreground">📋 Requisitos para reprodução fluida:</p>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <p className="text-green-600 font-medium">✓ Reprodução garantida:</p>
-                      <p className="text-muted-foreground">MP4 (H.264), WebM, MOV</p>
+                      <p className="text-green-600 font-medium">✓ Aceito (recomendado):</p>
+                      <p className="text-muted-foreground">MP4 (H.264 + AAC, Fast Start) ou WebM</p>
                     </div>
                     <div>
-                      <p className="text-amber-600 font-medium">⚠️ Pode não reproduzir:</p>
-                      <p className="text-muted-foreground">AVI, MKV, WMV, H.265</p>
+                      <p className="text-amber-600 font-medium">⚠️ Pode travar:</p>
+                      <p className="text-muted-foreground">MP4 sem Fast Start / bitrate alto / H.265</p>
                     </div>
                   </div>
                   <p className="text-muted-foreground">
-                    💡 <strong>Dica:</strong> Use ferramentas gratuitas como <strong>HandBrake</strong> ou <strong>VLC</strong> para converter vídeos para MP4 (H.264).
+                    💡 <strong>Dica:</strong> Converta no <strong>HandBrake</strong> escolhendo “H.264” e ativando “Web Optimized / Fast Start”.
                   </p>
                 </div>
 
                 <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-primary/50 transition-colors">
                   <input
                     type="file"
-                    accept="video/*,.mp4,.webm,.mov,.m4v,.avi,.mkv,.wmv"
+                    accept="video/mp4,video/webm,.mp4,.webm"
                     className="hidden"
                     id="video-upload"
                     onChange={(e) => {
