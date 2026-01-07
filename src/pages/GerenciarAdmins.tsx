@@ -121,10 +121,10 @@ const GerenciarAdmins = () => {
       
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-primary-foreground">
+          <h1 className="text-3xl font-bold" style={{ color: '#40e0d0' }}>
             Gerenciar Admins
           </h1>
-          <p className="text-primary-foreground/80 mt-1">
+          <p className="mt-1" style={{ color: '#40e0d0' }}>
             Gerencie administradores e suas permissões
           </p>
         </div>
