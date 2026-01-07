@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Shield
 } from "lucide-react";
+import iconFormulariosNew from "@/assets/icon-formularios-new.png";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
@@ -57,9 +58,11 @@ const HRFlowPro = () => {
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#2563eb] to-[#1d4ed8] rounded-xl flex items-center justify-center flex-shrink-0">
-              <FileText className="w-5 h-5 text-white" />
-            </div>
+            <img 
+              src={iconFormulariosNew} 
+              alt="HRFlow Pro" 
+              className="w-10 h-10 object-contain flex-shrink-0"
+            />
             {!sidebarCollapsed && (
               <div className="animate-fade-in">
                 <h1 className="font-bold text-gray-900">HRFlow Pro</h1>
