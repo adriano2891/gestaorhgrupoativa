@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Shield, UserPlus, Edit, Trash2, Mail, Loader2 } from "lucide-react";
+import { Shield, UserPlus, Edit, Trash2, Mail, Loader2, RefreshCw } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { useAdmins, useDeleteAdmin, type Admin } from "@/hooks/useAdmins";
 import { useAdminsRealtime } from "@/hooks/useRealtimeUpdates";
@@ -35,11 +35,15 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const GerenciarAdmins = () => {
-  const { data: admins = [], isLoading } = useAdmins();
+  const { data: admins = [], isLoading, refetch, isFetching } = useAdmins();
   const deleteAdmin = useDeleteAdmin();
   useAdminsRealtime();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | undefined>();
+
+  const handleRefresh = () => {
+    refetch();
+  };
 
   const getInitials = (name: string) => {
     return name
@@ -128,10 +132,15 @@ const GerenciarAdmins = () => {
             Gerencie administradores e suas permissões
           </p>
         </div>
-        <Button onClick={handleAddAdmin}>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Adicionar Admin
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleRefresh} disabled={isFetching}>
+            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button onClick={handleAddAdmin}>
+            <UserPlus className="h-4 w-4 mr-2" />
+            Adicionar Admin
+          </Button>
+        </div>
       </div>
 
       <AdminDialog
