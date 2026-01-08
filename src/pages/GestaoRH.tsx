@@ -56,7 +56,7 @@ const GestaoRH = () => {
     { title: "Folha de Ponto", description: "Controle de jornada", iconSrc: iconPonto, path: "/folha-ponto", iconScale: "scale-150" },
     { title: "Holerites", description: "Gestão de pagamentos", iconSrc: iconHolerites, path: "/holerites", scaleIcon: true },
     { title: "Comunicados", description: "Avisos e notificações internas", iconSrc: iconComunicados, path: "/comunicados", scaleIcon: true },
-    { title: "HRFlow Pro", description: "Gestão de Formulários", iconSrc: iconFormularios, path: "/hrflow-pro", scaleIcon: true },
+    { title: "Formulários", description: "Gestão de Formulários", iconSrc: iconFormularios, path: "/hrflow-pro", scaleIcon: true },
     { title: "Cursos", description: "Treinamentos corporativos", iconSrc: iconCursos, path: "/cursos", scaleIcon: true },
   ];
 
