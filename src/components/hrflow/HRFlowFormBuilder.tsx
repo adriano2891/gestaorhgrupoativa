@@ -122,15 +122,15 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
 
   return (
     <div className="animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      {/* Header - hidden on print */}
+      <div className="flex items-center justify-between mb-6 no-print">
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="icon" onClick={onClose}>
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold text-gray-900">Editor de Formulário</h1>
-            <p className="text-sm text-gray-500">Arraste campos para organizar</p>
+            <h1 className="text-xl font-bold text-foreground">Editor de Formulário</h1>
+            <p className="text-sm text-muted-foreground">Arraste campos para organizar</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -138,7 +138,7 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
             <Download className="w-4 h-4 mr-2" />
             PDF
           </Button>
-          <Button className="bg-[#2563eb] hover:bg-[#1d4ed8]" onClick={handleSave}>
+          <Button className="bg-primary hover:bg-primary-dark text-primary-foreground" onClick={handleSave}>
             <Save className="w-4 h-4 mr-2" />
             Salvar
           </Button>
@@ -146,17 +146,17 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
       </div>
 
       <div className="grid grid-cols-12 gap-6">
-        {/* Field Palette */}
-        <div className="col-span-3">
+        {/* Field Palette - hidden on print */}
+        <div className="col-span-3 no-print">
           <Card className="border-0 shadow-sm sticky top-6">
             <CardContent className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-3">Campos</h3>
+              <h3 className="font-semibold text-foreground mb-3">Campos</h3>
               <div className="grid grid-cols-2 gap-2">
                 {(Object.keys(FIELD_TYPE_LABELS) as HRFlowFieldType[]).map((type) => (
                   <button
                     key={type}
                     onClick={() => addField(type)}
-                    className="p-2 text-xs text-left bg-gray-50 hover:bg-blue-50 hover:text-[#2563eb] rounded-lg transition-colors border border-transparent hover:border-blue-200"
+                    className="p-2 text-xs text-left bg-muted hover:bg-primary/10 hover:text-primary rounded-lg transition-colors border border-transparent hover:border-primary/20"
                   >
                     {FIELD_TYPE_LABELS[type]}
                   </button>
@@ -166,92 +166,113 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
           </Card>
         </div>
 
-        {/* Canvas (A4 Preview) */}
-        <div className="col-span-6">
-          <Card className="border-0 shadow-lg bg-white min-h-[800px] print:shadow-none print:border">
-            <CardContent className="p-8">
-              {/* Form Header */}
-              <div className="mb-6 pb-6 border-b">
-                <Input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="text-2xl font-bold border-0 p-0 focus-visible:ring-0 mb-2"
-                  placeholder="Título do Formulário"
-                />
-                <Textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="border-0 p-0 resize-none focus-visible:ring-0 text-gray-600"
-                  placeholder="Descrição do formulário..."
-                  rows={2}
-                />
-              </div>
+        {/* Canvas (A4 Preview) - 210mm x 297mm */}
+        <div className="col-span-6 print:col-span-12">
+          <div className="flex justify-center">
+            <Card className="a4-canvas print-container border shadow-lg bg-white w-[210mm] min-h-[297mm] print:shadow-none print:border-0 print:w-full">
+              <CardContent className="p-[20mm] print:p-0">
+                {/* Form Header */}
+                <div className="mb-6 pb-6 border-b border-border print-title">
+                  <Input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="text-2xl font-bold border-0 p-0 focus-visible:ring-0 mb-2 bg-transparent print:border-0"
+                    placeholder="Título do Formulário"
+                  />
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    className="border-0 p-0 resize-none focus-visible:ring-0 text-muted-foreground bg-transparent print:border-0"
+                    placeholder="Descrição do formulário..."
+                    rows={2}
+                  />
+                </div>
 
-              {/* Fields */}
-              {fields.length === 0 ? (
-                <div className="py-16 text-center text-gray-400">
-                  <Plus className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                  <p>Clique nos campos à esquerda para adicionar</p>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {fields.map((field, index) => (
-                    <div
-                      key={field.id}
-                      draggable
-                      onDragStart={(e) => handleDragStart(e, index)}
-                      onDragEnd={handleDragEnd}
-                      onDragOver={(e) => handleDragOver(e, index)}
-                      onDragLeave={handleDragLeave}
-                      onDrop={(e) => handleDrop(e, index)}
-                      onClick={() => setSelectedFieldId(field.id)}
-                      className={cn(
-                        "p-4 rounded-lg border-2 transition-all cursor-pointer",
-                        selectedFieldId === field.id
-                          ? 'border-[#2563eb] bg-blue-50/50'
-                          : 'border-transparent hover:border-gray-200 bg-gray-50',
-                        draggedIndex === index && 'opacity-50',
-                        dragOverIndex === index && draggedIndex !== index && 'border-[#2563eb] border-dashed'
-                      )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div 
-                          className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-gray-200 transition-colors"
-                          onMouseDown={(e) => e.stopPropagation()}
-                        >
-                          <GripVertical className="w-4 h-4 text-gray-400" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="font-medium text-gray-900">{field.label}</span>
-                            {field.required && <Badge variant="destructive" className="text-xs">*</Badge>}
+                {/* Fields */}
+                {fields.length === 0 ? (
+                  <div className="py-16 text-center text-muted-foreground no-print">
+                    <Plus className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                    <p>Clique nos campos à esquerda para adicionar</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {fields.map((field, index) => (
+                      <div
+                        key={field.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, index)}
+                        onDragEnd={handleDragEnd}
+                        onDragOver={(e) => handleDragOver(e, index)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, index)}
+                        onClick={() => setSelectedFieldId(field.id)}
+                        className={cn(
+                          "p-4 rounded-lg border-2 transition-all cursor-pointer print-field print:border print:border-border print:rounded-none print:cursor-default",
+                          selectedFieldId === field.id
+                            ? 'border-primary bg-primary/5'
+                            : 'border-transparent hover:border-border bg-muted/50',
+                          draggedIndex === index && 'opacity-50',
+                          dragOverIndex === index && draggedIndex !== index && 'border-primary border-dashed'
+                        )}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div 
+                            className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-muted transition-colors no-print"
+                            onMouseDown={(e) => e.stopPropagation()}
+                          >
+                            <GripVertical className="w-4 h-4 text-muted-foreground" />
                           </div>
-                          <Badge variant="secondary" className="text-xs">
-                            {FIELD_TYPE_LABELS[field.type]}
-                          </Badge>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="font-medium text-foreground">{field.label}</span>
+                              {field.required && <Badge variant="destructive" className="text-xs">*</Badge>}
+                            </div>
+                            <Badge variant="secondary" className="text-xs no-print">
+                              {FIELD_TYPE_LABELS[field.type]}
+                            </Badge>
+                            {/* Print-friendly input representation */}
+                            <div className="hidden print:block mt-2">
+                              {field.type === 'textarea' ? (
+                                <div className="print-input min-h-[60pt] border border-border rounded" />
+                              ) : field.type === 'checkbox' || field.type === 'radio' ? (
+                                <div className="space-y-1">
+                                  {(field.options || ['Opção 1', 'Opção 2']).map((opt, i) => (
+                                    <div key={i} className="flex items-center gap-2">
+                                      <div className="print-checkbox w-3 h-3 border border-foreground rounded-sm" />
+                                      <span className="text-sm">{opt}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : field.type === 'signature' ? (
+                                <div className="print-signature border-b border-foreground h-[40pt] mt-4" />
+                              ) : (
+                                <div className="print-input h-[24pt] border border-border rounded" />
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-muted-foreground hover:text-destructive no-print"
+                            onClick={(e) => { e.stopPropagation(); deleteField(field.id); }}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-gray-400 hover:text-red-500"
-                          onClick={(e) => { e.stopPropagation(); deleteField(field.id); }}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </div>
 
-        {/* Properties Panel */}
-        <div className="col-span-3">
+        {/* Properties Panel - hidden on print */}
+        <div className="col-span-3 no-print">
           <Card className="border-0 shadow-sm sticky top-6">
             <CardContent className="p-4">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
                 <Settings className="w-4 h-4" />
                 Propriedades
               </h3>
@@ -294,12 +315,12 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
                   )}
                 </div>
               ) : (
-                <div className="text-center py-8 text-gray-400 text-sm">
+                <div className="text-center py-8 text-muted-foreground text-sm">
                   Selecione um campo para editar suas propriedades
                 </div>
               )}
 
-              <div className="mt-6 pt-4 border-t">
+              <div className="mt-6 pt-4 border-t border-border">
                 <Label className="text-xs">Categoria</Label>
                 <Select value={category} onValueChange={(v) => setCategory(v as FormCategory)}>
                   <SelectTrigger className="mt-1">

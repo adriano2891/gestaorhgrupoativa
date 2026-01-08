@@ -195,6 +195,13 @@ All colors MUST be HSL.
   }
 }
 
+/* A4 Canvas Styles */
+.a4-canvas {
+  width: 210mm;
+  min-height: 297mm;
+  background: white;
+}
+
 /* HRFlow Pro Print Styles */
 @media print {
   /* Hide all UI elements */
@@ -206,7 +213,8 @@ All colors MUST be HSL.
   footer,
   .sidebar,
   .toast,
-  .dialog-overlay {
+  .dialog-overlay,
+  [data-radix-popper-content-wrapper] {
     display: none !important;
   }
 
@@ -222,22 +230,50 @@ All colors MUST be HSL.
     color: black !important;
     font-size: 12pt !important;
     line-height: 1.5 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide grid columns except canvas */
+  .grid.grid-cols-12 {
+    display: block !important;
+  }
+
+  .grid.grid-cols-12 > .col-span-3 {
+    display: none !important;
+  }
+
+  .grid.grid-cols-12 > .col-span-6 {
+    display: block !important;
+    width: 100% !important;
   }
 
   /* A4 canvas should be full width in print */
-  .print-container {
+  .print-container,
+  .a4-canvas {
     width: 100% !important;
     max-width: none !important;
+    min-height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     box-shadow: none !important;
     border: none !important;
+    background: white !important;
+  }
+
+  .print-container > div,
+  .a4-canvas > div {
+    padding: 0 !important;
   }
 
   /* Form fields styling for print */
   .print-field {
     page-break-inside: avoid;
-    margin-bottom: 8pt;
+    margin-bottom: 12pt;
+    padding: 8pt !important;
+    border: 1pt solid #e5e7eb !important;
+    background: #fafafa !important;
+    border-radius: 4pt !important;
   }
 
   /* Ensure form title is visible */
@@ -250,16 +286,19 @@ All colors MUST be HSL.
 
   /* Input fields should have visible borders */
   .print-input {
-    border: 1pt solid #ccc !important;
+    border: 1pt solid #d1d5db !important;
     padding: 6pt !important;
     background: white !important;
+    border-radius: 2pt;
   }
 
   /* Checkboxes and radio buttons */
   .print-checkbox {
-    width: 12pt !important;
-    height: 12pt !important;
+    width: 10pt !important;
+    height: 10pt !important;
     border: 1pt solid black !important;
+    display: inline-block;
+    flex-shrink: 0;
   }
 
   /* Signature area */
@@ -290,5 +329,11 @@ All colors MUST be HSL.
     border-radius: 4pt;
     display: inline-block;
     margin-top: 10pt;
+  }
+
+  /* Hide drag handles and edit buttons in print */
+  .cursor-grab,
+  .cursor-pointer {
+    cursor: default !important;
   }
 }
