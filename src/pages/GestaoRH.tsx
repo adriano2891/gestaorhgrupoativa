@@ -17,7 +17,7 @@ import iconPonto from "@/assets/icon-rh-ponto.png";
 import iconHolerites from "@/assets/icon-rh-holerites.png";
 import iconComunicados from "@/assets/icon-rh-comunicados.png";
 import iconAdmins from "@/assets/icon-rh-admins.png";
-import iconFormularios from "@/assets/icon-formularios-new.png";
+import iconFormularios from "@/assets/icon-rh-formularios.png";
 import iconCursos from "@/assets/icon-rh-cursos.png";
 
 interface ModuleItem {
