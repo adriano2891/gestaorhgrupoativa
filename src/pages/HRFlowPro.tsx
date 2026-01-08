@@ -1,138 +1,300 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { 
   FileText, 
   LayoutTemplate, 
   Sparkles,
   Settings,
-  ArrowLeft,
-  Shield
+  Plus,
+  Search,
+  Filter,
+  MoreVertical,
+  Eye,
+  Edit,
+  Trash2,
+  Copy,
+  ExternalLink
 } from "lucide-react";
-import iconFormulariosNew from "@/assets/icon-formularios-new.png";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
-import { HRFlowFormsList } from "@/components/hrflow/HRFlowFormsList";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { HRFlowFormBuilder } from "@/components/hrflow/HRFlowFormBuilder";
 import { HRFlowTemplates } from "@/components/hrflow/HRFlowTemplates";
 import { HRFlowAI } from "@/components/hrflow/HRFlowAI";
 import { HRFlowSettings } from "@/components/hrflow/HRFlowSettings";
-import { cn } from "@/lib/utils";
+import { HRFlowForm, FormCategory, FormStatus, CATEGORY_LABELS, CATEGORY_COLORS } from "@/types/hrflow";
+import { Skeleton } from "@/components/ui/skeleton";
 
-type HRFlowTab = 'forms' | 'templates' | 'ai' | 'settings';
-
-const navItems = [
-  { id: 'forms' as const, label: 'Meus Formulários', icon: FileText },
-  { id: 'templates' as const, label: 'Templates', icon: LayoutTemplate },
-  { id: 'ai' as const, label: 'Criar com IA', icon: Sparkles },
-  { id: 'settings' as const, label: 'Configurações', icon: Settings },
+const mockForms: HRFlowForm[] = [
+  {
+    id: '1',
+    title: 'Pesquisa de Clima 2024',
+    description: 'Avaliação anual do clima organizacional',
+    category: 'clima',
+    status: 'ativo',
+    fields: [],
+    createdAt: '2024-01-15',
+    updatedAt: '2024-01-20',
+    responsesCount: 45
+  },
+  {
+    id: '2',
+    title: 'Avaliação de Desempenho Q1',
+    description: 'Avaliação trimestral de performance',
+    category: 'desempenho',
+    status: 'ativo',
+    fields: [],
+    createdAt: '2024-01-10',
+    updatedAt: '2024-01-18',
+    responsesCount: 32
+  },
+  {
+    id: '3',
+    title: 'Onboarding - TI',
+    description: 'Checklist de integração para novos funcionários de TI',
+    category: 'onboarding',
+    status: 'rascunho',
+    fields: [],
+    createdAt: '2024-01-05',
+    updatedAt: '2024-01-05',
+    responsesCount: 0
+  }
 ];
+
+const STATUS_LABELS: Record<FormStatus, { label: string; class: string }> = {
+  rascunho: { label: 'Rascunho', class: 'bg-muted text-muted-foreground' },
+  ativo: { label: 'Ativo', class: 'bg-primary/10 text-primary' },
+  arquivado: { label: 'Arquivado', class: 'bg-amber-100 text-amber-700' }
+};
 
 const HRFlowPro = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<HRFlowTab>('forms');
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('forms');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState<string>("todos");
+  const [statusFilter, setStatusFilter] = useState<string>("todos");
+  const [isBuilderOpen, setIsBuilderOpen] = useState(false);
+  const [editingForm, setEditingForm] = useState<HRFlowForm | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'forms':
-        return <HRFlowFormsList />;
-      case 'templates':
-        return <HRFlowTemplates />;
-      case 'ai':
-        return <HRFlowAI />;
-      case 'settings':
-        return <HRFlowSettings />;
-      default:
-        return <HRFlowFormsList />;
-    }
-  };
+  const filteredForms = mockForms.filter(form => {
+    const matchesSearch = form.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      form.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === "todos" || form.category === categoryFilter;
+    const matchesStatus = statusFilter === "todos" || form.status === statusFilter;
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
+
+  if (isBuilderOpen) {
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <BackButton to="/hrflow-pro" onClick={() => {
+          setIsBuilderOpen(false);
+          setEditingForm(null);
+        }} />
+        <HRFlowFormBuilder 
+          form={editingForm} 
+          onClose={() => {
+            setIsBuilderOpen(false);
+            setEditingForm(null);
+          }} 
+        />
+      </div>
+    );
+  }
+
+  const renderFormsContent = () => (
+    <>
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar formulários..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <Filter className="h-4 w-4 mr-2" />
+            <SelectValue placeholder="Categoria" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todas Categorias</SelectItem>
+            {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+              <SelectItem key={key} value={key}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos Status</SelectItem>
+            {Object.entries(STATUS_LABELS).map(([key, { label }]) => (
+              <SelectItem key={key} value={key}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Forms List */}
+      {isLoading ? (
+        <div className="space-y-3">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      ) : filteredForms.length === 0 ? (
+        <div className="text-center py-12">
+          <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-muted-foreground mb-2">Nenhum formulário encontrado</h3>
+          <p className="text-sm text-muted-foreground mb-4">Crie seu primeiro formulário clicando no botão acima</p>
+          <Button onClick={() => setIsBuilderOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Criar Formulário
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filteredForms.map((form) => (
+            <Card key={form.id} className="transition-all hover:shadow-md">
+              <CardContent className="pt-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-6 h-6 text-primary" />
+                    </div>
+                    <div className="flex-1 space-y-2">
+                      <h3 className="font-semibold text-lg text-foreground">{form.title}</h3>
+                      <p className="text-sm text-muted-foreground">{form.description}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <Badge className={CATEGORY_COLORS[form.category]}>
+                          {CATEGORY_LABELS[form.category]}
+                        </Badge>
+                        <Badge className={STATUS_LABELS[form.status].class}>
+                          {STATUS_LABELS[form.status].label}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {form.responsesCount} respostas
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm">
+                      <Eye className="w-4 h-4 mr-1" />
+                      Ver
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setEditingForm(form);
+                        setIsBuilderOpen(true);
+                      }}
+                    >
+                      <Edit className="w-4 h-4 mr-1" />
+                      Editar
+                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                          <Copy className="w-4 h-4 mr-2" />
+                          Duplicar
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Link Público
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive">
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Excluir
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+    </>
+  );
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex">
-      {/* Sidebar */}
-      <aside 
-        className={cn(
-          "fixed left-0 top-0 h-screen bg-white border-r border-gray-200 flex flex-col z-50 transition-all duration-300",
-          sidebarCollapsed ? "w-16" : "w-64"
-        )}
-      >
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center gap-3">
-            <img 
-              src={iconFormulariosNew} 
-              alt="HRFlow Pro" 
-              className="w-10 h-10 object-contain flex-shrink-0"
-            />
-            {!sidebarCollapsed && (
-              <div className="animate-fade-in">
-                <h1 className="font-bold text-gray-900">HRFlow Pro</h1>
-                <p className="text-xs text-gray-500">Gestão de Formulários</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                activeTab === item.id 
-                  ? "bg-[#2563eb] text-white shadow-md shadow-blue-500/20" 
-                  : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
-              )}
-            >
-              <item.icon className={cn("w-5 h-5 flex-shrink-0", item.id === 'ai' && "text-amber-500")} />
-              {!sidebarCollapsed && <span className="animate-fade-in">{item.label}</span>}
-            </button>
-          ))}
-        </nav>
-
-        {/* Footer */}
-        <div className="p-3 border-t border-gray-200">
-          <BackButton 
-            to="/gestao-rh" 
-            label={sidebarCollapsed ? "" : "Voltar"}
-            className="w-full justify-start px-3 py-2.5 text-sm font-medium text-gray-600 hover:bg-gray-100"
-          />
-          
-          {/* LGPD Badge */}
-          {!sidebarCollapsed && (
-            <div className="mt-3 p-3 bg-green-50 rounded-lg border border-green-200 animate-fade-in">
-              <div className="flex items-center gap-2 text-green-700">
-                <Shield className="w-4 h-4" />
-                <span className="text-xs font-medium">Conformidade LGPD</span>
-              </div>
+    <div className="space-y-4 sm:space-y-6">
+      <BackButton to="/gestao-rh" variant="light" />
+      
+      <Card>
+        <CardHeader className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <FileText className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0" style={{ color: '#40e0d0' }} />
+              <CardTitle className="text-lg sm:text-xl md:text-2xl" style={{ color: '#40e0d0' }}>
+                Formulários
+              </CardTitle>
             </div>
-          )}
-        </div>
-      </aside>
+            <Button onClick={() => setIsBuilderOpen(true)} className="w-full sm:w-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Formulário
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="p-4 sm:p-6">
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="mb-6 grid grid-cols-4 w-full sm:w-auto sm:inline-flex">
+              <TabsTrigger value="forms" className="gap-2">
+                <FileText className="h-4 w-4 hidden sm:inline" />
+                <span className="text-xs sm:text-sm">Formulários</span>
+              </TabsTrigger>
+              <TabsTrigger value="templates" className="gap-2">
+                <LayoutTemplate className="h-4 w-4 hidden sm:inline" />
+                <span className="text-xs sm:text-sm">Templates</span>
+              </TabsTrigger>
+              <TabsTrigger value="ai" className="gap-2">
+                <Sparkles className="h-4 w-4 hidden sm:inline" />
+                <span className="text-xs sm:text-sm">IA</span>
+              </TabsTrigger>
+              <TabsTrigger value="settings" className="gap-2">
+                <Settings className="h-4 w-4 hidden sm:inline" />
+                <span className="text-xs sm:text-sm">Config</span>
+              </TabsTrigger>
+            </TabsList>
 
-      {/* Main Content */}
-      <main 
-        className={cn(
-          "flex-1 transition-all duration-300 min-h-screen",
-          sidebarCollapsed ? "ml-16" : "ml-64"
-        )}
-      >
-        <div className="p-6 max-w-7xl mx-auto">
-          {renderContent()}
-        </div>
-      </main>
+            <TabsContent value="forms">
+              {renderFormsContent()}
+            </TabsContent>
 
-      {/* Collapse Toggle */}
-      <button
-        onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-        className={cn(
-          "fixed top-4 z-50 w-6 h-6 bg-white border border-gray-200 rounded-full flex items-center justify-center shadow-sm hover:bg-gray-50 transition-all duration-300",
-          sidebarCollapsed ? "left-[52px]" : "left-[252px]"
-        )}
-      >
-        <ArrowLeft className={cn("w-3 h-3 text-gray-600 transition-transform", sidebarCollapsed && "rotate-180")} />
-      </button>
+            <TabsContent value="templates">
+              <HRFlowTemplates />
+            </TabsContent>
+
+            <TabsContent value="ai">
+              <HRFlowAI />
+            </TabsContent>
+
+            <TabsContent value="settings">
+              <HRFlowSettings />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 };
