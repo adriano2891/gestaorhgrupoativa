@@ -49,7 +49,7 @@ const Documentacoes = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategoria, setSelectedCategoria] = useState<string | undefined>();
   const [selectedTipo, setSelectedTipo] = useState<DocumentoTipo | undefined>();
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showCategoriaDialog, setShowCategoriaDialog] = useState(false);
   const [selectedDocumento, setSelectedDocumento] = useState<Documento | null>(null);
