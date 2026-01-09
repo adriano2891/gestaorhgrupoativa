@@ -70,16 +70,17 @@ const getEmbedUrl = (url: string, sourceType: VideoSourceType): string | null =>
     // Converter youtube.com/watch?v=ID para embed com branding mínimo
     const videoIdMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&\s?]+)/);
     if (videoIdMatch) {
-      // Parâmetros para ocultar identificação da plataforma:
+      // Parâmetros otimizados para carregamento rápido e branding mínimo:
       // - modestbranding=1: minimiza logo do YouTube
-      // - rel=0: não mostra vídeos relacionados
-      // - showinfo=0: oculta título
-      // - controls=0: oculta barra de controles
+      // - rel=0: não mostra vídeos relacionados ao final
+      // - showinfo=0: oculta título (deprecado, mas mantido)
       // - iv_load_policy=3: oculta anotações
-      // - fs=0: oculta botão fullscreen
-      // - disablekb=1: desabilita atalhos de teclado
+      // - cc_load_policy=0: não carrega legendas automaticamente
+      // - playsinline=1: reproduz inline em mobile
+      // - autoplay=0: não inicia automaticamente (evita bloqueio do navegador)
+      // - enablejsapi=1: habilita API JS para controle
       // Usando youtube-nocookie.com para maior privacidade
-      return `https://www.youtube-nocookie.com/embed/${videoIdMatch[1]}?modestbranding=1&rel=0&showinfo=0&controls=0&iv_load_policy=3&fs=0&disablekb=1&cc_load_policy=0&playsinline=1`;
+      return `https://www.youtube-nocookie.com/embed/${videoIdMatch[1]}?modestbranding=1&rel=0&iv_load_policy=3&cc_load_policy=0&playsinline=1&autoplay=0&enablejsapi=1`;
     }
   }
   
