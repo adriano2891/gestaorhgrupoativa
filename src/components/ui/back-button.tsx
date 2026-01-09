@@ -33,7 +33,7 @@ export const BackButton = ({
   const variants = {
     default: "text-foreground hover:text-foreground/80",
     ghost: "text-muted-foreground hover:text-foreground",
-    light: "text-white hover:opacity-80",
+    light: "text-white bg-[#1abc9c] hover:bg-[#159a8a] hover:opacity-100",
   };
 
   return (
