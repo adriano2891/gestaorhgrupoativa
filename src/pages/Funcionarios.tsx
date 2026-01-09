@@ -143,6 +143,7 @@ const Funcionarios = () => {
     cpf: "",
     password: "",
     salario: "",
+    dataNascimento: "",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -473,6 +474,7 @@ const Funcionarios = () => {
       cpf: "",
       password: "",
       salario: "",
+      dataNascimento: "",
     });
     setValidationErrors({});
     setIsAddDialogOpen(true);
@@ -526,6 +528,7 @@ const Funcionarios = () => {
             telefone: newEmployee.phone,
             cargo: newEmployee.position,
             departamento: newEmployee.department,
+            data_nascimento: newEmployee.dataNascimento || null,
           },
           emailRedirectTo: `${window.location.origin}/`,
         },
@@ -565,6 +568,7 @@ const Funcionarios = () => {
         cpf: "",
         salario: "",
         password: "",
+        dataNascimento: "",
       });
       
       toast({
@@ -1015,6 +1019,16 @@ const Funcionarios = () => {
               {validationErrors.department && (
                 <p className="text-xs text-destructive">{validationErrors.department}</p>
               )}
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="new-dataNascimento" className="text-sm">Data de Nascimento</Label>
+              <Input
+                id="new-dataNascimento"
+                type="date"
+                value={newEmployee.dataNascimento}
+                onChange={(e) => updateNewEmployee('dataNascimento', e.target.value)}
+                className="h-9"
+              />
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="new-salary" className="text-sm">Salário</Label>
