@@ -120,7 +120,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </header>
 
       {/* Desktop Navigation */}
-      <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[49px] sm:top-[53px] md:top-[65px] z-40 hidden md:block">
+      <nav className="bg-primary border-b border-primary-foreground/10 fixed top-[49px] sm:top-[53px] md:top-[65px] left-0 right-0 z-40 hidden md:block">
         <div className="container mx-auto px-4 md:px-6">
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide">
             {navItems.map((item) => {
@@ -145,7 +145,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </nav>
 
       {/* Main Content */}
-      <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 lg:py-8">{children}</main>
+      <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 lg:py-8 md:pt-20 lg:pt-24">{children}</main>
       </div>
     </div>
   );
