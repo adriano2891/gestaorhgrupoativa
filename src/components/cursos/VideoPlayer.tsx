@@ -36,8 +36,10 @@ const detectVideoSource = (url: string): VideoSourceType => {
   
   const lowerUrl = url.toLowerCase();
   
-  // YouTube - diversos formatos
-  if (url.includes("youtube.com") || url.includes("youtu.be")) return "youtube";
+  // YouTube - diversos formatos (inclui youtube-nocookie)
+  if (/(^|\/\/)(?:www\.|m\.)?(youtube\.com|youtu\.be|youtube-nocookie\.com)\b/i.test(url)) {
+    return "youtube";
+  }
   
   // Google Drive - verificar se é PDF pela extensão ou padrão
   if (url.includes("drive.google.com")) {
@@ -81,7 +83,7 @@ const getEmbedUrl = (
     // - youtube.com/embed/ID
     // - youtube.com/shorts/ID
     const videoIdMatch = url.match(
-      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([^&\s?/#]+)/
+      /(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([^&\s?/#]+)/
     );
 
     if (videoIdMatch?.[1]) {
