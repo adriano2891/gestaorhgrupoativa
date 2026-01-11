@@ -65,36 +65,51 @@ const detectVideoSource = (url: string): VideoSourceType => {
 };
 
 // Converter URLs para formato de embed quando necessário
-const getEmbedUrl = (url: string, sourceType: VideoSourceType): string | null => {
+// Boas práticas YouTube:
+// - Preferir HTTPS
+// - Modo de privacidade (youtube-nocookie)
+// - origin + enablejsapi para compatibilidade e segurança
+// - URL fallback (youtube.com) para casos em que nocookie é bloqueado
+const getEmbedUrl = (
+  url: string,
+  sourceType: VideoSourceType
+): string | { primary: string; fallback?: string } | null => {
   if (sourceType === "youtube") {
-    // Converter youtube.com/watch?v=ID para embed
-    const videoIdMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&\s?]+)/);
-    if (videoIdMatch) {
-      // Parâmetros oficiais do YouTube para embed:
-      // - origin: domínio de origem para segurança (obrigatório para API JS)
-      // - rel=0: não mostra vídeos relacionados de outros canais
-      // - modestbranding=1: minimiza branding do YouTube
-      // - playsinline=1: reproduz inline em dispositivos móveis
-      // - fs=1: permite fullscreen
-      // Usando youtube.com padrão (mais confiável que youtube-nocookie.com)
+    // Suporta:
+    // - youtube.com/watch?v=ID
+    // - youtu.be/ID
+    // - youtube.com/embed/ID
+    // - youtube.com/shorts/ID
+    const videoIdMatch = url.match(
+      /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([^&\s?/#]+)/
+    );
+
+    if (videoIdMatch?.[1]) {
       const origin = encodeURIComponent(window.location.origin);
-      return `https://www.youtube.com/embed/${videoIdMatch[1]}?rel=0&modestbranding=1&playsinline=1&fs=1&origin=${origin}`;
+      const baseParams = `rel=0&modestbranding=1&playsinline=1&fs=1&enablejsapi=1&origin=${origin}`;
+
+      const primary = `https://www.youtube-nocookie.com/embed/${videoIdMatch[1]}?${baseParams}`;
+      const fallback = `https://www.youtube.com/embed/${videoIdMatch[1]}?${baseParams}`;
+
+      return { primary, fallback };
     }
+
+    return null;
   }
-  
+
   if (sourceType === "drive" || sourceType === "drive_pdf") {
     // Detectar links de pasta (inválidos para embed)
     if (url.includes('/folders/') || url.includes('drive/folders')) {
       return null; // Link de pasta não pode ser convertido
     }
-    
+
     // Converter drive.google.com/file/d/ID para formato de embed
     const patterns = [
       /drive\.google\.com\/file\/d\/([^/]+)/,
       /drive\.google\.com\/open\?id=([^&]+)/,
       /drive\.google\.com\/uc\?id=([^&]+)/,
     ];
-    
+
     for (const pattern of patterns) {
       const match = url.match(pattern);
       if (match && match[1]) {
@@ -103,12 +118,12 @@ const getEmbedUrl = (url: string, sourceType: VideoSourceType): string | null =>
     }
     return null; // Link inválido
   }
-  
+
   // PDF externo - retornar URL diretamente
   if (sourceType === "external_pdf") {
     return url;
   }
-  
+
   return url;
 };
 
@@ -554,22 +569,48 @@ const DirectVideoPlayer = ({
 };
 
 // Componente para player de iframe (YouTube/Drive Video)
-const IframeVideoPlayer = ({ url }: { url: string }) => {
+const IframeVideoPlayer = ({
+  url,
+  fallbackUrl,
+  title = "Video Player",
+}: {
+  url: string;
+  fallbackUrl?: string;
+  title?: string;
+}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [activeUrl, setActiveUrl] = useState(url);
   const containerRef = useRef<HTMLDivElement>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Timeout para detectar falha de carregamento
+  useEffect(() => {
+    setActiveUrl(url);
+    setIsLoading(true);
+    setHasError(false);
+  }, [url]);
+
+  // Se ficar "carregando infinito" (bloqueio por privacidade/cookies/extensão/CSP),
+  // tenta fallback e, se persistir, mostra erro com ação.
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (isLoading) {
-        console.warn("Iframe demorou muito para carregar, pode haver bloqueio");
+      if (!isLoading) return;
+
+      // Primeiro: tenta fallback quando disponível
+      if (fallbackUrl && activeUrl !== fallbackUrl) {
+        console.warn("Iframe demorou para carregar; tentando URL alternativa (fallback)");
+        setActiveUrl(fallbackUrl);
+        return;
       }
-    }, 10000);
-    
+
+      // Segundo: dá feedback (sem travar em loading eterno)
+      console.warn("Iframe demorou muito para carregar; exibindo erro");
+      setIsLoading(false);
+      setHasError(true);
+    }, 12000);
+
     return () => clearTimeout(timeoutId);
-  }, [isLoading, url]);
+  }, [isLoading, fallbackUrl, activeUrl]);
 
   const handleFullscreen = () => {
     if (containerRef.current) {
@@ -589,15 +630,19 @@ const IframeVideoPlayer = ({ url }: { url: string }) => {
   const handleRetry = () => {
     setIsLoading(true);
     setHasError(false);
-    if (iframeRef.current) {
+
+    // Alterna entre primary/fallback quando existir
+    if (fallbackUrl) {
+      setActiveUrl((prev) => (prev === url ? fallbackUrl : url));
+    } else {
       // Força reload do iframe
-      const currentSrc = iframeRef.current.src;
-      iframeRef.current.src = '';
-      setTimeout(() => {
-        if (iframeRef.current) {
-          iframeRef.current.src = currentSrc;
-        }
-      }, 100);
+      if (iframeRef.current) {
+        const currentSrc = iframeRef.current.src;
+        iframeRef.current.src = "";
+        setTimeout(() => {
+          if (iframeRef.current) iframeRef.current.src = currentSrc;
+        }, 100);
+      }
     }
   };
 
@@ -611,45 +656,57 @@ const IframeVideoPlayer = ({ url }: { url: string }) => {
           </div>
         </div>
       )}
-      
+
       {hasError && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
           <div className="text-center px-4">
             <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
-            <p className="text-white font-medium mb-2">Erro ao carregar o vídeo</p>
+            <p className="text-white font-medium mb-2">Não foi possível carregar o vídeo</p>
             <p className="text-white/70 text-sm mb-4">
-              Verifique sua conexão ou tente novamente.
+              O navegador pode estar bloqueando a incorporação (privacidade/cookies/extensões).
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRetry}
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Tentar novamente
-            </Button>
+            <div className="flex flex-wrap gap-2 justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRetry}
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Tentar novamente
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open(activeUrl, "_blank", "noopener,noreferrer")}
+                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+              >
+                <ExternalLink className="h-4 w-4 mr-2" />
+                Abrir em nova aba
+              </Button>
+            </div>
           </div>
         </div>
       )}
-      
+
       <iframe
         ref={iframeRef}
-        src={url}
+        src={activeUrl}
         className="w-full h-full"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen
         style={{ border: 0 }}
         onLoad={handleIframeLoad}
+        // onError em iframe não é confiável em todos os browsers; mantemos como extra.
         onError={() => {
           setIsLoading(false);
           setHasError(true);
         }}
         referrerPolicy="strict-origin-when-cross-origin"
         loading="eager"
-        title="Video Player"
+        title={title}
       />
-      
+
       {/* Botão de fullscreen overlay */}
       {!isLoading && !hasError && (
         <Button
@@ -840,9 +897,11 @@ export const VideoPlayer = ({
   // Se não conseguiu gerar embed URL (ex: link de pasta do Drive)
   if (!embedUrl && (sourceType === "youtube" || sourceType === "drive" || sourceType === "drive_pdf")) {
     return (
-      <div className={`bg-muted rounded-lg flex items-center justify-center ${
-        sourceType === "drive_pdf" ? "aspect-[3/4] min-h-[500px]" : "aspect-video"
-      }`}>
+      <div
+        className={`bg-muted rounded-lg flex items-center justify-center ${
+          sourceType === "drive_pdf" ? "aspect-[3/4] min-h-[500px]" : "aspect-video"
+        }`}
+      >
         <div className="text-center px-4">
           <AlertCircle className="h-12 w-12 mx-auto text-amber-500 mb-4" />
           <p className="text-muted-foreground font-medium mb-2">
@@ -860,17 +919,35 @@ export const VideoPlayer = ({
 
   // PDF do Google Drive - usa visualizador específico
   if (sourceType === "drive_pdf") {
-    return <DrivePdfViewer url={embedUrl!} />;
+    return <DrivePdfViewer url={embedUrl as string} />;
   }
 
   // PDF externo - usa visualizador de PDF externo
   if (sourceType === "external_pdf") {
-    return <ExternalPdfViewer url={embedUrl!} />;
+    return <ExternalPdfViewer url={embedUrl as string} />;
   }
 
-  // YouTube ou Drive video - usa iframe player
-  if (sourceType === "youtube" || sourceType === "drive") {
-    return <IframeVideoPlayer url={embedUrl!} />;
+  // YouTube - usa iframe player com fallback (nocookie -> youtube.com)
+  if (sourceType === "youtube") {
+    if (embedUrl && typeof embedUrl === "object" && "primary" in embedUrl) {
+      const yt = embedUrl;
+      return <IframeVideoPlayer url={yt.primary} fallbackUrl={yt.fallback} title="YouTube" />;
+    }
+
+    return (
+      <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+        <div className="text-center px-4">
+          <AlertCircle className="h-12 w-12 mx-auto text-amber-500 mb-4" />
+          <p className="text-muted-foreground font-medium mb-2">Link de vídeo inválido</p>
+          <p className="text-sm text-muted-foreground">Não foi possível processar este link do YouTube.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Drive video - usa iframe player
+  if (sourceType === "drive") {
+    return <IframeVideoPlayer url={embedUrl as string} title="Drive" />;
   }
 
   // Vídeo direto (upload ou link externo)
