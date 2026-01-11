@@ -67,20 +67,18 @@ const detectVideoSource = (url: string): VideoSourceType => {
 // Converter URLs para formato de embed quando necessário
 const getEmbedUrl = (url: string, sourceType: VideoSourceType): string | null => {
   if (sourceType === "youtube") {
-    // Converter youtube.com/watch?v=ID para embed com branding mínimo
+    // Converter youtube.com/watch?v=ID para embed
     const videoIdMatch = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([^&\s?]+)/);
     if (videoIdMatch) {
-      // Parâmetros otimizados para carregamento rápido e branding mínimo:
-      // - modestbranding=1: minimiza logo do YouTube
-      // - rel=0: não mostra vídeos relacionados ao final
-      // - showinfo=0: oculta título (deprecado, mas mantido)
-      // - iv_load_policy=3: oculta anotações
-      // - cc_load_policy=0: não carrega legendas automaticamente
-      // - playsinline=1: reproduz inline em mobile
-      // - autoplay=0: não inicia automaticamente (evita bloqueio do navegador)
-      // - enablejsapi=1: habilita API JS para controle
-      // Usando youtube-nocookie.com para maior privacidade
-      return `https://www.youtube-nocookie.com/embed/${videoIdMatch[1]}?modestbranding=1&rel=0&iv_load_policy=3&cc_load_policy=0&playsinline=1&autoplay=0&enablejsapi=1`;
+      // Parâmetros oficiais do YouTube para embed:
+      // - origin: domínio de origem para segurança (obrigatório para API JS)
+      // - rel=0: não mostra vídeos relacionados de outros canais
+      // - modestbranding=1: minimiza branding do YouTube
+      // - playsinline=1: reproduz inline em dispositivos móveis
+      // - fs=1: permite fullscreen
+      // Usando youtube.com padrão (mais confiável que youtube-nocookie.com)
+      const origin = encodeURIComponent(window.location.origin);
+      return `https://www.youtube.com/embed/${videoIdMatch[1]}?rel=0&modestbranding=1&playsinline=1&fs=1&origin=${origin}`;
     }
   }
   
@@ -558,7 +556,20 @@ const DirectVideoPlayer = ({
 // Componente para player de iframe (YouTube/Drive Video)
 const IframeVideoPlayer = ({ url }: { url: string }) => {
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Timeout para detectar falha de carregamento
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (isLoading) {
+        console.warn("Iframe demorou muito para carregar, pode haver bloqueio");
+      }
+    }, 10000);
+    
+    return () => clearTimeout(timeoutId);
+  }, [isLoading, url]);
 
   const handleFullscreen = () => {
     if (containerRef.current) {
@@ -570,31 +581,86 @@ const IframeVideoPlayer = ({ url }: { url: string }) => {
     }
   };
 
+  const handleIframeLoad = () => {
+    setIsLoading(false);
+    setHasError(false);
+  };
+
+  const handleRetry = () => {
+    setIsLoading(true);
+    setHasError(false);
+    if (iframeRef.current) {
+      // Força reload do iframe
+      const currentSrc = iframeRef.current.src;
+      iframeRef.current.src = '';
+      setTimeout(() => {
+        if (iframeRef.current) {
+          iframeRef.current.src = currentSrc;
+        }
+      }, 100);
+    }
+  };
+
   return (
     <div ref={containerRef} className="relative aspect-video bg-black rounded-lg overflow-hidden">
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black">
-          <Loader2 className="h-12 w-12 animate-spin text-white" />
+        <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
+          <div className="text-center">
+            <Loader2 className="h-12 w-12 animate-spin text-white mx-auto mb-3" />
+            <p className="text-white/70 text-sm">Carregando vídeo...</p>
+          </div>
         </div>
       )}
+      
+      {hasError && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
+          <div className="text-center px-4">
+            <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
+            <p className="text-white font-medium mb-2">Erro ao carregar o vídeo</p>
+            <p className="text-white/70 text-sm mb-4">
+              Verifique sua conexão ou tente novamente.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleRetry}
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Tentar novamente
+            </Button>
+          </div>
+        </div>
+      )}
+      
       <iframe
+        ref={iframeRef}
         src={url}
         className="w-full h-full"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
         allowFullScreen
         style={{ border: 0 }}
-        onLoad={() => setIsLoading(false)}
+        onLoad={handleIframeLoad}
+        onError={() => {
+          setIsLoading(false);
+          setHasError(true);
+        }}
+        referrerPolicy="strict-origin-when-cross-origin"
+        loading="eager"
+        title="Video Player"
       />
       
       {/* Botão de fullscreen overlay */}
-      <Button
-        size="icon"
-        variant="ghost"
-        className="absolute bottom-4 right-4 text-white hover:bg-white/20 h-9 w-9 z-10 opacity-70 hover:opacity-100"
-        onClick={handleFullscreen}
-      >
-        <Maximize className="h-5 w-5" />
-      </Button>
+      {!isLoading && !hasError && (
+        <Button
+          size="icon"
+          variant="ghost"
+          className="absolute bottom-4 right-4 text-white hover:bg-white/20 h-9 w-9 z-10 opacity-70 hover:opacity-100"
+          onClick={handleFullscreen}
+        >
+          <Maximize className="h-5 w-5" />
+        </Button>
+      )}
     </div>
   );
 };
