@@ -274,6 +274,7 @@ export const PortalCursoPlayer = () => {
               onTimeUpdate={handleTimeUpdate}
               onEnded={handleVideoEnded}
               initialPosition={getInitialPosition()}
+              embedVariant="portal"
             />
 
             {/* Info da aula atual */}
