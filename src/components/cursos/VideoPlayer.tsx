@@ -26,6 +26,12 @@ interface VideoPlayerProps {
   onTimeUpdate?: (currentTime: number, duration: number) => void;
   onEnded?: () => void;
   initialPosition?: number;
+  /**
+   * Ajustes de incorporação por contexto.
+   * - default: comportamento padrão do app
+   * - portal: modo funcionário (UI do YouTube minimizada/mascarada)
+   */
+  embedVariant?: "default" | "portal";
 }
 
 type VideoSourceType = "youtube" | "drive" | "drive_pdf" | "external_pdf" | "direct";
@@ -602,10 +608,13 @@ const IframeVideoPlayer = ({
   url,
   fallbackUrl,
   title = "Video Player",
+  maskYoutubeUI = false,
 }: {
   url: string;
   fallbackUrl?: string;
   title?: string;
+  /** Mascara visualmente a UI do YouTube (portal funcionário) */
+  maskYoutubeUI?: boolean;
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
@@ -765,14 +774,22 @@ const IframeVideoPlayer = ({
       <iframe
         ref={iframeRef}
         src={activeUrl}
-        className="w-full h-full"
+        className={maskYoutubeUI ? "absolute top-1/2 left-1/2" : "w-full h-full"}
         // Permissões mínimas necessárias - SEM autoplay forçado
         allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
         // Desabilitar fullscreen nativo do iframe (controlamos via nosso botão)
         allowFullScreen={false}
-        style={{ 
+        style={{
           border: 0,
-          pointerEvents: 'auto',
+          pointerEvents: "auto",
+          ...(maskYoutubeUI
+            ? {
+                width: "118%",
+                height: "118%",
+                // escala/crop para tirar a barra superior/inferior do player do YouTube
+                transform: "translate(-50%, -50%) scale(1.08)",
+              }
+            : null),
         }}
         onLoad={handleIframeLoad}
         onError={() => {
@@ -954,11 +971,12 @@ const ExternalPdfViewer = ({ url }: { url: string }) => {
 };
 
 // Player unificado que escolhe o componente correto
-export const VideoPlayer = ({ 
-  url, 
-  onTimeUpdate, 
-  onEnded, 
-  initialPosition 
+export const VideoPlayer = ({
+  url,
+  onTimeUpdate,
+  onEnded,
+  initialPosition,
+  embedVariant = "default",
 }: VideoPlayerProps) => {
   if (!url) {
     return (
@@ -1011,7 +1029,14 @@ export const VideoPlayer = ({
   if (sourceType === "youtube") {
     if (embedUrl && typeof embedUrl === "object" && "primary" in embedUrl) {
       const yt = embedUrl;
-      return <IframeVideoPlayer url={yt.primary} fallbackUrl={yt.fallback} title="YouTube" />;
+      return (
+        <IframeVideoPlayer
+          url={yt.primary}
+          fallbackUrl={yt.fallback}
+          title="YouTube"
+          maskYoutubeUI={embedVariant === "portal"}
+        />
+      );
     }
 
     return (
