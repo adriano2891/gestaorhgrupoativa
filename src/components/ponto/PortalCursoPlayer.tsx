@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,9 +14,12 @@ import {
   Clock,
   BookOpen,
   Lock,
-  Trophy
+  Trophy,
+  Play,
+  RotateCcw,
+  Award
 } from "lucide-react";
-import { useCurso, useProgressoAulas, useProgressoMutations, useAtualizarProgressoMatricula } from "@/hooks/useCursos";
+import { useCurso, useProgressoAulas, useProgressoMutations, useAtualizarProgressoMatricula, useMeusCertificados } from "@/hooks/useCursos";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Collapsible,
@@ -24,20 +27,29 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { VideoPlayer } from "@/components/cursos/VideoPlayer";
+import { ProgressoAulaBar, ProgressoModulo } from "@/components/cursos/ProgressoAulaBar";
 import { toast } from "sonner";
 import type { Aula } from "@/types/cursos";
+
+// Tipo auxiliar para status da aula
+type AulaStatus = "nao_iniciada" | "em_andamento" | "concluida";
 
 export const PortalCursoPlayer = () => {
   const { cursoId } = useParams<{ cursoId: string }>();
   const navigate = useNavigate();
   const { data: curso, isLoading } = useCurso(cursoId);
-  const { data: progressoAulas } = useProgressoAulas(cursoId);
+  const { data: progressoAulas, refetch: refetchProgresso } = useProgressoAulas(cursoId);
+  const { data: meusCertificados } = useMeusCertificados();
   const { updateProgresso } = useProgressoMutations();
   const { atualizarMatricula } = useAtualizarProgressoMatricula();
 
   const [selectedAula, setSelectedAula] = useState<Aula | null>(null);
   const [expandedModulos, setExpandedModulos] = useState<Set<string>>(new Set());
   const [lastSavedTime, setLastSavedTime] = useState(0);
+  const [currentVideoProgress, setCurrentVideoProgress] = useState(0);
+
+  // Verificar se já tem certificado deste curso
+  const temCertificado = meusCertificados?.some(c => c.curso_id === cursoId);
 
   // Criar lista ordenada de todas as aulas para controle de progressão linear
   const aulasOrdenadas = useMemo(() => {
@@ -106,8 +118,36 @@ export const PortalCursoPlayer = () => {
     });
   };
 
-  const isAulaConcluida = (aulaId: string) => {
+const isAulaConcluida = (aulaId: string) => {
     return progressoAulas?.find(p => p.aula_id === aulaId)?.concluida || false;
+  };
+
+  // Obter status da aula
+  const getAulaStatus = (aulaId: string): AulaStatus => {
+    const progresso = progressoAulas?.find(p => p.aula_id === aulaId);
+    if (!progresso) return "nao_iniciada";
+    if (progresso.concluida) return "concluida";
+    if ((progresso.tempo_assistido || 0) > 0) return "em_andamento";
+    return "nao_iniciada";
+  };
+
+  // Obter progresso da aula atual em porcentagem
+  const getAulaProgress = (aulaId: string): number => {
+    const progresso = progressoAulas?.find(p => p.aula_id === aulaId);
+    if (!progresso) return 0;
+    if (progresso.concluida) return 100;
+    const aula = aulasOrdenadas.find(a => a.id === aulaId);
+    if (!aula?.duracao || aula.duracao === 0) return 0;
+    return Math.min(100, Math.round(((progresso.tempo_assistido || 0) / aula.duracao) * 100));
+  };
+
+  // Calcular progresso do módulo
+  const getModuloProgress = (moduloId: string): { total: number; concluidas: number } => {
+    const modulo = curso?.modulos?.find(m => m.id === moduloId);
+    if (!modulo?.aulas) return { total: 0, concluidas: 0 };
+    const total = modulo.aulas.length;
+    const concluidas = modulo.aulas.filter(a => isAulaConcluida(a.id)).length;
+    return { total, concluidas };
   };
 
   const getProgressoCurso = () => {
@@ -119,6 +159,16 @@ export const PortalCursoPlayer = () => {
     
     return Math.round((aulasConcluidas / aulasOrdenadas.length) * 100);
   };
+
+  // Encontrar próxima aula a continuar
+  const proximaAulaContinuar = useMemo(() => {
+    for (const aula of aulasOrdenadas) {
+      if (!isAulaConcluida(aula.id) && isAulaDesbloqueada(aula.id)) {
+        return aula;
+      }
+    }
+    return null;
+  }, [aulasOrdenadas, progressoAulas]);
 
   const handleTimeUpdate = (currentTime: number, duration: number) => {
     if (selectedAula && Math.floor(currentTime) !== lastSavedTime && Math.floor(currentTime) % 10 === 0) {
@@ -249,6 +299,12 @@ export const PortalCursoPlayer = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
+              {temCertificado && (
+                <Badge className="bg-amber-100 text-amber-700 gap-1">
+                  <Award className="h-3 w-3" />
+                  Certificado
+                </Badge>
+              )}
               {progressoCurso >= 100 && (
                 <Badge className="bg-green-100 text-green-700 gap-1">
                   <Trophy className="h-3 w-3" />
@@ -258,7 +314,10 @@ export const PortalCursoPlayer = () => {
               <div className="text-sm text-muted-foreground">
                 {progressoCurso}% concluído
               </div>
-              <Progress value={progressoCurso} className="w-24 h-2" />
+              <Progress 
+                value={progressoCurso} 
+                className={`w-24 h-2 ${progressoCurso >= 100 ? '[&>div]:bg-green-500' : ''}`} 
+              />
             </div>
           </div>
         </div>
@@ -320,18 +379,26 @@ export const PortalCursoPlayer = () => {
                         onOpenChange={() => toggleModulo(modulo.id)}
                       >
                         <CollapsibleTrigger className="w-full">
-                          <div className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="w-6 h-6 p-0 flex items-center justify-center text-xs">
-                                {index + 1}
-                              </Badge>
-                              <span className="font-medium text-sm text-left">{modulo.titulo}</span>
+                          <div className="p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                            <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="w-6 h-6 p-0 flex items-center justify-center text-xs">
+                                  {index + 1}
+                                </Badge>
+                                <span className="font-medium text-sm text-left">{modulo.titulo}</span>
+                              </div>
+                              {expandedModulos.has(modulo.id) ? (
+                                <ChevronUp className="h-4 w-4" />
+                              ) : (
+                                <ChevronDown className="h-4 w-4" />
+                              )}
                             </div>
-                            {expandedModulos.has(modulo.id) ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            )}
+                            {/* Progresso do módulo */}
+                            <ProgressoModulo 
+                              aulasTotal={getModuloProgress(modulo.id).total}
+                              aulasConcluidas={getModuloProgress(modulo.id).concluidas}
+                              className="mt-2"
+                            />
                           </div>
                         </CollapsibleTrigger>
                         <CollapsibleContent>

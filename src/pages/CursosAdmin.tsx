@@ -16,13 +16,18 @@ import {
   GraduationCap,
   Clock,
   BarChart3,
-  Filter
+  Filter,
+  Upload,
+  FileText
 } from "lucide-react";
-import { useCursos, useCursosStats, useCategoriasCurso, useCursoMutations } from "@/hooks/useCursos";
+import { useCursos, useCursosStats, useCategoriasCurso, useCursoMutations, useMatriculas } from "@/hooks/useCursos";
+import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { CursoCard } from "@/components/cursos/CursoCard";
 import { CursoFormDialog } from "@/components/cursos/CursoFormDialog";
 import { CursoDetalhesDialog } from "@/components/cursos/CursoDetalhesDialog";
 import { MatriculasDialog } from "@/components/cursos/MatriculasDialog";
+import { RelatoriosCursosDialog } from "@/components/cursos/RelatoriosCursosDialog";
+import { UploadCertificadoDialog } from "@/components/cursos/UploadCertificadoDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Curso } from "@/types/cursos";
@@ -35,10 +40,13 @@ const CursosAdmin = () => {
   const [cursoDetalhes, setCursoDetalhes] = useState<Curso | null>(null);
   const [cursoMatriculas, setCursoMatriculas] = useState<Curso | null>(null);
   const [cursoEditar, setCursoEditar] = useState<Curso | null>(null);
+  const [relatoriosOpen, setRelatoriosOpen] = useState(false);
+  const [uploadCertOpen, setUploadCertOpen] = useState(false);
 
   const { data: cursos, isLoading } = useCursos();
   const { data: stats } = useCursosStats();
   const { data: categorias } = useCategoriasCurso();
+  const { data: funcionarios } = useFuncionarios();
   const { deleteCurso } = useCursoMutations();
 
   const handleDeleteCurso = (cursoId: string) => {
@@ -69,10 +77,20 @@ const CursosAdmin = () => {
                 <p className="text-muted-foreground text-xs sm:text-sm">Crie e gerencie treinamentos corporativos</p>
               </div>
             </div>
-            <Button onClick={() => setCursoFormOpen(true)} className="gap-2 w-full sm:w-auto">
-              <Plus className="h-4 w-4" />
-              Novo Curso
-            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button variant="outline" onClick={() => setRelatoriosOpen(true)} className="gap-2 flex-1 sm:flex-none">
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Relatórios</span>
+              </Button>
+              <Button variant="outline" onClick={() => setUploadCertOpen(true)} className="gap-2 flex-1 sm:flex-none">
+                <Upload className="h-4 w-4" />
+                <span className="hidden sm:inline">Certificado</span>
+              </Button>
+              <Button onClick={() => setCursoFormOpen(true)} className="gap-2 flex-1 sm:flex-none">
+                <Plus className="h-4 w-4" />
+                Novo Curso
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -258,6 +276,19 @@ const CursosAdmin = () => {
             curso={cursoMatriculas}
           />
         )}
+        {/* Relatórios Dialog */}
+        <RelatoriosCursosDialog
+          open={relatoriosOpen}
+          onOpenChange={setRelatoriosOpen}
+        />
+
+        {/* Upload Certificado Dialog */}
+        <UploadCertificadoDialog
+          open={uploadCertOpen}
+          onOpenChange={setUploadCertOpen}
+          cursos={cursos || []}
+          funcionarios={funcionarios?.map(f => ({ id: f.id, nome: f.nome, email: f.email })) || []}
+        />
       </div>
     </Layout>
   );
