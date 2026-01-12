@@ -67,11 +67,18 @@ const detectVideoSource = (url: string): VideoSourceType => {
 };
 
 // Converter URLs para formato de embed quando necessário
-// Boas práticas YouTube:
+// Boas práticas YouTube (conforme documentação oficial):
 // - Preferir HTTPS
-// - Modo de privacidade (youtube-nocookie)
-// - origin + enablejsapi para compatibilidade e segurança
-// - URL fallback (youtube.com) para casos em que nocookie é bloqueado
+// - Modo de privacidade (youtube-nocookie.com)
+// - Parâmetros oficiais para controle de UI:
+//   controls=0 → oculta barra de controles
+//   modestbranding=1 → reduz branding do YouTube
+//   rel=0 → não exibe vídeos relacionados no final
+//   showinfo=0 → deprecated, mas ainda incluído para compatibilidade
+//   fs=0 → desabilita botão de tela cheia (opcional)
+//   disablekb=1 → desabilita atalhos de teclado
+//   iv_load_policy=3 → oculta anotações
+//   playsinline=1 → reproduz inline em dispositivos móveis
 const getEmbedUrl = (
   url: string,
   sourceType: VideoSourceType
@@ -82,16 +89,32 @@ const getEmbedUrl = (
     // - youtu.be/ID
     // - youtube.com/embed/ID
     // - youtube.com/shorts/ID
+    // - youtube-nocookie.com/embed/ID
     const videoIdMatch = url.match(
       /(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([^&\s?/#]+)/
     );
 
     if (videoIdMatch?.[1]) {
       const origin = encodeURIComponent(window.location.origin);
-      const baseParams = `rel=0&modestbranding=1&playsinline=1&fs=1&enablejsapi=1&origin=${origin}`;
+      // Parâmetros oficiais do YouTube para máxima ocultação de UI
+      // Ref: https://developers.google.com/youtube/player_parameters
+      const youtubeParams = new URLSearchParams({
+        rel: '0',                // Não mostrar vídeos relacionados
+        modestbranding: '1',     // Reduzir branding do YouTube
+        controls: '0',           // Ocultar controles padrão
+        showinfo: '0',           // Ocultar título/info (deprecated mas funcional)
+        fs: '0',                 // Desabilitar fullscreen nativo
+        disablekb: '1',          // Desabilitar atalhos de teclado
+        iv_load_policy: '3',     // Ocultar anotações
+        playsinline: '1',        // Reproduzir inline em mobile
+        enablejsapi: '1',        // Habilitar API JavaScript
+        origin: window.location.origin,
+        cc_load_policy: '0',     // Não carregar legendas automaticamente
+        autoplay: '0',           // Não iniciar automaticamente
+      }).toString();
 
-      const primary = `https://www.youtube-nocookie.com/embed/${videoIdMatch[1]}?${baseParams}`;
-      const fallback = `https://www.youtube.com/embed/${videoIdMatch[1]}?${baseParams}`;
+      const primary = `https://www.youtube-nocookie.com/embed/${videoIdMatch[1]}?${youtubeParams}`;
+      const fallback = `https://www.youtube.com/embed/${videoIdMatch[1]}?${youtubeParams}`;
 
       return { primary, fallback };
     }
@@ -571,6 +594,10 @@ const DirectVideoPlayer = ({
 };
 
 // Componente para player de iframe (YouTube/Drive Video)
+// Implementa proteções contra:
+// - Cliques externos no iframe
+// - Menu de contexto (clique direito)
+// - Acesso a links do YouTube
 const IframeVideoPlayer = ({
   url,
   fallbackUrl,
@@ -648,8 +675,28 @@ const IframeVideoPlayer = ({
     }
   };
 
+  // Prevenir clique direito no container
+  const handleContextMenu = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
+  // Prevenir arrastar
+  const handleDragStart = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    return false;
+  };
+
   return (
-    <div ref={containerRef} className="relative aspect-video bg-black rounded-lg overflow-hidden">
+    <div 
+      ref={containerRef} 
+      className="relative aspect-video bg-black rounded-lg overflow-hidden select-none"
+      onContextMenu={handleContextMenu}
+      onDragStart={handleDragStart}
+      style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+    >
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
           <div className="text-center">
@@ -677,29 +724,57 @@ const IframeVideoPlayer = ({
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Tentar novamente
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => window.open(activeUrl, "_blank", "noopener,noreferrer")}
-                className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-              >
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Abrir em nova aba
-              </Button>
             </div>
           </div>
         </div>
+      )}
+
+      {/* Camada de proteção sobre o iframe para bloquear cliques em links do YouTube */}
+      <div 
+        className="absolute inset-0 z-[1] pointer-events-none"
+        style={{ 
+          // Permitir cliques apenas na área central do vídeo (para play/pause)
+          // Bloquear cantos onde ficam logo e links do YouTube
+        }}
+      />
+
+      {/* Bloqueador de cliques nos cantos (onde ficam logo/links do YouTube) */}
+      {!isLoading && !hasError && (
+        <>
+          {/* Canto superior esquerdo (logo do YouTube) */}
+          <div 
+            className="absolute top-0 left-0 w-24 h-16 z-[2] cursor-default"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onContextMenu={handleContextMenu}
+          />
+          {/* Canto superior direito (menu/compartilhar) */}
+          <div 
+            className="absolute top-0 right-0 w-24 h-16 z-[2] cursor-default"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onContextMenu={handleContextMenu}
+          />
+          {/* Parte inferior (barra de controles - já oculta via params, mas por segurança) */}
+          <div 
+            className="absolute bottom-0 left-0 right-0 h-12 z-[2] cursor-default"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onContextMenu={handleContextMenu}
+          />
+        </>
       )}
 
       <iframe
         ref={iframeRef}
         src={activeUrl}
         className="w-full h-full"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowFullScreen
-        style={{ border: 0 }}
+        // Permissões mínimas necessárias - SEM autoplay forçado
+        allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
+        // Desabilitar fullscreen nativo do iframe (controlamos via nosso botão)
+        allowFullScreen={false}
+        style={{ 
+          border: 0,
+          pointerEvents: 'auto',
+        }}
         onLoad={handleIframeLoad}
-        // onError em iframe não é confiável em todos os browsers; mantemos como extra.
         onError={() => {
           setIsLoading(false);
           setHasError(true);
@@ -707,15 +782,18 @@ const IframeVideoPlayer = ({
         referrerPolicy="strict-origin-when-cross-origin"
         loading="eager"
         title={title}
+        // Sandbox para segurança adicional - permite scripts e same-origin
+        sandbox="allow-scripts allow-same-origin allow-presentation"
       />
 
-      {/* Botão de fullscreen overlay */}
+      {/* Botão de fullscreen customizado */}
       {!isLoading && !hasError && (
         <Button
           size="icon"
           variant="ghost"
-          className="absolute bottom-4 right-4 text-white hover:bg-white/20 h-9 w-9 z-10 opacity-70 hover:opacity-100"
+          className="absolute bottom-16 right-4 text-white hover:bg-white/20 h-9 w-9 z-10 opacity-70 hover:opacity-100 bg-black/50"
           onClick={handleFullscreen}
+          title="Tela cheia"
         >
           <Maximize className="h-5 w-5" />
         </Button>
