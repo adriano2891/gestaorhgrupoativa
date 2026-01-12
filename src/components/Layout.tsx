@@ -14,6 +14,8 @@ const navItems = [
   { path: "/folha-ponto", label: "Folha de Ponto", icon: "🕐" },
   { path: "/holerites", label: "Holerites", icon: "📄" },
   { path: "/comunicados", label: "Comunicados", icon: "📢" },
+  { path: "/formularios-rh", label: "Formulários", icon: "📝" },
+  { path: "/cursos", label: "Cursos", icon: "🎓" },
   { path: "/admins", label: "Admins", icon: "⚙️" },
 ];
 
