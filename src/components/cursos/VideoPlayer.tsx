@@ -599,11 +599,10 @@ const DirectVideoPlayer = ({
   );
 };
 
-// Componente para player de iframe (YouTube/Drive Video)
+// Componente para player de iframe (Drive Video)
 // Implementa proteções contra:
 // - Cliques externos no iframe
 // - Menu de contexto (clique direito)
-// - Acesso a links do YouTube
 const IframeVideoPlayer = ({
   url,
   fallbackUrl,
@@ -699,12 +698,12 @@ const IframeVideoPlayer = ({
   };
 
   return (
-    <div 
-      ref={containerRef} 
+    <div
+      ref={containerRef}
       className="relative aspect-video bg-black rounded-lg overflow-hidden select-none"
       onContextMenu={handleContextMenu}
       onDragStart={handleDragStart}
-      style={{ userSelect: 'none', WebkitUserSelect: 'none' }}
+      style={{ userSelect: "none", WebkitUserSelect: "none" }}
     >
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
@@ -738,34 +737,34 @@ const IframeVideoPlayer = ({
         </div>
       )}
 
-      {/* Camada de proteção sobre o iframe para bloquear cliques em links do YouTube */}
-      <div 
-        className="absolute inset-0 z-[1] pointer-events-none"
-        style={{ 
-          // Permitir cliques apenas na área central do vídeo (para play/pause)
-          // Bloquear cantos onde ficam logo e links do YouTube
-        }}
-      />
-
       {/* Bloqueador de cliques nos cantos (onde ficam logo/links do YouTube) */}
       {!isLoading && !hasError && (
         <>
-          {/* Canto superior esquerdo (logo do YouTube) */}
-          <div 
+          {/* Canto superior esquerdo (logo) */}
+          <div
             className="absolute top-0 left-0 w-24 h-16 z-[2] cursor-default"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             onContextMenu={handleContextMenu}
           />
-          {/* Canto superior direito (menu/compartilhar) */}
-          <div 
+          {/* Canto superior direito (menu) */}
+          <div
             className="absolute top-0 right-0 w-24 h-16 z-[2] cursor-default"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             onContextMenu={handleContextMenu}
           />
-          {/* Parte inferior (barra de controles - já oculta via params, mas por segurança) */}
-          <div 
+          {/* Parte inferior (barra) */}
+          <div
             className="absolute bottom-0 left-0 right-0 h-12 z-[2] cursor-default"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); }}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
             onContextMenu={handleContextMenu}
           />
         </>
@@ -775,9 +774,7 @@ const IframeVideoPlayer = ({
         ref={iframeRef}
         src={activeUrl}
         className={maskYoutubeUI ? "absolute top-1/2 left-1/2" : "w-full h-full"}
-        // Permissões mínimas necessárias - SEM autoplay forçado
         allow="accelerometer; encrypted-media; gyroscope; picture-in-picture"
-        // Desabilitar fullscreen nativo do iframe (controlamos via nosso botão)
         allowFullScreen={false}
         style={{
           border: 0,
@@ -786,7 +783,6 @@ const IframeVideoPlayer = ({
             ? {
                 width: "118%",
                 height: "118%",
-                // escala/crop para tirar a barra superior/inferior do player do YouTube
                 transform: "translate(-50%, -50%) scale(1.08)",
               }
             : null),
@@ -799,7 +795,6 @@ const IframeVideoPlayer = ({
         referrerPolicy="strict-origin-when-cross-origin"
         loading="eager"
         title={title}
-        // Sandbox para segurança adicional - permite scripts e same-origin
         sandbox="allow-scripts allow-same-origin allow-presentation"
       />
 
@@ -815,6 +810,262 @@ const IframeVideoPlayer = ({
           <Maximize className="h-5 w-5" />
         </Button>
       )}
+    </div>
+  );
+};
+
+// Player do YouTube via IFrame API (necessário para detectar "ended" e medir progresso)
+type YouTubePlayer = {
+  destroy: () => void;
+  getCurrentTime: () => number;
+  getDuration: () => number;
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
+  getIframe: () => HTMLIFrameElement;
+};
+
+declare global {
+  interface Window {
+    YT?: {
+      Player: new (
+        el: HTMLElement,
+        config: {
+          videoId: string;
+          host?: string;
+          playerVars?: Record<string, unknown>;
+          events?: {
+            onReady?: () => void;
+            onStateChange?: (e: { data: number }) => void;
+            onError?: () => void;
+          };
+        }
+      ) => YouTubePlayer;
+    };
+    onYouTubeIframeAPIReady?: () => void;
+  }
+}
+
+const extractYouTubeId = (rawUrl: string): string | null => {
+  const match = rawUrl.match(
+    /(?:youtube(?:-nocookie)?\.com\/(?:watch\?v=|embed\/|shorts\/|live\/|v\/)|youtu\.be\/)([^&\s?/#]+)/
+  );
+  return match?.[1] ?? null;
+};
+
+const YoutubeJsApiPlayer = ({
+  videoId,
+  onTimeUpdate,
+  onEnded,
+  initialPosition,
+  maskYoutubeUI,
+}: {
+  videoId: string;
+  onTimeUpdate?: (currentTime: number, duration: number) => void;
+  onEnded?: () => void;
+  initialPosition?: number;
+  maskYoutubeUI?: boolean;
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<YouTubePlayer | null>(null);
+  const tickRef = useRef<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  const stopTick = useCallback(() => {
+    if (tickRef.current) {
+      window.clearInterval(tickRef.current);
+      tickRef.current = null;
+    }
+  }, []);
+
+  const startTick = useCallback(() => {
+    stopTick();
+    tickRef.current = window.setInterval(() => {
+      const p = playerRef.current;
+      if (!p) return;
+      const duration = p.getDuration?.() ?? 0;
+      const time = p.getCurrentTime?.() ?? 0;
+      if (duration > 0) onTimeUpdate?.(time, duration);
+    }, 1000);
+  }, [onTimeUpdate, stopTick]);
+
+  const applyMask = useCallback(() => {
+    if (!maskYoutubeUI) return;
+    const iframe = playerRef.current?.getIframe?.();
+    if (!iframe) return;
+
+    iframe.style.position = "absolute";
+    iframe.style.top = "50%";
+    iframe.style.left = "50%";
+    iframe.style.width = "118%";
+    iframe.style.height = "118%";
+    iframe.style.transform = "translate(-50%, -50%) scale(1.08)";
+  }, [maskYoutubeUI]);
+
+  const setupPlayer = useCallback(() => {
+    if (!containerRef.current) return;
+
+    // Limpar conteúdo anterior
+    containerRef.current.innerHTML = "";
+
+    const mount = document.createElement("div");
+    containerRef.current.appendChild(mount);
+
+    setIsLoading(true);
+    setHasError(false);
+
+    try {
+      const player = new window.YT!.Player(mount, {
+        videoId,
+        host: "https://www.youtube-nocookie.com",
+        playerVars: {
+          rel: 0,
+          modestbranding: 1,
+          controls: 0,
+          showinfo: 0,
+          fs: 0,
+          disablekb: 1,
+          iv_load_policy: 3,
+          playsinline: 1,
+          origin: window.location.origin,
+          cc_load_policy: 0,
+          autoplay: 0,
+        },
+        events: {
+          onReady: () => {
+            setIsLoading(false);
+            setHasError(false);
+
+            // Aplicar máscara (crop)
+            applyMask();
+
+            // Seek inicial
+            const start = Math.max(0, Math.floor(initialPosition || 0));
+            if (start > 0) {
+              try {
+                player.seekTo(start, true);
+              } catch {
+                // ignore
+              }
+            }
+
+            // Primeira leitura + iniciar polling
+            try {
+              const duration = player.getDuration?.() ?? 0;
+              const time = player.getCurrentTime?.() ?? 0;
+              if (duration > 0) onTimeUpdate?.(time, duration);
+            } catch {
+              // ignore
+            }
+            startTick();
+          },
+          onStateChange: (e) => {
+            // 0 = ended | 1 = playing | 2 = paused
+            if (e.data === 0) {
+              stopTick();
+              onEnded?.();
+            } else if (e.data === 1) {
+              // garantir polling rodando
+              startTick();
+            }
+          },
+          onError: () => {
+            stopTick();
+            setIsLoading(false);
+            setHasError(true);
+          },
+        },
+      });
+
+      playerRef.current = player;
+    } catch (e) {
+      console.error("Erro ao inicializar player do YouTube:", e);
+      setIsLoading(false);
+      setHasError(true);
+    }
+  }, [applyMask, initialPosition, onEnded, onTimeUpdate, startTick, stopTick, videoId]);
+
+  // Carregar API do YouTube (1x) e montar player
+  useEffect(() => {
+    const mount = () => {
+      if (!window.YT?.Player) return;
+      setupPlayer();
+    };
+
+    if (window.YT?.Player) {
+      mount();
+      return;
+    }
+
+    const existing = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
+
+    window.onYouTubeIframeAPIReady = () => {
+      mount();
+    };
+
+    if (!existing) {
+      const script = document.createElement("script");
+      script.src = "https://www.youtube.com/iframe_api";
+      script.async = true;
+      script.onerror = () => {
+        setIsLoading(false);
+        setHasError(true);
+      };
+      document.body.appendChild(script);
+    }
+
+    return () => {
+      stopTick();
+      try {
+        playerRef.current?.destroy?.();
+      } catch {
+        // ignore
+      }
+      playerRef.current = null;
+    };
+  }, [setupPlayer, stopTick]);
+
+  // Reaplicar máscara quando alternar
+  useEffect(() => {
+    applyMask();
+  }, [applyMask]);
+
+  return (
+    <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
+          <Loader2 className="h-12 w-12 animate-spin text-white" />
+        </div>
+      )}
+
+      {hasError && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black z-10 px-4 text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mb-3" />
+          <p className="text-white font-medium mb-2">Não foi possível carregar o vídeo</p>
+          <p className="text-white/70 text-sm mb-4">
+            O navegador pode estar bloqueando a incorporação do YouTube.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            onClick={setupPlayer}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Tentar novamente
+          </Button>
+        </div>
+      )}
+
+      {/* Camadas de bloqueio nos cantos */}
+      {!isLoading && !hasError && (
+        <>
+          <div className="absolute top-0 left-0 w-24 h-16 z-[2]" />
+          <div className="absolute top-0 right-0 w-24 h-16 z-[2]" />
+          <div className="absolute bottom-0 left-0 right-0 h-12 z-[2]" />
+        </>
+      )}
+
+      <div ref={containerRef} className="w-full h-full" />
     </div>
   );
 };
@@ -1025,15 +1276,17 @@ export const VideoPlayer = ({
     return <ExternalPdfViewer url={embedUrl as string} />;
   }
 
-  // YouTube - usa iframe player com fallback (nocookie -> youtube.com)
+  // YouTube - usa IFrame API para detectar fim e medir progresso
   if (sourceType === "youtube") {
-    if (embedUrl && typeof embedUrl === "object" && "primary" in embedUrl) {
-      const yt = embedUrl;
+    const videoId = extractYouTubeId(url);
+
+    if (videoId) {
       return (
-        <IframeVideoPlayer
-          url={yt.primary}
-          fallbackUrl={yt.fallback}
-          title="YouTube"
+        <YoutubeJsApiPlayer
+          videoId={videoId}
+          onTimeUpdate={onTimeUpdate}
+          onEnded={onEnded}
+          initialPosition={initialPosition}
           maskYoutubeUI={embedVariant === "portal"}
         />
       );
