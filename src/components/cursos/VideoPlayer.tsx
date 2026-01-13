@@ -869,6 +869,21 @@ const YoutubeJsApiPlayer = ({
   const tickRef = useRef<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const isInitializedRef = useRef(false);
+  const videoIdRef = useRef(videoId);
+
+  // Keep refs updated without triggering re-render
+  const onTimeUpdateRef = useRef(onTimeUpdate);
+  const onEndedRef = useRef(onEnded);
+  const initialPositionRef = useRef(initialPosition);
+  const maskYoutubeUIRef = useRef(maskYoutubeUI);
+
+  useEffect(() => {
+    onTimeUpdateRef.current = onTimeUpdate;
+    onEndedRef.current = onEnded;
+    initialPositionRef.current = initialPosition;
+    maskYoutubeUIRef.current = maskYoutubeUI;
+  }, [onTimeUpdate, onEnded, initialPosition, maskYoutubeUI]);
 
   const stopTick = useCallback(() => {
     if (tickRef.current) {
@@ -882,14 +897,18 @@ const YoutubeJsApiPlayer = ({
     tickRef.current = window.setInterval(() => {
       const p = playerRef.current;
       if (!p) return;
-      const duration = p.getDuration?.() ?? 0;
-      const time = p.getCurrentTime?.() ?? 0;
-      if (duration > 0) onTimeUpdate?.(time, duration);
+      try {
+        const duration = p.getDuration?.() ?? 0;
+        const time = p.getCurrentTime?.() ?? 0;
+        if (duration > 0) onTimeUpdateRef.current?.(time, duration);
+      } catch {
+        // ignore
+      }
     }, 1000);
-  }, [onTimeUpdate, stopTick]);
+  }, [stopTick]);
 
   const applyMask = useCallback(() => {
-    if (!maskYoutubeUI) return;
+    if (!maskYoutubeUIRef.current) return;
     const iframe = playerRef.current?.getIframe?.();
     if (!iframe) return;
 
@@ -899,12 +918,22 @@ const YoutubeJsApiPlayer = ({
     iframe.style.width = "118%";
     iframe.style.height = "118%";
     iframe.style.transform = "translate(-50%, -50%) scale(1.08)";
-  }, [maskYoutubeUI]);
+  }, []);
 
   const setupPlayer = useCallback(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || !window.YT?.Player) return;
+    if (isInitializedRef.current && videoIdRef.current === videoId) return;
 
-    // Limpar conteúdo anterior
+    // Cleanup previous player
+    stopTick();
+    try {
+      playerRef.current?.destroy?.();
+    } catch {
+      // ignore
+    }
+    playerRef.current = null;
+
+    // Clear container
     containerRef.current.innerHTML = "";
 
     const mount = document.createElement("div");
@@ -912,6 +941,7 @@ const YoutubeJsApiPlayer = ({
 
     setIsLoading(true);
     setHasError(false);
+    videoIdRef.current = videoId;
 
     try {
       const player = new window.YT!.Player(mount, {
@@ -932,14 +962,15 @@ const YoutubeJsApiPlayer = ({
         },
         events: {
           onReady: () => {
+            isInitializedRef.current = true;
             setIsLoading(false);
             setHasError(false);
 
-            // Aplicar máscara (crop)
+            // Apply mask (crop)
             applyMask();
 
-            // Seek inicial
-            const start = Math.max(0, Math.floor(initialPosition || 0));
+            // Initial seek
+            const start = Math.max(0, Math.floor(initialPositionRef.current || 0));
             if (start > 0) {
               try {
                 player.seekTo(start, true);
@@ -948,11 +979,11 @@ const YoutubeJsApiPlayer = ({
               }
             }
 
-            // Primeira leitura + iniciar polling
+            // First reading + start polling
             try {
               const duration = player.getDuration?.() ?? 0;
               const time = player.getCurrentTime?.() ?? 0;
-              if (duration > 0) onTimeUpdate?.(time, duration);
+              if (duration > 0) onTimeUpdateRef.current?.(time, duration);
             } catch {
               // ignore
             }
@@ -962,9 +993,9 @@ const YoutubeJsApiPlayer = ({
             // 0 = ended | 1 = playing | 2 = paused
             if (e.data === 0) {
               stopTick();
-              onEnded?.();
+              onEndedRef.current?.();
             } else if (e.data === 1) {
-              // garantir polling rodando
+              // Ensure polling is running
               startTick();
             }
           },
@@ -982,38 +1013,45 @@ const YoutubeJsApiPlayer = ({
       setIsLoading(false);
       setHasError(true);
     }
-  }, [applyMask, initialPosition, onEnded, onTimeUpdate, startTick, stopTick, videoId]);
+  }, [videoId, applyMask, startTick, stopTick]);
 
-  // Carregar API do YouTube (1x) e montar player
+  // Load YouTube API and mount player - ONLY ONCE
   useEffect(() => {
-    const mount = () => {
+    let isMounted = true;
+
+    const initPlayer = () => {
+      if (!isMounted) return;
       if (!window.YT?.Player) return;
       setupPlayer();
     };
 
     if (window.YT?.Player) {
-      mount();
-      return;
-    }
+      initPlayer();
+    } else {
+      const existing = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
 
-    const existing = document.querySelector('script[src="https://www.youtube.com/iframe_api"]');
-
-    window.onYouTubeIframeAPIReady = () => {
-      mount();
-    };
-
-    if (!existing) {
-      const script = document.createElement("script");
-      script.src = "https://www.youtube.com/iframe_api";
-      script.async = true;
-      script.onerror = () => {
-        setIsLoading(false);
-        setHasError(true);
+      const previousCallback = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        previousCallback?.();
+        initPlayer();
       };
-      document.body.appendChild(script);
+
+      if (!existing) {
+        const script = document.createElement("script");
+        script.src = "https://www.youtube.com/iframe_api";
+        script.async = true;
+        script.onerror = () => {
+          if (isMounted) {
+            setIsLoading(false);
+            setHasError(true);
+          }
+        };
+        document.body.appendChild(script);
+      }
     }
 
     return () => {
+      isMounted = false;
       stopTick();
       try {
         playerRef.current?.destroy?.();
@@ -1021,13 +1059,19 @@ const YoutubeJsApiPlayer = ({
         // ignore
       }
       playerRef.current = null;
+      isInitializedRef.current = false;
     };
   }, [setupPlayer, stopTick]);
 
-  // Reaplicar máscara quando alternar
+  // Reapply mask when needed
   useEffect(() => {
     applyMask();
-  }, [applyMask]);
+  }, [applyMask, maskYoutubeUI]);
+
+  const handleRetry = useCallback(() => {
+    isInitializedRef.current = false;
+    setupPlayer();
+  }, [setupPlayer]);
 
   return (
     <div className="relative aspect-video bg-black rounded-lg overflow-hidden">
@@ -1048,7 +1092,7 @@ const YoutubeJsApiPlayer = ({
             variant="outline"
             size="sm"
             className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-            onClick={setupPlayer}
+            onClick={handleRetry}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
             Tentar novamente
@@ -1056,7 +1100,7 @@ const YoutubeJsApiPlayer = ({
         </div>
       )}
 
-      {/* Camadas de bloqueio nos cantos */}
+      {/* Block layers on corners */}
       {!isLoading && !hasError && (
         <>
           <div className="absolute top-0 left-0 w-24 h-16 z-[2]" />
