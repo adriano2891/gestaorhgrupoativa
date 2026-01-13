@@ -920,9 +920,9 @@ const YoutubeJsApiPlayer = ({
     iframe.style.transform = "translate(-50%, -50%) scale(1.08)";
   }, []);
 
-  const setupPlayer = useCallback(() => {
+  const setupPlayer = useCallback((forceVideoId?: string) => {
+    const targetVideoId = forceVideoId || videoId;
     if (!containerRef.current || !window.YT?.Player) return;
-    if (isInitializedRef.current && videoIdRef.current === videoId) return;
 
     // Cleanup previous player
     stopTick();
@@ -932,6 +932,7 @@ const YoutubeJsApiPlayer = ({
       // ignore
     }
     playerRef.current = null;
+    isInitializedRef.current = false;
 
     // Clear container
     containerRef.current.innerHTML = "";
@@ -941,11 +942,11 @@ const YoutubeJsApiPlayer = ({
 
     setIsLoading(true);
     setHasError(false);
-    videoIdRef.current = videoId;
+    videoIdRef.current = targetVideoId;
 
     try {
       const player = new window.YT!.Player(mount, {
-        videoId,
+        videoId: targetVideoId,
         host: "https://www.youtube-nocookie.com",
         playerVars: {
           rel: 0,
@@ -1013,16 +1014,16 @@ const YoutubeJsApiPlayer = ({
       setIsLoading(false);
       setHasError(true);
     }
-  }, [videoId, applyMask, startTick, stopTick]);
+  }, [applyMask, startTick, stopTick]);
 
-  // Load YouTube API and mount player - ONLY ONCE
+  // Load YouTube API once
   useEffect(() => {
     let isMounted = true;
 
     const initPlayer = () => {
       if (!isMounted) return;
       if (!window.YT?.Player) return;
-      setupPlayer();
+      setupPlayer(videoId);
     };
 
     if (window.YT?.Player) {
@@ -1061,7 +1062,19 @@ const YoutubeJsApiPlayer = ({
       playerRef.current = null;
       isInitializedRef.current = false;
     };
-  }, [setupPlayer, stopTick]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
+
+  // Handle videoId changes - reinitialize player for new lessons
+  useEffect(() => {
+    // Skip if not initialized yet or same video
+    if (!window.YT?.Player) return;
+    if (!isInitializedRef.current && !playerRef.current) return;
+    if (videoIdRef.current === videoId) return;
+    
+    // New video - reinitialize player
+    setupPlayer(videoId);
+  }, [videoId, setupPlayer]);
 
   // Reapply mask when needed
   useEffect(() => {
