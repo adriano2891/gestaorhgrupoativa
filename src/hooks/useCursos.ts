@@ -572,7 +572,7 @@ export const useTrilhas = () => {
   });
 };
 
-// Estatísticas Admin
+// Estatísticas Admin - Considera apenas conclusões totais (100%)
 export const useCursosStats = () => {
   return useQuery({
     queryKey: ["cursos-stats"],
@@ -580,21 +580,163 @@ export const useCursosStats = () => {
       const [
         { count: totalCursos },
         { count: cursosPublicados },
-        { count: totalMatriculas },
-        { count: matriculasConcluidas },
+        { data: todasMatriculas },
       ] = await Promise.all([
         supabase.from("cursos").select("*", { count: "exact", head: true }),
         supabase.from("cursos").select("*", { count: "exact", head: true }).eq("status", "publicado"),
-        supabase.from("matriculas").select("*", { count: "exact", head: true }),
-        supabase.from("matriculas").select("*", { count: "exact", head: true }).eq("status", "concluido"),
+        supabase.from("matriculas").select("id, progresso, status"),
       ]);
+
+      const totalMatriculas = todasMatriculas?.length || 0;
+      
+      // Apenas matrículas com 100% de progresso são consideradas concluídas
+      const matriculasConcluidas = todasMatriculas?.filter(
+        m => Number(m.progresso) === 100 && m.status === "concluido"
+      ).length || 0;
 
       return {
         totalCursos: totalCursos || 0,
         cursosPublicados: cursosPublicados || 0,
-        totalMatriculas: totalMatriculas || 0,
-        matriculasConcluidas: matriculasConcluidas || 0,
-        taxaConclusao: totalMatriculas ? Math.round((matriculasConcluidas || 0) / totalMatriculas * 100) : 0,
+        totalMatriculas,
+        matriculasConcluidas,
+        taxaConclusao: totalMatriculas ? Math.round(matriculasConcluidas / totalMatriculas * 100) : 0,
+      };
+    },
+  });
+};
+
+// Hook para métricas detalhadas (usado na aba Relatórios)
+export const useMetricasDetalhadas = (cursoId?: string) => {
+  return useQuery({
+    queryKey: ["metricas-detalhadas", cursoId],
+    queryFn: async () => {
+      let query = supabase
+        .from("matriculas")
+        .select(`
+          id, progresso, status, data_inicio, data_conclusao, user_id,
+          curso:cursos(id, titulo),
+          profile:profiles(id, nome, email, departamento, cargo)
+        `);
+
+      if (cursoId && cursoId !== "all") {
+        query = query.eq("curso_id", cursoId);
+      }
+
+      const { data: matriculas, error } = await query;
+      if (error) throw error;
+
+      const total = matriculas?.length || 0;
+      
+      // Só conta como concluído se progresso = 100%
+      const concluidos = matriculas?.filter(
+        m => Number(m.progresso) === 100 && m.status === "concluido"
+      ) || [];
+      
+      const emAndamento = matriculas?.filter(
+        m => m.status === "em_andamento" || (m.status !== "concluido" && Number(m.progresso) > 0)
+      ) || [];
+      
+      const naoIniciados = matriculas?.filter(
+        m => Number(m.progresso) === 0 && m.status !== "concluido"
+      ) || [];
+
+      const progressoMedio = total > 0
+        ? Math.round(matriculas!.reduce((acc, m) => acc + Number(m.progresso || 0), 0) / total)
+        : 0;
+
+      const taxaConclusao = total > 0 ? Math.round((concluidos.length / total) * 100) : 0;
+
+      // Agrupar por departamento
+      const porDepartamento: Record<string, {
+        total: number;
+        concluidos: number;
+        emAndamento: number;
+        progressoTotal: number;
+        funcionarios: Array<{
+          id: string;
+          nome: string;
+          email: string;
+          progresso: number;
+          status: string;
+          concluido: boolean;
+        }>;
+      }> = {};
+
+      matriculas?.forEach(m => {
+        const dept = m.profile?.departamento || "Sem departamento";
+        if (!porDepartamento[dept]) {
+          porDepartamento[dept] = { 
+            total: 0, 
+            concluidos: 0, 
+            emAndamento: 0,
+            progressoTotal: 0,
+            funcionarios: []
+          };
+        }
+        
+        porDepartamento[dept].total++;
+        porDepartamento[dept].progressoTotal += Number(m.progresso || 0);
+        
+        const isConcluido = Number(m.progresso) === 100 && m.status === "concluido";
+        if (isConcluido) {
+          porDepartamento[dept].concluidos++;
+        } else if (Number(m.progresso) > 0) {
+          porDepartamento[dept].emAndamento++;
+        }
+        
+        porDepartamento[dept].funcionarios.push({
+          id: m.profile?.id || m.user_id,
+          nome: m.profile?.nome || "Desconhecido",
+          email: m.profile?.email || "",
+          progresso: Number(m.progresso || 0),
+          status: m.status || "nao_iniciado",
+          concluido: isConcluido,
+        });
+      });
+
+      const departamentos = Object.entries(porDepartamento)
+        .map(([nome, dados]) => ({
+          nome,
+          total: dados.total,
+          concluidos: dados.concluidos,
+          emAndamento: dados.emAndamento,
+          progressoMedio: dados.total > 0 ? Math.round(dados.progressoTotal / dados.total) : 0,
+          taxaConclusao: dados.total > 0 ? Math.round((dados.concluidos / dados.total) * 100) : 0,
+          funcionarios: dados.funcionarios,
+        }))
+        .sort((a, b) => b.taxaConclusao - a.taxaConclusao);
+
+      return {
+        resumo: {
+          total,
+          concluidos: concluidos.length,
+          emAndamento: emAndamento.length,
+          naoIniciados: naoIniciados.length,
+          taxaConclusao,
+          progressoMedio,
+        },
+        matriculas: matriculas || [],
+        funcionariosConcluidos: concluidos.map(m => ({
+          id: m.profile?.id || m.user_id,
+          nome: m.profile?.nome || "Desconhecido",
+          email: m.profile?.email || "",
+          departamento: m.profile?.departamento || "Sem departamento",
+          cargo: m.profile?.cargo || "",
+          curso: m.curso?.titulo || "",
+          dataConclusao: m.data_conclusao,
+        })),
+        funcionariosMatriculados: matriculas?.map(m => ({
+          id: m.profile?.id || m.user_id,
+          nome: m.profile?.nome || "Desconhecido",
+          email: m.profile?.email || "",
+          departamento: m.profile?.departamento || "Sem departamento",
+          cargo: m.profile?.cargo || "",
+          curso: m.curso?.titulo || "",
+          progresso: Number(m.progresso || 0),
+          status: m.status,
+          concluido: Number(m.progresso) === 100 && m.status === "concluido",
+        })) || [],
+        departamentos,
       };
     },
   });
