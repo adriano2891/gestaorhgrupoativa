@@ -94,9 +94,9 @@ const CursosAdmin = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Apenas conclusão total (100%) */}
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-2 sm:gap-4">
-          <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
+          <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-primary/20 rounded-lg flex-shrink-0">
@@ -110,7 +110,7 @@ const CursosAdmin = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5">
+          <Card className="bg-gradient-to-br from-green-500/10 to-green-500/5 border-green-500/20">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-green-500/20 rounded-lg flex-shrink-0">
@@ -124,7 +124,7 @@ const CursosAdmin = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5">
+          <Card className="bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-blue-500/20 rounded-lg flex-shrink-0">
@@ -138,7 +138,7 @@ const CursosAdmin = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-amber-500/10 to-amber-500/5">
+          <Card className="bg-gradient-to-br from-amber-500/10 to-amber-500/5 border-amber-500/20">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-amber-500/20 rounded-lg flex-shrink-0">
@@ -152,7 +152,7 @@ const CursosAdmin = () => {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5">
+          <Card className="bg-gradient-to-br from-purple-500/10 to-purple-500/5 border-purple-500/20">
             <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-2 sm:gap-3">
                 <div className="p-1.5 sm:p-2 bg-purple-500/20 rounded-lg flex-shrink-0">
