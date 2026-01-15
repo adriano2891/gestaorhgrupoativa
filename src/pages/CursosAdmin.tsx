@@ -28,6 +28,7 @@ import { CursoDetalhesDialog } from "@/components/cursos/CursoDetalhesDialog";
 import { MatriculasDialog } from "@/components/cursos/MatriculasDialog";
 import { RelatoriosCursosDialog } from "@/components/cursos/RelatoriosCursosDialog";
 import { UploadCertificadoDialog } from "@/components/cursos/UploadCertificadoDialog";
+import { GerenciarConteudoCursoDialog } from "@/components/cursos/GerenciarConteudoCursoDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { Curso } from "@/types/cursos";
@@ -40,6 +41,7 @@ const CursosAdmin = () => {
   const [cursoDetalhes, setCursoDetalhes] = useState<Curso | null>(null);
   const [cursoMatriculas, setCursoMatriculas] = useState<Curso | null>(null);
   const [cursoEditar, setCursoEditar] = useState<Curso | null>(null);
+  const [cursoGerenciar, setCursoGerenciar] = useState<Curso | null>(null);
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
   const [uploadCertOpen, setUploadCertOpen] = useState(false);
 
@@ -225,6 +227,7 @@ const CursosAdmin = () => {
                 onView={() => setCursoDetalhes(curso)}
                 onEdit={() => setCursoEditar(curso)}
                 onViewMatriculas={() => setCursoMatriculas(curso)}
+                onGerenciarConteudo={() => setCursoGerenciar(curso)}
                 onDelete={() => handleDeleteCurso(curso.id)}
               />
             ))}
@@ -276,6 +279,14 @@ const CursosAdmin = () => {
             curso={cursoMatriculas}
           />
         )}
+        {cursoGerenciar && (
+          <GerenciarConteudoCursoDialog
+            open={!!cursoGerenciar}
+            onOpenChange={(open) => !open && setCursoGerenciar(null)}
+            cursoId={cursoGerenciar.id}
+          />
+        )}
+
         {/* Relatórios Dialog */}
         <RelatoriosCursosDialog
           open={relatoriosOpen}
