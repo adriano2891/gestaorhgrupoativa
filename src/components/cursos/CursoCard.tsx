@@ -12,7 +12,8 @@ import {
   Award,
   Star,
   Lock,
-  Trash2
+  Trash2,
+  Settings2
 } from "lucide-react";
 import {
   AlertDialog,
@@ -35,6 +36,7 @@ interface CursoCardProps {
   onView?: () => void;
   onEdit?: () => void;
   onViewMatriculas?: () => void;
+  onGerenciarConteudo?: () => void;
   onDelete?: () => void;
   onIniciar?: () => void;
   onContinuar?: () => void;
@@ -47,6 +49,7 @@ export const CursoCard = ({
   onView,
   onEdit,
   onViewMatriculas,
+  onGerenciarConteudo,
   onDelete,
   onIniciar,
   onContinuar,
@@ -142,18 +145,21 @@ export const CursoCard = ({
         </div>
       </CardContent>
 
-      <CardFooter className="pt-0 gap-2">
+      <CardFooter className="pt-0 gap-1.5 flex-wrap">
         {isAdmin ? (
           <>
-            <Button variant="outline" size="sm" className="flex-1" onClick={onView}>
+            <Button variant="outline" size="sm" className="flex-1 min-w-[70px]" onClick={onView}>
               <Eye className="h-4 w-4 mr-1" />
               Ver
             </Button>
-            <Button variant="outline" size="sm" className="flex-1" onClick={onEdit}>
+            <Button variant="outline" size="sm" className="flex-1 min-w-[70px]" onClick={onEdit}>
               <Edit className="h-4 w-4 mr-1" />
               Editar
             </Button>
-            <Button variant="ghost" size="sm" onClick={onViewMatriculas}>
+            <Button variant="ghost" size="sm" onClick={onGerenciarConteudo} title="Gerenciar Conteúdo">
+              <Settings2 className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="sm" onClick={onViewMatriculas} title="Ver Matrículas">
               <Users className="h-4 w-4" />
             </Button>
             <AlertDialog>

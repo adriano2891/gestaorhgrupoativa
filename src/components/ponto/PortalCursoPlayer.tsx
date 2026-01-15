@@ -20,6 +20,7 @@ import {
   Award
 } from "lucide-react";
 import { useCurso, useProgressoAulas, useProgressoMutations, useAtualizarProgressoMatricula, useMeusCertificados } from "@/hooks/useCursos";
+import { useAvaliacoesCurso, useVerificarConclusaoAvaliacoes } from "@/hooks/useAvaliacoesCurso";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Collapsible,
@@ -40,6 +41,8 @@ export const PortalCursoPlayer = () => {
   const { data: curso, isLoading } = useCurso(cursoId);
   const { data: progressoAulas, refetch: refetchProgresso } = useProgressoAulas(cursoId);
   const { data: meusCertificados } = useMeusCertificados();
+  const { data: avaliacoesCurso } = useAvaliacoesCurso(cursoId);
+  const { data: statusAvaliacoes } = useVerificarConclusaoAvaliacoes(cursoId);
   const { updateProgresso } = useProgressoMutations();
   const { atualizarMatricula } = useAtualizarProgressoMatricula();
 
@@ -150,14 +153,43 @@ const isAulaConcluida = (aulaId: string) => {
     return { total, concluidas };
   };
 
+  // Calcular progresso do curso considerando aulas e avaliações
   const getProgressoCurso = () => {
     if (!aulasOrdenadas.length || !progressoAulas) return 0;
     
+    // Progresso das aulas
     const aulasConcluidas = aulasOrdenadas.filter(aula => 
       progressoAulas.find(p => p.aula_id === aula.id)?.concluida
     ).length;
     
-    return Math.round((aulasConcluidas / aulasOrdenadas.length) * 100);
+    const progressoAulas100 = Math.round((aulasConcluidas / aulasOrdenadas.length) * 100);
+    
+    // Se não tem avaliações, progresso é só das aulas
+    if (!statusAvaliacoes?.temAvaliacoes) {
+      return progressoAulas100;
+    }
+    
+    // Se tem avaliações, calcular progresso combinado (80% aulas + 20% avaliações)
+    const progressoAvaliacoes = statusAvaliacoes.todasAprovadas ? 100 : 
+      Math.round((statusAvaliacoes.avaliacoesAprovadas || 0) / (statusAvaliacoes.totalAvaliacoes || 1) * 100);
+    
+    return Math.round((progressoAulas100 * 0.8) + (progressoAvaliacoes * 0.2));
+  };
+
+  // Verificar se curso está completamente concluído
+  const isCursoCompleto = (): boolean => {
+    // Todas as aulas concluídas?
+    const todasAulasConcluidas = aulasOrdenadas.every(aula => 
+      progressoAulas?.find(p => p.aula_id === aula.id)?.concluida
+    );
+    
+    if (!todasAulasConcluidas) return false;
+    
+    // Se não tem avaliações, curso está completo
+    if (!statusAvaliacoes?.temAvaliacoes) return true;
+    
+    // Se tem avaliações, verificar se todas foram aprovadas
+    return statusAvaliacoes.todasAprovadas;
   };
 
   // Encontrar próxima aula a continuar
@@ -198,21 +230,31 @@ const isAulaConcluida = (aulaId: string) => {
       
       const novoProgresso = Math.round((aulasConcluidas / aulasOrdenadas.length) * 100);
       
+      // Verificar se curso pode ser marcado como concluído
+      // Só é concluído se todas as aulas estiverem prontas E todas as avaliações aprovadas (se houver)
+      const todasAulasProntas = novoProgresso >= 100;
+      const avaliacoesOk = !statusAvaliacoes?.temAvaliacoes || statusAvaliacoes?.todasAprovadas;
+      const podeConcluir = todasAulasProntas && avaliacoesOk;
+      
       // Atualizar progresso na matrícula
       atualizarMatricula.mutate({
         cursoId,
-        progresso: novoProgresso,
-        status: novoProgresso >= 100 ? 'concluido' : 'em_andamento'
+        progresso: podeConcluir ? 100 : Math.min(novoProgresso, 99), // Só 100% se tudo completo
+        status: podeConcluir ? 'concluido' : 'em_andamento'
       });
 
       // Notificar usuário
-      if (novoProgresso >= 100) {
+      if (podeConcluir) {
         toast.success("🎉 Parabéns! Você concluiu o curso!", {
           description: "Seu certificado estará disponível em breve."
         });
+      } else if (todasAulasProntas && !avaliacoesOk) {
+        toast.success("Todas as aulas concluídas!", {
+          description: `Falta completar ${statusAvaliacoes?.avaliacoesRestantes || 1} avaliação(ões) para finalizar o curso.`
+        });
       } else {
         toast.success("Aula concluída!", {
-          description: `Progresso: ${novoProgresso}%`
+          description: `Progresso das aulas: ${novoProgresso}%`
         });
       }
 
