@@ -29,7 +29,9 @@ import {
   Upload,
   ClipboardCheck,
   Loader2,
-  Unlink
+  Unlink,
+  Edit,
+  HelpCircle
 } from "lucide-react";
 import { useCurso, useModuloMutations, useAulaMutations } from "@/hooks/useCursos";
 import { 
@@ -45,6 +47,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { AulaFormDialog } from "./AulaFormDialog";
+import { QuestoesAvaliacaoForm } from "./QuestoesAvaliacaoForm";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -82,6 +85,7 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
   const [selectedModuloId, setSelectedModuloId] = useState<string | null>(null);
   const [selectedModuloOrdem, setSelectedModuloOrdem] = useState(1);
   const [showAddAvaliacao, setShowAddAvaliacao] = useState(false);
+  const [expandedAvaliacoes, setExpandedAvaliacoes] = useState<Set<string>>(new Set());
   const [novaAvaliacao, setNovaAvaliacao] = useState({
     titulo: "",
     descricao: "",
@@ -91,6 +95,18 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
   });
 
   const totalAvaliacoes = avaliacoesCurso?.length || 0;
+
+  const toggleAvaliacao = (id: string) => {
+    setExpandedAvaliacoes(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   const toggleModulo = (id: string) => {
     setExpandedModulos(prev => {
@@ -496,40 +512,76 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       {avaliacoesCurso.map((avaliacao) => (
-                        <div 
-                          key={avaliacao.id} 
-                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border"
-                        >
-                          <div className="flex items-center gap-3">
-                            <ClipboardCheck className="h-4 w-4 text-green-500" />
-                            <div>
-                              <p className="font-medium text-sm">{avaliacao.titulo}</p>
-                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                <Badge variant="outline" className="text-xs">
-                                  {avaliacao.tipo === "quiz" ? "Quiz" : "Prova"}
-                                </Badge>
-                                {avaliacao.tempo_limite && (
-                                  <span>{avaliacao.tempo_limite}min</span>
-                                )}
-                                {avaliacao.tentativas_permitidas && (
-                                  <span>{avaliacao.tentativas_permitidas} tentativas</span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDesvincularAvaliacao(avaliacao.id)}
-                            disabled={desvincularAvaliacao.isPending}
-                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                        <Card key={avaliacao.id} className="overflow-hidden">
+                          <Collapsible
+                            open={expandedAvaliacoes.has(avaliacao.id)}
+                            onOpenChange={() => toggleAvaliacao(avaliacao.id)}
                           >
-                            <Trash2 className="h-4 w-4 mr-1" />
-                            Remover
-                          </Button>
-                        </div>
+                            <CollapsibleTrigger asChild>
+                              <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50 transition-colors">
+                                <div className="flex items-center gap-3">
+                                  <ClipboardCheck className="h-4 w-4 text-green-500" />
+                                  <div>
+                                    <p className="font-medium text-sm">{avaliacao.titulo}</p>
+                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                      <Badge variant="outline" className="text-xs">
+                                        {avaliacao.tipo === "quiz" ? "Quiz" : "Prova"}
+                                      </Badge>
+                                      {avaliacao.tempo_limite && (
+                                        <span>{avaliacao.tempo_limite}min</span>
+                                      )}
+                                      {avaliacao.tentativas_permitidas && (
+                                        <span>{avaliacao.tentativas_permitidas} tentativas</span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      toggleAvaliacao(avaliacao.id);
+                                    }}
+                                  >
+                                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDesvincularAvaliacao(avaliacao.id);
+                                    }}
+                                    disabled={desvincularAvaliacao.isPending}
+                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-1" />
+                                    Remover
+                                  </Button>
+                                  {expandedAvaliacoes.has(avaliacao.id) ? (
+                                    <ChevronUp className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronDown className="h-4 w-4" />
+                                  )}
+                                </div>
+                              </div>
+                            </CollapsibleTrigger>
+                            
+                            <CollapsibleContent>
+                              <div className="px-3 pb-3 border-t">
+                                <QuestoesAvaliacaoForm 
+                                  avaliacaoId={avaliacao.id} 
+                                  tipoAvaliacao={avaliacao.tipo || "quiz"} 
+                                />
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        </Card>
                       ))}
                     </div>
                   )}
