@@ -6,10 +6,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Plus, 
   ChevronDown, 
@@ -22,9 +26,17 @@ import {
   Youtube,
   HardDrive,
   Link,
-  Upload
+  Upload,
+  ClipboardCheck,
+  Loader2,
+  Unlink
 } from "lucide-react";
 import { useCurso, useModuloMutations, useAulaMutations } from "@/hooks/useCursos";
+import { 
+  useAvaliacoesCurso, 
+  useTodasAvaliacoes,
+  useAvaliacaoMutations 
+} from "@/hooks/useAvaliacoesCurso";
 import { NIVEL_LABELS, STATUS_LABELS } from "@/types/cursos";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -34,6 +46,7 @@ import {
 } from "@/components/ui/collapsible";
 import { AulaFormDialog } from "./AulaFormDialog";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface CursoDetalhesDialogProps {
   open: boolean;
@@ -56,12 +69,28 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
   const { createModulo, deleteModulo } = useModuloMutations();
   const { deleteAula } = useAulaMutations();
 
+  // Avaliações
+  const { data: avaliacoesCurso, isLoading: loadingAvaliacoes } = useAvaliacoesCurso(cursoId);
+  const { data: todasAvaliacoes } = useTodasAvaliacoes();
+  const { vincularAvaliacao, desvincularAvaliacao, createAvaliacao } = useAvaliacaoMutations();
+
+  const [activeTab, setActiveTab] = useState("modulos");
   const [expandedModulos, setExpandedModulos] = useState<Set<string>>(new Set());
   const [novoModulo, setNovoModulo] = useState({ titulo: "", descricao: "" });
   const [showNovoModulo, setShowNovoModulo] = useState(false);
   const [aulaFormOpen, setAulaFormOpen] = useState(false);
   const [selectedModuloId, setSelectedModuloId] = useState<string | null>(null);
   const [selectedModuloOrdem, setSelectedModuloOrdem] = useState(1);
+  const [showAddAvaliacao, setShowAddAvaliacao] = useState(false);
+  const [novaAvaliacao, setNovaAvaliacao] = useState({
+    titulo: "",
+    descricao: "",
+    tipo: "quiz",
+    tempo_limite: 30,
+    tentativas_permitidas: 3,
+  });
+
+  const totalAvaliacoes = avaliacoesCurso?.length || 0;
 
   const toggleModulo = (id: string) => {
     setExpandedModulos(prev => {
@@ -100,6 +129,32 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
     queryClient.invalidateQueries({ queryKey: ["curso", cursoId] });
   };
 
+  const handleDesvincularAvaliacao = (avaliacaoId: string) => {
+    desvincularAvaliacao.mutate(avaliacaoId);
+  };
+
+  const handleCriarAvaliacao = async () => {
+    if (!novaAvaliacao.titulo.trim()) {
+      toast.error("Digite o título da avaliação");
+      return;
+    }
+
+    await createAvaliacao.mutateAsync({
+      ...novaAvaliacao,
+      curso_id: cursoId,
+      ordem: (avaliacoesCurso?.length || 0) + 1,
+    });
+
+    setNovaAvaliacao({
+      titulo: "",
+      descricao: "",
+      tipo: "quiz",
+      tempo_limite: 30,
+      tentativas_permitidas: 3,
+    });
+    setShowAddAvaliacao(false);
+  };
+
   const formatDuration = (seconds: number) => {
     if (seconds < 60) return `${seconds}s`;
     const minutes = Math.floor(seconds / 60);
@@ -129,8 +184,8 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="shrink-0">
           <div className="flex items-start justify-between">
             <div>
               <DialogTitle className="text-xl">{curso.titulo}</DialogTitle>
@@ -147,172 +202,368 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
           </div>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold flex items-center gap-2">
-              <BookOpen className="h-5 w-5" />
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+          <TabsList className="shrink-0 w-full justify-start">
+            <TabsTrigger value="modulos" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
               Módulos e Aulas
-            </h3>
-            <Button size="sm" onClick={() => setShowNovoModulo(true)}>
-              <Plus className="h-4 w-4 mr-1" />
-              Novo Módulo
-            </Button>
-          </div>
+            </TabsTrigger>
+            <TabsTrigger value="avaliacoes" className="flex items-center gap-2">
+              <ClipboardCheck className="h-4 w-4" />
+              Avaliações
+              {totalAvaliacoes > 0 && (
+                <Badge variant="secondary" className="ml-1">{totalAvaliacoes}</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
 
-          {/* Form para novo módulo */}
-          {showNovoModulo && (
-            <Card className="border-dashed border-primary/50 bg-primary/5">
-              <CardContent className="p-4 space-y-3">
-                <Input
-                  placeholder="Título do módulo"
-                  value={novoModulo.titulo}
-                  onChange={(e) => setNovoModulo(prev => ({ ...prev, titulo: e.target.value }))}
-                />
-                <Textarea
-                  placeholder="Descrição (opcional)"
-                  rows={2}
-                  value={novoModulo.descricao}
-                  onChange={(e) => setNovoModulo(prev => ({ ...prev, descricao: e.target.value }))}
-                />
-                <div className="flex justify-end gap-2">
-                  <Button size="sm" variant="ghost" onClick={() => setShowNovoModulo(false)}>
-                    Cancelar
-                  </Button>
-                  <Button size="sm" onClick={handleCreateModulo} disabled={createModulo.isPending}>
-                    Salvar
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <ScrollArea className="flex-1 mt-4">
+            {/* Tab: Módulos e Aulas */}
+            <TabsContent value="modulos" className="m-0 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  Módulos e Aulas
+                </h3>
+                <Button size="sm" onClick={() => setShowNovoModulo(true)}>
+                  <Plus className="h-4 w-4 mr-1" />
+                  Novo Módulo
+                </Button>
+              </div>
 
-          {/* Lista de módulos */}
-          {curso.modulos && curso.modulos.length > 0 ? (
-            <div className="space-y-3">
-              {curso.modulos.map((modulo, index) => (
-                <Card key={modulo.id}>
-                  <Collapsible
-                    open={expandedModulos.has(modulo.id)}
-                    onOpenChange={() => toggleModulo(modulo.id)}
-                  >
-                    <CollapsibleTrigger asChild>
-                      <CardHeader className="p-4 cursor-pointer hover:bg-muted/50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <GripVertical className="h-4 w-4 text-muted-foreground" />
-                            <span className="bg-primary/10 text-primary font-medium px-2 py-0.5 rounded text-sm">
-                              {index + 1}
-                            </span>
-                            <div>
-                              <h4 className="font-medium">{modulo.titulo}</h4>
-                              {modulo.descricao && (
-                                <p className="text-sm text-muted-foreground">{modulo.descricao}</p>
-                              )}
+              {/* Form para novo módulo */}
+              {showNovoModulo && (
+                <Card className="border-dashed border-primary/50 bg-primary/5">
+                  <CardContent className="p-4 space-y-3">
+                    <Input
+                      placeholder="Título do módulo"
+                      value={novoModulo.titulo}
+                      onChange={(e) => setNovoModulo(prev => ({ ...prev, titulo: e.target.value }))}
+                    />
+                    <Textarea
+                      placeholder="Descrição (opcional)"
+                      rows={2}
+                      value={novoModulo.descricao}
+                      onChange={(e) => setNovoModulo(prev => ({ ...prev, descricao: e.target.value }))}
+                    />
+                    <div className="flex justify-end gap-2">
+                      <Button size="sm" variant="ghost" onClick={() => setShowNovoModulo(false)}>
+                        Cancelar
+                      </Button>
+                      <Button size="sm" onClick={handleCreateModulo} disabled={createModulo.isPending}>
+                        Salvar
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Lista de módulos */}
+              {curso.modulos && curso.modulos.length > 0 ? (
+                <div className="space-y-3">
+                  {curso.modulos.map((modulo, index) => (
+                    <Card key={modulo.id}>
+                      <Collapsible
+                        open={expandedModulos.has(modulo.id)}
+                        onOpenChange={() => toggleModulo(modulo.id)}
+                      >
+                        <CollapsibleTrigger asChild>
+                          <CardHeader className="p-4 cursor-pointer hover:bg-muted/50 transition-colors">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                <span className="bg-primary/10 text-primary font-medium px-2 py-0.5 rounded text-sm">
+                                  {index + 1}
+                                </span>
+                                <div>
+                                  <h4 className="font-medium">{modulo.titulo}</h4>
+                                  {modulo.descricao && (
+                                    <p className="text-sm text-muted-foreground">{modulo.descricao}</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary">
+                                  {modulo.aulas?.length || 0} aulas
+                                </Badge>
+                                <Button 
+                                  size="icon" 
+                                  variant="ghost"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteModulo.mutate(modulo.id);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                                {expandedModulos.has(modulo.id) ? (
+                                  <ChevronUp className="h-5 w-5" />
+                                ) : (
+                                  <ChevronDown className="h-5 w-5" />
+                                )}
+                              </div>
                             </div>
+                          </CardHeader>
+                        </CollapsibleTrigger>
+                        
+                        <CollapsibleContent>
+                          <CardContent className="pt-0 pb-4">
+                            <div className="space-y-2 ml-10">
+                              {/* Aulas do módulo */}
+                              {modulo.aulas && modulo.aulas.length > 0 ? (
+                                modulo.aulas.map((aula) => {
+                                  const SourceIcon = getVideoSourceIcon(aula.video_url);
+                                  
+                                  return (
+                                    <div
+                                      key={aula.id}
+                                      className="flex items-center justify-between p-3 bg-muted/30 rounded-lg group"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        {SourceIcon ? (
+                                          <SourceIcon className="h-4 w-4 text-primary" />
+                                        ) : (
+                                          <Video className="h-4 w-4 text-muted-foreground" />
+                                        )}
+                                        <div>
+                                          <p className="font-medium text-sm">{aula.titulo}</p>
+                                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                            <Clock className="h-3 w-3" />
+                                            <span>{formatDuration(aula.duracao)}</span>
+                                            {aula.video_url && (
+                                              <Badge variant="outline" className="text-xs px-1.5 py-0">
+                                                {aula.video_url.includes("youtube") ? "YouTube" : 
+                                                 aula.video_url.includes("drive.google") ? "Drive" :
+                                                 aula.video_url.includes("supabase") ? "Upload" : "Link"}
+                                              </Badge>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      <Button 
+                                        size="icon" 
+                                        variant="ghost"
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                        onClick={() => deleteAula.mutate(aula.id)}
+                                      >
+                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                      </Button>
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <p className="text-sm text-muted-foreground py-2">
+                                  Nenhuma aula cadastrada
+                                </p>
+                              )}
+
+                              {/* Botão para nova aula */}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="w-full border border-dashed"
+                                onClick={() => handleOpenAulaForm(modulo.id)}
+                              >
+                                <Plus className="h-4 w-4 mr-1" />
+                                Adicionar Aula
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </CollapsibleContent>
+                      </Collapsible>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center">
+                    <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
+                    <p className="text-muted-foreground">
+                      Nenhum módulo cadastrado. Comece adicionando o primeiro módulo.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            {/* Tab: Avaliações */}
+            <TabsContent value="avaliacoes" className="m-0 space-y-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-base">Avaliações do Curso</CardTitle>
+                      <CardDescription>
+                        Avaliações vinculadas são obrigatórias para conclusão
+                      </CardDescription>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      onClick={() => setShowAddAvaliacao(!showAddAvaliacao)}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Nova Avaliação
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {showAddAvaliacao && (
+                    <Card className="mb-4 border-dashed">
+                      <CardContent className="p-4 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="col-span-2">
+                            <Label>Título da Avaliação *</Label>
+                            <Input
+                              placeholder="Ex: Quiz do Módulo 1"
+                              value={novaAvaliacao.titulo}
+                              onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, titulo: e.target.value }))}
+                            />
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary">
-                              {modulo.aulas?.length || 0} aulas
-                            </Badge>
-                            <Button 
-                              size="icon" 
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteModulo.mutate(modulo.id);
-                              }}
+                          <div className="col-span-2">
+                            <Label>Descrição</Label>
+                            <Textarea
+                              placeholder="Descrição da avaliação..."
+                              value={novaAvaliacao.descricao}
+                              onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, descricao: e.target.value }))}
+                              rows={2}
+                            />
+                          </div>
+                          <div>
+                            <Label>Tipo</Label>
+                            <Select 
+                              value={novaAvaliacao.tipo} 
+                              onValueChange={(v) => setNovaAvaliacao(prev => ({ ...prev, tipo: v }))}
                             >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                            {expandedModulos.has(modulo.id) ? (
-                              <ChevronUp className="h-5 w-5" />
-                            ) : (
-                              <ChevronDown className="h-5 w-5" />
-                            )}
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="bg-background">
+                                <SelectItem value="quiz">Quiz</SelectItem>
+                                <SelectItem value="prova">Prova</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label>Tempo Limite (min)</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={novaAvaliacao.tempo_limite}
+                              onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, tempo_limite: Number(e.target.value) }))}
+                            />
+                          </div>
+                          <div>
+                            <Label>Tentativas Permitidas</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={novaAvaliacao.tentativas_permitidas}
+                              onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, tentativas_permitidas: Number(e.target.value) }))}
+                            />
                           </div>
                         </div>
-                      </CardHeader>
-                    </CollapsibleTrigger>
-                    
-                    <CollapsibleContent>
-                      <CardContent className="pt-0 pb-4">
-                        <div className="space-y-2 ml-10">
-                          {/* Aulas do módulo */}
-                          {modulo.aulas && modulo.aulas.length > 0 ? (
-                            modulo.aulas.map((aula) => {
-                              const SourceIcon = getVideoSourceIcon(aula.video_url);
-                              
-                              return (
-                                <div
-                                  key={aula.id}
-                                  className="flex items-center justify-between p-3 bg-muted/30 rounded-lg group"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    {SourceIcon ? (
-                                      <SourceIcon className="h-4 w-4 text-primary" />
-                                    ) : (
-                                      <Video className="h-4 w-4 text-muted-foreground" />
-                                    )}
-                                    <div>
-                                      <p className="font-medium text-sm">{aula.titulo}</p>
-                                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                        <Clock className="h-3 w-3" />
-                                        <span>{formatDuration(aula.duracao)}</span>
-                                        {aula.video_url && (
-                                          <Badge variant="outline" className="text-xs px-1.5 py-0">
-                                            {aula.video_url.includes("youtube") ? "YouTube" : 
-                                             aula.video_url.includes("drive.google") ? "Drive" :
-                                             aula.video_url.includes("supabase") ? "Upload" : "Link"}
-                                          </Badge>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <Button 
-                                    size="icon" 
-                                    variant="ghost"
-                                    className="opacity-0 group-hover:opacity-100 transition-opacity"
-                                    onClick={() => deleteAula.mutate(aula.id)}
-                                  >
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                  </Button>
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <p className="text-sm text-muted-foreground py-2">
-                              Nenhuma aula cadastrada
-                            </p>
-                          )}
-
-                          {/* Botão para nova aula */}
-                          <Button
-                            variant="ghost"
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="outline" 
                             size="sm"
-                            className="w-full border border-dashed"
-                            onClick={() => handleOpenAulaForm(modulo.id)}
+                            onClick={() => setShowAddAvaliacao(false)}
                           >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Adicionar Aula
+                            Cancelar
+                          </Button>
+                          <Button 
+                            size="sm"
+                            onClick={handleCriarAvaliacao}
+                            disabled={createAvaliacao.isPending}
+                          >
+                            {createAvaliacao.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+                            Criar Avaliação
                           </Button>
                         </div>
                       </CardContent>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="py-8 text-center">
-                <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/50 mb-2" />
-                <p className="text-muted-foreground">
-                  Nenhum módulo cadastrado. Comece adicionando o primeiro módulo.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                    </Card>
+                  )}
+
+                  {loadingAvaliacoes ? (
+                    <div className="flex justify-center p-4">
+                      <Loader2 className="h-6 w-6 animate-spin" />
+                    </div>
+                  ) : !avaliacoesCurso || avaliacoesCurso.length === 0 ? (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <ClipboardCheck className="h-10 w-10 mx-auto mb-2 opacity-50" />
+                      <p>Nenhuma avaliação vinculada</p>
+                      <p className="text-xs mt-1">
+                        O curso pode ser concluído apenas com a finalização das aulas.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {avaliacoesCurso.map((avaliacao) => (
+                        <div 
+                          key={avaliacao.id} 
+                          className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border"
+                        >
+                          <div className="flex items-center gap-3">
+                            <ClipboardCheck className="h-4 w-4 text-green-500" />
+                            <div>
+                              <p className="font-medium text-sm">{avaliacao.titulo}</p>
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <Badge variant="outline" className="text-xs">
+                                  {avaliacao.tipo === "quiz" ? "Quiz" : "Prova"}
+                                </Badge>
+                                {avaliacao.tempo_limite && (
+                                  <span>{avaliacao.tempo_limite}min</span>
+                                )}
+                                {avaliacao.tentativas_permitidas && (
+                                  <span>{avaliacao.tentativas_permitidas} tentativas</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDesvincularAvaliacao(avaliacao.id)}
+                            disabled={desvincularAvaliacao.isPending}
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                          >
+                            <Trash2 className="h-4 w-4 mr-1" />
+                            Remover
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Informação sobre regras de conclusão */}
+              <Card className="border-blue-200 bg-blue-50/50 dark:bg-blue-950/20">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <ClipboardCheck className="h-5 w-5 text-blue-500 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-sm">Regras de Conclusão</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {totalAvaliacoes > 0 ? (
+                          <>
+                            Este curso possui <strong>{totalAvaliacoes} avaliação(ões)</strong>. 
+                            O funcionário precisa concluir <strong>todas as aulas</strong> e 
+                            <strong> ser aprovado em todas as avaliações</strong> para conclusão total.
+                          </>
+                        ) : (
+                          <>
+                            Este curso não possui avaliações. 
+                            O funcionário precisa concluir <strong>todas as aulas</strong> para conclusão total.
+                          </>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </ScrollArea>
+        </Tabs>
 
         {/* Dialog para criar aula */}
         {selectedModuloId && (
