@@ -89,7 +89,7 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
   const [novaAvaliacao, setNovaAvaliacao] = useState({
     titulo: "",
     descricao: "",
-    tipo: "quiz",
+    tipo: "prova", // Default para prova com 4 alternativas
     tempo_limite: 30,
     tentativas_permitidas: 3,
   });
@@ -155,20 +155,26 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
       return;
     }
 
-    await createAvaliacao.mutateAsync({
+    const result = await createAvaliacao.mutateAsync({
       ...novaAvaliacao,
       curso_id: cursoId,
       ordem: (avaliacoesCurso?.length || 0) + 1,
     });
 
+    // Expandir a avaliação recém-criada para adicionar questões
+    if (result?.id) {
+      setExpandedAvaliacoes(prev => new Set([...prev, result.id]));
+    }
+
     setNovaAvaliacao({
       titulo: "",
       descricao: "",
-      tipo: "quiz",
+      tipo: "prova", // Default para prova
       tempo_limite: 30,
       tentativas_permitidas: 3,
     });
     setShowAddAvaliacao(false);
+    toast.success("Avaliação criada! Agora adicione as questões abaixo.");
   };
 
   const formatDuration = (seconds: number) => {
@@ -424,13 +430,18 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
                 </CardHeader>
                 <CardContent>
                   {showAddAvaliacao && (
-                    <Card className="mb-4 border-dashed">
+                    <Card className="mb-4 border-2 border-primary/50 bg-primary/5">
                       <CardContent className="p-4 space-y-4">
+                        <div className="flex items-center gap-2 text-primary mb-2">
+                          <ClipboardCheck className="h-4 w-4" />
+                          <span className="font-medium">Nova Avaliação / Prova</span>
+                        </div>
+                        
                         <div className="grid grid-cols-2 gap-4">
                           <div className="col-span-2">
                             <Label>Título da Avaliação *</Label>
                             <Input
-                              placeholder="Ex: Quiz do Módulo 1"
+                              placeholder="Ex: Prova Final do Módulo 1"
                               value={novaAvaliacao.titulo}
                               onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, titulo: e.target.value }))}
                             />
@@ -454,19 +465,23 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent className="bg-background">
-                                <SelectItem value="quiz">Quiz</SelectItem>
-                                <SelectItem value="prova">Prova</SelectItem>
+                                <SelectItem value="prova">Prova (4 alternativas)</SelectItem>
+                                <SelectItem value="quiz">Quiz (rápido)</SelectItem>
                               </SelectContent>
                             </Select>
                           </div>
                           <div>
-                            <Label>Tempo Limite (min)</Label>
-                            <Input
-                              type="number"
-                              min={1}
-                              value={novaAvaliacao.tempo_limite}
-                              onChange={(e) => setNovaAvaliacao(prev => ({ ...prev, tempo_limite: Number(e.target.value) }))}
-                            />
+                            <Label>Tempo por Questão</Label>
+                            <div className="flex items-center gap-2">
+                              <Input
+                                type="number"
+                                min={1}
+                                value={2}
+                                disabled
+                                className="bg-muted"
+                              />
+                              <span className="text-sm text-muted-foreground">min (fixo)</span>
+                            </div>
                           </div>
                           <div>
                             <Label>Tentativas Permitidas</Label>
@@ -478,9 +493,22 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
                             />
                           </div>
                         </div>
-                        <div className="flex justify-end gap-2">
+
+                        <div className="bg-yellow-50 dark:bg-yellow-950/30 border border-yellow-200 dark:border-yellow-900 rounded-lg p-3 text-sm">
+                          <p className="font-medium text-yellow-700 dark:text-yellow-400 mb-1">
+                            Regras da Prova:
+                          </p>
+                          <ul className="text-yellow-600 dark:text-yellow-300 space-y-0.5 text-xs">
+                            <li>• Cada questão terá 4 alternativas (A, B, C, D)</li>
+                            <li>• Tempo limite de 2 minutos por questão</li>
+                            <li>• Reprovação: nova tentativa após 24 horas</li>
+                            <li>• Nota mínima para aprovação: 70%</li>
+                          </ul>
+                        </div>
+
+                        <div className="flex justify-end gap-2 pt-2 border-t">
                           <Button 
-                            variant="outline" 
+                            variant="ghost" 
                             size="sm"
                             onClick={() => setShowAddAvaliacao(false)}
                           >

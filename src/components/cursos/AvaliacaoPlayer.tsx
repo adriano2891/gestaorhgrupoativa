@@ -21,11 +21,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { AvaliacaoCurso } from "@/hooks/useAvaliacoesCurso";
 
+interface OpcaoQuestao {
+  letra?: string;
+  texto: string;
+  correta: boolean;
+}
+
 interface Questao {
   id: string;
   pergunta: string;
   tipo: string | null;
-  opcoes: { texto: string; correta: boolean }[];
+  opcoes: OpcaoQuestao[];
   resposta_correta: string | null;
   pontuacao: number | null;
   ordem: number | null;
@@ -73,19 +79,22 @@ export const AvaliacaoPlayer = ({
       
       if (error) throw error;
       
+      const LETRAS = ["A", "B", "C", "D"];
+      
       // Parse opcoes for each question
       return (data || []).map(q => {
-        let parsedOpcoes: { texto: string; correta: boolean }[] = [];
+        let parsedOpcoes: OpcaoQuestao[] = [];
         if (Array.isArray(q.opcoes)) {
-          parsedOpcoes = q.opcoes.map((opt: unknown) => {
+          parsedOpcoes = q.opcoes.map((opt: unknown, index: number) => {
             if (typeof opt === 'object' && opt !== null) {
               const o = opt as Record<string, unknown>;
               return {
+                letra: String(o.letra || LETRAS[index] || ""),
                 texto: String(o.texto || ''),
                 correta: Boolean(o.correta)
               };
             }
-            return { texto: '', correta: false };
+            return { letra: LETRAS[index], texto: '', correta: false };
           });
         }
         return {
@@ -527,28 +536,31 @@ export const AvaliacaoPlayer = ({
           onValueChange={(value) => handleSelecionarResposta(questaoAtual.id, value)}
           className="space-y-3"
         >
-          {questaoAtual.opcoes.map((opcao, index) => (
-            <div 
-              key={index} 
-              className={`flex items-center space-x-3 p-4 rounded-lg border transition-colors cursor-pointer hover:bg-muted/50 ${
-                respostas[questaoAtual.id] === opcao.texto 
-                  ? "border-primary bg-primary/5" 
-                  : "border-border"
-              }`}
-              onClick={() => handleSelecionarResposta(questaoAtual.id, opcao.texto)}
-            >
-              <RadioGroupItem value={opcao.texto} id={`opcao-${index}`} />
-              <Label 
-                htmlFor={`opcao-${index}`} 
-                className="flex-1 cursor-pointer text-base"
+          {questaoAtual.opcoes.map((opcao, index) => {
+            const letra = opcao.letra || String.fromCharCode(65 + index);
+            return (
+              <div 
+                key={index} 
+                className={`flex items-center space-x-3 p-4 rounded-lg border transition-colors cursor-pointer hover:bg-muted/50 ${
+                  respostas[questaoAtual.id] === opcao.texto 
+                    ? "border-primary bg-primary/5" 
+                    : "border-border"
+                }`}
+                onClick={() => handleSelecionarResposta(questaoAtual.id, opcao.texto)}
               >
-                <span className="font-semibold mr-2">
-                  {String.fromCharCode(65 + index)})
-                </span>
-                {opcao.texto}
-              </Label>
-            </div>
-          ))}
+                <RadioGroupItem value={opcao.texto} id={`opcao-${index}`} />
+                <Label 
+                  htmlFor={`opcao-${index}`} 
+                  className="flex-1 cursor-pointer text-base"
+                >
+                  <span className="font-bold mr-2 text-primary">
+                    {letra})
+                  </span>
+                  {opcao.texto}
+                </Label>
+              </div>
+            );
+          })}
         </RadioGroup>
 
         <div className="flex justify-end pt-4">
