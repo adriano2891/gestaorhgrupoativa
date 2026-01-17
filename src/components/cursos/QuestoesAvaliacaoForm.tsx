@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -46,7 +46,7 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
   const [showNovaQuestao, setShowNovaQuestao] = useState(false);
   const [expandedQuestoes, setExpandedQuestoes] = useState<Set<string>>(new Set());
   
-  // Estado para nova questão
+  // Estado para nova questão - Quiz: 3 alternativas, Prova: 4 alternativas fixas
   const defaultAlternativas = tipoAvaliacao === "quiz" 
     ? [
         { texto: "", correta: true },
@@ -54,7 +54,7 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
         { texto: "", correta: false },
       ]
     : [
-        { texto: "", correta: false },
+        { texto: "", correta: true },
         { texto: "", correta: false },
         { texto: "", correta: false },
         { texto: "", correta: false },
@@ -66,6 +66,14 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
     alternativas: defaultAlternativas,
     pontuacao: 10,
   });
+  
+  // Reset alternativas quando tipo muda
+  useEffect(() => {
+    setNovaQuestao(prev => ({
+      ...prev,
+      alternativas: defaultAlternativas
+    }));
+  }, [tipoAvaliacao]);
 
   // Buscar questões existentes
   const { data: questoes, isLoading } = useQuery({
@@ -150,9 +158,19 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
     }
 
     const alternativasPreenchidas = novaQuestao.alternativas.filter(a => a.texto.trim());
-    if (alternativasPreenchidas.length < 2) {
-      toast.error("Preencha pelo menos 2 alternativas");
-      return;
+    
+    // Para prova, exigir exatamente 4 alternativas preenchidas
+    if (tipoAvaliacao === "prova") {
+      if (alternativasPreenchidas.length !== 4) {
+        toast.error("Preencha todas as 4 alternativas");
+        return;
+      }
+    } else {
+      // Para quiz, exigir pelo menos 2
+      if (alternativasPreenchidas.length < 2) {
+        toast.error("Preencha pelo menos 2 alternativas");
+        return;
+      }
     }
 
     const temCorreta = novaQuestao.alternativas.some(a => a.correta && a.texto.trim());
@@ -211,7 +229,7 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
             Questões ({questoes?.length || 0})
           </span>
           <Badge variant="outline" className="text-xs">
-            {tipoAvaliacao === "quiz" ? "3 alternativas" : "Múltiplas alternativas"}
+            {tipoAvaliacao === "quiz" ? "3 alternativas" : "4 alternativas obrigatórias"}
           </Badge>
         </div>
         <Button 
@@ -240,10 +258,13 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
 
             <div>
               <Label className="mb-2 block">
-                Alternativas {tipoAvaliacao === "quiz" ? "(3 opções)" : ""} *
+                Alternativas {tipoAvaliacao === "quiz" ? "(3 opções)" : "(4 opções obrigatórias)"} *
               </Label>
               <p className="text-xs text-muted-foreground mb-3">
-                Marque a alternativa correta clicando no círculo
+                {tipoAvaliacao === "prova" 
+                  ? "Preencha todas as 4 alternativas e marque a correta"
+                  : "Marque a alternativa correta clicando no círculo"
+                }
               </p>
               
               <RadioGroup 
@@ -267,21 +288,7 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
                 ))}
               </RadioGroup>
 
-              {tipoAvaliacao === "prova" && novaQuestao.alternativas.length < 6 && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="mt-2"
-                  onClick={() => setNovaQuestao(prev => ({
-                    ...prev,
-                    alternativas: [...prev.alternativas, { texto: "", correta: false }]
-                  }))}
-                >
-                  <Plus className="h-3 w-3 mr-1" />
-                  Mais alternativa
-                </Button>
-              )}
+              {/* Para prova, não permitir adicionar mais alternativas - sempre 4 fixas */}
             </div>
 
             <div className="w-32">

@@ -17,10 +17,12 @@ import {
   Trophy,
   Play,
   RotateCcw,
-  Award
+  Award,
+  ClipboardCheck,
+  AlertCircle
 } from "lucide-react";
 import { useCurso, useProgressoAulas, useProgressoMutations, useAtualizarProgressoMatricula, useMeusCertificados } from "@/hooks/useCursos";
-import { useAvaliacoesCurso, useVerificarConclusaoAvaliacoes } from "@/hooks/useAvaliacoesCurso";
+import { useAvaliacoesCurso, useVerificarConclusaoAvaliacoes, useTentativasUsuario } from "@/hooks/useAvaliacoesCurso";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Collapsible,
@@ -29,8 +31,10 @@ import {
 } from "@/components/ui/collapsible";
 import { VideoPlayer } from "@/components/cursos/VideoPlayer";
 import { ProgressoAulaBar, ProgressoModulo } from "@/components/cursos/ProgressoAulaBar";
+import { AvaliacaoPlayer } from "@/components/cursos/AvaliacaoPlayer";
 import { toast } from "sonner";
 import type { Aula } from "@/types/cursos";
+import type { AvaliacaoCurso } from "@/hooks/useAvaliacoesCurso";
 
 // Tipo auxiliar para status da aula
 type AulaStatus = "nao_iniciada" | "em_andamento" | "concluida";
@@ -41,8 +45,9 @@ export const PortalCursoPlayer = () => {
   const { data: curso, isLoading } = useCurso(cursoId);
   const { data: progressoAulas, refetch: refetchProgresso } = useProgressoAulas(cursoId);
   const { data: meusCertificados } = useMeusCertificados();
-  const { data: avaliacoesCurso } = useAvaliacoesCurso(cursoId);
-  const { data: statusAvaliacoes } = useVerificarConclusaoAvaliacoes(cursoId);
+  const { data: avaliacoesCurso, refetch: refetchAvaliacoes } = useAvaliacoesCurso(cursoId);
+  const { data: statusAvaliacoes, refetch: refetchStatusAvaliacoes } = useVerificarConclusaoAvaliacoes(cursoId);
+  const { data: tentativasUsuario } = useTentativasUsuario(cursoId);
   const { updateProgresso } = useProgressoMutations();
   const { atualizarMatricula } = useAtualizarProgressoMatricula();
 
@@ -50,6 +55,7 @@ export const PortalCursoPlayer = () => {
   const [expandedModulos, setExpandedModulos] = useState<Set<string>>(new Set());
   const [lastSavedTime, setLastSavedTime] = useState(0);
   const [currentVideoProgress, setCurrentVideoProgress] = useState(0);
+  const [avaliacaoEmAndamento, setAvaliacaoEmAndamento] = useState<AvaliacaoCurso | null>(null);
 
   // Verificar se já tem certificado deste curso
   const temCertificado = meusCertificados?.some(c => c.curso_id === cursoId);
@@ -367,35 +373,52 @@ const isAulaConcluida = (aulaId: string) => {
 
       <div className="container mx-auto p-4">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Video Player */}
+          {/* Video Player ou Avaliação */}
           <div className="lg:col-span-2 space-y-4">
-            {/* Player unificado */}
-            <VideoPlayer
-              url={selectedAula?.video_url || ""}
-              onTimeUpdate={handleTimeUpdate}
-              onEnded={handleVideoEnded}
-              initialPosition={getInitialPosition()}
-              embedVariant="portal"
-            />
+            {avaliacaoEmAndamento ? (
+              <AvaliacaoPlayer
+                avaliacao={avaliacaoEmAndamento}
+                cursoId={cursoId!}
+                onComplete={(aprovado) => {
+                  if (aprovado) {
+                    refetchStatusAvaliacoes();
+                    refetchAvaliacoes();
+                    toast.success("Avaliação concluída com sucesso!");
+                  }
+                }}
+                onClose={() => setAvaliacaoEmAndamento(null)}
+              />
+            ) : (
+              <>
+                {/* Player unificado */}
+                <VideoPlayer
+                  url={selectedAula?.video_url || ""}
+                  onTimeUpdate={handleTimeUpdate}
+                  onEnded={handleVideoEnded}
+                  initialPosition={getInitialPosition()}
+                  embedVariant="portal"
+                />
 
-            {/* Info da aula atual */}
-            {selectedAula && (
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{selectedAula.titulo}</CardTitle>
-                    {isAulaConcluida(selectedAula.id) && (
-                      <Badge className="bg-green-100 text-green-700 gap-1">
-                        <CheckCircle className="h-3 w-3" />
-                        Concluída
-                      </Badge>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-muted-foreground">{selectedAula.descricao || "Sem descrição"}</p>
-                </CardContent>
-              </Card>
+                {/* Info da aula atual */}
+                {selectedAula && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-lg">{selectedAula.titulo}</CardTitle>
+                        {isAulaConcluida(selectedAula.id) && (
+                          <Badge className="bg-green-100 text-green-700 gap-1">
+                            <CheckCircle className="h-3 w-3" />
+                            Concluída
+                          </Badge>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-muted-foreground">{selectedAula.descricao || "Sem descrição"}</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </>
             )}
           </div>
 
@@ -484,6 +507,64 @@ const isAulaConcluida = (aulaId: string) => {
                         </CollapsibleContent>
                       </Collapsible>
                     ))}
+
+                    {/* Seção de Avaliações */}
+                    {avaliacoesCurso && avaliacoesCurso.length > 0 && (
+                      <div className="mt-4 pt-4 border-t">
+                        <div className="flex items-center gap-2 mb-3 px-1">
+                          <ClipboardCheck className="h-4 w-4 text-primary" />
+                          <span className="font-medium text-sm">Avaliações</span>
+                          <Badge variant="outline" className="text-xs ml-auto">
+                            {statusAvaliacoes?.avaliacoesAprovadas || 0}/{statusAvaliacoes?.totalAvaliacoes || 0}
+                          </Badge>
+                        </div>
+                        <div className="space-y-2">
+                          {avaliacoesCurso.map((avaliacao) => {
+                            const tentativaAprovada = tentativasUsuario?.find(
+                              t => t.avaliacao_id === avaliacao.id && t.aprovado
+                            );
+                            const todasAulasConcluidas = aulasOrdenadas.every(aula => 
+                              progressoAulas?.find(p => p.aula_id === aula.id)?.concluida
+                            );
+                            
+                            return (
+                              <button
+                                key={avaliacao.id}
+                                onClick={() => {
+                                  if (!todasAulasConcluidas) {
+                                    toast.error("Complete todas as aulas primeiro");
+                                    return;
+                                  }
+                                  setAvaliacaoEmAndamento(avaliacao);
+                                }}
+                                disabled={!!tentativaAprovada}
+                                className={`w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors ${
+                                  tentativaAprovada 
+                                    ? 'bg-green-50 dark:bg-green-950/30' 
+                                    : todasAulasConcluidas
+                                      ? 'hover:bg-muted/50 cursor-pointer'
+                                      : 'opacity-50'
+                                }`}
+                              >
+                                {tentativaAprovada ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                                ) : todasAulasConcluidas ? (
+                                  <AlertCircle className="h-4 w-4 text-yellow-500 flex-shrink-0" />
+                                ) : (
+                                  <Lock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium truncate">{avaliacao.titulo}</p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {tentativaAprovada ? 'Aprovado' : avaliacao.tipo === 'prova' ? 'Prova' : 'Quiz'}
+                                  </p>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </ScrollArea>
               </CardContent>
