@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -45,31 +45,38 @@ const LETRAS = ["A", "B", "C", "D"];
 
 export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAvaliacaoFormProps) => {
   const queryClient = useQueryClient();
-  const [showNovaQuestao, setShowNovaQuestao] = useState(true); // Começa aberto por padrão!
+  const [showNovaQuestao, setShowNovaQuestao] = useState(true); // formulário aberto inicialmente
   const [expandedQuestoes, setExpandedQuestoes] = useState<Set<string>>(new Set());
-  
-  // Estado para nova questão - Sempre 4 alternativas para prova
-  const defaultAlternativas = [
-    { letra: "A", texto: "", correta: false },
-    { letra: "B", texto: "", correta: false },
-    { letra: "C", texto: "", correta: false },
-    { letra: "D", texto: "", correta: false },
-  ];
+
+  // Estado para nova questão
+  const defaultAlternativas =
+    tipoAvaliacao === "quiz"
+      ? [
+          { letra: "A", texto: "", correta: false },
+          { letra: "B", texto: "", correta: false },
+          { letra: "C", texto: "", correta: false },
+        ]
+      : [
+          { letra: "A", texto: "", correta: false },
+          { letra: "B", texto: "", correta: false },
+          { letra: "C", texto: "", correta: false },
+          { letra: "D", texto: "", correta: false },
+        ];
 
   const [novaQuestao, setNovaQuestao] = useState({
     pergunta: "",
     tipo: "multipla_escolha",
     alternativas: defaultAlternativas,
-    resposta_correta: "" as string, // A, B, C ou D
+    resposta_correta: "" as string, // A, B, C (quiz) ou A, B, C, D (prova)
     pontuacao: 10,
   });
 
-  // Reset form quando abre/fecha
+  // Reset form
   const resetForm = () => {
     setNovaQuestao({
       pergunta: "",
       tipo: "multipla_escolha",
-      alternativas: defaultAlternativas.map(a => ({ ...a, texto: "", correta: false })),
+      alternativas: defaultAlternativas.map((a) => ({ ...a, texto: "", correta: false })),
       resposta_correta: "",
       pontuacao: 10,
     });
@@ -128,13 +135,13 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["perguntas-avaliacao", avaliacaoId] });
-      toast.success("Questão adicionada! Você pode adicionar mais questões abaixo.");
+      toast.success("Pergunta salva!");
       resetForm();
-      // Mantém o formulário aberto para adicionar mais questões
-      setShowNovaQuestao(true);
+      // Após salvar, exibe o botão "Adicionar nova pergunta"
+      setShowNovaQuestao(false);
     },
-    onError: () => {
-      toast.error("Erro ao adicionar questão");
+    onError: (error) => {
+      toast.error(`Erro ao adicionar questão: ${error.message}`);
     },
   });
 
@@ -164,16 +171,24 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
       return;
     }
 
-    // Validar que todas as 4 alternativas estão preenchidas
-    const alternativasVazias = novaQuestao.alternativas.filter(a => !a.texto.trim());
+    const totalAlternativasEsperado = tipoAvaliacao === "quiz" ? 3 : 4;
+
+    // Validar que todas as alternativas estão preenchidas
+    const alternativasVazias = novaQuestao.alternativas.filter((a) => !a.texto.trim());
     if (alternativasVazias.length > 0) {
-      toast.error(`Preencha todas as 4 alternativas (${alternativasVazias.map(a => a.letra).join(", ")} vazias)`);
+      toast.error(
+        `Preencha todas as ${totalAlternativasEsperado} alternativas (${alternativasVazias
+          .map((a) => a.letra)
+          .join(", ")} vazias)`
+      );
       return;
     }
 
     // Validar que uma resposta correta foi selecionada
     if (!novaQuestao.resposta_correta) {
-      toast.error("Selecione a alternativa correta (A, B, C ou D)");
+      toast.error(
+        `Selecione a alternativa correta (${tipoAvaliacao === "quiz" ? "A, B ou C" : "A, B, C ou D"})`
+      );
       return;
     }
 
@@ -236,21 +251,22 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
           <HelpCircle className="h-5 w-5 text-primary" />
           <div>
             <span className="text-sm font-bold text-primary">
-              Questões da Prova ({questoes?.length || 0})
+              Questões da {tipoAvaliacao === "quiz" ? "Avaliação" : "Prova"} ({questoes?.length || 0})
             </span>
             <p className="text-xs text-muted-foreground">
-              Cada questão deve ter 4 alternativas (A, B, C, D) com uma resposta correta
+              {tipoAvaliacao === "quiz"
+                ? "Cada questão deve ter 3 alternativas (A, B, C) e 1 correta"
+                : "Cada questão deve ter 4 alternativas (A, B, C, D) e 1 correta"}
             </p>
           </div>
         </div>
         {!showNovaQuestao && (
-          <Button 
-            size="sm" 
-            onClick={() => setShowNovaQuestao(true)}
-            className="gap-1"
-          >
+          <Button size="sm" onClick={() => {
+            resetForm();
+            setShowNovaQuestao(true);
+          }} className="gap-1">
             <Plus className="h-4 w-4" />
-            Adicionar Nova Questão
+            Adicionar nova pergunta
           </Button>
         )}
       </div>
@@ -340,28 +356,27 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
 
             <div className="flex justify-between items-center pt-3 border-t">
               <p className="text-xs text-muted-foreground">
-                Após salvar, você pode adicionar mais questões
+                Salve a pergunta para adicioná-la na lista. Depois, clique em "Adicionar nova pergunta".
               </p>
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={() => {
                     setShowNovaQuestao(false);
                     resetForm();
                   }}
                 >
-                  Fechar Formulário
+                  Cancelar
                 </Button>
-                <Button 
+                <Button
                   size="sm"
                   onClick={handleAddQuestao}
                   disabled={createQuestao.isPending}
-                  className="bg-green-600 hover:bg-green-700"
                 >
                   {createQuestao.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
                   <CheckCircle2 className="h-4 w-4 mr-1" />
-                  Salvar e Adicionar Outra
+                  Salvar pergunta
                 </Button>
               </div>
             </div>
