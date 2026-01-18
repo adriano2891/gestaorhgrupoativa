@@ -45,7 +45,7 @@ const LETRAS = ["A", "B", "C", "D"];
 
 export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAvaliacaoFormProps) => {
   const queryClient = useQueryClient();
-  const [showNovaQuestao, setShowNovaQuestao] = useState(false);
+  const [showNovaQuestao, setShowNovaQuestao] = useState(true); // Começa aberto por padrão!
   const [expandedQuestoes, setExpandedQuestoes] = useState<Set<string>>(new Set());
   
   // Estado para nova questão - Sempre 4 alternativas para prova
@@ -69,7 +69,7 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
     setNovaQuestao({
       pergunta: "",
       tipo: "multipla_escolha",
-      alternativas: defaultAlternativas,
+      alternativas: defaultAlternativas.map(a => ({ ...a, texto: "", correta: false })),
       resposta_correta: "",
       pontuacao: 10,
     });
@@ -128,9 +128,10 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["perguntas-avaliacao", avaliacaoId] });
-      toast.success("Questão adicionada com sucesso!");
-      setShowNovaQuestao(false);
+      toast.success("Questão adicionada! Você pode adicionar mais questões abaixo.");
       resetForm();
+      // Mantém o formulário aberto para adicionar mais questões
+      setShowNovaQuestao(true);
     },
     onError: () => {
       toast.error("Erro ao adicionar questão");
@@ -230,24 +231,28 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
 
   return (
     <div className="space-y-4 mt-4">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between bg-primary/10 p-3 rounded-lg">
         <div className="flex items-center gap-2">
-          <HelpCircle className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">
-            Questões ({questoes?.length || 0})
-          </span>
-          <Badge variant="outline" className="text-xs">
-            4 alternativas (A, B, C, D)
-          </Badge>
+          <HelpCircle className="h-5 w-5 text-primary" />
+          <div>
+            <span className="text-sm font-bold text-primary">
+              Questões da Prova ({questoes?.length || 0})
+            </span>
+            <p className="text-xs text-muted-foreground">
+              Cada questão deve ter 4 alternativas (A, B, C, D) com uma resposta correta
+            </p>
+          </div>
         </div>
-        <Button 
-          size="sm" 
-          onClick={() => setShowNovaQuestao(true)}
-          disabled={showNovaQuestao}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Adicionar Questão
-        </Button>
+        {!showNovaQuestao && (
+          <Button 
+            size="sm" 
+            onClick={() => setShowNovaQuestao(true)}
+            className="gap-1"
+          >
+            <Plus className="h-4 w-4" />
+            Adicionar Nova Questão
+          </Button>
+        )}
       </div>
 
       {/* Formulário para nova questão */}
@@ -333,25 +338,32 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
               />
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => {
-                  setShowNovaQuestao(false);
-                  resetForm();
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                size="sm"
-                onClick={handleAddQuestao}
-                disabled={createQuestao.isPending}
-              >
-                {createQuestao.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-                Salvar Questão
-              </Button>
+            <div className="flex justify-between items-center pt-3 border-t">
+              <p className="text-xs text-muted-foreground">
+                Após salvar, você pode adicionar mais questões
+              </p>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setShowNovaQuestao(false);
+                    resetForm();
+                  }}
+                >
+                  Fechar Formulário
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={handleAddQuestao}
+                  disabled={createQuestao.isPending}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  {createQuestao.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  Salvar e Adicionar Outra
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>

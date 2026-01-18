@@ -536,81 +536,86 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
                       <ClipboardCheck className="h-10 w-10 mx-auto mb-2 opacity-50" />
                       <p>Nenhuma avaliação vinculada</p>
                       <p className="text-xs mt-1">
-                        O curso pode ser concluído apenas com a finalização das aulas.
+                        Clique em "Nova Avaliação" para criar uma prova com questões de múltipla escolha.
                       </p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
-                      {avaliacoesCurso.map((avaliacao) => (
-                        <Card key={avaliacao.id} className="overflow-hidden">
-                          <Collapsible
-                            open={expandedAvaliacoes.has(avaliacao.id)}
-                            onOpenChange={() => toggleAvaliacao(avaliacao.id)}
+                    <div className="space-y-4">
+                      {avaliacoesCurso.map((avaliacao) => {
+                        const isExpanded = expandedAvaliacoes.has(avaliacao.id);
+                        
+                        return (
+                          <Card 
+                            key={avaliacao.id} 
+                            className={`overflow-hidden transition-all ${
+                              isExpanded ? "border-primary/50 shadow-md" : ""
+                            }`}
                           >
-                            <CollapsibleTrigger asChild>
-                              <div className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50 transition-colors">
-                                <div className="flex items-center gap-3">
-                                  <ClipboardCheck className="h-4 w-4 text-green-500" />
-                                  <div>
-                                    <p className="font-medium text-sm">{avaliacao.titulo}</p>
-                                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                      <Badge variant="outline" className="text-xs">
-                                        {avaliacao.tipo === "quiz" ? "Quiz" : "Prova"}
-                                      </Badge>
-                                      {avaliacao.tempo_limite && (
-                                        <span>{avaliacao.tempo_limite}min</span>
-                                      )}
-                                      {avaliacao.tentativas_permitidas && (
-                                        <span>{avaliacao.tentativas_permitidas} tentativas</span>
-                                      )}
-                                    </div>
+                            <div 
+                              className="flex items-center justify-between p-3 cursor-pointer hover:bg-muted/50 transition-colors"
+                              onClick={() => toggleAvaliacao(avaliacao.id)}
+                            >
+                              <div className="flex items-center gap-3">
+                                <ClipboardCheck className="h-4 w-4 text-green-500" />
+                                <div>
+                                  <p className="font-medium text-sm">{avaliacao.titulo}</p>
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Badge variant="outline" className="text-xs">
+                                      {avaliacao.tipo === "quiz" ? "Quiz" : "Prova"}
+                                    </Badge>
+                                    {avaliacao.tempo_limite && (
+                                      <span>{avaliacao.tempo_limite}min</span>
+                                    )}
+                                    {avaliacao.tentativas_permitidas && (
+                                      <span>{avaliacao.tentativas_permitidas} tentativas</span>
+                                    )}
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleAvaliacao(avaliacao.id);
-                                    }}
-                                  >
-                                    <HelpCircle className="h-4 w-4 text-muted-foreground" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDesvincularAvaliacao(avaliacao.id);
-                                    }}
-                                    disabled={desvincularAvaliacao.isPending}
-                                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                                  >
-                                    <Trash2 className="h-4 w-4 mr-1" />
-                                    Remover
-                                  </Button>
-                                  {expandedAvaliacoes.has(avaliacao.id) ? (
-                                    <ChevronUp className="h-4 w-4" />
-                                  ) : (
-                                    <ChevronDown className="h-4 w-4" />
-                                  )}
-                                </div>
                               </div>
-                            </CollapsibleTrigger>
+                              <div className="flex items-center gap-2">
+                                <Button
+                                  variant={isExpanded ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleAvaliacao(avaliacao.id);
+                                  }}
+                                  className="gap-1"
+                                >
+                                  <HelpCircle className="h-4 w-4" />
+                                  {isExpanded ? "Ocultar Questões" : "Gerenciar Questões"}
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleDesvincularAvaliacao(avaliacao.id);
+                                  }}
+                                  disabled={desvincularAvaliacao.isPending}
+                                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                                {isExpanded ? (
+                                  <ChevronUp className="h-4 w-4" />
+                                ) : (
+                                  <ChevronDown className="h-4 w-4" />
+                                )}
+                              </div>
+                            </div>
                             
-                            <CollapsibleContent>
-                              <div className="px-3 pb-3 border-t">
+                            {isExpanded && (
+                              <div className="px-4 pb-4 border-t bg-muted/10">
                                 <QuestoesAvaliacaoForm 
                                   avaliacaoId={avaliacao.id} 
-                                  tipoAvaliacao={avaliacao.tipo || "quiz"} 
+                                  tipoAvaliacao={avaliacao.tipo || "prova"} 
                                 />
                               </div>
-                            </CollapsibleContent>
-                          </Collapsible>
-                        </Card>
-                      ))}
+                            )}
+                          </Card>
+                        );
+                      })}
                     </div>
                   )}
                 </CardContent>
