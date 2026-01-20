@@ -283,10 +283,19 @@ export const AvaliacaoPlayer = ({
       totalPontos += pontos;
       
       const respostaUsuario = respostas[questao.id];
-      const respostaCorreta = questao.resposta_correta || 
-        questao.opcoes.find(o => o.correta)?.texto;
+      // A resposta correta agora é salva como LETRA (A, B, C, D)
+      // Também suporta o formato antigo (texto da alternativa) para retrocompatibilidade
+      const letraCorreta = questao.resposta_correta;
+      const opcaoCorreta = questao.opcoes.find(o => o.correta);
       
-      if (respostaUsuario && respostaUsuario === respostaCorreta) {
+      // Verifica se a resposta do usuário é a letra correta OU o texto da alternativa correta
+      const isCorreta = respostaUsuario && (
+        respostaUsuario === letraCorreta || 
+        respostaUsuario === opcaoCorreta?.texto ||
+        respostaUsuario === opcaoCorreta?.letra
+      );
+      
+      if (isCorreta) {
         corretas++;
         pontosObtidos += pontos;
       }
