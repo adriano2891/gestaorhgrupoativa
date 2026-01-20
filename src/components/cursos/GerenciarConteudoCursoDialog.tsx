@@ -27,7 +27,10 @@ import {
   Unlink,
   Loader2,
   Settings2,
+  ListChecks,
+  ArrowLeft,
 } from "lucide-react";
+import { QuestoesAvaliacaoForm } from "./QuestoesAvaliacaoForm";
 import { useCurso } from "@/hooks/useCursos";
 import { 
   useAvaliacoesCurso, 
@@ -52,6 +55,7 @@ export const GerenciarConteudoCursoDialog = ({
   const [searchAulas, setSearchAulas] = useState("");
   const [searchAvaliacoes, setSearchAvaliacoes] = useState("");
   const [showAddAvaliacao, setShowAddAvaliacao] = useState(false);
+  const [avaliacaoParaQuestoes, setAvaliacaoParaQuestoes] = useState<string | null>(null);
   const [novaAvaliacao, setNovaAvaliacao] = useState({
     titulo: "",
     descricao: "",
@@ -162,11 +166,35 @@ export const GerenciarConteudoCursoDialog = ({
           </Card>
         </div>
 
+        {/* Se está gerenciando questões de uma avaliação específica */}
+        {avaliacaoParaQuestoes ? (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex items-center gap-2 mb-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAvaliacaoParaQuestoes(null)}
+              >
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Voltar
+              </Button>
+              <span className="text-sm text-muted-foreground">
+              Gerenciando questões da avaliação: <strong>{avaliacoesCurso?.find(a => a.id === avaliacaoParaQuestoes)?.titulo}</strong>
+              </span>
+            </div>
+            <ScrollArea className="flex-1">
+              <QuestoesAvaliacaoForm 
+                avaliacaoId={avaliacaoParaQuestoes} 
+                tipoAvaliacao={avaliacoesCurso?.find(a => a.id === avaliacaoParaQuestoes)?.tipo || "prova"}
+              />
+            </ScrollArea>
+          </div>
+        ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
           <TabsList className="shrink-0 w-full justify-start">
             <TabsTrigger value="conteudo" className="flex items-center gap-2">
               <BookOpen className="h-4 w-4" />
-              Conteúdo do Curso
+              Módulos e Aulas
             </TabsTrigger>
             <TabsTrigger value="avaliacoes" className="flex items-center gap-2">
               <ClipboardCheck className="h-4 w-4" />
@@ -398,16 +426,26 @@ export const GerenciarConteudoCursoDialog = ({
                               </div>
                             </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDesvincularAvaliacao(avaliacao.id)}
-                            disabled={desvincularAvaliacao.isPending}
-                            className="text-destructive hover:text-destructive"
-                          >
-                            <Unlink className="h-4 w-4 mr-1" />
-                            Remover
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setAvaliacaoParaQuestoes(avaliacao.id)}
+                            >
+                              <ListChecks className="h-4 w-4 mr-1" />
+                              Gerenciar Questões
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDesvincularAvaliacao(avaliacao.id)}
+                              disabled={desvincularAvaliacao.isPending}
+                              className="text-destructive hover:text-destructive"
+                            >
+                              <Unlink className="h-4 w-4 mr-1" />
+                              Remover
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -488,6 +526,7 @@ export const GerenciarConteudoCursoDialog = ({
             </TabsContent>
           </ScrollArea>
         </Tabs>
+        )}
 
         <Separator className="my-4" />
         
