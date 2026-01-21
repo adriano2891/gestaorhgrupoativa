@@ -432,9 +432,34 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
                   {showAddAvaliacao && (
                     <Card className="mb-4 border-2 border-primary/50 bg-primary/5">
                       <CardContent className="p-4 space-y-4">
-                        <div className="flex items-center gap-2 text-primary mb-2">
-                          <ClipboardCheck className="h-4 w-4" />
-                          <span className="font-medium">Nova Avaliação / Prova</span>
+                        {/* Ações no topo para garantir que o botão de salvar fique sempre visível */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 text-primary">
+                            <ClipboardCheck className="h-4 w-4" />
+                            <span className="font-medium">
+                              Nova Avaliação / {novaAvaliacao.tipo === "quiz" ? "Quiz" : "Prova"}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setShowAddAvaliacao(false)}
+                            >
+                              Cancelar
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={handleCriarAvaliacao}
+                              disabled={createAvaliacao.isPending}
+                            >
+                              {createAvaliacao.isPending && (
+                                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                              )}
+                              Criar Avaliação
+                            </Button>
+                          </div>
                         </div>
                         
                         <div className="grid grid-cols-2 gap-4">
