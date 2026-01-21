@@ -317,6 +317,32 @@ export const GerenciarConteudoCursoDialog = ({
                   {showAddAvaliacao && (
                     <Card className="mb-4 border-dashed">
                       <CardContent className="p-4 space-y-4">
+                        {/* Ações fixas no topo para garantir visibilidade do salvar */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="text-sm font-medium text-foreground">
+                            Nova Avaliação / {novaAvaliacao.tipo === "quiz" ? "Quiz" : "Prova"}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowAddAvaliacao(false)}
+                            >
+                              Cancelar
+                            </Button>
+                            <Button
+                              size="sm"
+                              onClick={handleCriarAvaliacao}
+                              disabled={createAvaliacao.isPending}
+                            >
+                              {createAvaliacao.isPending && (
+                                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                              )}
+                              Criar e Vincular
+                            </Button>
+                          </div>
+                        </div>
+
                         <div className="grid grid-cols-2 gap-4">
                           <div className="col-span-2">
                             <Label>Título da Avaliação *</Label>
@@ -369,20 +395,23 @@ export const GerenciarConteudoCursoDialog = ({
                             />
                           </div>
                         </div>
+                        {/* Mantém também no rodapé (caso o usuário role) */}
                         <div className="flex justify-end gap-2">
-                          <Button 
-                            variant="outline" 
+                          <Button
+                            variant="outline"
                             size="sm"
                             onClick={() => setShowAddAvaliacao(false)}
                           >
                             Cancelar
                           </Button>
-                          <Button 
+                          <Button
                             size="sm"
                             onClick={handleCriarAvaliacao}
                             disabled={createAvaliacao.isPending}
                           >
-                            {createAvaliacao.isPending && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
+                            {createAvaliacao.isPending && (
+                              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                            )}
                             Criar e Vincular
                           </Button>
                         </div>
