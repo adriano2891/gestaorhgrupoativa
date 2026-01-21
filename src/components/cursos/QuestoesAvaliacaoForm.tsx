@@ -182,137 +182,125 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
 
   return (
     <ScrollArea
-      className="max-h-[60vh] sm:max-h-[65vh] pr-2"
+      className="max-h-[55vh] sm:max-h-[60vh] pr-2"
       type="always"
     >
-      <div className="space-y-6 mt-4 pr-2 pb-6">
+      <div className="space-y-4 mt-2 pr-2 pb-4">
       {/* Mensagem de erro */}
       {errorMessage && (
-        <div className="bg-destructive/10 border border-destructive/30 text-destructive p-3 rounded-lg flex items-center gap-2">
-          <AlertCircle className="h-5 w-5 shrink-0" />
-          <span className="text-sm">{errorMessage}</span>
+        <div className="bg-destructive/10 border border-destructive/30 text-destructive p-2 rounded-lg flex items-center gap-2">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          <span className="text-xs">{errorMessage}</span>
         </div>
       )}
 
-      {/* Formulário para nova questão - SEMPRE VISÍVEL */}
+      {/* Formulário para nova questão - COMPACTO */}
       <Card className="border-2 border-primary/30">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Plus className="h-5 w-5 text-primary" />
+        <CardHeader className="py-2 px-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Plus className="h-4 w-4 text-primary" />
             Nova Pergunta
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 p-3 pt-0">
           {/* Enunciado da pergunta */}
           <div>
-            <Label htmlFor="questionText" className="text-sm font-semibold">
-              Enunciado da Pergunta:
+            <Label htmlFor="questionText" className="text-xs font-semibold">
+              Enunciado:
             </Label>
             <Textarea
               id="questionText"
               placeholder="Digite a pergunta aqui..."
               value={novaQuestao.pergunta}
               onChange={(e) => setNovaQuestao(prev => ({ ...prev, pergunta: e.target.value }))}
-              rows={3}
-              className="mt-1 resize-y"
+              rows={2}
+              className="mt-1 resize-y text-sm"
             />
           </div>
 
-          {/* Alternativas */}
-          <div className="bg-muted/50 p-4 rounded-lg border">
-            <p className="font-semibold mb-4">Alternativas e Resposta Correta:</p>
+          {/* Alternativas - Layout compacto */}
+          <div className="bg-muted/50 p-2 rounded-lg border">
+            <p className="font-semibold text-xs mb-2">Alternativas (marque a correta):</p>
             
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {/* Alternativa A */}
-              <div className="flex items-center gap-3">
-                <span className="font-bold w-6 text-center">A)</span>
-                <Input
-                  placeholder="Texto da alternativa A"
-                  value={novaQuestao.altA}
-                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, altA: e.target.value }))}
-                  className={`flex-1 ${novaQuestao.correta === "A" ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
-                />
-                <label className="flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1 cursor-pointer shrink-0">
                   <input
                     type="radio"
                     name="correctAnswer"
                     checked={novaQuestao.correta === "A"}
                     onChange={() => setNovaQuestao(prev => ({ ...prev, correta: "A" }))}
-                    className="w-4 h-4 accent-green-600"
+                    className="w-3.5 h-3.5 accent-green-600"
                   />
-                  <span className={`text-sm ${novaQuestao.correta === "A" ? "text-green-600 font-medium" : ""}`}>
-                    Correta
-                  </span>
+                  <span className={`font-bold text-sm ${novaQuestao.correta === "A" ? "text-green-600" : ""}`}>A)</span>
                 </label>
+                <Input
+                  placeholder="Alternativa A"
+                  value={novaQuestao.altA}
+                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, altA: e.target.value }))}
+                  className={`flex-1 h-8 text-sm ${novaQuestao.correta === "A" ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
+                />
               </div>
 
               {/* Alternativa B */}
-              <div className="flex items-center gap-3">
-                <span className="font-bold w-6 text-center">B)</span>
-                <Input
-                  placeholder="Texto da alternativa B"
-                  value={novaQuestao.altB}
-                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, altB: e.target.value }))}
-                  className={`flex-1 ${novaQuestao.correta === "B" ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
-                />
-                <label className="flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1 cursor-pointer shrink-0">
                   <input
                     type="radio"
                     name="correctAnswer"
                     checked={novaQuestao.correta === "B"}
                     onChange={() => setNovaQuestao(prev => ({ ...prev, correta: "B" }))}
-                    className="w-4 h-4 accent-green-600"
+                    className="w-3.5 h-3.5 accent-green-600"
                   />
-                  <span className={`text-sm ${novaQuestao.correta === "B" ? "text-green-600 font-medium" : ""}`}>
-                    Correta
-                  </span>
+                  <span className={`font-bold text-sm ${novaQuestao.correta === "B" ? "text-green-600" : ""}`}>B)</span>
                 </label>
+                <Input
+                  placeholder="Alternativa B"
+                  value={novaQuestao.altB}
+                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, altB: e.target.value }))}
+                  className={`flex-1 h-8 text-sm ${novaQuestao.correta === "B" ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
+                />
               </div>
 
               {/* Alternativa C */}
-              <div className="flex items-center gap-3">
-                <span className="font-bold w-6 text-center">C)</span>
-                <Input
-                  placeholder="Texto da alternativa C"
-                  value={novaQuestao.altC}
-                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, altC: e.target.value }))}
-                  className={`flex-1 ${novaQuestao.correta === "C" ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
-                />
-                <label className="flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1 cursor-pointer shrink-0">
                   <input
                     type="radio"
                     name="correctAnswer"
                     checked={novaQuestao.correta === "C"}
                     onChange={() => setNovaQuestao(prev => ({ ...prev, correta: "C" }))}
-                    className="w-4 h-4 accent-green-600"
+                    className="w-3.5 h-3.5 accent-green-600"
                   />
-                  <span className={`text-sm ${novaQuestao.correta === "C" ? "text-green-600 font-medium" : ""}`}>
-                    Correta
-                  </span>
+                  <span className={`font-bold text-sm ${novaQuestao.correta === "C" ? "text-green-600" : ""}`}>C)</span>
                 </label>
+                <Input
+                  placeholder="Alternativa C"
+                  value={novaQuestao.altC}
+                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, altC: e.target.value }))}
+                  className={`flex-1 h-8 text-sm ${novaQuestao.correta === "C" ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
+                />
               </div>
 
               {/* Alternativa D */}
-              <div className="flex items-center gap-3">
-                <span className="font-bold w-6 text-center">D)</span>
-                <Input
-                  placeholder="Texto da alternativa D"
-                  value={novaQuestao.altD}
-                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, altD: e.target.value }))}
-                  className={`flex-1 ${novaQuestao.correta === "D" ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
-                />
-                <label className="flex items-center gap-1.5 cursor-pointer whitespace-nowrap">
+              <div className="flex items-center gap-2">
+                <label className="flex items-center gap-1 cursor-pointer shrink-0">
                   <input
                     type="radio"
                     name="correctAnswer"
                     checked={novaQuestao.correta === "D"}
                     onChange={() => setNovaQuestao(prev => ({ ...prev, correta: "D" }))}
-                    className="w-4 h-4 accent-green-600"
+                    className="w-3.5 h-3.5 accent-green-600"
                   />
-                  <span className={`text-sm ${novaQuestao.correta === "D" ? "text-green-600 font-medium" : ""}`}>
-                    Correta
-                  </span>
+                  <span className={`font-bold text-sm ${novaQuestao.correta === "D" ? "text-green-600" : ""}`}>D)</span>
                 </label>
+                <Input
+                  placeholder="Alternativa D"
+                  value={novaQuestao.altD}
+                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, altD: e.target.value }))}
+                  className={`flex-1 h-8 text-sm ${novaQuestao.correta === "D" ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
+                />
               </div>
             </div>
           </div>
@@ -322,14 +310,14 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
             onClick={handleAddQuestao}
             disabled={createQuestao.isPending}
             className="w-full bg-green-600 hover:bg-green-700 text-white"
-            size="lg"
+            size="default"
           >
             {createQuestao.isPending ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : (
               <Plus className="h-4 w-4 mr-2" />
             )}
-            Adicionar Pergunta à Prova
+            Adicionar Pergunta
           </Button>
         </CardContent>
       </Card>
