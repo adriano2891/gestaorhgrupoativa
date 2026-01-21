@@ -181,8 +181,11 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
   };
 
   return (
-    <ScrollArea className="h-[60vh] sm:h-[65vh] pr-2">
-      <div className="space-y-6 mt-4 pr-2">
+    <ScrollArea
+      className="max-h-[60vh] sm:max-h-[65vh] pr-2"
+      type="always"
+    >
+      <div className="space-y-6 mt-4 pr-2 pb-6">
       {/* Mensagem de erro */}
       {errorMessage && (
         <div className="bg-destructive/10 border border-destructive/30 text-destructive p-3 rounded-lg flex items-center gap-2">
