@@ -16,8 +16,7 @@ import {
   CheckCircle,
   Star,
   Filter,
-  Download,
-  Loader2
+  Download
 } from "lucide-react";
 import { toast } from "sonner";
 import { 
@@ -45,7 +44,6 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
   const [search, setSearch] = useState("");
   const [categoriaFilter, setCategoriaFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("catalogo");
-  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const { data: cursos, isLoading: loadingCursos } = useCursos("publicado");
   const { data: minhasMatriculas, isLoading: loadingMatriculas } = useMinhasMatriculas();
@@ -74,32 +72,18 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
     navigate(`/portal-funcionario/cursos/${cursoId}`);
   };
 
-  const handleDownloadCertificado = async (certificado: any) => {
+  const handleDownloadCertificado = (certificado: any) => {
     try {
-      setDownloadingId(certificado.id);
-      
       if (certificado.url_certificado) {
-        // Se tem URL do certificado, fazer download direto
-        const response = await fetch(certificado.url_certificado);
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `Certificado_${certificado.curso?.titulo || 'Curso'}_${certificado.codigo_validacao}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        toast.success("Certificado baixado com sucesso!");
+        // Abrir o PDF diretamente em nova aba (funciona melhor com Supabase Storage)
+        window.open(certificado.url_certificado, '_blank');
+        toast.success("Certificado aberto em nova aba!");
       } else {
-        // Sem URL, informar que o certificado não está disponível
         toast.error("Certificado não disponível para download. Contate o administrador.");
       }
     } catch (error) {
-      console.error("Erro ao baixar certificado:", error);
-      toast.error("Erro ao baixar o certificado. Tente novamente.");
-    } finally {
-      setDownloadingId(null);
+      console.error("Erro ao abrir certificado:", error);
+      toast.error("Erro ao abrir o certificado. Tente novamente.");
     }
   };
 
@@ -299,13 +283,8 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
                           size="sm" 
                           variant="outline"
                           onClick={() => handleDownloadCertificado(cert)}
-                          disabled={downloadingId === cert.id}
                         >
-                          {downloadingId === cert.id ? (
-                            <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                          ) : (
-                            <Download className="h-4 w-4 mr-1" />
-                          )}
+                          <Download className="h-4 w-4 mr-1" />
                           Download
                         </Button>
                       </div>
