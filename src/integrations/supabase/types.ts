@@ -466,6 +466,36 @@ export type Database = {
           },
         ]
       }
+      dependentes_funcionario: {
+        Row: {
+          created_at: string
+          id: string
+          idade: number | null
+          nome: string
+          tipo_dependencia: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          idade?: number | null
+          nome: string
+          tipo_dependencia: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          idade?: number | null
+          nome?: string
+          tipo_dependencia?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       documentos: {
         Row: {
           arquivo_nome: string

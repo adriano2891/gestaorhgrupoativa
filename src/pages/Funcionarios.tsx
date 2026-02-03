@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Search, Mail, Phone, Edit, Trash2, TrendingUp } from "lucide-react";
+import { Plus, Search, Mail, Phone, Edit, Trash2, TrendingUp, Users, X } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { useFuncionariosRealtime, useSalariosRealtime } from "@/hooks/useRealtimeUpdates";
 import { Button } from "@/components/ui/button";
@@ -116,6 +116,12 @@ const mockEmployees = [
   },
 ];
 
+interface Dependente {
+  nome: string;
+  idade: string;
+  tipo_dependencia: string;
+}
+
 const Funcionarios = () => {
   const { toast } = useToast();
   useFuncionariosRealtime();
@@ -133,6 +139,7 @@ const Funcionarios = () => {
   const [editSalary, setEditSalary] = useState("");
   const [editCpf, setEditCpf] = useState("");
   const [editAdmissionDate, setEditAdmissionDate] = useState("");
+  
   const [newEmployee, setNewEmployee] = useState({
     name: "",
     email: "",
@@ -144,6 +151,7 @@ const Funcionarios = () => {
     password: "",
     salario: "",
     dataNascimento: "",
+    dependentes: [] as Dependente[],
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -475,7 +483,11 @@ const Funcionarios = () => {
       password: "",
       salario: "",
       dataNascimento: "",
+      dependentes: [],
     });
+    setValidationErrors({});
+    setIsAddDialogOpen(true);
+  };
     setValidationErrors({});
     setIsAddDialogOpen(true);
   };
@@ -557,6 +569,18 @@ const Funcionarios = () => {
         }
       }
       
+      // Salvar dependentes se houver
+      if (newEmployee.dependentes.length > 0) {
+        const dependentesData = newEmployee.dependentes.map(dep => ({
+          user_id: authData.user.id,
+          nome: dep.nome.trim(),
+          idade: dep.idade ? parseInt(dep.idade) : null,
+          tipo_dependencia: dep.tipo_dependencia,
+        }));
+        
+        await supabase.from("dependentes_funcionario").insert(dependentesData);
+      }
+      
       // Limpar o formulário
       setNewEmployee({
         name: "",
@@ -569,6 +593,7 @@ const Funcionarios = () => {
         salario: "",
         password: "",
         dataNascimento: "",
+        dependentes: [],
       });
       
       toast({
@@ -1119,6 +1144,118 @@ const Funcionarios = () => {
                   <SelectItem value="demitido">Demitido</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            
+            {/* Seção de Dependentes */}
+            <div className="border-t pt-4 mt-2">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  <Label className="text-sm font-medium">Dependentes</Label>
+                  <Badge variant="secondary" className="text-xs">
+                    {newEmployee.dependentes.length}
+                  </Badge>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-7 text-xs"
+                  onClick={() => {
+                    setNewEmployee({
+                      ...newEmployee,
+                      dependentes: [...newEmployee.dependentes, { nome: "", idade: "", tipo_dependencia: "filho(a)" }]
+                    });
+                  }}
+                >
+                  <Plus className="h-3 w-3 mr-1" />
+                  Adicionar
+                </Button>
+              </div>
+              
+              {newEmployee.dependentes.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-2">
+                  Nenhum dependente cadastrado
+                </p>
+              )}
+              
+              {newEmployee.dependentes.map((dep, index) => (
+                <div key={index} className="border rounded-md p-3 mb-2 bg-muted/30">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-xs font-medium text-muted-foreground">
+                      Dependente {index + 1}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => {
+                        const newDeps = [...newEmployee.dependentes];
+                        newDeps.splice(index, 1);
+                        setNewEmployee({ ...newEmployee, dependentes: newDeps });
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                  <div className="grid gap-2">
+                    <div>
+                      <Label className="text-xs">Nome do Dependente *</Label>
+                      <Input
+                        value={dep.nome}
+                        onChange={(e) => {
+                          const newDeps = [...newEmployee.dependentes];
+                          newDeps[index].nome = e.target.value;
+                          setNewEmployee({ ...newEmployee, dependentes: newDeps });
+                        }}
+                        placeholder="Nome completo"
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">Idade</Label>
+                        <Input
+                          type="number"
+                          value={dep.idade}
+                          onChange={(e) => {
+                            const newDeps = [...newEmployee.dependentes];
+                            newDeps[index].idade = e.target.value;
+                            setNewEmployee({ ...newEmployee, dependentes: newDeps });
+                          }}
+                          placeholder="Anos"
+                          className="h-8 text-sm"
+                          min={0}
+                          max={120}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Tipo *</Label>
+                        <Select
+                          value={dep.tipo_dependencia}
+                          onValueChange={(value) => {
+                            const newDeps = [...newEmployee.dependentes];
+                            newDeps[index].tipo_dependencia = value;
+                            setNewEmployee({ ...newEmployee, dependentes: newDeps });
+                          }}
+                        >
+                          <SelectTrigger className="h-8 text-sm">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="filho(a)">Filho(a)</SelectItem>
+                            <SelectItem value="cônjuge">Cônjuge</SelectItem>
+                            <SelectItem value="pai">Pai</SelectItem>
+                            <SelectItem value="mãe">Mãe</SelectItem>
+                            <SelectItem value="outro">Outro</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
           <DialogFooter className="flex-shrink-0 mt-3">
