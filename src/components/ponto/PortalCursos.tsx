@@ -15,8 +15,11 @@ import {
   Clock,
   CheckCircle,
   Star,
-  Filter
+  Filter,
+  Download,
+  Loader2
 } from "lucide-react";
+import { toast } from "sonner";
 import { 
   useCursos, 
   useMinhasMatriculas, 
@@ -42,6 +45,7 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
   const [search, setSearch] = useState("");
   const [categoriaFilter, setCategoriaFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState("catalogo");
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
 
   const { data: cursos, isLoading: loadingCursos } = useCursos("publicado");
   const { data: minhasMatriculas, isLoading: loadingMatriculas } = useMinhasMatriculas();
@@ -68,6 +72,35 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
   const handleContinuarCurso = (cursoId: string) => {
     // Navegar para a página do player do curso
     navigate(`/portal-funcionario/cursos/${cursoId}`);
+  };
+
+  const handleDownloadCertificado = async (certificado: any) => {
+    try {
+      setDownloadingId(certificado.id);
+      
+      if (certificado.url_certificado) {
+        // Se tem URL do certificado, fazer download direto
+        const response = await fetch(certificado.url_certificado);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Certificado_${certificado.curso?.titulo || 'Curso'}_${certificado.codigo_validacao}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        toast.success("Certificado baixado com sucesso!");
+      } else {
+        // Sem URL, informar que o certificado não está disponível
+        toast.error("Certificado não disponível para download. Contate o administrador.");
+      }
+    } catch (error) {
+      console.error("Erro ao baixar certificado:", error);
+      toast.error("Erro ao baixar o certificado. Tente novamente.");
+    } finally {
+      setDownloadingId(null);
+    }
   };
 
   return (
@@ -262,7 +295,17 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
                         <Badge variant="outline" className="text-xs">
                           {cert.codigo_validacao}
                         </Badge>
-                        <Button size="sm" variant="outline">
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => handleDownloadCertificado(cert)}
+                          disabled={downloadingId === cert.id}
+                        >
+                          {downloadingId === cert.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                          ) : (
+                            <Download className="h-4 w-4 mr-1" />
+                          )}
                           Download
                         </Button>
                       </div>
