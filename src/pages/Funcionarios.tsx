@@ -369,21 +369,28 @@ const Funcionarios = () => {
   const confirmDelete = async () => {
     if (deletingEmployeeId) {
       try {
-        // Deletar role do funcionário (isso vai cascatear para outras tabelas)
-        const { error } = await supabase
-          .from("user_roles")
-          .delete()
-          .eq("user_id", deletingEmployeeId)
-          .eq("role", "funcionario");
-        
+        const { data, error } = await supabase.functions.invoke('delete-employee-user', {
+          body: { user_id: deletingEmployeeId },
+        });
+
         if (error) {
-          throw error;
+          const status = (error as any)?.context?.status;
+          if (status === 401) throw new Error('Você precisa estar logado para excluir funcionários.');
+          if (status === 403) throw new Error('Sem permissão para excluir funcionários.');
+          throw new Error(error.message);
+        }
+
+        if (!(data as any)?.success) {
+          throw new Error((data as any)?.error || 'Não foi possível excluir o funcionário.');
         }
         
         toast({
           title: "Funcionário excluído",
           description: "O funcionário foi removido com sucesso.",
         });
+
+        // Atualizar lista imediatamente
+        await fetchEmployees();
       } catch (error: any) {
         toast({
           title: "Erro ao excluir funcionário",
@@ -563,6 +570,9 @@ const Funcionarios = () => {
       );
 
       if (createError) {
+        const status = (createError as any)?.context?.status;
+        if (status === 401) throw new Error('Você precisa estar logado para cadastrar funcionários.');
+        if (status === 403) throw new Error('Sem permissão para cadastrar funcionários.');
         throw new Error(createError.message);
       }
 
