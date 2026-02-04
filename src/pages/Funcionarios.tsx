@@ -488,9 +488,6 @@ const Funcionarios = () => {
     setValidationErrors({});
     setIsAddDialogOpen(true);
   };
-    setValidationErrors({});
-    setIsAddDialogOpen(true);
-  };
 
   const updateNewEmployee = (field: string, value: string) => {
     setNewEmployee({ ...newEmployee, [field]: value });
@@ -602,6 +599,9 @@ const Funcionarios = () => {
       });
 
       setIsAddDialogOpen(false);
+      
+      // Atualizar lista de funcionários imediatamente
+      await fetchEmployees();
       setValidationErrors({});
     } catch (error) {
       if (error instanceof z.ZodError) {
