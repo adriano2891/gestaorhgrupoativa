@@ -598,11 +598,11 @@ const Funcionarios = () => {
         description: `${newEmployee.name} foi cadastrado e pode acessar o Portal do Funcionário com CPF e senha.`,
       });
 
+      setValidationErrors({});
       setIsAddDialogOpen(false);
       
       // Atualizar lista de funcionários imediatamente
       await fetchEmployees();
-      setValidationErrors({});
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors: Record<string, string> = {};
