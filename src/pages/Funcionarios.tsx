@@ -526,56 +526,48 @@ const Funcionarios = () => {
         throw new Error("CPF já cadastrado no sistema");
       }
       
-      // Criar usuário no sistema de autenticação com todos os dados
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: newEmployee.email,
-        password: newEmployee.password,
-        options: {
-          data: {
+      // Importante: NÃO usar signUp direto aqui, pois isso troca a sessão (logando como o novo funcionário)
+      // Em vez disso, criamos via função de backend.
+      const salarioNumero = newEmployee.salario
+        ? (() => {
+            const n = parseFloat(newEmployee.salario.replace(/\./g, "").replace(",", "."));
+            return !isNaN(n) && n > 0 ? n : null;
+          })()
+        : null;
+
+      const dependentesPayload = newEmployee.dependentes
+        .map((dep) => ({
+          nome: dep.nome,
+          idade: dep.idade ? parseInt(dep.idade) : null,
+          tipo_dependencia: dep.tipo_dependencia,
+        }))
+        .filter((dep) => dep.nome.trim().length > 0 && dep.tipo_dependencia);
+
+      const { data: createData, error: createError } = await supabase.functions.invoke(
+        'create-employee-user',
+        {
+          body: {
+            email: newEmployee.email,
+            password: newEmployee.password,
             nome: newEmployee.name,
             cpf: cpfNumeros,
             telefone: newEmployee.phone,
             cargo: newEmployee.position,
             departamento: newEmployee.department,
+            status: newEmployee.status,
+            salario: salarioNumero,
             data_nascimento: newEmployee.dataNascimento || null,
+            dependentes: dependentesPayload,
           },
-          emailRedirectTo: `${window.location.origin}/`,
-        },
-      });
-
-      if (authError) {
-        // Tratar erro de usuário já existente
-        if (authError.message.includes("already registered") || authError.message.includes("already exists")) {
-          throw new Error("E-mail já cadastrado no sistema de autenticação");
         }
-        throw new Error(`Erro ao criar usuário: ${authError.message}`);
+      );
+
+      if (createError) {
+        throw new Error(createError.message);
       }
 
-      if (!authData.user) {
-        throw new Error("Falha ao criar usuário");
-      }
-
-      // Se houver salário, atualizar no perfil
-      if (newEmployee.salario) {
-        const salarioNumero = parseFloat(newEmployee.salario.replace(/\./g, '').replace(',', '.'));
-        if (!isNaN(salarioNumero) && salarioNumero > 0) {
-          await supabase
-            .from("profiles")
-            .update({ salario: salarioNumero })
-            .eq("id", authData.user.id);
-        }
-      }
-      
-      // Salvar dependentes se houver
-      if (newEmployee.dependentes.length > 0) {
-        const dependentesData = newEmployee.dependentes.map(dep => ({
-          user_id: authData.user.id,
-          nome: dep.nome.trim(),
-          idade: dep.idade ? parseInt(dep.idade) : null,
-          tipo_dependencia: dep.tipo_dependencia,
-        }));
-        
-        await supabase.from("dependentes_funcionario").insert(dependentesData);
+      if (!(createData as any)?.success) {
+        throw new Error((createData as any)?.error || 'Falha ao criar funcionário');
       }
       
       // Limpar o formulário
