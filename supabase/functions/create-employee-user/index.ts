@@ -90,6 +90,9 @@ Deno.serve(async (req) => {
       salario,
       data_nascimento,
       dependentes,
+      endereco,
+      rg,
+      numero_pis,
     }: {
       email: string;
       password: string;
@@ -102,6 +105,9 @@ Deno.serve(async (req) => {
       salario?: number | null;
       data_nascimento?: string | null;
       dependentes?: DependenteInput[] | null;
+      endereco?: string | null;
+      rg?: string | null;
+      numero_pis?: string | null;
     } = await req.json();
 
     if (!email || !password || !nome) {
@@ -146,6 +152,9 @@ Deno.serve(async (req) => {
       status: status ?? 'ativo',
       salario: salario ?? null,
       data_nascimento: data_nascimento ?? null,
+      endereco: endereco ?? null,
+      rg: rg ?? null,
+      numero_pis: numero_pis ?? null,
     });
 
     if (profileErr) {

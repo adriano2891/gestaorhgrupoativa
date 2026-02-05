@@ -1945,8 +1945,11 @@ export type Database = {
           data_nascimento: string | null
           departamento: string | null
           email: string
+          endereco: string | null
           id: string
           nome: string
+          numero_pis: string | null
+          rg: string | null
           salario: number | null
           status: string | null
           telefone: string | null
@@ -1960,8 +1963,11 @@ export type Database = {
           data_nascimento?: string | null
           departamento?: string | null
           email: string
+          endereco?: string | null
           id: string
           nome: string
+          numero_pis?: string | null
+          rg?: string | null
           salario?: number | null
           status?: string | null
           telefone?: string | null
@@ -1975,8 +1981,11 @@ export type Database = {
           data_nascimento?: string | null
           departamento?: string | null
           email?: string
+          endereco?: string | null
           id?: string
           nome?: string
+          numero_pis?: string | null
+          rg?: string | null
           salario?: number | null
           status?: string | null
           telefone?: string | null
