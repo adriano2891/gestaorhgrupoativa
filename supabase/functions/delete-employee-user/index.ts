@@ -12,8 +12,11 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const requestId = crypto.randomUUID();
+
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
+      console.error(`[delete-employee-user:${requestId}] Missing Authorization header`);
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 401,
@@ -32,6 +35,9 @@ Deno.serve(async (req) => {
     } = await supabaseClient.auth.getUser();
 
     if (authError || !user) {
+      console.error(
+        `[delete-employee-user:${requestId}] auth.getUser failed: ${authError?.message ?? 'no-user'}`,
+      );
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 401,
@@ -58,6 +64,7 @@ Deno.serve(async (req) => {
       .in('role', ['admin', 'rh']);
 
     if (roleErr) {
+      console.error(`[delete-employee-user:${requestId}] Role query error: ${roleErr.message}`);
       return new Response(JSON.stringify({ error: roleErr.message }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
@@ -65,13 +72,15 @@ Deno.serve(async (req) => {
     }
 
     if (!roleRows || roleRows.length === 0) {
+      console.error(`[delete-employee-user:${requestId}] Forbidden: user ${user.id} has no admin/rh role`);
       return new Response(JSON.stringify({ error: 'Only admins can delete employees' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 403,
       });
     }
 
-    const { user_id }: { user_id: string } = await req.json();
+    const body = await req.json().catch(() => null);
+    const user_id: string | undefined = body?.user_id;
     if (!user_id) {
       return new Response(JSON.stringify({ error: 'user_id é obrigatório' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -79,19 +88,51 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Remove dependents first (avoid FK issues if they exist)
-    await supabaseAdmin.from('dependentes_funcionario').delete().eq('user_id', user_id);
+    const deleteByUserId = async (table: string, column: string = 'user_id') => {
+      const { error } = await supabaseAdmin.from(table).delete().eq(column, user_id);
+      if (error) {
+        console.error(`[delete-employee-user:${requestId}] Failed deleting from ${table}.${column}: ${error.message}`);
+        throw new Error(`Falha ao remover registros relacionados (${table}): ${error.message}`);
+      }
+    };
 
-    // Remove employee role (and any other roles if needed)
-    await supabaseAdmin.from('user_roles').delete().eq('user_id', user_id);
+    // 1) Delete dependent/child records that commonly reference profiles.id
+    // NOTE: This prevents silent failures where the profile delete is blocked by FK constraints.
+    await deleteByUserId('dependentes_funcionario');
+    await deleteByUserId('historico_salarios');
+    await deleteByUserId('certificados');
+    await deleteByUserId('matriculas');
+    await deleteByUserId('feedback_curso');
+    await deleteByUserId('comunicados_lidos');
+    await deleteByUserId('logs_envio_holerites');
+    await deleteByUserId('logs_relatorios', 'usuario_id');
+    await deleteByUserId('historico_ferias');
+    await deleteByUserId('formularios_rh', 'criado_por');
+    await deleteByUserId('formularios_rh', 'aprovado_por');
+    await deleteByUserId('formulario_atribuicoes');
+    await deleteByUserId('documentos', 'criado_por');
+    await deleteByUserId('documentos', 'atualizado_por');
+    await deleteByUserId('documentos_acessos');
+    await deleteByUserId('documentos_comentarios');
+    await deleteByUserId('documentos_favoritos');
+    await deleteByUserId('documentos_permissoes');
+    await deleteByUserId('holerites');
 
-    // Remove profile
-    await supabaseAdmin.from('profiles').delete().eq('id', user_id);
+    // 2) Remove roles
+    await deleteByUserId('user_roles');
+
+    // 3) Remove profile
+    const { error: profileDeleteError } = await supabaseAdmin.from('profiles').delete().eq('id', user_id);
+    if (profileDeleteError) {
+      console.error(`[delete-employee-user:${requestId}] Failed deleting profile: ${profileDeleteError.message}`);
+      throw new Error(`Falha ao remover o perfil: ${profileDeleteError.message}`);
+    }
 
     // Finally delete auth user (prevents login)
     const { error: delAuthErr } = await supabaseAdmin.auth.admin.deleteUser(user_id);
     if (delAuthErr) {
       // The DB rows are already gone; report but keep success false to prompt operator action.
+      console.error(`[delete-employee-user:${requestId}] Failed deleting auth user: ${delAuthErr.message}`);
       return new Response(JSON.stringify({ error: delAuthErr.message }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
@@ -104,6 +145,7 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro desconhecido';
+    console.error(`[delete-employee-user] Unhandled error: ${message}`);
     return new Response(JSON.stringify({ error: message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,

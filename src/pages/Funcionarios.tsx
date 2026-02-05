@@ -375,9 +375,20 @@ const Funcionarios = () => {
 
         if (error) {
           const status = (error as any)?.context?.status;
-          if (status === 401) throw new Error('Você precisa estar logado para excluir funcionários.');
-          if (status === 403) throw new Error('Sem permissão para excluir funcionários.');
-          throw new Error(error.message);
+          const body = (error as any)?.context?.body;
+          const backendMsg = typeof body === 'string'
+            ? (() => {
+                try {
+                  return JSON.parse(body)?.error;
+                } catch {
+                  return undefined;
+                }
+              })()
+            : body?.error;
+
+          if (status === 401) throw new Error('Sessão expirada — faça login novamente para excluir funcionários.');
+          if (status === 403) throw new Error('Sem permissão para excluir funcionários (necessário admin ou RH).');
+          throw new Error(backendMsg || error.message);
         }
 
         if (!(data as any)?.success) {
