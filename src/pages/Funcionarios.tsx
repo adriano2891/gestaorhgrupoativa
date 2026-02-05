@@ -74,6 +74,9 @@ const employeeSchema = z.object({
   cpf: z.string().trim().min(11, "CPF deve ter 11 dígitos").max(14, "CPF inválido"),
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres").max(50, "Senha deve ter no máximo 50 caracteres"),
   salario: z.string().optional(),
+  endereco: z.string().optional(),
+  rg: z.string().optional(),
+  numero_pis: z.string().optional(),
 });
 
 const mockEmployees = [
@@ -165,6 +168,9 @@ const Funcionarios = () => {
     salario: "",
     dataNascimento: "",
     dependentes: [] as Dependente[],
+    endereco: "",
+    rg: "",
+    numero_pis: "",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -515,6 +521,9 @@ const Funcionarios = () => {
       salario: "",
       dataNascimento: "",
       dependentes: [],
+      endereco: "",
+      rg: "",
+      numero_pis: "",
     });
     setValidationErrors({});
     setIsAddDialogOpen(true);
@@ -588,6 +597,9 @@ const Funcionarios = () => {
             status: newEmployee.status,
             salario: salarioNumero,
             data_nascimento: newEmployee.dataNascimento || null,
+            endereco: newEmployee.endereco || null,
+            rg: newEmployee.rg || null,
+            numero_pis: newEmployee.numero_pis || null,
             dependentes: dependentesPayload,
           },
         }
@@ -617,6 +629,9 @@ const Funcionarios = () => {
         password: "",
         dataNascimento: "",
         dependentes: [],
+        endereco: "",
+        rg: "",
+        numero_pis: "",
       });
       
       toast({
@@ -1113,6 +1128,38 @@ const Funcionarios = () => {
                   }}
                   placeholder="0,00"
                   className="pl-10 h-9"
+                />
+              </div>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="new-endereco" className="text-sm">Endereço</Label>
+              <Input
+                id="new-endereco"
+                value={newEmployee.endereco}
+                onChange={(e) => updateNewEmployee('endereco', e.target.value)}
+                placeholder="Rua, número, bairro, cidade - UF"
+                className="h-9"
+              />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="new-rg" className="text-sm">RG</Label>
+                <Input
+                  id="new-rg"
+                  value={newEmployee.rg}
+                  onChange={(e) => updateNewEmployee('rg', e.target.value)}
+                  placeholder="00.000.000-0"
+                  className="h-9"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="new-numero_pis" className="text-sm">Número PIS</Label>
+                <Input
+                  id="new-numero_pis"
+                  value={newEmployee.numero_pis}
+                  onChange={(e) => updateNewEmployee('numero_pis', e.target.value)}
+                  placeholder="000.00000.00-0"
+                  className="h-9"
                 />
               </div>
             </div>
