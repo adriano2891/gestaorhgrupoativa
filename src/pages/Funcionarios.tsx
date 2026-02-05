@@ -51,13 +51,26 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
+type EmployeeStatus = "ativo" | "afastado" | "demitido" | "em_ferias" | "pediu_demissao";
+
+interface Employee {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  position: string;
+  department: string;
+  status: EmployeeStatus;
+  admissionDate: string;
+}
+
 const employeeSchema = z.object({
   name: z.string().trim().min(1, "Nome é obrigatório").max(100, "Nome deve ter no máximo 100 caracteres"),
   email: z.string().trim().email("E-mail inválido").max(255, "E-mail deve ter no máximo 255 caracteres"),
   phone: z.string().trim().min(1, "Telefone é obrigatório").max(20, "Telefone deve ter no máximo 20 caracteres"),
   position: z.string().trim().min(1, "Cargo é obrigatório").max(100, "Cargo deve ter no máximo 100 caracteres"),
   department: z.string().min(1, "Departamento é obrigatório"),
-  status: z.enum(["ativo", "afastado", "demitido"]),
+  status: z.enum(["ativo", "afastado", "demitido", "em_ferias", "pediu_demissao"]),
   cpf: z.string().trim().min(11, "CPF deve ter 11 dígitos").max(14, "CPF inválido"),
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres").max(50, "Senha deve ter no máximo 50 caracteres"),
   salario: z.string().optional(),
@@ -128,9 +141,9 @@ const Funcionarios = () => {
   useSalariosRealtime();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("Todos");
-  const [employees, setEmployees] = useState<typeof mockEmployees>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }>>({});
-  const [editingEmployee, setEditingEmployee] = useState<typeof mockEmployees[0] | null>(null);
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [deletingEmployeeId, setDeletingEmployeeId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -192,7 +205,7 @@ const Funcionarios = () => {
         phone: profile.telefone || "Não informado",
         position: profile.cargo || "Não informado",
         department: profile.departamento || "Não informado",
-        status: (profile.status || "ativo") as "ativo" | "afastado" | "demitido",
+        status: (profile.status || "ativo") as "ativo" | "afastado" | "demitido" | "em_ferias" | "pediu_demissao",
         admissionDate: new Date(profile.created_at).toISOString().split('T')[0],
       }));
 
@@ -764,9 +777,9 @@ const Funcionarios = () => {
                             ? "destructive"
                             : "outline"
                         }
-                        className={`text-[10px] sm:text-xs ${employee.status === "afastado" ? "bg-yellow-500 text-white hover:bg-yellow-600 border-transparent" : ""}`}
+                        className={`text-[10px] sm:text-xs ${employee.status === "afastado" || employee.status === "em_ferias" ? "bg-yellow-500 text-white hover:bg-yellow-600 border-transparent" : employee.status === "pediu_demissao" ? "bg-orange-500 text-white hover:bg-orange-600 border-transparent" : ""}`}
                       >
-                        {employee.status === "ativo" ? "Ativo" : employee.status === "afastado" ? "Afast." : "Demit."}
+                        {employee.status === "ativo" ? "Ativo" : employee.status === "afastado" ? "Afast." : employee.status === "em_ferias" ? "Férias" : employee.status === "pediu_demissao" ? "Pediu dem." : "Demit."}
                       </Badge>
                     </TableCell>
                     <TableCell className="text-right">
@@ -951,6 +964,8 @@ const Funcionarios = () => {
                       <SelectItem value="ativo">Ativo</SelectItem>
                       <SelectItem value="afastado">Afastado</SelectItem>
                       <SelectItem value="demitido">Demitido</SelectItem>
+                      <SelectItem value="em_ferias">Em férias</SelectItem>
+                      <SelectItem value="pediu_demissao">Pediu demissão</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1155,6 +1170,8 @@ const Funcionarios = () => {
                   <SelectItem value="ativo">Ativo</SelectItem>
                   <SelectItem value="afastado">Afastado</SelectItem>
                   <SelectItem value="demitido">Demitido</SelectItem>
+                  <SelectItem value="em_ferias">Em férias</SelectItem>
+                  <SelectItem value="pediu_demissao">Pediu demissão</SelectItem>
                 </SelectContent>
               </Select>
             </div>
