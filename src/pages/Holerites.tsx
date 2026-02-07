@@ -150,8 +150,8 @@ const Holerites = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-primary-foreground">Holerites (Visão ADM)</h1>
-            <p className="text-primary-foreground/80 mt-1">
+            <h1 className="text-3xl font-bold" style={{ color: '#000000' }}>Holerites (Visão ADM)</h1>
+            <p className="mt-1 font-bold" style={{ color: '#000000' }}>
               Gerencie e visualize os holerites de todos os funcionários
             </p>
           </div>
@@ -179,8 +179,8 @@ const Holerites = () => {
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-black">Holerites (Visão ADM)</h1>
-          <p className="mt-1 text-xs sm:text-sm md:text-base font-bold text-black">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: '#000000' }}>Holerites (Visão ADM)</h1>
+          <p className="mt-1 text-xs sm:text-sm md:text-base font-bold" style={{ color: '#000000' }}>
             Gerencie e visualize os holerites de todos os funcionários ({holerites?.length || 0} registros)
           </p>
         </div>
