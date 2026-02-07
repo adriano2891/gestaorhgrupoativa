@@ -1,18 +1,18 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { 
   Plus, 
   Trash2, 
   CheckCircle2, 
   HelpCircle,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Eye
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -30,7 +30,7 @@ interface Questao {
 
 interface QuestoesAvaliacaoFormProps {
   avaliacaoId: string;
-  tipoAvaliacao: string; // "quiz" ou "prova"
+  tipoAvaliacao: string;
 }
 
 const LETRAS = ["A", "B", "C", "D"];
@@ -38,19 +38,18 @@ const LETRAS = ["A", "B", "C", "D"];
 export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAvaliacaoFormProps) => {
   const queryClient = useQueryClient();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const listEndRef = useRef<HTMLDivElement>(null);
 
-  // Estado para nova questão - 4 alternativas fixas (A, B, C, D)
   const [novaQuestao, setNovaQuestao] = useState({
     pergunta: "",
     altA: "",
     altB: "",
     altC: "",
     altD: "",
-    correta: "" as string, // "A", "B", "C" ou "D"
+    correta: "" as string,
     pontuacao: 10,
   });
 
-  // Reset form - limpa todos os campos
   const resetForm = () => {
     setNovaQuestao({
       pergunta: "",
@@ -64,7 +63,6 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
     setErrorMessage(null);
   };
 
-  // Buscar questões existentes
   const { data: questoes, isLoading } = useQuery({
     queryKey: ["perguntas-avaliacao", avaliacaoId],
     queryFn: async () => {
@@ -80,10 +78,17 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
     enabled: !!avaliacaoId,
   });
 
-  // Criar questão
+  // Auto-scroll to last question when list updates
+  const prevCount = useRef(0);
+  useEffect(() => {
+    if (questoes && questoes.length > prevCount.current) {
+      listEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+    prevCount.current = questoes?.length || 0;
+  }, [questoes?.length]);
+
   const createQuestao = useMutation({
     mutationFn: async () => {
-      // Formatar opções para salvar no banco
       const opcoesFormatadas = [
         { letra: "A", texto: novaQuestao.altA, correta: novaQuestao.correta === "A" },
         { letra: "B", texto: novaQuestao.altB, correta: novaQuestao.correta === "B" },
@@ -98,7 +103,7 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
           pergunta: novaQuestao.pergunta,
           tipo: "multipla_escolha",
           opcoes: opcoesFormatadas,
-          resposta_correta: novaQuestao.correta, // Salva a LETRA (A, B, C ou D)
+          resposta_correta: novaQuestao.correta,
           pontuacao: novaQuestao.pontuacao,
           ordem: (questoes?.length || 0) + 1,
         });
@@ -109,7 +114,6 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
       queryClient.invalidateQueries({ queryKey: ["perguntas-avaliacao", avaliacaoId] });
       toast.success("Pergunta adicionada à prova!");
       resetForm();
-      // Foca no campo de pergunta para adicionar próxima
       setTimeout(() => {
         document.getElementById("questionText")?.focus();
       }, 100);
@@ -119,7 +123,6 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
     },
   });
 
-  // Excluir questão
   const deleteQuestao = useMutation({
     mutationFn: async (questaoId: string) => {
       const { error } = await supabase
@@ -141,20 +144,17 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
   const handleAddQuestao = () => {
     setErrorMessage(null);
 
-    // 1. Validar enunciado
     if (!novaQuestao.pergunta.trim()) {
       setErrorMessage("Por favor, preencha o enunciado da pergunta.");
       return;
     }
 
-    // 2. Validar todas as alternativas
     if (!novaQuestao.altA.trim() || !novaQuestao.altB.trim() || 
         !novaQuestao.altC.trim() || !novaQuestao.altD.trim()) {
       setErrorMessage("Por favor, preencha todas as 4 alternativas (A, B, C e D).");
       return;
     }
 
-    // 3. Validar resposta correta selecionada
     if (!novaQuestao.correta) {
       setErrorMessage("Por favor, selecione qual das 4 alternativas é a correta.");
       return;
@@ -181,12 +181,8 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
   };
 
   return (
-    <ScrollArea
-      className="max-h-[55vh] sm:max-h-[60vh] pr-2"
-      type="always"
-    >
-      <div className="space-y-4 mt-2 pr-2 pb-4">
-      {/* Mensagem de erro */}
+    <div className="space-y-4 mt-2 pb-4">
+      {/* Error message */}
       {errorMessage && (
         <div className="bg-destructive/10 border border-destructive/30 text-destructive p-2 rounded-lg flex items-center gap-2">
           <AlertCircle className="h-4 w-4 shrink-0" />
@@ -194,8 +190,87 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
         </div>
       )}
 
-      {/* Formulário para nova questão - COMPACTO */}
-      <Card className="border-2 border-primary/30">
+      {/* Preview da prova completa — mostrado primeiro */}
+      <Card className="border-primary/30">
+        <CardHeader className="pb-2 py-2 px-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Eye className="h-4 w-4 text-primary" />
+            Preview da Prova ({questoes?.length || 0} questões)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-3 pb-3">
+          {isLoading ? (
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : questoes && questoes.length > 0 ? (
+            <div className="space-y-3">
+              {questoes.map((questao, index) => {
+                const opcoes = parseOpcoes(questao.opcoes);
+                
+                return (
+                  <div 
+                    key={questao.id} 
+                    className="bg-muted/50 p-3 rounded-lg border-l-4 border-primary"
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h4 className="font-semibold text-sm">
+                        {index + 1}. {questao.pergunta}
+                      </h4>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => deleteQuestao.mutate(questao.id)}
+                        disabled={deleteQuestao.isPending}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                    
+                    <ul className="space-y-1 pl-1">
+                      {opcoes.map((opcao) => (
+                        <li 
+                          key={opcao.letra}
+                          className={`flex items-center gap-2 text-xs ${
+                            opcao.correta 
+                              ? "text-green-600 dark:text-green-400 font-medium" 
+                              : "text-muted-foreground"
+                          }`}
+                        >
+                          <span className="font-bold w-4">{opcao.letra})</span>
+                          <span>{opcao.texto}</span>
+                          {opcao.correta && (
+                            <CheckCircle2 className="h-3.5 w-3.5 ml-1" />
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                    
+                    <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                      <Badge variant="secondary" className="text-[10px]">
+                        {questao.pontuacao || 10} pts
+                      </Badge>
+                      <span className="ml-1">
+                        Correta: <strong>{questao.resposta_correta}</strong>
+                      </span>
+                    </p>
+                  </div>
+                );
+              })}
+              <div ref={listEndRef} />
+            </div>
+          ) : (
+            <div className="text-center py-4 text-muted-foreground text-sm">
+              <p className="italic">Nenhuma pergunta adicionada ainda.</p>
+              <p className="text-xs mt-1">Use o formulário abaixo para adicionar questões.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Formulário para nova questão */}
+      <Card className="border-2 border-dashed border-primary/30">
         <CardHeader className="py-2 px-3">
           <CardTitle className="text-base flex items-center gap-2">
             <Plus className="h-4 w-4 text-primary" />
@@ -203,7 +278,6 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 p-3 pt-0">
-          {/* Enunciado da pergunta */}
           <div>
             <Label htmlFor="questionText" className="text-xs font-semibold">
               Enunciado:
@@ -218,94 +292,36 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
             />
           </div>
 
-          {/* Alternativas - Layout compacto */}
           <div className="bg-muted/50 p-2 rounded-lg border">
             <p className="font-semibold text-xs mb-2">Alternativas (marque a correta):</p>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {/* Alternativa A */}
-              <div className="flex items-center gap-2">
-                <label className="flex items-center gap-1 cursor-pointer shrink-0">
-                  <input
-                    type="radio"
-                    name="correctAnswer"
-                    checked={novaQuestao.correta === "A"}
-                    onChange={() => setNovaQuestao(prev => ({ ...prev, correta: "A" }))}
-                    className="w-3.5 h-3.5 accent-green-600"
-                  />
-                  <span className={`font-bold text-sm ${novaQuestao.correta === "A" ? "text-green-600" : ""}`}>A)</span>
-                </label>
-                <Input
-                  placeholder="Alternativa A"
-                  value={novaQuestao.altA}
-                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, altA: e.target.value }))}
-                  className={`flex-1 h-8 text-sm ${novaQuestao.correta === "A" ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
-                />
-              </div>
-
-              {/* Alternativa B */}
-              <div className="flex items-center gap-2">
-                <label className="flex items-center gap-1 cursor-pointer shrink-0">
-                  <input
-                    type="radio"
-                    name="correctAnswer"
-                    checked={novaQuestao.correta === "B"}
-                    onChange={() => setNovaQuestao(prev => ({ ...prev, correta: "B" }))}
-                    className="w-3.5 h-3.5 accent-green-600"
-                  />
-                  <span className={`font-bold text-sm ${novaQuestao.correta === "B" ? "text-green-600" : ""}`}>B)</span>
-                </label>
-                <Input
-                  placeholder="Alternativa B"
-                  value={novaQuestao.altB}
-                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, altB: e.target.value }))}
-                  className={`flex-1 h-8 text-sm ${novaQuestao.correta === "B" ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
-                />
-              </div>
-
-              {/* Alternativa C */}
-              <div className="flex items-center gap-2">
-                <label className="flex items-center gap-1 cursor-pointer shrink-0">
-                  <input
-                    type="radio"
-                    name="correctAnswer"
-                    checked={novaQuestao.correta === "C"}
-                    onChange={() => setNovaQuestao(prev => ({ ...prev, correta: "C" }))}
-                    className="w-3.5 h-3.5 accent-green-600"
-                  />
-                  <span className={`font-bold text-sm ${novaQuestao.correta === "C" ? "text-green-600" : ""}`}>C)</span>
-                </label>
-                <Input
-                  placeholder="Alternativa C"
-                  value={novaQuestao.altC}
-                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, altC: e.target.value }))}
-                  className={`flex-1 h-8 text-sm ${novaQuestao.correta === "C" ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
-                />
-              </div>
-
-              {/* Alternativa D */}
-              <div className="flex items-center gap-2">
-                <label className="flex items-center gap-1 cursor-pointer shrink-0">
-                  <input
-                    type="radio"
-                    name="correctAnswer"
-                    checked={novaQuestao.correta === "D"}
-                    onChange={() => setNovaQuestao(prev => ({ ...prev, correta: "D" }))}
-                    className="w-3.5 h-3.5 accent-green-600"
-                  />
-                  <span className={`font-bold text-sm ${novaQuestao.correta === "D" ? "text-green-600" : ""}`}>D)</span>
-                </label>
-                <Input
-                  placeholder="Alternativa D"
-                  value={novaQuestao.altD}
-                  onChange={(e) => setNovaQuestao(prev => ({ ...prev, altD: e.target.value }))}
-                  className={`flex-1 h-8 text-sm ${novaQuestao.correta === "D" ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
-                />
-              </div>
+              {(["A", "B", "C", "D"] as const).map((letra) => {
+                const altKey = `alt${letra}` as "altA" | "altB" | "altC" | "altD";
+                return (
+                  <div key={letra} className="flex items-center gap-2">
+                    <label className="flex items-center gap-1 cursor-pointer shrink-0">
+                      <input
+                        type="radio"
+                        name={`correctAnswer-${avaliacaoId}`}
+                        checked={novaQuestao.correta === letra}
+                        onChange={() => setNovaQuestao(prev => ({ ...prev, correta: letra }))}
+                        className="w-3.5 h-3.5 accent-green-600"
+                      />
+                      <span className={`font-bold text-sm ${novaQuestao.correta === letra ? "text-green-600" : ""}`}>{letra})</span>
+                    </label>
+                    <Input
+                      placeholder={`Alternativa ${letra}`}
+                      value={novaQuestao[altKey]}
+                      onChange={(e) => setNovaQuestao(prev => ({ ...prev, [altKey]: e.target.value }))}
+                      className={`flex-1 h-8 text-sm ${novaQuestao.correta === letra ? "border-green-500 bg-green-50 dark:bg-green-950/20" : ""}`}
+                    />
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Botão Adicionar */}
           <Button
             onClick={handleAddQuestao}
             disabled={createQuestao.isPending}
@@ -321,87 +337,6 @@ export const QuestoesAvaliacaoForm = ({ avaliacaoId, tipoAvaliacao }: QuestoesAv
           </Button>
         </CardContent>
       </Card>
-
-      {/* Área de Revisão - Lista de Perguntas Adicionadas */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <HelpCircle className="h-5 w-5" />
-            Perguntas Adicionadas ({questoes?.length || 0})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : questoes && questoes.length > 0 ? (
-            <ScrollArea className="max-h-[400px] pr-4">
-              <div className="space-y-4">
-                {questoes.map((questao, index) => {
-                  const opcoes = parseOpcoes(questao.opcoes);
-                  
-                  return (
-                    <div 
-                      key={questao.id} 
-                      className="bg-muted/50 p-4 rounded-lg border-l-4 border-primary"
-                    >
-                      <div className="flex items-start justify-between gap-3 mb-3">
-                        <h4 className="font-semibold">
-                          {index + 1}. {questao.pergunta}
-                        </h4>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => deleteQuestao.mutate(questao.id)}
-                          disabled={deleteQuestao.isPending}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      
-                      <ul className="space-y-1.5 pl-1">
-                        {opcoes.map((opcao) => (
-                          <li 
-                            key={opcao.letra}
-                            className={`flex items-center gap-2 text-sm ${
-                              opcao.correta 
-                                ? "text-green-600 dark:text-green-400 font-medium" 
-                                : "text-muted-foreground"
-                            }`}
-                          >
-                            <span className="font-bold w-5">{opcao.letra})</span>
-                            <span>{opcao.texto}</span>
-                            {opcao.correta && (
-                              <CheckCircle2 className="h-4 w-4 ml-1" />
-                            )}
-                          </li>
-                        ))}
-                      </ul>
-                      
-                      <p className="text-xs text-muted-foreground mt-3 flex items-center gap-1">
-                        <Badge variant="secondary" className="text-xs">
-                          {questao.pontuacao || 10} pts
-                        </Badge>
-                        <span className="ml-2">
-                          Resposta correta: <strong>Alternativa {questao.resposta_correta}</strong>
-                        </span>
-                      </p>
-                    </div>
-                  );
-                })}
-              </div>
-            </ScrollArea>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <p className="italic">Nenhuma pergunta adicionada ainda.</p>
-              <p className="text-sm mt-1">Preencha o formulário acima e clique em "Adicionar Pergunta à Prova".</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      </div>
-    </ScrollArea>
+    </div>
   );
 };
