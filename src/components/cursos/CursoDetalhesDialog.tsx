@@ -239,7 +239,7 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
             </TabsTrigger>
           </TabsList>
 
-          <ScrollArea className="flex-1 mt-4">
+          <div className="flex-1 mt-4 overflow-y-auto">
             {/* Tab: Módulos e Aulas */}
             <TabsContent value="modulos" className="m-0 space-y-4">
               <div className="flex items-center justify-between">
@@ -672,7 +672,7 @@ export const CursoDetalhesDialog = ({ open, onOpenChange, cursoId }: CursoDetalh
                 </CardContent>
               </Card>
             </TabsContent>
-          </ScrollArea>
+          </div>
         </Tabs>
 
         {/* Dialog para criar aula */}
