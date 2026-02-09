@@ -34,6 +34,8 @@ export const useCategoriasCurso = () => {
 export const useCursos = (status?: 'rascunho' | 'publicado' | 'arquivado') => {
   return useQuery({
     queryKey: ["cursos", status],
+    staleTime: 1000 * 30, // 30 seconds - ensures portal sees recently published courses
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const query = supabase
         .from("cursos")
