@@ -103,7 +103,7 @@ export const RelatoriosCursosDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-4xl max-h-[85vh] overflow-hidden flex flex-col p-4 sm:p-6">
+      <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] flex flex-col p-4 sm:p-6">
         <DialogHeader className="pb-2">
           <DialogTitle className="flex items-center gap-2 text-base sm:text-lg">
             <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -145,7 +145,7 @@ export const RelatoriosCursosDialog = ({
           </Button>
         </div>
 
-        <ScrollArea className="flex-1 pr-2">
+        <div className="flex-1 overflow-y-auto pr-2">
           <Tabs defaultValue="resumo" className="space-y-3">
             <TabsList className="grid w-full grid-cols-3 h-auto">
               <TabsTrigger value="resumo" className="text-xs sm:text-sm py-1.5 px-2">Resumo Geral</TabsTrigger>
@@ -472,7 +472,7 @@ export const RelatoriosCursosDialog = ({
               )}
             </TabsContent>
           </Tabs>
-        </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );
