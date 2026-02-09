@@ -539,8 +539,24 @@ export const useMeusCertificados = () => {
   return useQuery({
     queryKey: ["meus-certificados"],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        // Fallback: tentar getUser
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user) return [] as Certificado[];
+        
+        const { data, error } = await supabase
+          .from("certificados")
+          .select(`
+            *,
+            curso:cursos(*)
+          `)
+          .eq("user_id", user.user.id)
+          .order("data_emissao", { ascending: false });
+
+        if (error) throw error;
+        return data as Certificado[];
+      }
 
       const { data, error } = await supabase
         .from("certificados")
@@ -548,12 +564,16 @@ export const useMeusCertificados = () => {
           *,
           curso:cursos(*)
         `)
-        .eq("user_id", user.user.id)
+        .eq("user_id", session.user.id)
         .order("data_emissao", { ascending: false });
 
       if (error) throw error;
       return data as Certificado[];
     },
+    staleTime: 1000 * 30,
+    refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: 1000,
   });
 };
 
