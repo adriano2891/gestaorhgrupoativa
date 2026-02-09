@@ -34,59 +34,77 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Verificar sessão inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        loadUserData(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
+    let isMounted = true;
 
-    // Escutar mudanças de autenticação
+    const loadUserDataSafe = async (userId: string, controlLoading: boolean) => {
+      try {
+        const { data: profileData, error: profileError } = await (supabase as any)
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .single();
+
+        if (!isMounted) return;
+        if (profileError) throw profileError;
+        setProfile(profileData as Profile);
+
+        const { data: rolesData, error: rolesError } = await (supabase as any)
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId);
+
+        if (!isMounted) return;
+        if (rolesError) throw rolesError;
+        setRoles((rolesData as any[])?.map((r: any) => r.role as UserRole) || []);
+      } catch (error) {
+        console.error("Erro ao carregar dados do usuário:", error);
+      } finally {
+        if (isMounted && controlLoading) {
+          setLoading(false);
+        }
+      }
+    };
+
+    // Listener for ONGOING auth changes (does NOT control loading)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
       setUser(session?.user ?? null);
       if (session?.user) {
-        loadUserData(session.user.id);
+        // Fire and forget - don't control loading
+        loadUserDataSafe(session.user.id, false);
       } else {
         setProfile(null);
         setRoles([]);
-        setLoading(false);
       }
     });
 
-    return () => subscription.unsubscribe();
+    // INITIAL load (controls loading)
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!isMounted) return;
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await loadUserDataSafe(session.user.id, true);
+        }
+      } catch (error) {
+        console.error("Erro na inicialização da autenticação:", error);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
-  const loadUserData = async (userId: string) => {
-    try {
-      // Carregar perfil
-      const { data: profileData, error: profileError } = await (supabase as any)
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
 
-      if (profileError) throw profileError;
-      setProfile(profileData as Profile);
-
-      // Carregar roles
-      const { data: rolesData, error: rolesError } = await (supabase as any)
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId);
-
-      if (rolesError) throw rolesError;
-      setRoles((rolesData as any[])?.map((r: any) => r.role as UserRole) || []);
-    } catch (error) {
-      console.error("Erro ao carregar dados do usuário:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     let loginEmail = email;
