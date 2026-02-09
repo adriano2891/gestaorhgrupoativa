@@ -23,6 +23,7 @@ import {
   BarChart3,
   Download,
   FileSpreadsheet,
+  FileText,
   TrendingUp,
   Users,
   Award,
@@ -39,6 +40,8 @@ import { useCursos, useCursosStats, useMetricasDetalhadas } from "@/hooks/useCur
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface RelatoriosCursosDialogProps {
   open: boolean;
@@ -51,6 +54,7 @@ export const RelatoriosCursosDialog = ({
 }: RelatoriosCursosDialogProps) => {
   const [selectedCurso, setSelectedCurso] = useState<string>("all");
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingPDF, setIsExportingPDF] = useState(false);
 
   const { data: cursos } = useCursos();
   const { data: stats } = useCursosStats();
@@ -101,6 +105,93 @@ export const RelatoriosCursosDialog = ({
     }
   };
 
+  const exportarPDF = async () => {
+    if (!metricas?.funcionariosMatriculados) return;
+
+    setIsExportingPDF(true);
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      doc.setFontSize(16);
+      doc.setFont("helvetica", "bold");
+      doc.text("Relatório de Cursos", pageWidth / 2, 20, { align: "center" });
+
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, pageWidth / 2, 27, { align: "center" });
+
+      let y = 35;
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Resumo Geral", 14, y);
+      y += 8;
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Métrica", "Valor"]],
+        body: [
+          ["Matriculados", String(metricas.resumo.total || 0)],
+          ["Concluídos (100%)", String(metricas.resumo.concluidos || 0)],
+          ["Em Andamento", String(metricas.resumo.emAndamento || 0)],
+          ["Taxa Conclusão", `${metricas.resumo.taxaConclusao || 0}%`],
+          ["Progresso Médio", `${metricas.resumo.progressoMedio || 0}%`],
+        ],
+        theme: "grid",
+        headStyles: { fillColor: [62, 224, 207], textColor: [0, 0, 0], fontStyle: "bold" },
+        styles: { fontSize: 9 },
+        margin: { left: 14, right: 14 },
+      });
+
+      y = (doc as any).lastAutoTable.finalY + 12;
+
+      if (stats) {
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.text("Visão Geral da Plataforma", 14, y);
+        y += 8;
+
+        autoTable(doc, {
+          startY: y,
+          head: [["Total Cursos", "Publicados", "Matrículas", "Taxa Conclusão"]],
+          body: [[String(stats.totalCursos), String(stats.cursosPublicados), String(stats.totalMatriculas), `${stats.taxaConclusao}%`]],
+          theme: "grid",
+          headStyles: { fillColor: [62, 224, 207], textColor: [0, 0, 0], fontStyle: "bold" },
+          styles: { fontSize: 9 },
+          margin: { left: 14, right: 14 },
+        });
+
+        y = (doc as any).lastAutoTable.finalY + 12;
+      }
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.text("Detalhamento por Funcionário", 14, y);
+      y += 8;
+
+      autoTable(doc, {
+        startY: y,
+        head: [["Funcionário", "Departamento", "Curso", "Progresso", "Status"]],
+        body: metricas.funcionariosMatriculados.map((f) => [
+          f.nome,
+          f.departamento,
+          f.curso,
+          `${f.progresso}%`,
+          f.concluido ? "Concluído" : f.status === "em_andamento" ? "Em Andamento" : "Não Iniciado",
+        ]),
+        theme: "grid",
+        headStyles: { fillColor: [62, 224, 207], textColor: [0, 0, 0], fontStyle: "bold" },
+        styles: { fontSize: 8, cellPadding: 2 },
+        columnStyles: { 0: { cellWidth: 40 }, 1: { cellWidth: 35 }, 2: { cellWidth: 45 } },
+        margin: { left: 14, right: 14 },
+      });
+
+      doc.save(`relatorio-cursos-${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    } finally {
+      setIsExportingPDF(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] flex flex-col p-4 sm:p-6">
@@ -142,6 +233,21 @@ export const RelatoriosCursosDialog = ({
               <FileSpreadsheet className="h-4 w-4 mr-2" />
             )}
             Exportar CSV
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={exportarPDF}
+            disabled={isExportingPDF || !metricas?.funcionariosMatriculados?.length}
+            className="w-full sm:w-auto"
+          >
+            {isExportingPDF ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4 mr-2" />
+            )}
+            Baixar PDF
           </Button>
         </div>
 
