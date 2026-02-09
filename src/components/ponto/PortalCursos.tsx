@@ -273,7 +273,9 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
                     <CardContent className="p-4">
                       <h4 className="font-semibold mb-1">{cert.curso?.titulo}</h4>
                       <p className="text-sm text-muted-foreground mb-3">
-                        Emitido em {format(new Date(cert.data_emissao), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                        {cert.data_emissao 
+                          ? `Emitido em ${format(new Date(cert.data_emissao), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`
+                          : "Data de emissão não informada"}
                       </p>
                       <div className="flex items-center justify-between">
                         <Badge variant="outline" className="text-xs">
