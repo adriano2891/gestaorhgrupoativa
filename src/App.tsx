@@ -41,6 +41,7 @@ import FormularioDetalhes from "./pages/FormularioDetalhes";
 import HRFlowPro from "./pages/HRFlowPro";
 import Documentacoes from "./pages/Documentacoes";
 import CursosAdmin from "./pages/CursosAdmin";
+import SuporteFuncionarios from "./pages/SuporteFuncionarios";
 import { PortalCursoPlayer } from "./components/ponto/PortalCursoPlayer";
 
 const queryClient = new QueryClient();
@@ -330,6 +331,15 @@ const App = () => {
                 element={
                   <ProtectedRoute>
                     <CursosAdmin />
+                  </ProtectedRoute>
+                }
+              />
+              {/* Suporte Funcionários Route */}
+              <Route
+                path="/suporte-funcionarios"
+                element={
+                  <ProtectedRoute>
+                    <SuporteFuncionarios />
                   </ProtectedRoute>
                 }
               />

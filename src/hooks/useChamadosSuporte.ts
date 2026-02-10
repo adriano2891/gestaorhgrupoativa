@@ -1,0 +1,222 @@
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+
+export interface ChamadoSuporte {
+  id: string;
+  user_id: string;
+  categoria: string;
+  assunto: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+  profiles?: { nome: string; departamento: string | null; cargo: string | null } | null;
+}
+
+export interface MensagemChamado {
+  id: string;
+  chamado_id: string;
+  remetente_id: string;
+  conteudo: string;
+  arquivo_url: string | null;
+  arquivo_nome: string | null;
+  created_at: string;
+  profiles?: { nome: string } | null;
+}
+
+// Hook para funcionário - seus chamados
+export const useMeusChamados = () => {
+  return useQuery({
+    queryKey: ["meus-chamados"],
+    queryFn: async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const user = session?.user;
+      if (!user) {
+        // Try portal session
+        const portalSession = localStorage.getItem("portal_session");
+        if (!portalSession) return [] as ChamadoSuporte[];
+        const { user_id } = JSON.parse(portalSession);
+        const { data, error } = await (supabase as any)
+          .from("chamados_suporte")
+          .select("*")
+          .eq("user_id", user_id)
+          .order("created_at", { ascending: false });
+        if (error) throw error;
+        return (data || []) as ChamadoSuporte[];
+      }
+      const { data, error } = await (supabase as any)
+        .from("chamados_suporte")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as ChamadoSuporte[];
+    },
+    retry: 2,
+  });
+};
+
+// Hook para RH - todos os chamados
+export const useTodosChamados = () => {
+  return useQuery({
+    queryKey: ["todos-chamados"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("chamados_suporte")
+        .select("*, profiles:user_id(nome, departamento, cargo)")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as ChamadoSuporte[];
+    },
+  });
+};
+
+// Hook para mensagens de um chamado
+export const useMensagensChamado = (chamadoId: string | null) => {
+  return useQuery({
+    queryKey: ["mensagens-chamado", chamadoId],
+    queryFn: async () => {
+      if (!chamadoId) return [] as MensagemChamado[];
+      const { data, error } = await (supabase as any)
+        .from("mensagens_chamado")
+        .select("*, profiles:remetente_id(nome)")
+        .eq("chamado_id", chamadoId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data || []) as MensagemChamado[];
+    },
+    enabled: !!chamadoId,
+    refetchInterval: 5000,
+  });
+};
+
+// Mutation para criar chamado
+export const useCriarChamado = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      user_id: string;
+      categoria: string;
+      assunto: string;
+      mensagem: string;
+      arquivo?: File;
+    }) => {
+      // Criar chamado
+      const { data: chamado, error: chamadoError } = await (supabase as any)
+        .from("chamados_suporte")
+        .insert({ user_id: params.user_id, categoria: params.categoria, assunto: params.assunto })
+        .select()
+        .single();
+      if (chamadoError) throw chamadoError;
+
+      // Upload de arquivo se houver
+      let arquivo_url = null;
+      let arquivo_nome = null;
+      if (params.arquivo) {
+        const filePath = `${chamado.id}/${Date.now()}_${params.arquivo.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("chamados-anexos")
+          .upload(filePath, params.arquivo);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from("chamados-anexos").getPublicUrl(filePath);
+        arquivo_url = urlData.publicUrl;
+        arquivo_nome = params.arquivo.name;
+      }
+
+      // Criar mensagem inicial
+      const { error: msgError } = await (supabase as any)
+        .from("mensagens_chamado")
+        .insert({
+          chamado_id: chamado.id,
+          remetente_id: params.user_id,
+          conteudo: params.mensagem,
+          arquivo_url,
+          arquivo_nome,
+        });
+      if (msgError) throw msgError;
+
+      return chamado;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["meus-chamados"] });
+      queryClient.invalidateQueries({ queryKey: ["todos-chamados"] });
+      toast.success("Chamado criado com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao criar chamado: " + error.message);
+    },
+  });
+};
+
+// Mutation para enviar mensagem
+export const useEnviarMensagem = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: {
+      chamado_id: string;
+      remetente_id: string;
+      conteudo: string;
+      arquivo?: File;
+    }) => {
+      let arquivo_url = null;
+      let arquivo_nome = null;
+      if (params.arquivo) {
+        const filePath = `${params.chamado_id}/${Date.now()}_${params.arquivo.name}`;
+        const { error: uploadError } = await supabase.storage
+          .from("chamados-anexos")
+          .upload(filePath, params.arquivo);
+        if (uploadError) throw uploadError;
+        const { data: urlData } = supabase.storage.from("chamados-anexos").getPublicUrl(filePath);
+        arquivo_url = urlData.publicUrl;
+        arquivo_nome = params.arquivo.name;
+      }
+
+      const { data, error } = await (supabase as any)
+        .from("mensagens_chamado")
+        .insert({
+          chamado_id: params.chamado_id,
+          remetente_id: params.remetente_id,
+          conteudo: params.conteudo,
+          arquivo_url,
+          arquivo_nome,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["mensagens-chamado", variables.chamado_id] });
+      queryClient.invalidateQueries({ queryKey: ["meus-chamados"] });
+      queryClient.invalidateQueries({ queryKey: ["todos-chamados"] });
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao enviar mensagem: " + error.message);
+    },
+  });
+};
+
+// Mutation para atualizar status do chamado
+export const useAtualizarStatusChamado = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { chamado_id: string; status: string }) => {
+      const { data, error } = await (supabase as any)
+        .from("chamados_suporte")
+        .update({ status: params.status })
+        .eq("id", params.chamado_id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["meus-chamados"] });
+      queryClient.invalidateQueries({ queryKey: ["todos-chamados"] });
+      toast.success("Status atualizado!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao atualizar status: " + error.message);
+    },
+  });
+};

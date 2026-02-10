@@ -257,6 +257,44 @@ export type Database = {
           },
         ]
       }
+      chamados_suporte: {
+        Row: {
+          assunto: string
+          categoria: string
+          created_at: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assunto: string
+          categoria?: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assunto?: string
+          categoria?: string
+          created_at?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chamados_suporte_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes_orcamentos: {
         Row: {
           ativo: boolean
@@ -1744,6 +1782,44 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mensagens_chamado: {
+        Row: {
+          arquivo_nome: string | null
+          arquivo_url: string | null
+          chamado_id: string
+          conteudo: string
+          created_at: string
+          id: string
+          remetente_id: string
+        }
+        Insert: {
+          arquivo_nome?: string | null
+          arquivo_url?: string | null
+          chamado_id: string
+          conteudo: string
+          created_at?: string
+          id?: string
+          remetente_id: string
+        }
+        Update: {
+          arquivo_nome?: string | null
+          arquivo_url?: string | null
+          chamado_id?: string
+          conteudo?: string
+          created_at?: string
+          id?: string
+          remetente_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mensagens_chamado_chamado_id_fkey"
+            columns: ["chamado_id"]
+            isOneToOne: false
+            referencedRelation: "chamados_suporte"
             referencedColumns: ["id"]
           },
         ]
