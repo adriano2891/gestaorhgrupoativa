@@ -334,6 +334,15 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+              {/* Suporte Funcionários Route */}
+              <Route
+                path="/suporte-funcionarios"
+                element={
+                  <ProtectedRoute>
+                    <SuporteFuncionarios />
+                  </ProtectedRoute>
+                }
+              />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </QuotesProvider>
