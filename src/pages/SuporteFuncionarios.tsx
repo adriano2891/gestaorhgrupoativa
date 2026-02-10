@@ -231,7 +231,7 @@ const SuporteFuncionarios = () => {
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-red-600">{contadores.aberto}</p>
+              <p className="text-2xl font-bold text-destructive">{contadores.aberto}</p>
               <p className="text-xs text-muted-foreground">Abertos</p>
             </CardContent>
           </Card>
