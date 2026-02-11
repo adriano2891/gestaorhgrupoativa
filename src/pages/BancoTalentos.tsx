@@ -240,10 +240,11 @@ const BancoTalentos = () => {
           variant: "destructive",
         });
       } else {
-        console.error('Erro ao adicionar candidato:', error);
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        console.error('Erro ao adicionar candidato:', errorMsg, error);
         toast({
           title: "Erro",
-          description: "Não foi possível adicionar o candidato.",
+          description: `Não foi possível adicionar o candidato: ${errorMsg}`,
           variant: "destructive",
         });
       }
