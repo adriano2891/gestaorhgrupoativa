@@ -28,18 +28,26 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Verificar sessão do portal (usando um storage key específico)
     const checkPortalSession = async () => {
-      const portalSession = localStorage.getItem('portal_session');
-      
-      if (portalSession) {
-        try {
-          const { user_id } = JSON.parse(portalSession);
-          await loadUserData(user_id);
-        } catch (error) {
-          console.error("Erro ao restaurar sessão do portal:", error);
+      try {
+        // First check if there's an active Supabase session
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          // Supabase session is alive — use it
+          await loadUserData(session.user.id);
+          // Ensure localStorage is in sync
+          localStorage.setItem('portal_session', JSON.stringify({
+            user_id: session.user.id,
+            timestamp: new Date().toISOString()
+          }));
+        } else {
+          // No Supabase session — clear stale portal session
           localStorage.removeItem('portal_session');
         }
+      } catch (error) {
+        console.error("Erro ao restaurar sessão do portal:", error);
+        localStorage.removeItem('portal_session');
       }
       
       setLoading(false);
