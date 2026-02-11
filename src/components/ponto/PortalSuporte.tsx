@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, MessageCircle, Plus, Send, Paperclip, FileText, Download, Clock } from "lucide-react";
+import { ArrowLeft, MessageCircle, Plus, Send, Paperclip, Download, Clock, CheckCircle } from "lucide-react";
 import { PortalBackground } from "./PortalBackground";
 import { usePortalAuth } from "./PortalAuthProvider";
 import {
@@ -25,10 +25,8 @@ interface PortalSuporteProps {
 }
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  aberto: { label: "Aberto", variant: "destructive" },
-  em_atendimento: { label: "Em atendimento", variant: "default" },
-  respondido: { label: "Respondido", variant: "secondary" },
-  encerrado: { label: "Encerrado", variant: "outline" },
+  aberto: { label: "Aberto", variant: "default" },
+  fechado: { label: "Fechado", variant: "secondary" },
 };
 
 const CATEGORIAS = [
@@ -111,7 +109,10 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
     setView("chat");
   };
 
-  const statusInfo = (status: string) => STATUS_MAP[status] || { label: status, variant: "outline" as const };
+  const statusInfo = (status: string) => {
+    if (status === "fechado") return STATUS_MAP.fechado;
+    return STATUS_MAP.aberto;
+  };
 
   // ====== VIEW: NOVO CHAMADO ======
   if (view === "novo") {
@@ -177,7 +178,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
   // ====== VIEW: CHAT DO CHAMADO ======
   if (view === "chat" && chamadoSelecionado) {
     const si = statusInfo(chamadoSelecionado.status);
-    const isEncerrado = chamadoSelecionado.status === "encerrado";
+    const isFechado = chamadoSelecionado.status === "fechado";
     return (
       <PortalBackground>
         <header className="bg-card border-b shadow-sm sticky top-0 z-10">
@@ -186,7 +187,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
               <Button variant="ghost" onClick={() => { setView("lista"); setChamadoSelecionado(null); }}>
                 <ArrowLeft className="h-4 w-4 mr-2" /> Voltar
               </Button>
-              <Badge variant={si.variant}>{si.label}</Badge>
+              <Badge variant={si.variant} className={isFechado ? "bg-gray-400 text-white" : ""}>{si.label}</Badge>
             </div>
             <div className="mt-2">
               <h3 className="font-semibold">{chamadoSelecionado.assunto}</h3>
@@ -227,7 +228,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
           </div>
 
           {/* Reply area */}
-          {!isEncerrado ? (
+          {!isFechado ? (
             <div className="border-t pt-3 space-y-2">
               <Textarea value={resposta} onChange={(e) => setResposta(e.target.value)} placeholder="Escreva sua resposta..." className="min-h-[60px]" />
               <div className="flex items-center justify-between">
@@ -244,8 +245,8 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
               </div>
             </div>
           ) : (
-            <div className="border-t pt-3 text-center text-sm text-muted-foreground">
-              Este chamado foi encerrado.
+            <div className="border-t pt-3 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
+              <CheckCircle className="h-4 w-4" /> Chamado fechado
             </div>
           )}
         </main>
@@ -294,7 +295,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
               {chamados.map((chamado) => {
                 const si = statusInfo(chamado.status);
                 return (
-                  <Card key={chamado.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => abrirChat(chamado)}>
+                  <Card key={chamado.id} className={`cursor-pointer hover:shadow-md transition-shadow ${chamado.status === "fechado" ? "border-muted bg-muted/30 opacity-70" : ""}`} onClick={() => abrirChat(chamado)}>
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
@@ -304,7 +305,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
                           </p>
                         </div>
                         <div className="flex flex-col items-end gap-1">
-                          <Badge variant={si.variant}>{si.label}</Badge>
+                          <Badge variant={si.variant} className={chamado.status === "fechado" ? "bg-gray-400 text-white" : ""}>{si.label}</Badge>
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <Clock className="h-3 w-3" />
                             {format(new Date(chamado.created_at), "dd/MM/yy", { locale: ptBR })}
