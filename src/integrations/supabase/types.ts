@@ -1822,6 +1822,13 @@ export type Database = {
             referencedRelation: "chamados_suporte"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mensagens_chamado_remetente_id_fkey"
+            columns: ["remetente_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       metricas: {
