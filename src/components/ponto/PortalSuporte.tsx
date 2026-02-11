@@ -66,12 +66,8 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, isReply = false) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.type !== "application/pdf") {
-        toast.error("Apenas arquivos PDF são permitidos");
-        return;
-      }
-      if (file.size > 10 * 1024 * 1024) {
-        toast.error("Arquivo muito grande (máx. 10MB)");
+      if (file.size > 25 * 1024 * 1024) {
+        toast.error("Arquivo muito grande (máx. 25MB)");
         return;
       }
       if (isReply) setArquivoResposta(file);
@@ -158,14 +154,14 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
                   <Textarea value={mensagem} onChange={(e) => setMensagem(e.target.value)} placeholder="Descreva sua dúvida ou solicitação em detalhes..." className="min-h-[120px]" />
                 </div>
                 <div>
-                  <Label>Anexar PDF (opcional)</Label>
+                  <Label>Anexar arquivo (opcional)</Label>
                   <div className="flex items-center gap-2 mt-1">
                     <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
-                      <Paperclip className="h-4 w-4 mr-1" /> Anexar PDF
+                      <Paperclip className="h-4 w-4 mr-1" /> Anexar Arquivo
                     </Button>
                     {arquivo && <span className="text-sm text-muted-foreground">{arquivo.name}</span>}
                   </div>
-                  <input ref={fileInputRef} type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileChange(e)} />
+                  <input ref={fileInputRef} type="file" className="hidden" onChange={(e) => handleFileChange(e)} />
                 </div>
                 <Button className="w-full" onClick={handleCriarChamado} disabled={criarChamado.isPending}>
                   {criarChamado.isPending ? "Enviando..." : "Enviar Chamado"}
@@ -217,7 +213,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
                     <p className="text-sm whitespace-pre-wrap">{msg.conteudo}</p>
                     {msg.arquivo_url && (
                       <a href={msg.arquivo_url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1 mt-2 text-xs underline ${isMe ? "text-primary-foreground/90" : "text-primary"}`}>
-                        <Download className="h-3 w-3" /> {msg.arquivo_nome || "Anexo.pdf"}
+                        <Download className="h-3 w-3" /> {msg.arquivo_nome || "Anexo"}
                       </a>
                     )}
                     <p className={`text-[10px] mt-1 ${isMe ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
@@ -240,7 +236,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
                     <Paperclip className="h-4 w-4" />
                   </Button>
                   {arquivoResposta && <span className="text-xs text-muted-foreground">{arquivoResposta.name}</span>}
-                  <input ref={replyFileRef} type="file" accept=".pdf" className="hidden" onChange={(e) => handleFileChange(e, true)} />
+                  <input ref={replyFileRef} type="file" className="hidden" onChange={(e) => handleFileChange(e, true)} />
                 </div>
                 <Button onClick={handleEnviarResposta} disabled={enviarMensagem.isPending || !resposta.trim()}>
                   <Send className="h-4 w-4 mr-1" /> Enviar
