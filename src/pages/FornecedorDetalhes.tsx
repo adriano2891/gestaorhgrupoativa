@@ -116,11 +116,12 @@ export default function FornecedorDetalhes() {
         return;
       }
       
-      const { data: { publicUrl } } = supabase.storage
+      const { data: signedData, error: signedError } = await supabase.storage
         .from('fornecedores')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 3600);
       
-      imageUrl = publicUrl;
+      if (signedError) throw signedError;
+      imageUrl = signedData.signedUrl;
     }
 
     const itemData = {
@@ -169,9 +170,12 @@ export default function FornecedorDetalhes() {
       return;
     }
     
-    const { data: { publicUrl } } = supabase.storage
+    const { data: signedData, error: signedError } = await supabase.storage
       .from('fornecedores')
-      .getPublicUrl(fileName);
+      .createSignedUrl(fileName, 3600);
+    
+    if (signedError) throw signedError;
+    const publicUrl = signedData.signedUrl;
 
     await createDocumento.mutateAsync({
       fornecedor_id: id,

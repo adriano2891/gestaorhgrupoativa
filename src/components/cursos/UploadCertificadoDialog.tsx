@@ -79,9 +79,10 @@ export const UploadCertificadoDialog = ({
 
       if (uploadError) throw uploadError;
 
-      const { data: urlData } = supabase.storage
+      const { data: urlData, error: urlError } = await supabase.storage
         .from("cursos")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 86400);
+      if (urlError) throw urlError;
 
       // Verificar se existe matrícula, se não, criar
       const { data: matriculaExistente } = await supabase
@@ -118,7 +119,7 @@ export const UploadCertificadoDialog = ({
         user_id: selectedFuncionario,
         matricula_id: matriculaId,
         codigo_validacao: codigoValidacao,
-        url_certificado: urlData.publicUrl,
+        url_certificado: urlData.signedUrl,
         data_emissao: new Date().toISOString(),
       });
 
