@@ -120,17 +120,9 @@ export const PortalHolerite = ({ onBack }: PortalHoleriteProps) => {
                         <p className="font-medium">
                           Holerite - {getMesNome(holerite.mes)} {holerite.ano}
                         </p>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                          <span>
-                            Bruto: R$ {holerite.salario_bruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </span>
-                          <span>
-                            Descontos: R$ {holerite.descontos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </span>
-                          <span className="font-medium text-foreground">
-                            Líquido: R$ {holerite.salario_liquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                          </span>
-                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          Baixe o PDF para visualizar os detalhes
+                        </p>
                         <p className="text-xs text-muted-foreground mt-1">
                           Emitido em {format(new Date(holerite.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                         </p>
