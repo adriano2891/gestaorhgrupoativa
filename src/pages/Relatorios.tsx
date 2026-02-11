@@ -29,6 +29,7 @@ import { DownloadedReports } from "@/components/relatorios/DownloadedReports";
 import { useFuncionarios, useFuncionariosPorDepartamento } from "@/hooks/useFuncionarios";
 import { useRegistrosPonto, useAbsenteismoPorDepartamento } from "@/hooks/useRegistrosPonto";
 import { useMetricas } from "@/hooks/useMetricas";
+import { useCursos, useMatriculas } from "@/hooks/useCursos";
 import { format } from "date-fns";
 
 interface DownloadedReport {
@@ -54,6 +55,8 @@ const Relatorios = () => {
   const { data: registrosPonto } = useRegistrosPonto();
   const { data: absenteismoDept } = useAbsenteismoPorDepartamento();
   const { data: metricas } = useMetricas(1);
+  const { data: cursos } = useCursos();
+  const { data: todasMatriculas } = useMatriculas();
 
   const reportTypes = [
     {
@@ -139,13 +142,6 @@ const Relatorios = () => {
       icon: Smile,
       category: "Bem-estar",
       description: "Pesquisas de satisfação e engajamento",
-    },
-    {
-      id: "kpis",
-      name: "Indicadores-Chave (KPIs)",
-      icon: BarChart3,
-      category: "Indicadores",
-      description: "Dashboard com principais métricas",
     },
   ];
 
@@ -309,76 +305,6 @@ const Relatorios = () => {
           ],
         };
 
-      case "kpis":
-        const metrica = metricas?.[0];
-        
-        // Gera dados padrão se não houver métricas
-        const kpiPresenca = metrica?.taxa_presenca || 85;
-        const kpiRetencao = metrica?.taxa_retencao || 90;
-        const kpiEficiencia = metrica?.indice_eficiencia || 75;
-        const kpiSatisfacao = (metrica?.satisfacao_interna || 7) * 10;
-        const kpiProdutividade = metrica?.produtividade_equipe || 80;
-        const kpiAbsenteismo = metrica?.indice_absenteismo || 3;
-        const kpiHorasExtras = metrica?.horas_extras_percentual || 5;
-
-        const kpiData = [
-          { indicador: "Presença", valor: kpiPresenca, meta: 95 },
-          { indicador: "Retenção", valor: kpiRetencao, meta: 90 },
-          { indicador: "Eficiência", valor: kpiEficiencia, meta: 85 },
-          { indicador: "Satisfação", valor: kpiSatisfacao, meta: 80 },
-          { indicador: "Produtividade", valor: kpiProdutividade, meta: 80 },
-        ];
-
-        // Dados de absenteísmo por departamento (usa dados reais ou simulados)
-        const absenteismoData = absenteismoDept && absenteismoDept.length > 0 
-          ? absenteismoDept.map(d => ({
-              departamento: d.departamento || "Sem Dept.",
-              valor: parseFloat(d.taxa as string) || 0,
-            }))
-          : (funcionariosPorDept?.slice(0, 5).map(d => ({
-              departamento: d.departamento || "Sem Dept.",
-              valor: Math.random() * 5 + 1,
-            })) || [
-              { departamento: "Administrativo", valor: 2.5 },
-              { departamento: "Operacional", valor: 4.2 },
-              { departamento: "Comercial", valor: 3.1 },
-            ]);
-
-        return {
-          ...baseData,
-          summary: {
-            "Taxa de Presença": `${kpiPresenca.toFixed(1)}%`,
-            "Taxa de Retenção": `${kpiRetencao.toFixed(1)}%`,
-            "Satisfação Interna": `${(metrica?.satisfacao_interna || 7).toFixed(1)}/10`,
-            "Índice de Absenteísmo": `${kpiAbsenteismo.toFixed(1)}%`,
-            "Horas Extras": `${kpiHorasExtras.toFixed(1)}%`,
-            "Índice de Eficiência": `${kpiEficiencia.toFixed(1)}%`,
-          },
-          details: kpiData.map(kpi => ({
-            indicador: kpi.indicador,
-            valorAtual: `${kpi.valor.toFixed(1)}%`,
-            meta: `${kpi.meta}%`,
-            status: kpi.valor >= kpi.meta ? "Atingida" : kpi.valor >= kpi.meta * 0.9 ? "Próximo" : "Abaixo",
-          })),
-          charts: [
-            {
-              type: "radar",
-              title: "Visão Geral dos KPIs",
-              description: "Comparativo entre indicadores atuais e metas estabelecidas",
-              insight: "O gráfico radar permite visualizar rapidamente quais áreas precisam de atenção.",
-              data: kpiData,
-            },
-            {
-              type: "bar",
-              title: "Absenteísmo por Departamento",
-              description: "Taxa de absenteísmo segmentada por área",
-              dataName: "Taxa (%)",
-              insight: "Departamentos com taxa acima de 5% requerem atenção especial.",
-              data: absenteismoData,
-            },
-          ],
-        };
-
       case "absenteismo":
         // Gera dados mesmo sem absenteismoDept
         const absenteismoDeptData = absenteismoDept && absenteismoDept.length > 0 
@@ -509,31 +435,51 @@ const Relatorios = () => {
       case "beneficios":
         const metricaBeneficios = metricas?.[0];
         
-        // Valores padrão caso não haja métricas
         const custoBeneficios = metricaBeneficios?.custo_beneficios || 15000;
         const custoMedioFunc = metricaBeneficios?.custo_medio_funcionario || 5000;
         const totalFolhaBen = metricaBeneficios?.total_folha_pagamento || 50000;
         const totalEncargosBen = metricaBeneficios?.total_encargos || 17500;
         const totalFuncionariosBen = funcionarios?.length || 10;
 
+        // Agrupa benefícios por departamento usando dados reais de funcionários
+        const beneficiosPorDept: Record<string, { count: number; salarioTotal: number }> = {};
+        funcionarios?.forEach(f => {
+          const dept = f.departamento || "Não informado";
+          if (!beneficiosPorDept[dept]) beneficiosPorDept[dept] = { count: 0, salarioTotal: 0 };
+          beneficiosPorDept[dept].count++;
+          beneficiosPorDept[dept].salarioTotal += f.salario || 0;
+        });
+
+        // Calcula custo de benefícios por funcionário baseado no salário
+        const custoTotalBeneficiosReal = funcionarios?.reduce((acc, f) => acc + ((f.salario || custoMedioFunc) * 0.3), 0) || custoBeneficios;
+        const custoMedioBenReal = totalFuncionariosBen > 0 ? custoTotalBeneficiosReal / totalFuncionariosBen : custoMedioFunc * 0.3;
+
         return {
           ...baseData,
           summary: {
-            "Custo Total Benefícios": `R$ ${custoBeneficios.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Custo Médio/Funcionário": `R$ ${custoMedioFunc.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            "Total Funcionários": totalFuncionariosBen,
+            "Custo Total Benefícios": `R$ ${custoTotalBeneficiosReal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            "Custo Médio/Funcionário": `R$ ${custoMedioBenReal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
             "Total Folha": `R$ ${totalFolhaBen.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
             "Total Encargos": `R$ ${totalEncargosBen.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            "% Benefícios/Folha": `${totalFolhaBen > 0 ? ((custoTotalBeneficiosReal / totalFolhaBen) * 100).toFixed(1) : 0}%`,
           },
-          details: funcionarios?.slice(0, 20).map(f => ({
+          details: funcionarios?.slice(0, 30).map(f => ({
             nome: f.nome,
             departamento: f.departamento || "Não informado",
             cargo: f.cargo || "Não informado",
-            beneficiosEstimados: `R$ ${(custoMedioFunc * 0.3).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            salario: f.salario ? `R$ ${f.salario.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : "Não informado",
+            beneficiosEstimados: `R$ ${((f.salario || custoMedioFunc) * 0.3).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            encargos: `R$ ${((f.salario || custoMedioFunc) * 0.35).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            custoTotal: `R$ ${((f.salario || custoMedioFunc) * 1.65).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
           })) || [{
             nome: "Dados estimados",
             departamento: "-",
             cargo: "-",
+            salario: "-",
             beneficiosEstimados: `R$ ${(custoMedioFunc * 0.3).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            encargos: "-",
+            custoTotal: "-",
           }],
           charts: [
             {
@@ -542,24 +488,20 @@ const Relatorios = () => {
               description: "Distribuição dos custos entre folha, benefícios e encargos",
               data: [
                 { tipo: "Folha de Pagamento", valor: totalFolhaBen },
-                { tipo: "Benefícios", valor: custoBeneficios },
+                { tipo: "Benefícios", valor: custoTotalBeneficiosReal },
                 { tipo: "Encargos", valor: totalEncargosBen },
               ],
             },
             {
               type: "bar",
               title: "Custo de Benefícios por Departamento",
-              description: "Distribuição estimada de custos por área",
+              description: "Custos reais de benefícios baseados nos salários por área",
               dataName: "R$",
-              insight: "Os benefícios representam em média 30% do custo total por funcionário.",
-              data: funcionariosPorDept?.slice(0, 6).map(d => ({
-                departamento: d.departamento || "Sem Dept.",
-                valor: (d.funcionarios as number) * (custoMedioFunc * 0.3),
-              })) || [
-                { departamento: "Administrativo", valor: custoMedioFunc * 0.3 * 5 },
-                { departamento: "Operacional", valor: custoMedioFunc * 0.3 * 8 },
-                { departamento: "Comercial", valor: custoMedioFunc * 0.3 * 4 },
-              ],
+              insight: "Os benefícios representam em média 30% do salário de cada funcionário.",
+              data: Object.entries(beneficiosPorDept).slice(0, 8).map(([dept, stats]) => ({
+                departamento: dept.length > 15 ? dept.substring(0, 15) + "..." : dept,
+                valor: stats.salarioTotal * 0.3,
+              })),
             },
           ],
         };
@@ -683,45 +625,90 @@ const Relatorios = () => {
         };
 
       case "treinamentos":
-        const totalTreinamentos = funcionarios?.length || 0;
-        
+        const cursosPublicados = cursos?.filter(c => c.status === 'publicado') || [];
+        const totalCursosAtivos = cursosPublicados.length;
+        const matriculasData = todasMatriculas || [];
+        const matriculasConcluidas = matriculasData.filter(m => m.status === 'concluido' && m.progresso === 100);
+        const matriculasEmAndamento = matriculasData.filter(m => m.status === 'em_andamento');
+        const totalMatriculas = matriculasData.length;
+        const taxaConclusaoCursos = totalMatriculas > 0 ? ((matriculasConcluidas.length / totalMatriculas) * 100).toFixed(1) : "0";
+        const progressoMedio = totalMatriculas > 0 ? (matriculasData.reduce((acc, m) => acc + (m.progresso || 0), 0) / totalMatriculas).toFixed(1) : "0";
+        const cargaHorariaTotal = cursosPublicados.reduce((acc, c) => acc + (c.carga_horaria || 0), 0);
+
+        // Agrupa matrículas por departamento
+        const matriculasPorDept: Record<string, { total: number; concluidos: number }> = {};
+        matriculasData.forEach(m => {
+          const dept = (m as any).profile?.departamento || "Não informado";
+          if (!matriculasPorDept[dept]) matriculasPorDept[dept] = { total: 0, concluidos: 0 };
+          matriculasPorDept[dept].total++;
+          if (m.status === 'concluido' && m.progresso === 100) matriculasPorDept[dept].concluidos++;
+        });
+
+        // Agrupa matrículas por curso
+        const matriculasPorCurso: Record<string, { nome: string; total: number; concluidos: number; emAndamento: number }> = {};
+        matriculasData.forEach(m => {
+          const cursoId = m.curso_id;
+          const cursoNome = (m as any).curso?.titulo || "Curso";
+          if (!matriculasPorCurso[cursoId]) matriculasPorCurso[cursoId] = { nome: cursoNome, total: 0, concluidos: 0, emAndamento: 0 };
+          matriculasPorCurso[cursoId].total++;
+          if (m.status === 'concluido' && m.progresso === 100) matriculasPorCurso[cursoId].concluidos++;
+          if (m.status === 'em_andamento') matriculasPorCurso[cursoId].emAndamento++;
+        });
+
         return {
           ...baseData,
           summary: {
-            "Total de Participantes": totalTreinamentos,
-            "Horas de Treinamento": `${totalTreinamentos * 8}h`,
-            "Taxa de Conclusão": "85%",
-            "Investimento Médio": `R$ ${(totalTreinamentos * 250).toLocaleString('pt-BR')}`,
+            "Total de Cursos": totalCursosAtivos,
+            "Total de Matrículas": totalMatriculas,
+            "Concluídos (100%)": matriculasConcluidas.length,
+            "Em Andamento": matriculasEmAndamento.length,
+            "Taxa de Conclusão": `${taxaConclusaoCursos}%`,
+            "Progresso Médio": `${progressoMedio}%`,
+            "Carga Horária Total": `${Math.round(cargaHorariaTotal / 60)}h`,
           },
-          details: funcionarios?.slice(0, 20).map(f => ({
-            nome: f.nome,
-            departamento: f.departamento || "Não informado",
-            cargo: f.cargo || "Não informado",
-            treinamentosRealizados: Math.floor(Math.random() * 5) + 1,
-            horasCompletas: Math.floor(Math.random() * 40) + 8,
-            status: Math.random() > 0.2 ? "Concluído" : "Em andamento",
-          })) || [],
+          details: matriculasData.slice(0, 50).map(m => ({
+            colaborador: (m as any).profile?.nome || "Não informado",
+            email: (m as any).profile?.email || "-",
+            departamento: (m as any).profile?.departamento || "Não informado",
+            curso: (m as any).curso?.titulo || "Não informado",
+            progresso: `${m.progresso || 0}%`,
+            status: m.status === 'concluido' ? 'Concluído' : m.status === 'em_andamento' ? 'Em Andamento' : m.status === 'cancelado' ? 'Cancelado' : m.status || '-',
+            dataInicio: m.data_inicio ? format(new Date(m.data_inicio), "dd/MM/yyyy") : "-",
+            dataConclusao: m.data_conclusao ? format(new Date(m.data_conclusao), "dd/MM/yyyy") : "-",
+            nota: m.nota_final ? `${m.nota_final}` : "-",
+          })),
           charts: [
             {
               type: "pie",
-              title: "Status dos Treinamentos",
-              description: "Proporção de treinamentos concluídos vs em andamento",
+              title: "Status das Matrículas",
+              description: "Proporção de matrículas por status",
               data: [
-                { status: "Concluídos", valor: 85 },
-                { status: "Em Andamento", valor: 10 },
-                { status: "Pendentes", valor: 5 },
-              ],
+                { status: "Concluídos", valor: matriculasConcluidas.length || 0 },
+                { status: "Em Andamento", valor: matriculasEmAndamento.length || 0 },
+                { status: "Não Iniciados", valor: Math.max(totalMatriculas - matriculasConcluidas.length - matriculasEmAndamento.length, 0) },
+              ].filter(d => d.valor > 0),
             },
             {
               type: "bar",
-              title: "Horas de Treinamento por Departamento",
-              description: "Distribuição das horas de capacitação por área",
-              dataName: "Horas",
-              insight: "Recomenda-se pelo menos 40h anuais de treinamento por colaborador.",
-              data: funcionariosPorDept?.slice(0, 6).map(d => ({
-                departamento: d.departamento || "Sem Dept.",
-                valor: (d.funcionarios as number) * 8,
-              })) || [],
+              title: "Matrículas por Departamento",
+              description: "Quantidade de matrículas e conclusões por departamento",
+              dataName: "Matrículas",
+              insight: `A taxa geral de conclusão é ${taxaConclusaoCursos}%. Departamentos com taxa abaixo da média precisam de atenção.`,
+              data: Object.entries(matriculasPorDept).slice(0, 8).map(([dept, stats]) => ({
+                departamento: dept.length > 15 ? dept.substring(0, 15) + "..." : dept,
+                valor: stats.total,
+              })),
+            },
+            {
+              type: "bar",
+              title: "Desempenho por Curso",
+              description: "Total de matrículas e conclusões em cada curso",
+              dataName: "Alunos",
+              insight: "Compare a taxa de conclusão entre os cursos para identificar conteúdos com maior engajamento.",
+              data: Object.values(matriculasPorCurso).slice(0, 8).map(c => ({
+                departamento: c.nome.length > 18 ? c.nome.substring(0, 18) + "..." : c.nome,
+                valor: c.total,
+              })),
             },
           ],
         };

@@ -91,6 +91,27 @@ export const ReportFilters = ({ reportType, filters, onFilterChange, onGenerate 
           </>
         );
 
+      case "treinamentos":
+        return (
+          <>
+            {commonFilters}
+            <div className="space-y-2">
+              <Label>Status do Curso</Label>
+              <Select value={filters.statusCurso} onValueChange={(v) => handleChange("statusCurso", v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="concluido">Concluído</SelectItem>
+                  <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        );
+
       case "faltas-atrasos":
         return (
           <>
