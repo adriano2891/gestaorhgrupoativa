@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   MessageCircle, Search, ArrowLeft, Send, Paperclip, Download, Clock, 
-  Filter, User, CheckCircle 
+  Filter, User, CheckCircle, Lock
 } from "lucide-react";
 import {
   useTodosChamados,
@@ -21,13 +21,10 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
-import { useRef, useEffect } from "react";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  aberto: { label: "Aberto", variant: "destructive" },
-  em_atendimento: { label: "Em atendimento", variant: "default" },
-  respondido: { label: "Respondido", variant: "secondary" },
-  encerrado: { label: "Encerrado", variant: "outline" },
+  aberto: { label: "Aberto", variant: "default" },
+  fechado: { label: "Fechado", variant: "secondary" },
 };
 
 const CATEGORIAS = [
@@ -58,7 +55,8 @@ const SuporteFuncionarios = () => {
   }, [mensagens]);
 
   const chamadosFiltrados = chamados.filter((c) => {
-    if (filtroStatus !== "todos" && c.status !== filtroStatus) return false;
+    const status = c.status === "fechado" ? "fechado" : "aberto";
+    if (filtroStatus !== "todos" && status !== filtroStatus) return false;
     if (filtroCategoria !== "todos" && c.categoria !== filtroCategoria) return false;
     if (busca) {
       const term = busca.toLowerCase();
@@ -76,11 +74,6 @@ const SuporteFuncionarios = () => {
       conteudo: resposta,
       arquivo: arquivoResposta || undefined,
     });
-    // Auto change status to respondido
-    if (chamadoSelecionado.status === "aberto" || chamadoSelecionado.status === "em_atendimento") {
-      await atualizarStatus.mutateAsync({ chamado_id: chamadoSelecionado.id, status: "respondido" });
-      setChamadoSelecionado({ ...chamadoSelecionado, status: "respondido" });
-    }
     setResposta("");
     setArquivoResposta(null);
   };
@@ -93,25 +86,27 @@ const SuporteFuncionarios = () => {
     }
   };
 
-  const handleChangeStatus = async (status: string) => {
+  const handleFechar = async () => {
     if (!chamadoSelecionado) return;
-    await atualizarStatus.mutateAsync({ chamado_id: chamadoSelecionado.id, status });
-    setChamadoSelecionado({ ...chamadoSelecionado, status });
+    await atualizarStatus.mutateAsync({ chamado_id: chamadoSelecionado.id, status: "fechado" });
+    setChamadoSelecionado({ ...chamadoSelecionado, status: "fechado" });
   };
 
-  const statusInfo = (status: string) => STATUS_MAP[status] || { label: status, variant: "outline" as const };
+  const getStatusDisplay = (status: string) => {
+    if (status === "fechado") return STATUS_MAP.fechado;
+    return STATUS_MAP.aberto;
+  };
 
   const contadores = {
-    aberto: chamados.filter(c => c.status === "aberto").length,
-    em_atendimento: chamados.filter(c => c.status === "em_atendimento").length,
-    respondido: chamados.filter(c => c.status === "respondido").length,
+    aberto: chamados.filter(c => c.status !== "fechado").length,
+    fechado: chamados.filter(c => c.status === "fechado").length,
     total: chamados.length,
   };
 
   // ====== CHAT VIEW ======
   if (chamadoSelecionado) {
-    const si = statusInfo(chamadoSelecionado.status);
-    const isEncerrado = chamadoSelecionado.status === "encerrado";
+    const isFechado = chamadoSelecionado.status === "fechado";
+    const si = getStatusDisplay(chamadoSelecionado.status);
     return (
       <Layout>
         <div className="space-y-4">
@@ -119,22 +114,14 @@ const SuporteFuncionarios = () => {
             <Button variant="ghost" onClick={() => setChamadoSelecionado(null)}>
               <ArrowLeft className="h-4 w-4 mr-2" /> Voltar à lista
             </Button>
-            <div className="flex items-center gap-2">
-              <Select value={chamadoSelecionado.status} onValueChange={handleChangeStatus}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="aberto">Aberto</SelectItem>
-                  <SelectItem value="em_atendimento">Em atendimento</SelectItem>
-                  <SelectItem value="respondido">Respondido</SelectItem>
-                  <SelectItem value="encerrado">Encerrado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {!isFechado && (
+              <Button variant="destructive" onClick={handleFechar} disabled={atualizarStatus.isPending}>
+                <Lock className="h-4 w-4 mr-1" /> Fechar Chamado
+              </Button>
+            )}
           </div>
 
-          <Card>
+          <Card className={isFechado ? "border-muted bg-muted/30 opacity-80" : ""}>
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div>
@@ -149,16 +136,10 @@ const SuporteFuncionarios = () => {
                     {format(new Date(chamadoSelecionado.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                   </div>
                 </div>
-                <Badge variant={si.variant}>{si.label}</Badge>
+                <Badge variant={si.variant} className={isFechado ? "bg-gray-400 text-white" : ""}>{si.label}</Badge>
               </div>
             </CardHeader>
             <CardContent>
-              {/* Assunto */}
-              <div className="mb-4 p-3 bg-muted/50 rounded-lg">
-                <p className="text-xs font-semibold text-muted-foreground mb-1">Assunto</p>
-                <p className="text-sm">{chamadoSelecionado.assunto}</p>
-              </div>
-
               {/* Messages */}
               <div className="space-y-3 max-h-[50vh] overflow-y-auto mb-4 p-2">
                 {loadingMensagens ? (
@@ -192,7 +173,7 @@ const SuporteFuncionarios = () => {
               </div>
 
               {/* Reply */}
-              {!isEncerrado ? (
+              {!isFechado ? (
                 <div className="border-t pt-3 space-y-2">
                   <Textarea value={resposta} onChange={(e) => setResposta(e.target.value)} placeholder="Responder ao funcionário..." className="min-h-[60px]" />
                   <div className="flex items-center justify-between">
@@ -210,7 +191,7 @@ const SuporteFuncionarios = () => {
                 </div>
               ) : (
                 <div className="border-t pt-3 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
-                  <CheckCircle className="h-4 w-4" /> Chamado encerrado
+                  <CheckCircle className="h-4 w-4" /> Chamado fechado
                 </div>
               )}
             </CardContent>
@@ -233,7 +214,7 @@ const SuporteFuncionarios = () => {
         </div>
 
         {/* Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold">{contadores.total}</p>
@@ -242,20 +223,14 @@ const SuporteFuncionarios = () => {
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-destructive">{contadores.aberto}</p>
+              <p className="text-2xl font-bold text-primary">{contadores.aberto}</p>
               <p className="text-xs text-muted-foreground">Abertos</p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-primary">{contadores.em_atendimento}</p>
-              <p className="text-xs text-muted-foreground">Em Atendimento</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-muted-foreground">{contadores.respondido}</p>
-              <p className="text-xs text-muted-foreground">Respondidos</p>
+              <p className="text-2xl font-bold text-muted-foreground">{contadores.fechado}</p>
+              <p className="text-xs text-muted-foreground">Fechados</p>
             </CardContent>
           </Card>
         </div>
@@ -271,9 +246,7 @@ const SuporteFuncionarios = () => {
             <SelectContent>
               <SelectItem value="todos">Todos Status</SelectItem>
               <SelectItem value="aberto">Aberto</SelectItem>
-              <SelectItem value="em_atendimento">Em atendimento</SelectItem>
-              <SelectItem value="respondido">Respondido</SelectItem>
-              <SelectItem value="encerrado">Encerrado</SelectItem>
+              <SelectItem value="fechado">Fechado</SelectItem>
             </SelectContent>
           </Select>
           <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
@@ -298,13 +271,18 @@ const SuporteFuncionarios = () => {
         ) : (
           <div className="space-y-3">
             {chamadosFiltrados.map((chamado) => {
-              const si = statusInfo(chamado.status);
+              const isFechado = chamado.status === "fechado";
+              const si = getStatusDisplay(chamado.status);
               return (
-                <Card key={chamado.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setChamadoSelecionado(chamado)}>
+                <Card 
+                  key={chamado.id} 
+                  className={`cursor-pointer hover:shadow-md transition-shadow ${isFechado ? "border-muted bg-muted/30 opacity-70" : ""}`} 
+                  onClick={() => setChamadoSelecionado(chamado)}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold truncate">{chamado.assunto}</h3>
+                        <h3 className={`font-semibold truncate ${isFechado ? "line-through text-muted-foreground" : ""}`}>{chamado.assunto}</h3>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                           <User className="h-3 w-3" />
                           <span>{chamado.profiles?.nome || "Funcionário"}</span>
@@ -313,7 +291,7 @@ const SuporteFuncionarios = () => {
                         </div>
                       </div>
                       <div className="flex flex-col items-end gap-1">
-                        <Badge variant={si.variant}>{si.label}</Badge>
+                        <Badge variant={si.variant} className={isFechado ? "bg-gray-400 text-white" : ""}>{si.label}</Badge>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {format(new Date(chamado.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
