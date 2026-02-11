@@ -26,7 +26,7 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
         >
           <div className="mb-3 sm:mb-5 flex items-center gap-2 sm:gap-3">
             <div className="h-1 w-8 sm:w-12 bg-white/40 rounded-full"></div>
-            <h3 className="text-base sm:text-lg md:text-xl font-bold text-white tracking-wide">{category}</h3>
+            <h3 className="text-base sm:text-lg md:text-xl font-bold text-white tracking-wide" style={{ fontFamily: 'Arial, sans-serif' }}>{category}</h3>
             <div className="h-1 flex-1 bg-white/20 rounded-full"></div>
           </div>
           
@@ -55,10 +55,10 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
                         </div>
                         
                         <div className="flex-1 min-w-0 pt-0.5 sm:pt-1">
-                          <h4 className="font-bold text-foreground mb-1 sm:mb-1.5 group-hover:text-primary transition-colors text-sm sm:text-base leading-tight">
+                          <h4 className="font-bold text-foreground mb-1 sm:mb-1.5 group-hover:text-primary transition-colors text-sm sm:text-base leading-tight" style={{ fontFamily: 'Arial, sans-serif' }}>
                             {report.name}
                           </h4>
-                          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-relaxed" style={{ fontFamily: 'Arial, sans-serif' }}>
                             {report.description}
                           </p>
                         </div>
@@ -66,7 +66,7 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
                       
                       {/* Arrow indicator */}
                       <div className="flex items-center justify-end gap-2 text-primary opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-                        <span className="text-[10px] sm:text-xs font-semibold">Ver relatório</span>
+                        <span className="text-[10px] sm:text-xs font-semibold" style={{ fontFamily: 'Arial, sans-serif' }}>Ver relatório</span>
                         <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
