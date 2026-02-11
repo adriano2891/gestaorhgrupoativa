@@ -117,10 +117,10 @@ const Relatorios = () => {
     },
     {
       id: "beneficios",
-      name: "Benefícios e Custos",
-      icon: DollarSign,
-      category: "Custos",
-      description: "Análise de benefícios e despesas",
+      name: "Benefícios",
+      icon: Heart,
+      category: "Bem-estar",
+      description: "Relatório de benefícios por funcionário",
     },
     {
       id: "custo-folha",
@@ -433,75 +433,67 @@ const Relatorios = () => {
         };
 
       case "beneficios":
-        const metricaBeneficios = metricas?.[0];
-        
-        const custoBeneficios = metricaBeneficios?.custo_beneficios || 15000;
-        const custoMedioFunc = metricaBeneficios?.custo_medio_funcionario || 5000;
-        const totalFolhaBen = metricaBeneficios?.total_folha_pagamento || 50000;
-        const totalEncargosBen = metricaBeneficios?.total_encargos || 17500;
-        const totalFuncionariosBen = funcionarios?.length || 10;
+        const beneficiosLista = [
+          { nome: "Vale Transporte", valor: "R$ 200,00/mês", status: "Ativo" },
+          { nome: "Vale Refeição", valor: "R$ 30,00/dia", status: "Ativo" },
+          { nome: "Plano de Saúde", valor: "Unimed", status: "Ativo" },
+          { nome: "Plano Odontológico", valor: "Odontoprev", status: "Ativo" },
+        ];
+        const totalFuncionariosBen = funcionarios?.length || 0;
 
-        // Agrupa benefícios por departamento usando dados reais de funcionários
-        const beneficiosPorDept: Record<string, { count: number; salarioTotal: number }> = {};
+        // Gera detalhes por funcionário com seus benefícios
+        const detailsBeneficios: any[] = [];
         funcionarios?.forEach(f => {
-          const dept = f.departamento || "Não informado";
-          if (!beneficiosPorDept[dept]) beneficiosPorDept[dept] = { count: 0, salarioTotal: 0 };
-          beneficiosPorDept[dept].count++;
-          beneficiosPorDept[dept].salarioTotal += f.salario || 0;
+          beneficiosLista.forEach(b => {
+            detailsBeneficios.push({
+              funcionario: f.nome,
+              departamento: f.departamento || "Não informado",
+              beneficio: b.nome,
+              valor: b.valor,
+              status: b.status,
+            });
+          });
         });
 
-        // Calcula custo de benefícios por funcionário baseado no salário
-        const custoTotalBeneficiosReal = funcionarios?.reduce((acc, f) => acc + ((f.salario || custoMedioFunc) * 0.3), 0) || custoBeneficios;
-        const custoMedioBenReal = totalFuncionariosBen > 0 ? custoTotalBeneficiosReal / totalFuncionariosBen : custoMedioFunc * 0.3;
+        // Contagem de benefícios ativos
+        const beneficiosAtivos = beneficiosLista.filter(b => b.status === "Ativo").length;
+        const beneficiosInativos = beneficiosLista.filter(b => b.status === "Inativo").length;
 
         return {
           ...baseData,
           summary: {
             "Total Funcionários": totalFuncionariosBen,
-            "Custo Total Benefícios": `R$ ${custoTotalBeneficiosReal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Custo Médio/Funcionário": `R$ ${custoMedioBenReal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Total Folha": `R$ ${totalFolhaBen.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Total Encargos": `R$ ${totalEncargosBen.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "% Benefícios/Folha": `${totalFolhaBen > 0 ? ((custoTotalBeneficiosReal / totalFolhaBen) * 100).toFixed(1) : 0}%`,
+            "Benefícios Cadastrados": beneficiosLista.length,
+            "Benefícios Ativos": beneficiosAtivos,
+            "Benefícios Inativos": beneficiosInativos,
           },
-          details: funcionarios?.slice(0, 30).map(f => ({
-            nome: f.nome,
-            departamento: f.departamento || "Não informado",
-            cargo: f.cargo || "Não informado",
-            salario: f.salario ? `R$ ${f.salario.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : "Não informado",
-            beneficiosEstimados: `R$ ${((f.salario || custoMedioFunc) * 0.3).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            encargos: `R$ ${((f.salario || custoMedioFunc) * 0.35).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            custoTotal: `R$ ${((f.salario || custoMedioFunc) * 1.65).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-          })) || [{
-            nome: "Dados estimados",
+          details: detailsBeneficios.length > 0 ? detailsBeneficios : [{
+            funcionario: "Nenhum funcionário cadastrado",
             departamento: "-",
-            cargo: "-",
-            salario: "-",
-            beneficiosEstimados: `R$ ${(custoMedioFunc * 0.3).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            encargos: "-",
-            custoTotal: "-",
+            beneficio: "-",
+            valor: "-",
+            status: "-",
           }],
           charts: [
             {
               type: "pie",
-              title: "Composição dos Custos",
-              description: "Distribuição dos custos entre folha, benefícios e encargos",
+              title: "Status dos Benefícios",
+              description: "Proporção entre benefícios ativos e inativos",
               data: [
-                { tipo: "Folha de Pagamento", valor: totalFolhaBen },
-                { tipo: "Benefícios", valor: custoTotalBeneficiosReal },
-                { tipo: "Encargos", valor: totalEncargosBen },
+                { status: "Ativos", valor: beneficiosAtivos },
+                ...(beneficiosInativos > 0 ? [{ status: "Inativos", valor: beneficiosInativos }] : []),
               ],
             },
             {
               type: "bar",
-              title: "Custo de Benefícios por Departamento",
-              description: "Custos reais de benefícios baseados nos salários por área",
-              dataName: "R$",
-              insight: "Os benefícios representam em média 30% do salário de cada funcionário.",
-              data: Object.entries(beneficiosPorDept).slice(0, 8).map(([dept, stats]) => ({
-                departamento: dept.length > 15 ? dept.substring(0, 15) + "..." : dept,
-                valor: stats.salarioTotal * 0.3,
-              })),
+              title: "Benefícios por Funcionário",
+              description: "Quantidade de benefícios ativos por colaborador",
+              dataName: "Benefícios",
+              insight: `Cada funcionário possui ${beneficiosAtivos} benefício(s) ativo(s).`,
+              data: funcionarios?.slice(0, 10).map(f => ({
+                funcionario: f.nome.length > 15 ? f.nome.substring(0, 15) + "..." : f.nome,
+                valor: beneficiosAtivos,
+              })) || [],
             },
           ],
         };
