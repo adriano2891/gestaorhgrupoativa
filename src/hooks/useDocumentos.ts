@@ -190,9 +190,11 @@ export const useUploadDocumento = () => {
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: signedData, error: signedError } = await supabase.storage
         .from("documentos")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 3600);
+      if (signedError) throw signedError;
+      const publicUrl = signedData.signedUrl;
 
       // Create document record
       const { data, error } = await supabase
@@ -408,9 +410,11 @@ export const useUploadVersao = () => {
       if (uploadError) throw uploadError;
 
       // Get public URL
-      const { data: { publicUrl } } = supabase.storage
+      const { data: signedData, error: signedError } = await supabase.storage
         .from("documentos")
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 3600);
+      if (signedError) throw signedError;
+      const publicUrl = signedData.signedUrl;
 
       // Create version record
       await supabase.from("documentos_versoes").insert({

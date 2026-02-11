@@ -193,11 +193,12 @@ const BancoTalentos = () => {
 
         if (uploadError) throw uploadError;
 
-        const { data: { publicUrl } } = supabase.storage
+        const { data: signedData, error: signedError } = await supabase.storage
           .from('resumes')
-          .getPublicUrl(fileName);
+          .createSignedUrl(fileName, 3600);
 
-        resumeUrl = publicUrl;
+        if (signedError) throw signedError;
+        resumeUrl = signedData.signedUrl;
       }
 
       // Processar habilidades

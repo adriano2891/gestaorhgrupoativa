@@ -396,11 +396,12 @@ export const AulaFormDialog = ({
         throw uploadError;
       }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("cursos").getPublicUrl(filePath);
+      const { data: signedData, error: signedError } = await supabase.storage
+        .from("cursos")
+        .createSignedUrl(filePath, 3600);
 
-      setFormData((prev) => ({ ...prev, video_url: publicUrl }));
+      if (signedError) throw signedError;
+      setFormData((prev) => ({ ...prev, video_url: signedData.signedUrl }));
       setUploadProgress(100);
       toast.success("Vídeo enviado com sucesso!");
     } catch (error: any) {
