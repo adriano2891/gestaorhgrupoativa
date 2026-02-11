@@ -1,9 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const GenerateFormSchema = z.object({
+  prompt: z.string().min(1).max(2000),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,14 +16,21 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt } = await req.json();
+    // Validate input
+    const rawBody = await req.json();
+    const parseResult = GenerateFormSchema.safeParse(rawBody);
+    if (!parseResult.success) {
+      return new Response(JSON.stringify({ error: 'Prompt inválido' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const { prompt } = parseResult.data;
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
-
-    console.log('Generating HR form for prompt:', prompt);
 
     const systemPrompt = `Você é um especialista em RH que cria formulários profissionais. 
 Baseado na descrição do usuário, gere um formulário estruturado em JSON.
@@ -72,43 +84,30 @@ Responda APENAS com o JSON, sem texto adicional.`;
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
+      console.error('AI gateway error:', response.status);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'Limite de requisições excedido. Tente novamente em alguns minutos.' }), {
-          status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      
       if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'Créditos insuficientes. Por favor, adicione créditos à sua conta.' }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        return new Response(JSON.stringify({ error: 'Créditos insuficientes.' }), {
+          status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      
-      throw new Error(`AI gateway error: ${response.status}`);
+      throw new Error('Erro ao gerar formulário');
     }
 
     const data = await response.json();
     const generatedContent = data.choices?.[0]?.message?.content;
-
     if (!generatedContent) {
       throw new Error('No content generated');
     }
 
-    console.log('Generated content:', generatedContent);
-
-    // Parse the JSON from the response
     let formData;
     try {
-      // Remove markdown code blocks if present
-      const cleanedContent = generatedContent
-        .replace(/```json\n?/g, '')
-        .replace(/```\n?/g, '')
-        .trim();
+      const cleanedContent = generatedContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
       formData = JSON.parse(cleanedContent);
     } catch (parseError) {
       console.error('Failed to parse generated JSON:', parseError);
@@ -121,11 +120,8 @@ Responda APENAS com o JSON, sem texto adicional.`;
 
   } catch (error) {
     console.error('Error in generate-hrflow-form:', error);
-    return new Response(JSON.stringify({ 
-      error: error instanceof Error ? error.message : 'Erro desconhecido' 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify({ error: 'Erro ao gerar formulário' }), {
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 });
