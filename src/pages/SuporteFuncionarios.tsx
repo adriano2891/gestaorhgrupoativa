@@ -49,7 +49,7 @@ const SuporteFuncionarios = () => {
   const replyFileRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
-  const { data: mensagens = [] } = useMensagensChamado(chamadoSelecionado?.id || null);
+  const { data: mensagens = [], isLoading: loadingMensagens } = useMensagensChamado(chamadoSelecionado?.id || null);
   const enviarMensagem = useEnviarMensagem();
   const atualizarStatus = useAtualizarStatusChamado();
 
@@ -154,29 +154,41 @@ const SuporteFuncionarios = () => {
               </div>
             </CardHeader>
             <CardContent>
+              {/* Assunto */}
+              <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+                <p className="text-xs font-semibold text-muted-foreground mb-1">Assunto</p>
+                <p className="text-sm">{chamadoSelecionado.assunto}</p>
+              </div>
+
               {/* Messages */}
               <div className="space-y-3 max-h-[50vh] overflow-y-auto mb-4 p-2">
-                {mensagens.map((msg) => {
-                  const isRH = msg.remetente_id !== chamadoSelecionado.user_id;
-                  return (
-                    <div key={msg.id} className={`flex ${isRH ? "justify-end" : "justify-start"}`}>
-                      <div className={`max-w-[75%] rounded-lg p-3 ${isRH ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                        <p className={`text-xs font-medium mb-1 ${isRH ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                          {msg.profiles?.nome || (isRH ? "RH" : "Funcionário")}
-                        </p>
-                        <p className="text-sm whitespace-pre-wrap">{msg.conteudo}</p>
-                        {msg.arquivo_url && (
-                          <a href={msg.arquivo_url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1 mt-2 text-xs underline ${isRH ? "text-primary-foreground/90" : "text-primary"}`}>
-                            <Download className="h-3 w-3" /> {msg.arquivo_nome || "Anexo.pdf"}
-                          </a>
-                        )}
-                        <p className={`text-[10px] mt-1 ${isRH ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
-                          {format(new Date(msg.created_at), "dd/MM HH:mm", { locale: ptBR })}
-                        </p>
+                {loadingMensagens ? (
+                  <p className="text-center text-muted-foreground text-sm py-4">Carregando mensagens...</p>
+                ) : mensagens.length === 0 ? (
+                  <p className="text-center text-muted-foreground text-sm py-4">Nenhuma mensagem encontrada.</p>
+                ) : (
+                  mensagens.map((msg) => {
+                    const isRH = msg.remetente_id !== chamadoSelecionado.user_id;
+                    return (
+                      <div key={msg.id} className={`flex ${isRH ? "justify-end" : "justify-start"}`}>
+                        <div className={`max-w-[75%] rounded-lg p-3 ${isRH ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
+                          <p className={`text-xs font-medium mb-1 ${isRH ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
+                            {msg.profiles?.nome || (isRH ? "RH" : "Funcionário")}
+                          </p>
+                          <p className="text-sm whitespace-pre-wrap">{msg.conteudo}</p>
+                          {msg.arquivo_url && (
+                            <a href={msg.arquivo_url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1 mt-2 text-xs underline ${isRH ? "text-primary-foreground/90" : "text-primary"}`}>
+                              <Download className="h-3 w-3" /> {msg.arquivo_nome || "Anexo.pdf"}
+                            </a>
+                          )}
+                          <p className={`text-[10px] mt-1 ${isRH ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
+                            {format(new Date(msg.created_at), "dd/MM HH:mm", { locale: ptBR })}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
                 <div ref={chatEndRef} />
               </div>
 
