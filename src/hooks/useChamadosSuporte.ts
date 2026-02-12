@@ -63,7 +63,8 @@ export const useTodosChamados = () => {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("chamados_suporte")
-        .select("*, profiles:user_id(nome, departamento, cargo)")
+        .select("*, profiles:user_id!inner(nome, departamento, cargo, status)")
+        .not("profiles.status", "in", '("demitido","pediu_demissao")')
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data || []) as ChamadoSuporte[];

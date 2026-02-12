@@ -21,6 +21,7 @@ export const useFuncionarios = () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
+        .not("status", "in", '("demitido","pediu_demissao")')
         .order("nome", { ascending: true });
 
       if (error) throw error;
@@ -36,6 +37,7 @@ export const useFuncionariosPorDepartamento = () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("departamento, id")
+        .not("status", "in", '("demitido","pediu_demissao")')
         .order("departamento", { ascending: true });
 
       if (error) throw error;
@@ -65,6 +67,7 @@ export const useFuncionariosPorCargo = () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("cargo, id")
+        .not("status", "in", '("demitido","pediu_demissao")')
         .order("cargo", { ascending: true });
 
       if (error) throw error;
