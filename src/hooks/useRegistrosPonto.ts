@@ -26,11 +26,13 @@ export const useRegistrosPonto = (startDate?: Date, endDate?: Date) => {
         .from("registros_ponto")
         .select(`
           *,
-          profiles:user_id (
+          profiles:user_id!inner (
             nome,
-            departamento
+            departamento,
+            status
           )
         `)
+        .not("profiles.status", "in", '("demitido","pediu_demissao")')
         .order("data", { ascending: false });
 
       if (startDate) {
@@ -61,10 +63,12 @@ export const useAbsenteismoPorDepartamento = (mes?: Date) => {
           user_id,
           data,
           entrada,
-          profiles:user_id (
-            departamento
+          profiles:user_id!inner (
+            departamento,
+            status
           )
         `)
+        .not("profiles.status", "in", '("demitido","pediu_demissao")')
         .gte("data", format(inicio, "yyyy-MM-dd"))
         .lte("data", format(fim, "yyyy-MM-dd"));
 

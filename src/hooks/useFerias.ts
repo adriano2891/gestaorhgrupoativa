@@ -52,12 +52,14 @@ export const useSolicitacoesFerias = (filters?: {
         .from("solicitacoes_ferias")
         .select(`
           *,
-          profiles!user_id (
+          profiles!user_id!inner (
             nome,
             cargo,
-            departamento
+            departamento,
+            status
           )
         `)
+        .not("profiles.status", "in", '("demitido","pediu_demissao")')
         .order("created_at", { ascending: false });
 
       if (filters?.status) {
