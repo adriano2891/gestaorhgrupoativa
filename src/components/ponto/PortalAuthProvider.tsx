@@ -7,6 +7,7 @@ interface Profile {
   nome: string;
   email: string;
   cpf: string | null;
+  telefone: string | null;
   departamento: string | null;
   cargo: string | null;
   data_nascimento: string | null;
