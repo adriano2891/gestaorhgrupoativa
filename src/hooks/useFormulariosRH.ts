@@ -88,9 +88,10 @@ export const useFormularioAtribuicoes = (formularioId: string | undefined) => {
         .from("formulario_atribuicoes")
         .select(`
           *,
-          profiles:user_id(nome, email)
+          profiles:user_id!inner(nome, email, status)
         `)
         .eq("formulario_id", formularioId)
+        .not("profiles.status", "in", '("demitido","pediu_demissao")')
         .order("created_at", { ascending: false });
 
       if (error) throw error;
