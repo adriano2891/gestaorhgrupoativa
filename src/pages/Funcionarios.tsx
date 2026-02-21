@@ -167,6 +167,7 @@ const Funcionarios = () => {
     password: "",
     salario: "",
     dataNascimento: "",
+    dataAdmissao: "",
     dependentes: [] as Dependente[],
     endereco: "",
     rg: "",
@@ -189,6 +190,7 @@ const Funcionarios = () => {
           salario,
           status,
           created_at,
+          data_admissao,
           user_roles!inner(role)
         `)
         .eq("user_roles.role", "funcionario");
@@ -212,7 +214,7 @@ const Funcionarios = () => {
         position: profile.cargo || "Não informado",
         department: profile.departamento || "Não informado",
         status: (profile.status || "ativo") as "ativo" | "afastado" | "demitido" | "em_ferias" | "pediu_demissao",
-        admissionDate: new Date(profile.created_at).toISOString().split('T')[0],
+        admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
       }));
 
       setEmployees(formattedEmployees);
@@ -520,6 +522,7 @@ const Funcionarios = () => {
       password: "",
       salario: "",
       dataNascimento: "",
+      dataAdmissao: "",
       dependentes: [],
       endereco: "",
       rg: "",
@@ -597,6 +600,7 @@ const Funcionarios = () => {
             status: newEmployee.status,
             salario: salarioNumero,
             data_nascimento: newEmployee.dataNascimento || null,
+            data_admissao: newEmployee.dataAdmissao || null,
             endereco: newEmployee.endereco || null,
             rg: newEmployee.rg || null,
             numero_pis: newEmployee.numero_pis || null,
@@ -628,6 +632,7 @@ const Funcionarios = () => {
         salario: "",
         password: "",
         dataNascimento: "",
+        dataAdmissao: "",
         dependentes: [],
         endereco: "",
         rg: "",
@@ -1088,15 +1093,27 @@ const Funcionarios = () => {
                 <p className="text-xs text-destructive">{validationErrors.department}</p>
               )}
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-dataNascimento" className="text-sm">Data de Nascimento</Label>
-              <Input
-                id="new-dataNascimento"
-                type="date"
-                value={newEmployee.dataNascimento}
-                onChange={(e) => updateNewEmployee('dataNascimento', e.target.value)}
-                className="h-9"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="new-dataNascimento" className="text-sm">Data de Nascimento</Label>
+                <Input
+                  id="new-dataNascimento"
+                  type="date"
+                  value={newEmployee.dataNascimento}
+                  onChange={(e) => updateNewEmployee('dataNascimento', e.target.value)}
+                  className="h-9"
+                />
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="new-dataAdmissao" className="text-sm">Data de Admissão</Label>
+                <Input
+                  id="new-dataAdmissao"
+                  type="date"
+                  value={newEmployee.dataAdmissao}
+                  onChange={(e) => updateNewEmployee('dataAdmissao', e.target.value)}
+                  className="h-9"
+                />
+              </div>
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="new-salary" className="text-sm">Salário</Label>
