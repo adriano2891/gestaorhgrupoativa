@@ -102,7 +102,11 @@ export const useMetricasFerias = () => {
     queryFn: async () => {
       const { data: solicitacoes, error } = await supabase
         .from("solicitacoes_ferias")
-        .select("status, data_inicio, data_fim");
+        .select(`
+          status, data_inicio, data_fim,
+          profiles!user_id!inner(status)
+        `)
+        .not("profiles.status", "in", '("demitido","pediu_demissao")');
 
       if (error) throw error;
 
@@ -119,10 +123,14 @@ export const useMetricasFerias = () => {
         (s) => s.status === "aprovado" && s.data_inicio > hoje
       ).length || 0;
 
-      // Buscar saldo médio
+      // Buscar saldo médio apenas de funcionários ativos
       const { data: periodos } = await supabase
         .from("periodos_aquisitivos")
-        .select("dias_disponiveis");
+        .select(`
+          dias_disponiveis,
+          profiles:user_id!inner(status)
+        `)
+        .not("profiles.status", "in", '("demitido","pediu_demissao")');
 
       const saldoMedio = periodos?.length
         ? Math.round(

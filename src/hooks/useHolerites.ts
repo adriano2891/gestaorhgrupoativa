@@ -20,17 +20,29 @@ export const useHolerites = (userId?: string) => {
   return useQuery({
     queryKey: ["holerites", userId || "all"],
     queryFn: async () => {
-      let query = supabase
-        .from("holerites")
-        .select("*")
-        .order("ano", { ascending: false })
-        .order("mes", { ascending: false });
-
       if (userId) {
-        query = query.eq("user_id", userId);
+        // Funcionário vendo seus próprios holerites
+        const { data, error } = await supabase
+          .from("holerites")
+          .select("*")
+          .eq("user_id", userId)
+          .order("ano", { ascending: false })
+          .order("mes", { ascending: false });
+
+        if (error) throw error;
+        return data as Holerite[];
       }
 
-      const { data, error } = await query;
+      // Admin: buscar apenas holerites de funcionários ativos cadastrados
+      const { data, error } = await supabase
+        .from("holerites")
+        .select(`
+          *,
+          profiles:user_id!inner(status)
+        `)
+        .not("profiles.status", "in", '("demitido","pediu_demissao")')
+        .order("ano", { ascending: false })
+        .order("mes", { ascending: false });
 
       if (error) {
         console.error("Erro ao buscar holerites:", error);
@@ -39,7 +51,6 @@ export const useHolerites = (userId?: string) => {
       
       return data as Holerite[];
     },
-    // Sempre habilitado - para admin busca todos, para funcionário busca os seus
     enabled: true,
   });
 };

@@ -308,8 +308,9 @@ export const useMatriculas = (cursoId?: string) => {
         .select(`
           *,
           curso:cursos(*),
-          profile:profiles(id, nome, email, departamento, cargo)
+          profile:profiles!inner(id, nome, email, departamento, cargo, status)
         `)
+        .not("profile.status", "in", '("demitido","pediu_demissao")')
         .order("created_at", { ascending: false });
 
       if (cursoId) {
