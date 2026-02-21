@@ -23,6 +23,7 @@ const CreateEmployeeSchema = z.object({
   status: z.enum(['ativo', 'afastado', 'demitido']).nullish(),
   salario: z.number().min(0).nullish(),
   data_nascimento: z.string().max(20).nullish(),
+  data_admissao: z.string().max(20).nullish(),
   dependentes: z.array(DependenteSchema).max(20).nullish(),
   endereco: z.string().max(500).nullish(),
   rg: z.string().max(30).nullish(),
@@ -82,7 +83,7 @@ Deno.serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
-    const { email, password, nome, cpf, telefone, cargo, departamento, status, salario, data_nascimento, dependentes, endereco, rg, numero_pis } = parseResult.data;
+    const { email, password, nome, cpf, telefone, cargo, departamento, status, salario, data_nascimento, data_admissao, dependentes, endereco, rg, numero_pis } = parseResult.data;
 
     const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email, password, email_confirm: true,
@@ -103,6 +104,7 @@ Deno.serve(async (req) => {
       cpf: cpf ?? null, telefone: telefone ?? null, cargo: cargo ?? null,
       departamento: departamento ?? null, status: status ?? 'ativo',
       salario: salario ?? null, data_nascimento: data_nascimento ?? null,
+      data_admissao: data_admissao ?? null,
       endereco: endereco ?? null, rg: rg ?? null, numero_pis: numero_pis ?? null,
     });
 
