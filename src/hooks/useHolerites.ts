@@ -34,13 +34,23 @@ export const useHolerites = (userId?: string) => {
       }
 
       // Admin: buscar apenas holerites de funcionários ativos cadastrados
+      // First get active employee IDs (holerites FK points to auth.users, not profiles)
+      const { data: activeEmployees } = await supabase
+        .from("profiles")
+        .select("id, user_roles!inner(role)")
+        .eq("user_roles.role", "funcionario")
+        .not("status", "in", '("demitido","pediu_demissao")');
+
+      const activeIds = activeEmployees?.map(e => e.id) || [];
+
+      if (activeIds.length === 0) {
+        return [] as Holerite[];
+      }
+
       const { data, error } = await supabase
         .from("holerites")
-        .select(`
-          *,
-          profiles:user_id!inner(status)
-        `)
-        .not("profiles.status", "in", '("demitido","pediu_demissao")')
+        .select("*")
+        .in("user_id", activeIds)
         .order("ano", { ascending: false })
         .order("mes", { ascending: false });
 

@@ -674,22 +674,28 @@ const Relatorios = () => {
               type: "pie",
               title: "Status das Matrículas",
               description: "Proporção de matrículas por status",
-              data: [
+              data: totalMatriculas > 0 ? [
                 { status: "Concluídos", valor: matriculasConcluidas.length || 0 },
                 { status: "Em Andamento", valor: matriculasEmAndamento.length || 0 },
                 { status: "Não Iniciados", valor: Math.max(totalMatriculas - matriculasConcluidas.length - matriculasEmAndamento.length, 0) },
-              ].filter(d => d.valor > 0),
+              ].filter(d => d.valor > 0) : [
+                { status: "Sem matrículas", valor: 1 },
+              ],
             },
             {
               type: "bar",
               title: "Matrículas por Departamento",
               description: "Quantidade de matrículas e conclusões por departamento",
               dataName: "Matrículas",
-              insight: `A taxa geral de conclusão é ${taxaConclusaoCursos}%. Departamentos com taxa abaixo da média precisam de atenção.`,
-              data: Object.entries(matriculasPorDept).slice(0, 8).map(([dept, stats]) => ({
-                departamento: dept.length > 15 ? dept.substring(0, 15) + "..." : dept,
-                valor: stats.total,
-              })),
+              insight: totalMatriculas > 0 
+                ? `A taxa geral de conclusão é ${taxaConclusaoCursos}%. Departamentos com taxa abaixo da média precisam de atenção.`
+                : "Nenhuma matrícula registrada ainda.",
+              data: Object.entries(matriculasPorDept).length > 0 
+                ? Object.entries(matriculasPorDept).slice(0, 8).map(([dept, stats]) => ({
+                    departamento: dept.length > 15 ? dept.substring(0, 15) + "..." : dept,
+                    valor: stats.total,
+                  }))
+                : [{ departamento: "Sem dados", valor: 0 }],
             },
             {
               type: "bar",
@@ -697,10 +703,12 @@ const Relatorios = () => {
               description: "Total de matrículas e conclusões em cada curso",
               dataName: "Alunos",
               insight: "Compare a taxa de conclusão entre os cursos para identificar conteúdos com maior engajamento.",
-              data: Object.values(matriculasPorCurso).slice(0, 8).map(c => ({
-                departamento: c.nome.length > 18 ? c.nome.substring(0, 18) + "..." : c.nome,
-                valor: c.total,
-              })),
+              data: Object.values(matriculasPorCurso).length > 0
+                ? Object.values(matriculasPorCurso).slice(0, 8).map(c => ({
+                    departamento: c.nome.length > 18 ? c.nome.substring(0, 18) + "..." : c.nome,
+                    valor: c.total,
+                  }))
+                : [{ departamento: "Sem dados", valor: 0 }],
             },
           ],
         };
