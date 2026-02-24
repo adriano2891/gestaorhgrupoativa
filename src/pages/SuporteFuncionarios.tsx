@@ -206,7 +206,7 @@ const SuporteFuncionarios = () => {
   return (
     <Layout>
       <div className="space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
-        <BackButton to="/gestao-rh" label="Voltar" />
+        <BackButton to="/gestao-rh" label="Voltar" variant="light" />
         <div className="flex items-center gap-3">
           <MessageCircle className="h-8 w-8 text-primary" />
           <div>
