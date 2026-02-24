@@ -10,6 +10,7 @@ import {
   MessageCircle, Search, ArrowLeft, Send, Paperclip, Download, Clock, 
   Filter, User, CheckCircle, Lock
 } from "lucide-react";
+import { BackButton } from "@/components/ui/back-button";
 import {
   useTodosChamados,
   useMensagensChamado,
@@ -205,6 +206,7 @@ const SuporteFuncionarios = () => {
   return (
     <Layout>
       <div className="space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
+        <BackButton to="/rh" label="Voltar" />
         <div className="flex items-center gap-3">
           <MessageCircle className="h-8 w-8 text-primary" />
           <div>
