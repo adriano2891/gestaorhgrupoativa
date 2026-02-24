@@ -11,6 +11,7 @@ interface Profile {
   departamento: string | null;
   cargo: string | null;
   data_nascimento: string | null;
+  foto_url: string | null;
 }
 
 interface PortalAuthContextType {

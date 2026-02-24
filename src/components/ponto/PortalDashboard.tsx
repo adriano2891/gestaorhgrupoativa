@@ -114,9 +114,9 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Avatar className="h-12 w-12 border-2 border-primary">
-                {(profile as any)?.foto_url && <AvatarImage src={(profile as any).foto_url} alt={profile?.nome || ""} />}
-                <AvatarFallback className="bg-primary text-primary-foreground">
+              <Avatar className="h-14 w-14 border-2 border-primary shadow-md">
+                {profile?.foto_url && <AvatarImage src={profile.foto_url} alt={`Foto de ${profile?.nome || "Funcionário"}`} />}
+                <AvatarFallback className="bg-primary text-primary-foreground text-lg">
                   {profile?.nome ? getInitials(profile.nome) : "FN"}
                 </AvatarFallback>
               </Avatar>
