@@ -19,6 +19,7 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [endereco, setEndereco] = useState("");
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const photoRef = useRef<HTMLInputElement>(null);
@@ -28,6 +29,7 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
       setNome(profile.nome || "");
       setEmail(profile.email || "");
       setTelefone(profile.telefone || "");
+      setEndereco((profile as any).endereco || "");
       // Fetch foto_url
       const fetchFoto = async () => {
         if (user) {
@@ -84,6 +86,7 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
           nome: nome.trim(),
           email: email.trim(),
           telefone: telefone.trim(),
+          endereco: endereco.trim(),
         })
         .eq("id", user.id);
 
@@ -199,8 +202,17 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
                       disabled
                       className="bg-muted"
                     />
-                  </div>
-                </div>
+                   </div>
+                 </div>
+                 <div>
+                   <Label htmlFor="endereco">Endereço</Label>
+                   <Input
+                     id="endereco"
+                     placeholder="Rua, número, bairro, cidade - UF"
+                     value={endereco}
+                     onChange={(e) => setEndereco(e.target.value)}
+                   />
+                 </div>
                 <Button className="w-full" onClick={handleSave} disabled={saving}>
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Salvar Alterações
