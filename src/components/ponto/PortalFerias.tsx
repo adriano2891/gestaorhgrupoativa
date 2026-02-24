@@ -167,32 +167,78 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
                   </div>
                   
                   <SolicitarFeriasDialog periodos={periodos || []} />
-                  
-                  {solicitacoes && solicitacoes.length > 0 && (
+
+                  {/* Solicitações Pendentes - destaque */}
+                  {solicitacoes && solicitacoes.filter(s => s.status === "pendente").length > 0 && (
                     <div className="mt-6">
-                      <h3 className="font-semibold mb-3">Minhas Solicitações</h3>
-                      <div className="space-y-2">
-                        {solicitacoes.map((sol) => (
-                          <div key={sol.id} className="p-3 border rounded-lg">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="font-medium">
-                                  {format(new Date(sol.data_inicio), "dd/MM/yyyy", { locale: ptBR })} - {format(new Date(sol.data_fim), "dd/MM/yyyy", { locale: ptBR })}
-                                </p>
-                                <p className="text-sm text-muted-foreground">
-                                  {sol.dias_solicitados} dias
-                                </p>
+                      <h3 className="font-semibold mb-3 text-amber-700">⏳ Aguardando Análise do RH</h3>
+                      <div className="space-y-3">
+                        {solicitacoes.filter(s => s.status === "pendente").map((sol) => (
+                          <Card key={sol.id} className="border-2 border-amber-300 bg-amber-50/80 shadow-md animate-in fade-in">
+                            <CardContent className="pt-4 pb-4">
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <p className="font-semibold text-amber-900">
+                                    {format(new Date(sol.data_inicio), "dd/MM/yyyy", { locale: ptBR })} - {format(new Date(sol.data_fim), "dd/MM/yyyy", { locale: ptBR })}
+                                  </p>
+                                  <p className="text-sm text-amber-700">
+                                    {sol.dias_solicitados} dias • {sol.tipo === "ferias" ? "Férias" : sol.tipo === "ferias_coletivas" ? "Férias Coletivas" : "Abono Pecuniário"}
+                                  </p>
+                                  {sol.observacao && (
+                                    <p className="text-xs text-amber-600 mt-1 italic">"{sol.observacao}"</p>
+                                  )}
+                                </div>
+                                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-200 text-amber-900 border border-amber-300">
+                                  Pendente
+                                </span>
                               </div>
-                              <span className={`text-xs px-2 py-1 rounded ${
-                                sol.status === "aprovado" ? "bg-green-100 text-green-800" :
-                                sol.status === "pendente" ? "bg-yellow-100 text-yellow-800" :
-                                sol.status === "reprovado" ? "bg-red-100 text-red-800" :
-                                "bg-gray-100 text-gray-800"
-                              }`}>
-                                {sol.status}
-                              </span>
-                            </div>
-                          </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Solicitações processadas */}
+                  {solicitacoes && solicitacoes.filter(s => s.status !== "pendente").length > 0 && (
+                    <div className="mt-6">
+                      <h3 className="font-semibold mb-3">Histórico de Solicitações</h3>
+                      <div className="space-y-2">
+                        {solicitacoes.filter(s => s.status !== "pendente").map((sol) => (
+                          <Card key={sol.id} className={`border ${
+                            sol.status === "aprovado" ? "border-green-300 bg-green-50/60" :
+                            sol.status === "reprovado" ? "border-red-300 bg-red-50/60" :
+                            "border-border"
+                          }`}>
+                            <CardContent className="pt-4 pb-4">
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <p className="font-medium">
+                                    {format(new Date(sol.data_inicio), "dd/MM/yyyy", { locale: ptBR })} - {format(new Date(sol.data_fim), "dd/MM/yyyy", { locale: ptBR })}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {sol.dias_solicitados} dias
+                                  </p>
+                                  {sol.motivo_reprovacao && (
+                                    <p className="text-xs text-red-600 mt-1">Motivo: {sol.motivo_reprovacao}</p>
+                                  )}
+                                </div>
+                                <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${
+                                  sol.status === "aprovado" ? "bg-green-200 text-green-900" :
+                                  sol.status === "reprovado" ? "bg-red-200 text-red-900" :
+                                  sol.status === "concluido" ? "bg-blue-200 text-blue-900" :
+                                  sol.status === "cancelado" ? "bg-gray-200 text-gray-900" :
+                                  "bg-gray-100 text-gray-800"
+                                }`}>
+                                  {sol.status === "aprovado" ? "✅ Aprovado" :
+                                   sol.status === "reprovado" ? "❌ Reprovado" :
+                                   sol.status === "concluido" ? "✔ Concluído" :
+                                   sol.status === "cancelado" ? "Cancelado" :
+                                   sol.status}
+                                </span>
+                              </div>
+                            </CardContent>
+                          </Card>
                         ))}
                       </div>
                     </div>
