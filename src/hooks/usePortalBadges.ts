@@ -1,7 +1,23 @@
-import { useMemo, useEffect } from "react";
+import { useMemo, useEffect, useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/components/ponto/PortalAuthProvider";
+
+const VIEWED_KEY_PREFIX = "portal-badge-viewed-";
+
+function getLastViewed(section: string, userId: string): string | null {
+  try {
+    return localStorage.getItem(`${VIEWED_KEY_PREFIX}${section}-${userId}`);
+  } catch {
+    return null;
+  }
+}
+
+function setLastViewed(section: string, userId: string) {
+  try {
+    localStorage.setItem(`${VIEWED_KEY_PREFIX}${section}-${userId}`, new Date().toISOString());
+  } catch {}
+}
 
 export function usePortalBadges() {
   const { user } = usePortalAuth();
@@ -33,6 +49,7 @@ export function usePortalBadges() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [user, queryClient]);
+
   // Comunicados não lidos
   const { data: comunicadosNaoLidos = 0 } = useQuery({
     queryKey: ["portal-badge-comunicados", user?.id],
@@ -43,11 +60,18 @@ export function usePortalBadges() {
         .eq("user_id", user!.id);
       const lidosIds = (lidos || []).map((r: any) => r.comunicado_id);
 
-      const { data: comunicados } = await (supabase as any)
+      let query = (supabase as any)
         .from("comunicados")
-        .select("id")
+        .select("id, created_at")
         .eq("ativo", true);
-      
+
+      const lastViewed = getLastViewed("comunicados", user!.id);
+      if (lastViewed) {
+        query = query.gt("created_at", lastViewed);
+      }
+
+      const { data: comunicados } = await query;
+
       const naoLidos = (comunicados || []).filter(
         (c: any) => !lidosIds.includes(c.id)
       );
@@ -57,11 +81,10 @@ export function usePortalBadges() {
     refetchInterval: 30000,
   });
 
-  // Chamados com respostas não lidas (mensagens do RH que o funcionário ainda não viu)
+  // Chamados com respostas não lidas
   const { data: suporteNaoLido = 0 } = useQuery({
     queryKey: ["portal-badge-suporte", user?.id],
     queryFn: async () => {
-      // Buscar chamados do funcionário
       const { data: chamados } = await (supabase as any)
         .from("chamados_suporte")
         .select("id, updated_at")
@@ -70,9 +93,10 @@ export function usePortalBadges() {
 
       if (!chamados || chamados.length === 0) return 0;
 
+      const lastViewed = getLastViewed("suporte", user!.id);
+
       let count = 0;
       for (const chamado of chamados) {
-        // Buscar última mensagem do chamado que NÃO é do funcionário
         const { data: msgs } = await (supabase as any)
           .from("mensagens_chamado")
           .select("id, remetente_id, created_at")
@@ -82,7 +106,11 @@ export function usePortalBadges() {
           .limit(1);
 
         if (msgs && msgs.length > 0) {
-          // Buscar última mensagem do funcionário
+          // If user viewed suporte after this message, skip
+          if (lastViewed && new Date(msgs[0].created_at) <= new Date(lastViewed)) {
+            continue;
+          }
+
           const { data: myMsgs } = await (supabase as any)
             .from("mensagens_chamado")
             .select("created_at")
@@ -91,7 +119,6 @@ export function usePortalBadges() {
             .order("created_at", { ascending: false })
             .limit(1);
 
-          // Se a última msg do RH é mais recente que a última do funcionário, há resposta não lida
           if (!myMsgs || myMsgs.length === 0 || new Date(msgs[0].created_at) > new Date(myMsgs[0].created_at)) {
             count++;
           }
@@ -103,7 +130,7 @@ export function usePortalBadges() {
     refetchInterval: 30000,
   });
 
-  // Notificações não lidas (do sistema de notificações)
+  // Notificações não lidas
   const { data: notificacoesNaoLidas = 0 } = useQuery({
     queryKey: ["portal-badge-notificacoes", user?.id],
     queryFn: async () => {
@@ -125,17 +152,23 @@ export function usePortalBadges() {
     refetchInterval: 30000,
   });
 
-  // Holerites novos (últimos 30 dias não visualizados)
+  // Holerites novos (desde última visualização)
   const { data: holeritesNovos = 0 } = useQuery({
     queryKey: ["portal-badge-holerites", user?.id],
     queryFn: async () => {
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const lastViewed = getLastViewed("holerite", user!.id);
+      // If never viewed, show last 30 days; otherwise show since last view
+      const since = lastViewed || (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 30);
+        return d.toISOString();
+      })();
+
       const { data, error } = await (supabase as any)
         .from("holerites")
         .select("id")
         .eq("user_id", user!.id)
-        .gte("created_at", thirtyDaysAgo.toISOString());
+        .gt("created_at", since);
       if (error) return 0;
       return (data || []).length;
     },
@@ -143,22 +176,47 @@ export function usePortalBadges() {
     refetchInterval: 60000,
   });
 
-  // Férias com status atualizado (aprovadas/reprovadas recentemente)
+  // Férias com status atualizado
   const { data: feriasAtualizadas = 0 } = useQuery({
     queryKey: ["portal-badge-ferias", user?.id],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      const lastViewed = getLastViewed("ferias", user!.id);
+
+      let query = (supabase as any)
         .from("solicitacoes_ferias")
         .select("id")
         .eq("user_id", user!.id)
-        .in("status", ["aprovada", "reprovada"])
-        .is("notificado_em", null);
+        .in("status", ["aprovada", "reprovada"]);
+
+      if (lastViewed) {
+        query = query.gt("updated_at", lastViewed);
+      } else {
+        query = query.is("notificado_em", null);
+      }
+
+      const { data, error } = await query;
       if (error) return 0;
       return (data || []).length;
     },
     enabled: !!user,
     refetchInterval: 30000,
   });
+
+  const markSectionViewed = useCallback((section: string) => {
+    if (!user) return;
+    setLastViewed(section, user.id);
+    // Invalidate the relevant query so badge updates immediately
+    const keyMap: Record<string, string> = {
+      comunicados: "portal-badge-comunicados",
+      suporte: "portal-badge-suporte",
+      holerite: "portal-badge-holerites",
+      ferias: "portal-badge-ferias",
+    };
+    const qk = keyMap[section];
+    if (qk) {
+      queryClient.invalidateQueries({ queryKey: [qk, user.id] });
+    }
+  }, [user, queryClient]);
 
   const badges = useMemo(() => ({
     comunicados: comunicadosNaoLidos,
@@ -167,5 +225,5 @@ export function usePortalBadges() {
     ferias: feriasAtualizadas,
   }), [comunicadosNaoLidos, suporteNaoLido, holeritesNovos, feriasAtualizadas]);
 
-  return badges;
+  return { badges, markSectionViewed };
 }
