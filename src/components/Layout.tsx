@@ -132,7 +132,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex items-center gap-1 lg:gap-2 px-2 lg:px-4 py-3 lg:py-4 text-xs lg:text-sm font-medium transition-all whitespace-nowrap border-b-2 ${
+                  className={`flex items-center gap-1 lg:gap-1.5 px-1.5 lg:px-3 py-3 lg:py-4 text-xs lg:text-sm font-medium transition-all whitespace-nowrap border-b-2 ${
                     isActive
                       ? "text-primary-foreground border-primary-foreground"
                       : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:border-primary-foreground/30"
