@@ -33,7 +33,7 @@ const allModules: ModuleItem[] = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { signOut, roles } = useAuth();
+  const { signOut, roles, loading } = useAuth();
   const isMobile = useIsMobile();
 
   // Redirecionar funcionários para o portal
@@ -42,6 +42,21 @@ const Dashboard = () => {
       navigate("/portal-funcionario", { replace: true });
     }
   }, [roles, navigate]);
+
+  // Show loading while roles are being fetched
+  if (loading) {
+    return (
+      <div 
+        className="min-h-screen flex items-center justify-center"
+        style={{ backgroundColor: '#40E0D0' }}
+      >
+        <div className="flex flex-col items-center gap-4">
+          <img src={logoAtiva} alt="Logo Grupo Ativa" className="w-32 h-auto opacity-80 animate-pulse" />
+          <p className="text-white/80 text-sm">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
 
   // Filter modules based on user roles
   const modules = allModules.filter((m) => {
