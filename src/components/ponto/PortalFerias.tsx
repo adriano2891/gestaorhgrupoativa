@@ -73,35 +73,41 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
   const { data: periodos, isLoading } = useQuery({
     queryKey: ["periodos-aquisitivos-portal", user?.id],
     queryFn: async () => {
-      if (!user?.id) throw new Error("User ID is required");
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || user?.id;
+      if (!userId) throw new Error("User ID is required");
 
       const { data, error } = await supabase
         .from("periodos_aquisitivos")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("data_inicio", { ascending: false });
 
       if (error) throw error;
       return data;
     },
     enabled: !!user?.id,
+    refetchOnWindowFocus: true,
   });
 
   const { data: solicitacoes, isLoading: loadingSolicitacoes } = useQuery({
     queryKey: ["solicitacoes-ferias-portal", user?.id],
     queryFn: async () => {
-      if (!user?.id) throw new Error("User ID is required");
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || user?.id;
+      if (!userId) throw new Error("User ID is required");
 
       const { data, error } = await supabase
         .from("solicitacoes_ferias")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
       return data;
     },
     enabled: !!user?.id,
+    refetchOnWindowFocus: true,
   });
 
   const periodoAtual = periodos?.[0];

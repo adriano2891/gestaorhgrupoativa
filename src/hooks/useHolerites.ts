@@ -21,11 +21,14 @@ export const useHolerites = (userId?: string) => {
     queryKey: ["holerites", userId || "all"],
     queryFn: async () => {
       if (userId) {
-        // Funcionário vendo seus próprios holerites
+        // Use active session to ensure RLS works correctly
+        const { data: { session } } = await supabase.auth.getSession();
+        const activeUserId = session?.user?.id || userId;
+        
         const { data, error } = await supabase
           .from("holerites")
           .select("*")
-          .eq("user_id", userId)
+          .eq("user_id", activeUserId)
           .order("ano", { ascending: false })
           .order("mes", { ascending: false });
 

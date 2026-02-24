@@ -17,24 +17,28 @@ export const PainelPonto = () => {
   const [loading, setLoading] = useState(true);
 
   const loadRegistroHoje = async () => {
-    if (!profile?.id) return;
-
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || profile?.id;
+      if (!userId) {
+        setLoading(false);
+        return;
+      }
+
       const hoje = new Date().toISOString().split('T')[0];
       
       const { data, error } = await (supabase as any)
         .from("registros_ponto")
         .select("*")
-        .eq("user_id", profile.id)
+        .eq("user_id", userId)
         .eq("data", hoje)
         .single();
 
       if (error && error.code !== 'PGRST116') {
         console.error("Erro ao carregar registro:", error);
-        return;
       }
 
-      setRegistroHoje(data);
+      setRegistroHoje(data || null);
     } catch (error) {
       console.error("Erro ao carregar registro do dia:", error);
     } finally {

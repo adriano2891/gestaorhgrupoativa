@@ -23,10 +23,15 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
   const [loading, setLoading] = useState<string | null>(null);
 
   const registrarPonto = async (campo: string, label: string) => {
-    if (!profile?.id) return;
-
     setLoading(campo);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id || profile?.id;
+      if (!userId) {
+        toast.error("Sessão expirada. Faça login novamente.");
+        setLoading(null);
+        return;
+      }
       const agora = new Date().toISOString();
       const hoje = new Date().toISOString().split('T')[0];
 
@@ -35,7 +40,7 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
         const { error } = await (supabase as any)
           .from("registros_ponto")
           .insert({
-            user_id: profile.id,
+            user_id: userId,
             data: hoje,
             [campo]: agora,
           });
