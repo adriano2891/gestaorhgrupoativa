@@ -676,7 +676,7 @@ const Funcionarios = () => {
   };
 
   return (
-    <Layout>
+    
     <div className="space-y-4 sm:space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
       <BackButton to="/gestao-rh" variant="light" />
       
@@ -1381,7 +1381,7 @@ const Funcionarios = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-    </Layout>
+    
   );
 };
 
