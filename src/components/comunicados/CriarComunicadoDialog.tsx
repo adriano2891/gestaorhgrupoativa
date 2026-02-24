@@ -59,7 +59,9 @@ export const CriarComunicadoDialog = ({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, nome, email, departamento")
+        .select("id, nome, email, departamento, user_roles!inner(role)")
+        .eq("user_roles.role", "funcionario")
+        .not("status", "in", '("demitido","pediu_demissao")')
         .order("nome", { ascending: true });
 
       if (error) throw error;
