@@ -58,14 +58,6 @@ export const HoleriteCard = ({
         </div>
       </CardHeader>
       <CardContent>
-        {hasPayslip && (
-          <div className="mb-3 text-sm text-muted-foreground flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            <span>
-              Líquido: <strong className="text-foreground">R$ {holerite.salario_liquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
-            </span>
-          </div>
-        )}
         <div className="flex gap-2">
           {hasPayslip ? (
             <>
