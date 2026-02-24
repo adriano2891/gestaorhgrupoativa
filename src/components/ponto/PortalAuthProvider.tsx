@@ -33,19 +33,46 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const checkPortalSession = async () => {
       try {
-        // First check if there's an active Supabase session
         const { data: { session } } = await supabase.auth.getSession();
-        
+        const portalRaw = localStorage.getItem('portal_session');
+        const portalData = portalRaw ? JSON.parse(portalRaw) : null;
+
         if (session?.user) {
-          // Supabase session is alive — use it
-          await loadUserData(session.user.id);
-          // Ensure localStorage is in sync
-          localStorage.setItem('portal_session', JSON.stringify({
-            user_id: session.user.id,
-            timestamp: new Date().toISOString()
-          }));
+          // If portal session exists and differs from Supabase session,
+          // the admin logged in on another tab — need to re-authenticate employee
+          if (portalData?.user_id && portalData.user_id !== session.user.id && portalData.email) {
+            console.log("Sessão do portal difere da sessão ativa. Re-autenticando funcionário...");
+            // Try to re-authenticate the portal employee
+            try {
+              const { data: reauth, error: reauthError } = await supabase.auth.signInWithPassword({
+                email: portalData.email,
+                password: portalData.tempKey || '',
+              });
+              // If re-auth fails, just use current session
+              if (reauthError || !reauth?.user) {
+                await loadUserData(session.user.id);
+                localStorage.setItem('portal_session', JSON.stringify({
+                  user_id: session.user.id,
+                  timestamp: new Date().toISOString()
+                }));
+              } else {
+                await loadUserData(reauth.user.id);
+              }
+            } catch {
+              await loadUserData(session.user.id);
+              localStorage.setItem('portal_session', JSON.stringify({
+                user_id: session.user.id,
+                timestamp: new Date().toISOString()
+              }));
+            }
+          } else {
+            await loadUserData(session.user.id);
+            localStorage.setItem('portal_session', JSON.stringify({
+              user_id: session.user.id,
+              timestamp: new Date().toISOString()
+            }));
+          }
         } else {
-          // No Supabase session — clear stale portal session
           localStorage.removeItem('portal_session');
         }
       } catch (error) {
@@ -57,6 +84,29 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
     };
 
     checkPortalSession();
+
+    // Listen for auth state changes to detect session switches
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const portalRaw = localStorage.getItem('portal_session');
+        const portalData = portalRaw ? JSON.parse(portalRaw) : null;
+        
+        // If the new session matches our portal user, update data
+        if (portalData?.user_id === session.user.id) {
+          await loadUserData(session.user.id);
+        }
+        // If session changed to a different user (admin logged in), 
+        // keep the current portal state but note the mismatch
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setProfile(null);
+        localStorage.removeItem('portal_session');
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const loadUserData = async (userId: string) => {
@@ -121,9 +171,10 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
       if (data.user) {
         await loadUserData(data.user.id);
         
-        // Salvar sessão do portal separadamente
+        // Salvar sessão do portal com email para recuperação de sessão
         localStorage.setItem('portal_session', JSON.stringify({
           user_id: data.user.id,
+          email: userEmail,
           timestamp: new Date().toISOString()
         }));
       }

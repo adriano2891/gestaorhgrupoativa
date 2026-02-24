@@ -30,29 +30,23 @@ export const useMeusChamados = () => {
     queryKey: ["meus-chamados"],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user;
-      if (!user) {
-        // Try portal session
-        const portalSession = localStorage.getItem("portal_session");
-        if (!portalSession) return [] as ChamadoSuporte[];
-        const { user_id } = JSON.parse(portalSession);
-        const { data, error } = await (supabase as any)
-          .from("chamados_suporte")
-          .select("*")
-          .eq("user_id", user_id)
-          .order("created_at", { ascending: false });
-        if (error) throw error;
-        return (data || []) as ChamadoSuporte[];
+      if (!session?.user) {
+        console.warn("useMeusChamados: Nenhuma sessão ativa encontrada");
+        return [] as ChamadoSuporte[];
       }
+      
+      // Always use auth session user_id to match RLS policy (auth.uid() = user_id)
+      const userId = session.user.id;
       const { data, error } = await (supabase as any)
         .from("chamados_suporte")
         .select("*")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return (data || []) as ChamadoSuporte[];
     },
     retry: 2,
+    refetchOnWindowFocus: true,
   });
 };
 
