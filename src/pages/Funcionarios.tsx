@@ -156,6 +156,7 @@ const Funcionarios = () => {
   const [editPassword, setEditPassword] = useState("");
   const [editSalary, setEditSalary] = useState("");
   const [editCpf, setEditCpf] = useState("");
+  const [editEndereco, setEditEndereco] = useState("");
   const [editAdmissionDate, setEditAdmissionDate] = useState("");
   
   const [newEmployee, setNewEmployee] = useState({
@@ -413,12 +414,13 @@ const Funcionarios = () => {
       // Buscar dados completos do banco
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("cpf, salario")
+        .select("cpf, salario, endereco")
         .eq("id", employeeId)
         .maybeSingle();
       
       if (profileData) {
         setEditCpf(profileData.cpf || "");
+        setEditEndereco((profileData as any).endereco || "");
         // Formatar salário no padrão brasileiro
         if (profileData.salario) {
           const salarioFormatado = parseFloat(profileData.salario.toString()).toLocaleString('pt-BR', {
@@ -504,6 +506,7 @@ const Funcionarios = () => {
           cargo: editingEmployee.position,
           departamento: editingEmployee.department,
           status: editingEmployee.status,
+          endereco: editEndereco.trim() || null,
         };
 
         // Converter salário formatado para número
@@ -1103,6 +1106,17 @@ const Funcionarios = () => {
                 </div>
               </div>
               
+              <div className="space-y-1.5">
+                <Label htmlFor="endereco" className="text-sm">Endereço</Label>
+                <Input
+                  id="endereco"
+                  value={editEndereco}
+                  onChange={(e) => setEditEndereco(e.target.value)}
+                  placeholder="Rua, número, bairro, cidade - UF"
+                  className="h-9"
+                />
+              </div>
+
               <div className="space-y-1.5">
                 <Label htmlFor="admissionDate" className="text-sm">Data de Admissão</Label>
                 <Input
