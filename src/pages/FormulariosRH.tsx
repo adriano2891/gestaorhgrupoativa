@@ -12,6 +12,7 @@ import { CriarFormularioDialog } from "@/components/formularios/CriarFormularioD
 import { UploadFormularioDialog } from "@/components/formularios/UploadFormularioDialog";
 import { CATEGORY_LABELS, STATUS_LABELS, type FormCategory, type FormStatus } from "@/types/formularios";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Layout } from "@/components/Layout";
 
 const FormulariosRH = () => {
   const navigate = useNavigate();
@@ -35,34 +36,30 @@ const FormulariosRH = () => {
   const formulariosList = filteredFormularios?.filter(f => !f.is_template);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
-      {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <BackButton to="/gestao-rh" />
-              <div>
-                <h1 className="text-2xl font-bold text-foreground">Formulários de RH</h1>
-                <p className="text-sm text-muted-foreground">Gerencie formulários de gestão de pessoas</p>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
-                <Upload className="h-4 w-4 mr-2" />
-                Upload Externo
-              </Button>
-              <Button onClick={() => setShowCriarDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Novo Formulário
-              </Button>
+    <Layout>
+      <div className="space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <BackButton to="/gestao-rh" />
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">Formulários de RH</h1>
+              <p className="text-sm text-muted-foreground">Gerencie formulários de gestão de pessoas</p>
             </div>
           </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Upload Externo
+            </Button>
+            <Button onClick={() => setShowCriarDialog(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Novo Formulário
+            </Button>
+          </div>
         </div>
-      </header>
 
-      {/* Filters */}
-      <div className="container mx-auto px-4 py-6">
+        {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -155,12 +152,12 @@ const FormulariosRH = () => {
             )}
           </TabsContent>
         </Tabs>
-      </div>
 
-      {/* Dialogs */}
-      <CriarFormularioDialog open={showCriarDialog} onOpenChange={setShowCriarDialog} />
-      <UploadFormularioDialog open={showUploadDialog} onOpenChange={setShowUploadDialog} />
-    </div>
+        {/* Dialogs */}
+        <CriarFormularioDialog open={showCriarDialog} onOpenChange={setShowCriarDialog} />
+        <UploadFormularioDialog open={showUploadDialog} onOpenChange={setShowUploadDialog} />
+      </div>
+    </Layout>
   );
 };
 
