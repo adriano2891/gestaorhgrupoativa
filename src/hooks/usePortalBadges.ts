@@ -1,11 +1,38 @@
-import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMemo, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "@/components/ponto/PortalAuthProvider";
 
 export function usePortalBadges() {
   const { user } = usePortalAuth();
+  const queryClient = useQueryClient();
 
+  // Realtime: refresh badges immediately when relevant tables change
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("portal-badges-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "mensagens_chamado" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["portal-badge-suporte", user.id] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "comunicados" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["portal-badge-comunicados", user.id] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "comunicados_lidos" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["portal-badge-comunicados", user.id] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "holerites" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["portal-badge-holerites", user.id] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "solicitacoes_ferias" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["portal-badge-ferias", user.id] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "notificacoes" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["portal-badge-notificacoes", user.id] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, queryClient]);
   // Comunicados não lidos
   const { data: comunicadosNaoLidos = 0 } = useQuery({
     queryKey: ["portal-badge-comunicados", user?.id],
