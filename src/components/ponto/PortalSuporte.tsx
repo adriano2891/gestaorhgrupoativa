@@ -256,18 +256,23 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
 
         <main className="container mx-auto px-4 py-4 flex flex-col" style={{ height: "calc(100vh - 160px)" }}>
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto space-y-3 mb-4">
-          {mensagens.map((msg) => {
+          <div className="flex-1 overflow-y-auto space-y-4 mb-4 px-2">
+            {mensagens.length === 0 && (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground text-sm">Nenhuma mensagem ainda. Envie a primeira!</p>
+              </div>
+            )}
+            {mensagens.map((msg) => {
               const isMe = msg.remetente_id === user?.id;
               return (
                 <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[75%] rounded-2xl p-3 shadow-md ${
+                  <div className={`max-w-[75%] rounded-2xl p-3.5 shadow-md ${
                     isMe 
                       ? "bg-primary text-primary-foreground rounded-br-sm" 
-                      : "bg-card border-l-4 border-l-muted-foreground/40 border border-border text-foreground rounded-bl-sm"
+                      : "bg-card border-l-4 border-l-amber-500 border border-border text-foreground rounded-bl-sm"
                   }`}>
-                    <p className={`text-[11px] font-bold mb-1 ${
-                      isMe ? "text-primary-foreground/90" : "text-muted-foreground"
+                    <p className={`text-[11px] font-bold mb-1.5 ${
+                      isMe ? "text-primary-foreground/80" : "text-amber-600 dark:text-amber-400"
                     }`}>
                       {isMe ? "👤 Você" : `🛡️ ${msg.profiles?.nome || "RH / Admin"}`}
                     </p>
@@ -278,9 +283,9 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
                       <button
                         onClick={async (e) => {
                           e.preventDefault();
-                          const path = msg.arquivo_url.replace(/^.*\/chamados-anexos\//, '').split('?')[0];
+                          const path = msg.arquivo_url!.replace(/^.*\/chamados-anexos\//, '').split('?')[0];
                           const { data, error } = await supabase.storage.from("chamados-anexos").createSignedUrl(path, 3600);
-                          if (error || !data?.signedUrl) { return; }
+                          if (error || !data?.signedUrl) return;
                           window.open(data.signedUrl, "_blank");
                         }}
                         className={`flex items-center gap-1 mt-2 text-xs underline cursor-pointer ${isMe ? "text-primary-foreground/90" : "text-primary"}`}
@@ -288,7 +293,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
                         <Download className="h-3 w-3" /> {msg.arquivo_nome || "Anexo"}
                       </button>
                     )}
-                    <p className={`text-[10px] mt-1.5 ${isMe ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
+                    <p className={`text-[10px] mt-1.5 text-right ${isMe ? "text-primary-foreground/50" : "text-muted-foreground"}`}>
                       {format(new Date(msg.created_at), "dd/MM HH:mm", { locale: ptBR })}
                     </p>
                   </div>
