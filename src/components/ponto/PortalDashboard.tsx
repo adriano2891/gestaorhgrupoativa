@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { LogOut, Clock, FileText, Calendar, Bell, User, Gift, GraduationCap, MessageCircle } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { toast } from "sonner";
@@ -115,6 +115,7 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Avatar className="h-12 w-12 border-2 border-primary">
+                {(profile as any)?.foto_url && <AvatarImage src={(profile as any).foto_url} alt={profile?.nome || ""} />}
                 <AvatarFallback className="bg-primary text-primary-foreground">
                   {profile?.nome ? getInitials(profile.nome) : "FN"}
                 </AvatarFallback>
