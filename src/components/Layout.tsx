@@ -124,7 +124,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Desktop Navigation */}
       <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[49px] sm:top-[53px] md:top-[65px] z-40 hidden md:block">
-        <div className="container mx-auto px-4 md:px-6">
+        <div className="w-full px-4 md:px-6">
           <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pr-2">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
