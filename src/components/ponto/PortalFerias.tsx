@@ -47,6 +47,18 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
           queryClient.invalidateQueries({ queryKey: ["periodos-aquisitivos-portal", user.id] });
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'periodos_aquisitivos',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["periodos-aquisitivos-portal", user.id] });
+        }
+      )
       .subscribe();
 
     return () => {
