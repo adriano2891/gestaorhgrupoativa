@@ -38,7 +38,8 @@ const GestaoRH = () => {
   useMetricasRealtime();
   useFuncionariosRealtime();
   useComunicadosRealtime();
-  const isAdmin = roles.includes("admin") || roles.includes("rh") || roles.includes("gestor");
+  const isSuperAdmin = roles.includes("admin");
+  const isAdmin = isSuperAdmin || roles.includes("rh") || roles.includes("gestor");
 
   // Trigger entry animation on mount
   useEffect(() => {
@@ -61,7 +62,7 @@ const GestaoRH = () => {
     { title: "Suporte", description: "Chamados dos funcionários", iconSrc: iconComunicados, path: "/suporte-funcionarios", scaleIcon: true },
   ];
 
-  if (isAdmin) {
+  if (isSuperAdmin) {
     modules.push({ title: "Gerenciar Admins", description: "Controle de administradores", iconSrc: iconAdmins, path: "/admins", scaleIcon: true });
   }
 

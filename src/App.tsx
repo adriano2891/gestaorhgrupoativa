@@ -153,7 +153,7 @@ const App = () => {
               <Route
                 path="/admins"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <Layout>
                       <GerenciarAdmins />
                     </Layout>
@@ -184,7 +184,7 @@ const App = () => {
               <Route
                 path="/gestao-clientes"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <GestaoClientes />
                   </ProtectedRoute>
                 }
@@ -193,7 +193,7 @@ const App = () => {
               <Route
                 path="/orcamentos"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <OrcamentosDashboard />
                   </ProtectedRoute>
                 }
@@ -201,7 +201,7 @@ const App = () => {
               <Route
                 path="/orcamentos/lista"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <OrcamentosLista />
                   </ProtectedRoute>
                 }
@@ -209,7 +209,7 @@ const App = () => {
               <Route
                 path="/orcamentos/novo"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <OrcamentosBuilder />
                   </ProtectedRoute>
                 }
@@ -217,7 +217,7 @@ const App = () => {
               <Route
                 path="/orcamentos/:id"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <OrcamentosDetail />
                   </ProtectedRoute>
                 }
@@ -225,7 +225,7 @@ const App = () => {
               <Route
                 path="/orcamentos/:id/editar"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <OrcamentosBuilder />
                   </ProtectedRoute>
                 }
@@ -233,7 +233,7 @@ const App = () => {
               <Route
                 path="/orcamentos/itens"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <ItensOrcamento />
                   </ProtectedRoute>
                 }
@@ -241,7 +241,7 @@ const App = () => {
               <Route
                 path="/orcamentos/clientes/novo"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <OrcamentosClienteForm />
                   </ProtectedRoute>
                 }
@@ -250,7 +250,7 @@ const App = () => {
               <Route
                 path="/fornecedores"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <Fornecedores />
                   </ProtectedRoute>
                 }
@@ -258,7 +258,7 @@ const App = () => {
               <Route
                 path="/fornecedores/novo"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <FornecedorForm />
                   </ProtectedRoute>
                 }
@@ -266,7 +266,7 @@ const App = () => {
               <Route
                 path="/fornecedores/:id"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <FornecedorDetalhes />
                   </ProtectedRoute>
                 }
@@ -274,7 +274,7 @@ const App = () => {
               <Route
                 path="/fornecedores/:id/editar"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <FornecedorForm />
                   </ProtectedRoute>
                 }
@@ -283,7 +283,7 @@ const App = () => {
               <Route
                 path="/inventario"
                 element={
-                  <ProtectedRoute>
+                  <ProtectedRoute requiredRoles={["admin"]}>
                     <InventarioEquipamentos />
                   </ProtectedRoute>
                 }

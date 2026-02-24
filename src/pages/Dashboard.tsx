@@ -17,22 +17,29 @@ interface ModuleItem {
   label: string;
   route?: string;
   disabled?: boolean;
+  allowedRoles?: string[]; // roles that can see this module
 }
 
-const modules: ModuleItem[] = [
-  { id: 'rh', icon: iconHr, label: 'Gestão RH', route: '/gestao-rh' },
-  { id: 'clients', icon: iconClients, label: 'Gestão de Controle de Clientes', route: '/gestao-clientes' },
-  { id: 'suppliers', icon: iconSuppliers, label: 'Fornecedores', route: '/fornecedores' },
-  { id: 'budget', icon: iconBudget, label: 'Orçamentos', route: '/orcamentos' },
-  { id: 'inventario', icon: iconInventario, label: 'Inventário de Equipamentos', route: '/inventario' },
-  { id: 'documentacoes', icon: iconDocumentacoes, label: 'Documentações', route: '/documentacoes' },
-  { id: 'soon', icon: iconEmBreve, label: 'Em Breve', disabled: true },
+const allModules: ModuleItem[] = [
+  { id: 'rh', icon: iconHr, label: 'Gestão RH', route: '/gestao-rh', allowedRoles: ['admin', 'rh', 'gestor'] },
+  { id: 'clients', icon: iconClients, label: 'Gestão de Controle de Clientes', route: '/gestao-clientes', allowedRoles: ['admin'] },
+  { id: 'suppliers', icon: iconSuppliers, label: 'Fornecedores', route: '/fornecedores', allowedRoles: ['admin'] },
+  { id: 'budget', icon: iconBudget, label: 'Orçamentos', route: '/orcamentos', allowedRoles: ['admin'] },
+  { id: 'inventario', icon: iconInventario, label: 'Inventário de Equipamentos', route: '/inventario', allowedRoles: ['admin'] },
+  { id: 'documentacoes', icon: iconDocumentacoes, label: 'Documentações', route: '/documentacoes', allowedRoles: ['admin'] },
+  { id: 'soon', icon: iconEmBreve, label: 'Em Breve', disabled: true, allowedRoles: ['admin'] },
 ];
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, roles } = useAuth();
   const isMobile = useIsMobile();
+
+  // Filter modules based on user roles
+  const modules = allModules.filter((m) => {
+    if (!m.allowedRoles) return true;
+    return m.allowedRoles.some((r) => roles.includes(r as any));
+  });
 
   const handleLogout = async () => {
     await signOut();
