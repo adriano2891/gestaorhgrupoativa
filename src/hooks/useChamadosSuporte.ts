@@ -35,18 +35,22 @@ export const useMeusChamados = () => {
         return [] as ChamadoSuporte[];
       }
       
-      // Always use auth session user_id to match RLS policy (auth.uid() = user_id)
       const userId = session.user.id;
       const { data, error } = await (supabase as any)
         .from("chamados_suporte")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao carregar chamados:", error);
+        return [] as ChamadoSuporte[];
+      }
       return (data || []) as ChamadoSuporte[];
     },
     retry: 2,
+    retryDelay: 1000,
     refetchOnWindowFocus: true,
+    staleTime: 1000 * 10,
   });
 };
 
@@ -77,10 +81,14 @@ export const useMensagensChamado = (chamadoId: string | null) => {
         .select("*, profiles:remetente_id(nome)")
         .eq("chamado_id", chamadoId)
         .order("created_at", { ascending: true });
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao carregar mensagens:", error);
+        return [] as MensagemChamado[];
+      }
       return (data || []) as MensagemChamado[];
     },
     enabled: !!chamadoId,
+    refetchOnWindowFocus: true,
   });
 };
 
