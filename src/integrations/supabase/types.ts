@@ -1646,6 +1646,45 @@ export type Database = {
           },
         ]
       }
+      logs_edicao_ponto: {
+        Row: {
+          autorizado_por: string
+          autorizado_por_nome: string
+          campo_editado: string
+          created_at: string
+          data_registro: string
+          employee_id: string
+          employee_name: string
+          id: string
+          valor_anterior: string | null
+          valor_novo: string | null
+        }
+        Insert: {
+          autorizado_por: string
+          autorizado_por_nome: string
+          campo_editado: string
+          created_at?: string
+          data_registro: string
+          employee_id: string
+          employee_name: string
+          id?: string
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Update: {
+          autorizado_por?: string
+          autorizado_por_nome?: string
+          campo_editado?: string
+          created_at?: string
+          data_registro?: string
+          employee_id?: string
+          employee_name?: string
+          id?: string
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Relationships: []
+      }
       logs_envio_holerites: {
         Row: {
           created_at: string

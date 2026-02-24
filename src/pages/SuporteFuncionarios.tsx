@@ -204,7 +204,7 @@ const SuporteFuncionarios = () => {
   // ====== LIST VIEW ======
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
         <div className="flex items-center gap-3">
           <MessageCircle className="h-8 w-8 text-primary" />
           <div>
