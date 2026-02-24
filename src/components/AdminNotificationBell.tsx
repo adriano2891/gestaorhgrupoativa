@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
-import { Bell, Calendar, Headphones } from "lucide-react";
+import { Bell, Calendar, Headphones, Send } from "lucide-react";
 import { useAdminNotifications, type AdminNotification } from "@/hooks/useAdminNotifications";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
+import { EnviarNotificacaoDialog } from "@/components/admin/EnviarNotificacaoDialog";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   ferias: <Calendar className="h-4 w-4 text-amber-500" />,
@@ -14,10 +16,10 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 export const AdminNotificationBell = () => {
   const { notifications, totalCount } = useAdminNotifications();
   const [open, setOpen] = useState(false);
+  const [enviarDialogOpen, setEnviarDialogOpen] = useState(false);
   const navigate = useNavigate();
   const ref = useRef<HTMLDivElement>(null);
 
-  // Close on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) {
@@ -52,11 +54,25 @@ export const AdminNotificationBell = () => {
 
       {open && (
         <div className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto bg-card border rounded-lg shadow-xl z-[100]">
-          <div className="p-3 border-b">
-            <h3 className="font-semibold text-sm text-foreground">Notificações</h3>
-            <p className="text-xs text-muted-foreground">
-              {totalCount > 0 ? `${totalCount} pendente${totalCount > 1 ? "s" : ""}` : "Tudo em dia!"}
-            </p>
+          <div className="p-3 border-b flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-sm text-foreground">Notificações</h3>
+              <p className="text-xs text-muted-foreground">
+                {totalCount > 0 ? `${totalCount} pendente${totalCount > 1 ? "s" : ""}` : "Tudo em dia!"}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs gap-1"
+              onClick={() => {
+                setOpen(false);
+                setEnviarDialogOpen(true);
+              }}
+            >
+              <Send className="h-3 w-3" />
+              Enviar
+            </Button>
           </div>
 
           {notifications.length === 0 ? (
@@ -87,6 +103,8 @@ export const AdminNotificationBell = () => {
           )}
         </div>
       )}
+
+      <EnviarNotificacaoDialog open={enviarDialogOpen} onOpenChange={setEnviarDialogOpen} />
     </div>
   );
 };
