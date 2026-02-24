@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { BirthdayPopup } from "./BirthdayPopup";
 import { PortalBackground } from "./PortalBackground";
 import { PortalNotificacoesBell } from "./PortalNotificacoesBell";
+import { usePortalBadges } from "@/hooks/usePortalBadges";
 
 interface PortalDashboardProps {
   onNavigate: (section: string) => void;
@@ -14,6 +15,7 @@ interface PortalDashboardProps {
 
 export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
   const { profile, signOut } = usePortalAuth();
+  const badges = usePortalBadges();
 
   const getInitials = (name: string) => {
     return name
@@ -163,21 +165,31 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
 
           {/* Grid de Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {menuItems.map((item) => (
-              <Card
-                key={item.id}
-                className="group cursor-pointer transition-all hover:shadow-lg hover:scale-105 active:scale-100"
-                onClick={() => onNavigate(item.id)}
-              >
-                <CardHeader className="pb-3">
-                  <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-                    <item.icon className={`h-6 w-6 ${item.iconColor}`} />
-                  </div>
-                  <CardTitle className="text-lg">{item.title}</CardTitle>
-                  <CardDescription className="text-sm">{item.description}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
+            {menuItems.map((item) => {
+              const badgeCount = (badges as Record<string, number>)[item.id] || 0;
+              return (
+                <Card
+                  key={item.id}
+                  className="group cursor-pointer transition-all hover:shadow-lg hover:scale-105 active:scale-100"
+                  onClick={() => onNavigate(item.id)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="relative w-fit">
+                      <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${item.color} flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
+                        <item.icon className={`h-6 w-6 ${item.iconColor}`} />
+                      </div>
+                      {badgeCount > 0 && (
+                        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold shadow-lg animate-pulse z-10">
+                          {badgeCount > 99 ? "99+" : badgeCount}
+                        </span>
+                      )}
+                    </div>
+                    <CardTitle className="text-lg">{item.title}</CardTitle>
+                    <CardDescription className="text-sm">{item.description}</CardDescription>
+                  </CardHeader>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </main>
