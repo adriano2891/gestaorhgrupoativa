@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Layout } from "@/components/Layout";
 import { Plus, Search, Mail, Phone, Edit, Trash2, TrendingUp, Users, X } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { useFuncionariosRealtime, useSalariosRealtime } from "@/hooks/useRealtimeUpdates";
@@ -675,7 +676,8 @@ const Funcionarios = () => {
   };
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <Layout>
+    <div className="space-y-4 sm:space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
       <BackButton to="/gestao-rh" variant="light" />
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
@@ -1379,6 +1381,7 @@ const Funcionarios = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+    </Layout>
   );
 };
 
