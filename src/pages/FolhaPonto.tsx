@@ -44,6 +44,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { SuperAdminAuthDialog } from "@/components/ponto/SuperAdminAuthDialog";
 
 interface DayRecord {
   day: number;
@@ -84,6 +85,9 @@ const FolhaPonto = () => {
   const [showFilters, setShowFilters] = useState(false);
   const [editingCell, setEditingCell] = useState<{empId: string, day: number, field: 'status' | 'horas_extras'} | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [pendingEdit, setPendingEdit] = useState<{empId: string, day: number, field: 'status' | 'horas_extras', currentValue: string} | null>(null);
+  const [authorizedAdmin, setAuthorizedAdmin] = useState<{id: string, name: string} | null>(null);
 
   // Extrair lista de funcionários e departamentos dos dados sincronizados
   const employees = funcionarios || [];
@@ -334,8 +338,16 @@ const FolhaPonto = () => {
   };
 
   const handleEditCell = (empId: string, day: number, field: 'status' | 'horas_extras', currentValue: string) => {
-    setEditingCell({ empId, day, field });
-    setEditValue(currentValue);
+    setPendingEdit({ empId, day, field, currentValue });
+    setShowAuthDialog(true);
+  };
+
+  const handleAdminAuthorized = (adminId: string, adminName: string) => {
+    if (!pendingEdit) return;
+    setAuthorizedAdmin({ id: adminId, name: adminName });
+    setEditingCell({ empId: pendingEdit.empId, day: pendingEdit.day, field: pendingEdit.field });
+    setEditValue(pendingEdit.currentValue);
+    setPendingEdit(null);
   };
 
   const handleSaveEdit = async () => {
@@ -413,9 +425,30 @@ const FolhaPonto = () => {
         setMonthRecords(updatedRecords);
       }
       
+      // Log the edit with admin authorization
+      if (authorizedAdmin) {
+        try {
+          await (supabase as any)
+            .from("logs_edicao_ponto")
+            .insert({
+              employee_id: editingCell.empId,
+              employee_name: record.employee_name,
+              campo_editado: editingCell.field === 'status' ? 'Status' : 'Horas Extras',
+              valor_anterior: editingCell.field === 'status' ? dayData.status : (dayData.horas_extras || '0h 0min'),
+              valor_novo: editValue,
+              data_registro: date,
+              autorizado_por: authorizedAdmin.id,
+              autorizado_por_nome: authorizedAdmin.name,
+            });
+        } catch (logError) {
+          console.error("Erro ao registrar log de edição:", logError);
+        }
+      }
+
       toast.success("Registro atualizado com sucesso!");
       setEditingCell(null);
       setEditValue("");
+      setAuthorizedAdmin(null);
     } catch (error) {
       console.error("Erro ao salvar edição:", error);
       toast.error("Erro ao salvar alteração");
@@ -425,6 +458,7 @@ const FolhaPonto = () => {
   const handleCancelEdit = () => {
     setEditingCell(null);
     setEditValue("");
+    setAuthorizedAdmin(null);
   };
 
   // Calcular estatísticas
@@ -877,6 +911,16 @@ const FolhaPonto = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <SuperAdminAuthDialog
+        open={showAuthDialog}
+        onOpenChange={(open) => {
+          setShowAuthDialog(open);
+          if (!open) setPendingEdit(null);
+        }}
+        onAuthorized={handleAdminAuthorized}
+        actionDescription="editar registros de ponto"
+      />
     </div>
   );
 };
