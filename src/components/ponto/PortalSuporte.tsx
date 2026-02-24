@@ -261,11 +261,17 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
               const isMe = msg.remetente_id === user?.id;
               return (
                 <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] rounded-lg p-3 ${isMe ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-                    <p className={`text-xs font-medium mb-1 ${isMe ? "text-primary-foreground/80" : "text-muted-foreground"}`}>
-                      {msg.profiles?.nome || (isMe ? "Você" : "RH")}
+                  <div className={`max-w-[80%] rounded-2xl p-3 shadow-sm ${
+                    isMe 
+                      ? "bg-primary text-primary-foreground rounded-br-sm" 
+                      : "bg-card border border-border text-foreground rounded-bl-sm"
+                  }`}>
+                    <p className={`text-xs font-semibold mb-1 ${
+                      isMe ? "text-primary-foreground/80" : "text-muted-foreground"
+                    }`}>
+                      {isMe ? "Você" : (msg.profiles?.nome || "RH / Admin")}
                     </p>
-                    <p className="text-sm whitespace-pre-wrap">{msg.conteudo}</p>
+                    <p className={`text-sm whitespace-pre-wrap ${isMe ? "" : "text-foreground"}`}>{msg.conteudo}</p>
                     {msg.arquivo_url && (
                       <button
                         onClick={async (e) => {
