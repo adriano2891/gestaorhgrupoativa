@@ -28,37 +28,47 @@ export const useComunicados = (userId?: string) => {
       const { data: { session } } = await supabase.auth.getSession();
       const activeUserId = session?.user?.id || userId;
       
-      if (!activeUserId) throw new Error("User ID is required");
+      if (!activeUserId) return [] as ComunicadoComLeitura[];
 
-      // Buscar comunicados (RLS filters based on active session)
-      const { data: comunicados, error: comunicadosError } = await supabase
-        .from("comunicados")
-        .select("*")
-        .order("created_at", { ascending: false });
+      try {
+        // Buscar comunicados (RLS filters based on active session)
+        const { data: comunicados, error: comunicadosError } = await supabase
+          .from("comunicados")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-      if (comunicadosError) throw comunicadosError;
+        if (comunicadosError) {
+          console.error("Erro ao buscar comunicados:", comunicadosError);
+          return [] as ComunicadoComLeitura[];
+        }
 
-      // Buscar leituras do usuário
-      const { data: leituras, error: leiturasError } = await supabase
-        .from("comunicados_lidos")
-        .select("comunicado_id, lido_em")
-        .eq("user_id", activeUserId);
+        // Buscar leituras do usuário
+        const { data: leituras, error: leiturasError } = await supabase
+          .from("comunicados_lidos")
+          .select("comunicado_id, lido_em")
+          .eq("user_id", activeUserId);
 
-      if (leiturasError) throw leiturasError;
+        if (leiturasError) {
+          console.error("Erro ao buscar leituras:", leiturasError);
+        }
 
-      // Mapear leituras
-      const leiturasMap = new Map(
-        leituras?.map((l) => [l.comunicado_id, l.lido_em]) || []
-      );
+        // Mapear leituras
+        const leiturasMap = new Map(
+          leituras?.map((l) => [l.comunicado_id, l.lido_em]) || []
+        );
 
-      // Combinar dados
-      const comunicadosComLeitura: ComunicadoComLeitura[] = (comunicados || []).map((c) => ({
-        ...c,
-        lido: leiturasMap.has(c.id),
-        lido_em: leiturasMap.get(c.id) || null,
-      }));
+        // Combinar dados
+        const comunicadosComLeitura: ComunicadoComLeitura[] = (comunicados || []).map((c) => ({
+          ...c,
+          lido: leiturasMap.has(c.id),
+          lido_em: leiturasMap.get(c.id) || null,
+        }));
 
-      return comunicadosComLeitura;
+        return comunicadosComLeitura;
+      } catch (error) {
+        console.error("Erro inesperado em useComunicados:", error);
+        return [] as ComunicadoComLeitura[];
+      }
     },
     enabled: !!userId,
     refetchOnWindowFocus: true,
