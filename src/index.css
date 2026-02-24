@@ -341,3 +341,8 @@ All colors MUST be HSL.
 exibição: nenhuma!importante;
 }
 
+
+
+#lovable-badge {
+  display: none !important;
+}
