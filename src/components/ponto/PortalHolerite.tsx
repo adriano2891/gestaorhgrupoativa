@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, FileText, Download, RefreshCw, Loader2 } from "lucide-react";
@@ -10,6 +11,7 @@ import { ptBR } from "date-fns/locale";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { PortalBackground } from "./PortalBackground";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PortalHoleriteProps {
   onBack: () => void;
@@ -58,6 +60,35 @@ export const PortalHolerite = ({ onBack }: PortalHoleriteProps) => {
       });
     }
   };
+
+  // Realtime: escuta novos holerites enviados pelo admin
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`portal-holerites:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'holerites',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["holerites", user.id] });
+          toast({
+            title: "Holerite atualizado",
+            description: "Um novo holerite foi disponibilizado pelo RH.",
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient, toast]);
 
   const handleRefresh = () => {
     refetch();
