@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -7,6 +7,7 @@ import {
   useFuncionariosRealtime, 
   useComunicadosRealtime 
 } from "@/hooks/useRealtimeUpdates";
+import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BackButton } from "@/components/ui/back-button";
 import logoAtiva from "@/assets/logo-ativa.png";
@@ -27,6 +28,7 @@ interface ModuleItem {
   path: string;
   scaleIcon?: boolean;
   iconScale?: string;
+  badgeKey?: string;
 }
 
 const GestaoRH = () => {
@@ -38,8 +40,20 @@ const GestaoRH = () => {
   useMetricasRealtime();
   useFuncionariosRealtime();
   useComunicadosRealtime();
+  const { notifications } = useAdminNotifications();
   const isSuperAdmin = roles.includes("admin");
   const isAdmin = isSuperAdmin || roles.includes("rh") || roles.includes("gestor");
+
+  // Count badges per route
+  const badgeCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    notifications.forEach((n) => {
+      if (n.route) {
+        counts[n.route] = (counts[n.route] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [notifications]);
 
   // Trigger entry animation on mount
   useEffect(() => {
@@ -59,12 +73,23 @@ const GestaoRH = () => {
     { title: "Comunicados", description: "Avisos e notificações internas", iconSrc: iconComunicados, path: "/comunicados", scaleIcon: true },
     { title: "Formulários", description: "Gestão de Formulários", iconSrc: iconFormularios, path: "/hrflow-pro", scaleIcon: true },
     { title: "Cursos", description: "Treinamentos corporativos", iconSrc: iconCursos, path: "/cursos", scaleIcon: true },
-    { title: "Suporte", description: "Chamados dos funcionários", iconSrc: iconComunicados, path: "/suporte-funcionarios", scaleIcon: true },
+    { title: "Suporte", description: "Chamados dos funcionários", iconSrc: iconComunicados, path: "/suporte-funcionarios", scaleIcon: true, badgeKey: "/suporte-funcionarios" },
   ];
 
   if (isSuperAdmin) {
     modules.push({ title: "Gerenciar Admins", description: "Controle de administradores", iconSrc: iconAdmins, path: "/admins", scaleIcon: true });
   }
+
+  // Helper to render badge
+  const renderBadge = (module: ModuleItem) => {
+    const count = badgeCounts[module.path] || 0;
+    if (count === 0) return null;
+    return (
+      <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white text-[10px] font-bold shadow-lg animate-pulse z-20 ring-2 ring-white">
+        {count > 99 ? "99+" : count}
+      </span>
+    );
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -204,8 +229,11 @@ const GestaoRH = () => {
                 style={isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {}}
                 onClick={() => navigate(module.path)}
               >
-                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 ring-2 ring-white/30">
-                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                <div className="relative">
+                  {renderBadge(module)}
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 ring-2 ring-white/30">
+                    <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                  </div>
                 </div>
                 <p 
                   className="text-center mt-1.5 sm:mt-2 font-semibold text-white text-[9px] sm:text-[10px] md:text-xs leading-tight max-w-[80px] sm:max-w-[90px]"
@@ -282,8 +310,11 @@ const GestaoRH = () => {
                 }}
                 onClick={() => navigate(module.path)}
               >
-                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-28 h-28 ring-4 ring-white/30">
-                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                <div className="relative">
+                  {renderBadge(module)}
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-28 h-28 ring-4 ring-white/30">
+                    <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                  </div>
                 </div>
                 <p className="text-center mt-3 font-semibold text-white text-sm max-w-[120px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
                   {module.title}
@@ -309,8 +340,11 @@ const GestaoRH = () => {
                 }}
                 onClick={() => navigate(module.path)}
               >
-                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-24 h-24 ring-3 ring-white/30">
-                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                <div className="relative">
+                  {renderBadge(module)}
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-24 h-24 ring-3 ring-white/30">
+                    <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                  </div>
                 </div>
                 <p className="text-center mt-2 font-semibold text-white text-xs max-w-[100px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
                   {module.title}
@@ -336,8 +370,11 @@ const GestaoRH = () => {
                 }}
                 onClick={() => navigate(module.path)}
               >
-                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
-                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                <div className="relative">
+                  {renderBadge(module)}
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
+                    <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                  </div>
                 </div>
                 <p className="text-center mt-2 font-semibold text-white text-[10px] max-w-[80px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
                   {module.title}
@@ -357,8 +394,11 @@ const GestaoRH = () => {
                 style={isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {}}
                 onClick={() => navigate(module.path)}
               >
-                <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-16 h-16 sm:w-20 sm:h-20 ring-2 ring-white/30">
-                  <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                <div className="relative">
+                  {renderBadge(module)}
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-16 h-16 sm:w-20 sm:h-20 ring-2 ring-white/30">
+                    <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                  </div>
                 </div>
                 <p className="text-center mt-2 font-semibold text-white text-[9px] sm:text-[10px] max-w-[65px] sm:max-w-[70px] leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
                   {module.title}
