@@ -34,23 +34,31 @@ export const useCategoriasCurso = () => {
 export const useCursos = (status?: 'rascunho' | 'publicado' | 'arquivado') => {
   return useQuery({
     queryKey: ["cursos", status],
-    staleTime: 1000 * 30, // 30 seconds - ensures portal sees recently published courses
+    staleTime: 1000 * 30,
     refetchOnWindowFocus: true,
     queryFn: async () => {
-      const query = supabase
-        .from("cursos")
-        .select(`
-          *,
-          categoria:categorias_curso(*)
-        `)
-        .order("created_at", { ascending: false });
+      try {
+        const query = supabase
+          .from("cursos")
+          .select(`
+            *,
+            categoria:categorias_curso(*)
+          `)
+          .order("created_at", { ascending: false });
 
-      const { data, error } = status 
-        ? await query.eq("status", status)
-        : await query;
-        
-      if (error) throw error;
-      return data as Curso[];
+        const { data, error } = status 
+          ? await query.eq("status", status)
+          : await query;
+          
+        if (error) {
+          console.error("Erro ao carregar cursos:", error);
+          return [] as Curso[];
+        }
+        return data as Curso[];
+      } catch (error) {
+        console.error("Erro inesperado em useCursos:", error);
+        return [] as Curso[];
+      }
     },
   });
 };
