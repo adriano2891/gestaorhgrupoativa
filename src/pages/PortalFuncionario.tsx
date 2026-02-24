@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { PortalAuthProvider, usePortalAuth } from "@/components/ponto/PortalAuthProvider";
 import { LoginFuncionario } from "@/components/ponto/LoginFuncionario";
+import { TrocarSenhaObrigatoria } from "@/components/ponto/TrocarSenhaObrigatoria";
 import { PortalDashboard } from "@/components/ponto/PortalDashboard";
 import { PainelPonto } from "@/components/ponto/PainelPonto";
 import { PortalHolerite } from "@/components/ponto/PortalHolerite";
@@ -14,8 +15,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useHoleritesRealtime, useComunicadosRealtime, useFeriasRealtime } from "@/hooks/useRealtimeUpdates";
 
 const PortalContent = () => {
-  const { user, loading } = usePortalAuth();
+  const { user, profile, loading } = usePortalAuth();
   const [currentSection, setCurrentSection] = useState<string>("dashboard");
+  const [senhaAlterada, setSenhaAlterada] = useState(false);
 
   // Habilitar atualizações em tempo real para o portal
   useHoleritesRealtime();
@@ -36,6 +38,17 @@ const PortalContent = () => {
   // Se não estiver logado, mostra tela de login
   if (!user) {
     return <LoginFuncionario />;
+  }
+
+  // Se precisa trocar a senha no primeiro acesso
+  if (profile?.deve_trocar_senha && !senhaAlterada) {
+    return (
+      <TrocarSenhaObrigatoria
+        userId={user.id}
+        nomeUsuario={profile.nome?.split(" ")[0] || "Funcionário"}
+        onPasswordChanged={() => setSenhaAlterada(true)}
+      />
+    );
   }
 
   // Navegação entre seções
