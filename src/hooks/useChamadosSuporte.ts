@@ -119,8 +119,7 @@ export const useCriarChamado = () => {
           .from("chamados-anexos")
           .upload(filePath, params.arquivo);
         if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from("chamados-anexos").getPublicUrl(filePath);
-        arquivo_url = urlData.publicUrl;
+        arquivo_url = filePath;
         arquivo_nome = params.arquivo.name;
       }
 
@@ -168,8 +167,7 @@ export const useEnviarMensagem = () => {
           .from("chamados-anexos")
           .upload(filePath, params.arquivo);
         if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from("chamados-anexos").getPublicUrl(filePath);
-        arquivo_url = urlData.publicUrl;
+        arquivo_url = filePath;
         arquivo_nome = params.arquivo.name;
       }
 

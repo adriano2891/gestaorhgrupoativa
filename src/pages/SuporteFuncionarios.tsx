@@ -11,6 +11,7 @@ import {
   Filter, User, CheckCircle, Lock
 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
+import { supabase } from "@/integrations/supabase/client";
 import {
   useTodosChamados,
   useMensagensChamado,
@@ -159,9 +160,18 @@ const SuporteFuncionarios = () => {
                           </p>
                           <p className="text-sm whitespace-pre-wrap">{msg.conteudo}</p>
                           {msg.arquivo_url && (
-                            <a href={msg.arquivo_url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-1 mt-2 text-xs underline ${isRH ? "text-primary-foreground/90" : "text-primary"}`}>
+                            <button
+                              onClick={async (e) => {
+                                e.preventDefault();
+                                const path = msg.arquivo_url.replace(/^.*\/chamados-anexos\//, '').split('?')[0];
+                                const { data, error } = await supabase.storage.from("chamados-anexos").createSignedUrl(path, 3600);
+                                if (error || !data?.signedUrl) { return; }
+                                window.open(data.signedUrl, "_blank");
+                              }}
+                              className={`flex items-center gap-1 mt-2 text-xs underline cursor-pointer ${isRH ? "text-primary-foreground/90" : "text-primary"}`}
+                            >
                               <Download className="h-3 w-3" /> {msg.arquivo_nome || "Anexo"}
-                            </a>
+                            </button>
                           )}
                           <p className={`text-[10px] mt-1 ${isRH ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
                             {format(new Date(msg.created_at), "dd/MM HH:mm", { locale: ptBR })}
