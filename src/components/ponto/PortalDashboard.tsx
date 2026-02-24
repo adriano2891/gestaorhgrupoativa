@@ -15,7 +15,7 @@ interface PortalDashboardProps {
 
 export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
   const { profile, signOut } = usePortalAuth();
-  const badges = usePortalBadges();
+  const { badges, markSectionViewed } = usePortalBadges();
 
   const getInitials = (name: string) => {
     return name
@@ -171,7 +171,10 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
                 <Card
                   key={item.id}
                   className="group cursor-pointer transition-all hover:shadow-lg hover:scale-105 active:scale-100"
-                  onClick={() => onNavigate(item.id)}
+                  onClick={() => {
+                    markSectionViewed(item.id);
+                    onNavigate(item.id);
+                  }}
                 >
                   <CardHeader className="pb-3">
                     <div className="relative w-fit">
