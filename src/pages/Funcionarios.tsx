@@ -832,7 +832,7 @@ const Funcionarios = () => {
 
       {/* Dialog de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-[90vw] sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-[90vw] sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col" style={{ fontFamily: 'Arial, sans-serif' }}>
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Editar Funcionário</DialogTitle>
             <DialogDescription>
