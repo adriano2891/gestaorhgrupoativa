@@ -24,9 +24,13 @@ export const useComunicados = (userId?: string) => {
   return useQuery({
     queryKey: ["comunicados", userId],
     queryFn: async () => {
-      if (!userId) throw new Error("User ID is required");
+      // Use active session to ensure RLS works correctly
+      const { data: { session } } = await supabase.auth.getSession();
+      const activeUserId = session?.user?.id || userId;
+      
+      if (!activeUserId) throw new Error("User ID is required");
 
-      // Buscar comunicados
+      // Buscar comunicados (RLS filters based on active session)
       const { data: comunicados, error: comunicadosError } = await supabase
         .from("comunicados")
         .select("*")
@@ -38,7 +42,7 @@ export const useComunicados = (userId?: string) => {
       const { data: leituras, error: leiturasError } = await supabase
         .from("comunicados_lidos")
         .select("comunicado_id, lido_em")
-        .eq("user_id", userId);
+        .eq("user_id", activeUserId);
 
       if (leiturasError) throw leiturasError;
 
@@ -57,6 +61,7 @@ export const useComunicados = (userId?: string) => {
       return comunicadosComLeitura;
     },
     enabled: !!userId,
+    refetchOnWindowFocus: true,
   });
 };
 
