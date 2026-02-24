@@ -16,6 +16,7 @@ const navItems = [
   { path: "/comunicados", label: "Comunicados", icon: "📢" },
   { path: "/formularios-rh", label: "Formulários", icon: "📝" },
   { path: "/cursos", label: "Cursos", icon: "🎓" },
+  { path: "/suporte-funcionarios", label: "Suporte", icon: "🎧" },
   { path: "/admins", label: "Admins", icon: "⚙️" },
 ];
 
