@@ -32,6 +32,7 @@ const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondar
 const CATEGORIAS = [
   { value: "folha_pagamento", label: "Folha de Pagamento" },
   { value: "beneficios", label: "Benefícios" },
+  { value: "ferias", label: "Férias" },
   { value: "documentos", label: "Documentos" },
   { value: "outros", label: "Outros" },
 ];
