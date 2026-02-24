@@ -193,12 +193,8 @@ const BancoTalentos = () => {
 
         if (uploadError) throw uploadError;
 
-        const { data: signedData, error: signedError } = await supabase.storage
-          .from('resumes')
-          .createSignedUrl(fileName, 3600);
-
-        if (signedError) throw signedError;
-        resumeUrl = signedData.signedUrl;
+        // Salvar apenas o path do arquivo, não URL assinada (que expira)
+        resumeUrl = fileName;
       }
 
       // Processar habilidades
@@ -251,13 +247,22 @@ const BancoTalentos = () => {
     }
   };
 
-  const extractPathFromPublicUrl = (url: string) => {
+  const extractPathFromUrl = (url: string) => {
+    // Se já é apenas o nome do arquivo (novo formato), retornar direto
+    if (!url.startsWith('http')) return url;
+    // Compatibilidade com URLs antigas
     const marker = "/public/resumes/";
     const idx = url.indexOf(marker);
     if (idx !== -1) return url.substring(idx + marker.length);
     const alt = "/resumes/";
     const idx2 = url.indexOf(alt);
     if (idx2 !== -1) return url.substring(idx2 + alt.length);
+    // Tentar extrair de signed URL (token query param)
+    try {
+      const parsed = new URL(url);
+      const pathParts = parsed.pathname.split('/resumes/');
+      if (pathParts.length > 1) return pathParts[1];
+    } catch {}
     return url;
   };
 
@@ -276,7 +281,7 @@ const BancoTalentos = () => {
       setIsResumeLoading(true);
       setCurrentResumeUrl(resumeUrl);
 
-      const path = extractPathFromPublicUrl(resumeUrl);
+      const path = extractPathFromUrl(resumeUrl);
       const ext = path.split('.').pop()?.toLowerCase();
 
       // Apenas PDFs podem ser pré-visualizados com segurança no navegador
@@ -323,7 +328,7 @@ const BancoTalentos = () => {
     }
 
     try {
-      const path = extractPathFromPublicUrl(resumeUrl);
+      const path = extractPathFromUrl(resumeUrl);
       const { data, error } = await (supabase as any).storage
         .from('resumes')
         .download(path);
@@ -362,7 +367,7 @@ const BancoTalentos = () => {
       }
       if (!currentResumeUrl) return;
       setIsResumeLoading(true);
-      const path = extractPathFromPublicUrl(currentResumeUrl);
+      const path = extractPathFromUrl(currentResumeUrl);
       const ext = path.split('.').pop()?.toLowerCase();
       const { data, error } = await (supabase as any).storage
         .from('resumes')
