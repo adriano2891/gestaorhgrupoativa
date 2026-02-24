@@ -1,25 +1,28 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
-import { format, differenceInDays } from "date-fns";
+import { CalendarIcon, AlertTriangle, Info } from "lucide-react";
+import { format, differenceInDays, isBefore, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useCriarSolicitacaoFerias } from "@/hooks/useFerias";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+interface PeriodoAquisitivo {
+  id: string;
+  data_inicio: string;
+  data_fim: string;
+  dias_disponiveis: number;
+  dias_direito: number;
+  dias_usados: number;
+}
+
 interface SolicitarFeriasDialogProps {
-  periodos: Array<{
-    id: string;
-    data_inicio: string;
-    data_fim: string;
-    dias_disponiveis: number;
-  }>;
+  periodos: PeriodoAquisitivo[];
 }
 
 export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) => {
@@ -32,8 +35,28 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
 
   const criarSolicitacao = useCriarSolicitacaoFerias();
 
-  const periodo = periodos.find((p) => p.id === periodoSelecionado);
+  // Filtrar apenas períodos aquisitivos completos (data_fim já passou) e com saldo
+  const periodosElegiveis = useMemo(() => {
+    const hoje = new Date();
+    return periodos.filter((p) => {
+      const fimPeriodo = parseISO(p.data_fim);
+      return isBefore(fimPeriodo, hoje) && (p.dias_disponiveis ?? (p.dias_direito - p.dias_usados)) > 0;
+    });
+  }, [periodos]);
+
+  // Períodos ainda em aquisição (não completaram 12 meses)
+  const periodosEmAquisicao = useMemo(() => {
+    const hoje = new Date();
+    return periodos.filter((p) => {
+      const fimPeriodo = parseISO(p.data_fim);
+      return !isBefore(fimPeriodo, hoje);
+    });
+  }, [periodos]);
+
+  const periodo = periodosElegiveis.find((p) => p.id === periodoSelecionado);
   const diasSolicitados = dataInicio && dataFim ? differenceInDays(dataFim, dataInicio) + 1 : 0;
+
+  const podeAbrir = periodosElegiveis.length > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,7 +65,8 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
       return;
     }
 
-    if (periodo && diasSolicitados > periodo.dias_disponiveis) {
+    const diasDisp = periodo ? (periodo.dias_disponiveis ?? (periodo.dias_direito - periodo.dias_usados)) : 0;
+    if (diasSolicitados > diasDisp) {
       return;
     }
 
@@ -63,29 +87,65 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
     setObservacao("");
   };
 
+  // Calcular dias restantes para o período em aquisição mais recente
+  const periodoEmAndamento = periodosEmAquisicao[0];
+  const diasRestantesAquisicao = periodoEmAndamento
+    ? Math.max(0, differenceInDays(parseISO(periodoEmAndamento.data_fim), new Date()))
+    : null;
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="w-full">Solicitar Férias</Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Solicitar Férias</DialogTitle>
-        </DialogHeader>
-        
-        {periodos.length === 0 ? (
-          <div className="py-8 text-center space-y-4">
-            <p className="text-muted-foreground">
-              Você ainda não possui períodos aquisitivos cadastrados.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Entre em contato com o RH para cadastrar seus períodos de férias.
-            </p>
-            <Button onClick={() => setOpen(false)} className="w-full">
-              Entendi
-            </Button>
+    <>
+      {!podeAbrir && (
+        <div className="mb-4 p-4 rounded-lg border-2 border-amber-300 bg-amber-50">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-amber-900">Solicitação de férias indisponível</p>
+              {periodos.length === 0 ? (
+                <p className="text-sm text-amber-700 mt-1">
+                  Você ainda não possui períodos aquisitivos cadastrados. Entre em contato com o RH.
+                </p>
+              ) : periodosEmAquisicao.length > 0 ? (
+                <div className="text-sm text-amber-700 mt-1 space-y-1">
+                  <p>
+                    Conforme a CLT (Art. 130), o direito a férias é adquirido após completar 12 meses de trabalho (período aquisitivo).
+                  </p>
+                  {diasRestantesAquisicao !== null && (
+                    <p className="font-medium">
+                      Faltam <span className="text-amber-900 font-bold">{diasRestantesAquisicao} dias</span> para completar seu período aquisitivo atual
+                      ({format(parseISO(periodoEmAndamento!.data_inicio), "dd/MM/yyyy", { locale: ptBR })} a{" "}
+                      {format(parseISO(periodoEmAndamento!.data_fim), "dd/MM/yyyy", { locale: ptBR })}).
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-amber-700 mt-1">
+                  Todos os seus períodos aquisitivos já foram utilizados. Aguarde o próximo período.
+                </p>
+              )}
+            </div>
           </div>
-        ) : (
+        </div>
+      )}
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger asChild>
+          <Button className="w-full" disabled={!podeAbrir}>
+            {podeAbrir ? "Solicitar Férias" : "Solicitar Férias (Indisponível)"}
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Solicitar Férias</DialogTitle>
+          </DialogHeader>
+
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20 mb-2">
+            <Info className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-muted-foreground">
+              Apenas períodos aquisitivos completos (12 meses de trabalho) são exibidos, conforme Art. 130 da CLT.
+            </p>
+          </div>
+          
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="periodo">Período Aquisitivo</Label>
@@ -94,13 +154,15 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
                   <SelectValue placeholder="Selecione o período" />
                 </SelectTrigger>
                 <SelectContent>
-                  {periodos.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {format(new Date(p.data_inicio), "dd/MM/yyyy", { locale: ptBR })} -{" "}
-                      {format(new Date(p.data_fim), "dd/MM/yyyy", { locale: ptBR })} ({p.dias_disponiveis}{" "}
-                      dias disponíveis)
-                    </SelectItem>
-                  ))}
+                  {periodosElegiveis.map((p) => {
+                    const disp = p.dias_disponiveis ?? (p.dias_direito - p.dias_usados);
+                    return (
+                      <SelectItem key={p.id} value={p.id}>
+                        {format(parseISO(p.data_inicio), "dd/MM/yyyy", { locale: ptBR })} -{" "}
+                        {format(parseISO(p.data_fim), "dd/MM/yyyy", { locale: ptBR })} ({disp} dias disponíveis)
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -178,7 +240,7 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
           {diasSolicitados > 0 && (
             <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm font-medium">Dias solicitados: {diasSolicitados}</p>
-              {periodo && diasSolicitados > periodo.dias_disponiveis && (
+              {periodo && diasSolicitados > (periodo.dias_disponiveis ?? (periodo.dias_direito - periodo.dias_usados)) && (
                 <p className="text-sm text-destructive mt-1">
                   Você não tem saldo suficiente neste período
                 </p>
@@ -208,7 +270,7 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
                   !periodoSelecionado ||
                   !dataInicio ||
                   !dataFim ||
-                  (periodo ? diasSolicitados > periodo.dias_disponiveis : false) ||
+                  (periodo ? diasSolicitados > (periodo.dias_disponiveis ?? (periodo.dias_direito - periodo.dias_usados)) : false) ||
                   criarSolicitacao.isPending
                 }
               >
@@ -216,8 +278,8 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
               </Button>
             </div>
           </form>
-        )}
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
