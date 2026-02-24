@@ -106,6 +106,7 @@ Deno.serve(async (req) => {
       salario: salario ?? null, data_nascimento: data_nascimento ?? null,
       data_admissao: data_admissao ?? null,
       endereco: endereco ?? null, rg: rg ?? null, numero_pis: numero_pis ?? null,
+      deve_trocar_senha: true,
     });
 
     if (profileErr) {

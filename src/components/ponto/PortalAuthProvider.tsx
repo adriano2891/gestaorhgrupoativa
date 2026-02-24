@@ -12,6 +12,7 @@ interface Profile {
   cargo: string | null;
   data_nascimento: string | null;
   foto_url: string | null;
+  deve_trocar_senha: boolean;
 }
 
 interface PortalAuthContextType {
@@ -72,7 +73,10 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
         throw new Error("Perfil não encontrado");
       }
       
-      setProfile(profileData as Profile);
+      setProfile({
+        ...profileData,
+        deve_trocar_senha: (profileData as any).deve_trocar_senha ?? false,
+      } as Profile);
       
       // Criar um user mock para manter compatibilidade
       setUser({ id: userId } as User);
