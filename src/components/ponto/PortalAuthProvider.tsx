@@ -31,24 +31,28 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+
     const checkPortalSession = async () => {
+      // Safety timeout to prevent infinite loading
+      timeoutId = setTimeout(() => {
+        console.warn("Portal: timeout ao carregar sessão, liberando loading...");
+        setLoading(false);
+      }, 8000);
+
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const portalRaw = localStorage.getItem('portal_session');
         const portalData = portalRaw ? JSON.parse(portalRaw) : null;
 
         if (session?.user) {
-          // If portal session exists and differs from Supabase session,
-          // the admin logged in on another tab — need to re-authenticate employee
           if (portalData?.user_id && portalData.user_id !== session.user.id && portalData.email) {
             console.log("Sessão do portal difere da sessão ativa. Re-autenticando funcionário...");
-            // Try to re-authenticate the portal employee
             try {
               const { data: reauth, error: reauthError } = await supabase.auth.signInWithPassword({
                 email: portalData.email,
                 password: portalData.tempKey || '',
               });
-              // If re-auth fails, just use current session
               if (reauthError || !reauth?.user) {
                 await loadUserData(session.user.id);
                 localStorage.setItem('portal_session', JSON.stringify({
@@ -80,6 +84,7 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
         localStorage.removeItem('portal_session');
       }
       
+      clearTimeout(timeoutId);
       setLoading(false);
     };
 
@@ -105,6 +110,7 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
     });
 
     return () => {
+      clearTimeout(timeoutId);
       subscription.unsubscribe();
     };
   }, []);
