@@ -66,16 +66,16 @@ const GestaoRH = () => {
   }, []);
 
   const modules: ModuleItem[] = [
-    { title: "Funcionários", description: "Gestão de colaboradores", iconSrc: iconFuncionarios, path: "/funcionarios" },
-    { title: "Banco de Talentos", description: "Candidatos e recrutamento", iconSrc: iconTalentos, path: "/banco-talentos", scaleIcon: true },
+    { title: "Funcionários", description: "Cadastro e gestão de colaboradores", iconSrc: iconFuncionarios, path: "/funcionarios" },
+    { title: "Talentos", description: "Recrutamento e seleção", iconSrc: iconTalentos, path: "/banco-talentos", scaleIcon: true },
     { title: "Relatórios", description: "Análises e indicadores", iconSrc: iconRelatorios, path: "/relatorios" },
-    { title: "Folha de Ponto", description: "Controle de jornada", iconSrc: iconPonto, path: "/folha-ponto", iconScale: "scale-150" },
-    { title: "Holerites", description: "Gestão de pagamentos", iconSrc: iconHolerites, path: "/holerites", scaleIcon: true },
-    { title: "Comunicados", description: "Avisos e notificações internas", iconSrc: iconComunicados, path: "/comunicados", scaleIcon: true },
-    { title: "Formulários", description: "Gestão de Formulários", iconSrc: iconFormularios, path: "/hrflow-pro", scaleIcon: true },
-    { title: "Cursos", description: "Treinamentos corporativos", iconSrc: iconCursos, path: "/cursos", scaleIcon: true },
-    { title: "Controle de Férias", description: "Gestão de férias e licenças", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
-    { title: "Suporte", description: "Chamados dos funcionários", iconSrc: iconComunicados, path: "/suporte-funcionarios", scaleIcon: true, badgeKey: "/suporte-funcionarios" },
+    { title: "Ponto", description: "Registro de jornada", iconSrc: iconPonto, path: "/folha-ponto", iconScale: "scale-150" },
+    { title: "Holerites", description: "Contracheques e pagamentos", iconSrc: iconHolerites, path: "/holerites", scaleIcon: true },
+    { title: "Comunicados", description: "Avisos internos", iconSrc: iconComunicados, path: "/comunicados", scaleIcon: true },
+    { title: "Formulários", description: "Documentos e formulários RH", iconSrc: iconFormularios, path: "/hrflow-pro", scaleIcon: true },
+    { title: "Cursos", description: "Treinamentos e capacitação", iconSrc: iconCursos, path: "/cursos", scaleIcon: true },
+    { title: "Férias", description: "Férias e licenças", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
+    { title: "Suporte", description: "Chamados de funcionários", iconSrc: iconComunicados, path: "/suporte-funcionarios", scaleIcon: true, badgeKey: "/suporte-funcionarios" },
   ];
 
   if (isSuperAdmin) {

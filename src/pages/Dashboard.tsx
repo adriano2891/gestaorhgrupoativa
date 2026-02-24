@@ -22,12 +22,12 @@ interface ModuleItem {
 }
 
 const allModules: ModuleItem[] = [
-  { id: 'rh', icon: iconHr, label: 'Gestão RH', route: '/gestao-rh', allowedRoles: ['admin', 'rh', 'gestor'] },
-  { id: 'clients', icon: iconClients, label: 'Gestão de Controle de Clientes', route: '/gestao-clientes', allowedRoles: ['admin'] },
+  { id: 'rh', icon: iconHr, label: 'Recursos Humanos', route: '/gestao-rh', allowedRoles: ['admin', 'rh', 'gestor'] },
+  { id: 'clients', icon: iconClients, label: 'Clientes', route: '/gestao-clientes', allowedRoles: ['admin'] },
   { id: 'suppliers', icon: iconSuppliers, label: 'Fornecedores', route: '/fornecedores', allowedRoles: ['admin'] },
   { id: 'budget', icon: iconBudget, label: 'Orçamentos', route: '/orcamentos', allowedRoles: ['admin'] },
-  { id: 'inventario', icon: iconInventario, label: 'Inventário de Equipamentos', route: '/inventario', allowedRoles: ['admin'] },
-  { id: 'documentacoes', icon: iconDocumentacoes, label: 'Documentações', route: '/documentacoes', allowedRoles: ['admin'] },
+  { id: 'inventario', icon: iconInventario, label: 'Inventário', route: '/inventario', allowedRoles: ['admin'] },
+  { id: 'documentacoes', icon: iconDocumentacoes, label: 'Documentos', route: '/documentacoes', allowedRoles: ['admin'] },
   { id: 'soon', icon: iconEmBreve, label: 'Em Breve', disabled: true, allowedRoles: ['admin'] },
 ];
 
