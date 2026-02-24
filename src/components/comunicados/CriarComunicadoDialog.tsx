@@ -161,7 +161,7 @@ export const CriarComunicadoDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" style={{ fontFamily: 'Arial, sans-serif' }}>
         <DialogHeader>
           <DialogTitle>Criar Novo Comunicado</DialogTitle>
         </DialogHeader>
