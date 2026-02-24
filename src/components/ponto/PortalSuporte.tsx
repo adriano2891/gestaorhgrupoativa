@@ -21,6 +21,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { playNotificationSound } from "@/utils/notificationSound";
 
 interface PortalSuporteProps {
   onBack: () => void;
@@ -77,6 +78,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
         (payload) => {
           const newMsg = payload.new as any;
           if (newMsg.remetente_id !== user.id) {
+            playNotificationSound("success");
             toast.success("Nova resposta do RH recebida!");
           }
           queryClient.invalidateQueries({ queryKey: ["mensagens-chamado", newMsg.chamado_id] });
@@ -93,6 +95,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
         (payload) => {
           const newStatus = (payload.new as any)?.status;
           if (newStatus === 'fechado') {
+            playNotificationSound("info");
             toast.info("Seu chamado foi fechado pelo RH.");
           }
           queryClient.invalidateQueries({ queryKey: ["meus-chamados"] });
