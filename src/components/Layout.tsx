@@ -139,7 +139,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                   }`}
                 >
                   <span className="text-base lg:text-lg">{item.icon}</span>
-                  <span className="hidden lg:inline">{item.label}</span>
+                  <span className="hidden xl:inline">{item.label}</span>
                 </Link>
               );
             })}
