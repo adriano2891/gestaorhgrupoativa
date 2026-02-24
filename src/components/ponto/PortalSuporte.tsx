@@ -257,21 +257,23 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
         <main className="container mx-auto px-4 py-4 flex flex-col" style={{ height: "calc(100vh - 160px)" }}>
           {/* Messages */}
           <div className="flex-1 overflow-y-auto space-y-3 mb-4">
-            {mensagens.map((msg) => {
+          {mensagens.map((msg) => {
               const isMe = msg.remetente_id === user?.id;
               return (
                 <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[80%] rounded-2xl p-3 shadow-sm ${
+                  <div className={`max-w-[75%] rounded-2xl p-3 shadow-md ${
                     isMe 
                       ? "bg-primary text-primary-foreground rounded-br-sm" 
-                      : "bg-card border border-border text-foreground rounded-bl-sm"
+                      : "bg-card border-l-4 border-l-muted-foreground/40 border border-border text-foreground rounded-bl-sm"
                   }`}>
-                    <p className={`text-xs font-semibold mb-1 ${
-                      isMe ? "text-primary-foreground/80" : "text-muted-foreground"
+                    <p className={`text-[11px] font-bold mb-1 ${
+                      isMe ? "text-primary-foreground/90" : "text-muted-foreground"
                     }`}>
-                      {isMe ? "Você" : (msg.profiles?.nome || "RH / Admin")}
+                      {isMe ? "👤 Você" : `🛡️ ${msg.profiles?.nome || "RH / Admin"}`}
                     </p>
-                    <p className={`text-sm whitespace-pre-wrap ${isMe ? "" : "text-foreground"}`}>{msg.conteudo}</p>
+                    <p className={`text-sm whitespace-pre-wrap leading-relaxed ${
+                      isMe ? "text-primary-foreground" : "text-foreground"
+                    }`}>{msg.conteudo}</p>
                     {msg.arquivo_url && (
                       <button
                         onClick={async (e) => {
@@ -286,7 +288,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
                         <Download className="h-3 w-3" /> {msg.arquivo_nome || "Anexo"}
                       </button>
                     )}
-                    <p className={`text-[10px] mt-1 ${isMe ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
+                    <p className={`text-[10px] mt-1.5 ${isMe ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
                       {format(new Date(msg.created_at), "dd/MM HH:mm", { locale: ptBR })}
                     </p>
                   </div>
