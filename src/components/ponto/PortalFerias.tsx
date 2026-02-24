@@ -1,14 +1,16 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SolicitarFeriasDialog } from "./SolicitarFeriasDialog";
 import { PortalBackground } from "./PortalBackground";
+import { toast } from "@/hooks/use-toast";
 
 interface PortalFeriasProps {
   onBack: () => void;
@@ -16,6 +18,41 @@ interface PortalFeriasProps {
 
 export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
   const { user } = usePortalAuth();
+  const queryClient = useQueryClient();
+
+  // Realtime: escuta mudanças na solicitação de férias do funcionário
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`portal-ferias:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'solicitacoes_ferias',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const newStatus = (payload.new as any)?.status;
+          if (newStatus === 'aprovado') {
+            toast({ title: "Férias aprovadas!", description: "Sua solicitação de férias foi aprovada." });
+          } else if (newStatus === 'reprovado') {
+            toast({ title: "Férias reprovadas", description: "Sua solicitação de férias foi reprovada.", variant: "destructive" });
+          } else if (newStatus === 'concluido' || newStatus === 'cancelado') {
+            toast({ title: "Solicitação atualizada", description: `Sua solicitação foi marcada como ${newStatus}.` });
+          }
+          queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias-portal", user.id] });
+          queryClient.invalidateQueries({ queryKey: ["periodos-aquisitivos-portal", user.id] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   const { data: periodos, isLoading } = useQuery({
     queryKey: ["periodos-aquisitivos-portal", user?.id],
