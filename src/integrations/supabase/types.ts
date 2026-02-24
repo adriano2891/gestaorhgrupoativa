@@ -2067,6 +2067,7 @@ export type Database = {
           data_admissao: string | null
           data_nascimento: string | null
           departamento: string | null
+          deve_trocar_senha: boolean
           email: string
           endereco: string | null
           foto_url: string | null
@@ -2087,6 +2088,7 @@ export type Database = {
           data_admissao?: string | null
           data_nascimento?: string | null
           departamento?: string | null
+          deve_trocar_senha?: boolean
           email: string
           endereco?: string | null
           foto_url?: string | null
@@ -2107,6 +2109,7 @@ export type Database = {
           data_admissao?: string | null
           data_nascimento?: string | null
           departamento?: string | null
+          deve_trocar_senha?: boolean
           email?: string
           endereco?: string | null
           foto_url?: string | null
