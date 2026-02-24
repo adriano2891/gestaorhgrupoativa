@@ -48,50 +48,60 @@ export const useSolicitacoesFerias = (filters?: {
   return useQuery({
     queryKey: ["solicitacoes-ferias", filters],
     queryFn: async () => {
-      let query = supabase
-        .from("solicitacoes_ferias")
-        .select(`
-          *,
-          profiles!user_id!inner (
-            nome,
-            cargo,
-            departamento,
-            status
-          )
-        `)
-        .not("profiles.status", "in", '("demitido","pediu_demissao")')
-        .order("created_at", { ascending: false });
+      try {
+        let query = supabase
+          .from("solicitacoes_ferias")
+          .select(`
+            *,
+            profiles!user_id (
+              nome,
+              cargo,
+              departamento,
+              status
+            )
+          `)
+          .order("created_at", { ascending: false });
 
-      if (filters?.status) {
-        query = query.eq("status", filters.status);
+        if (filters?.status) {
+          query = query.eq("status", filters.status);
+        }
+
+        if (filters?.dataInicio) {
+          query = query.gte("data_inicio", filters.dataInicio);
+        }
+
+        if (filters?.dataFim) {
+          query = query.lte("data_fim", filters.dataFim);
+        }
+
+        if (filters?.apenasNovas) {
+          query = query.eq("visualizada_admin", false);
+        }
+
+        const { data, error } = await query;
+
+        if (error) {
+          console.error("Erro ao buscar solicitações de férias:", error);
+          return [] as SolicitacaoFerias[];
+        }
+
+        // Filtrar funcionários ativos e por departamento no client-side
+        let filteredData = (data as SolicitacaoFerias[]).filter((s) => {
+          const profileStatus = (s.profiles as any)?.status;
+          return profileStatus !== 'demitido' && profileStatus !== 'pediu_demissao';
+        });
+        
+        if (filters?.departamento) {
+          filteredData = filteredData.filter(
+            (s) => s.profiles?.departamento === filters.departamento
+          );
+        }
+
+        return filteredData;
+      } catch (error) {
+        console.error("Erro inesperado em useSolicitacoesFerias:", error);
+        return [] as SolicitacaoFerias[];
       }
-
-      if (filters?.dataInicio) {
-        query = query.gte("data_inicio", filters.dataInicio);
-      }
-
-      if (filters?.dataFim) {
-        query = query.lte("data_fim", filters.dataFim);
-      }
-
-      if (filters?.apenasNovas) {
-        query = query.eq("visualizada_admin", false);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      // Filtrar por departamento após buscar (RLS já filtra o acesso)
-      let filteredData = data as SolicitacaoFerias[];
-      
-      if (filters?.departamento) {
-        filteredData = filteredData.filter(
-          (s) => s.profiles?.departamento === filters.departamento
-        );
-      }
-
-      return filteredData;
     },
   });
 };
@@ -100,50 +110,53 @@ export const useMetricasFerias = () => {
   return useQuery({
     queryKey: ["metricas-ferias"],
     queryFn: async () => {
-      const { data: solicitacoes, error } = await supabase
-        .from("solicitacoes_ferias")
-        .select(`
-          status, data_inicio, data_fim,
-          profiles!user_id!inner(status)
-        `)
-        .not("profiles.status", "in", '("demitido","pediu_demissao")');
+      try {
+        const { data: solicitacoes, error } = await supabase
+          .from("solicitacoes_ferias")
+          .select(`
+            status, data_inicio, data_fim,
+            profiles!user_id(status)
+          `);
 
-      if (error) throw error;
+        if (error) {
+          console.error("Erro ao buscar solicitações de férias:", error);
+          return { pendentes: 0, emAndamento: 0, proximas: 0, saldoMedio: 0 };
+        }
 
-      const hoje = new Date().toISOString().split('T')[0];
-      
-      const pendentes = solicitacoes?.filter((s) => s.status === "pendente").length || 0;
-      
-      const emAndamento = solicitacoes?.filter(
-        (s) => s.status === "em_andamento" || 
-        (s.status === "aprovado" && s.data_inicio <= hoje && s.data_fim >= hoje)
-      ).length || 0;
-      
-      const proximas = solicitacoes?.filter(
-        (s) => s.status === "aprovado" && s.data_inicio > hoje
-      ).length || 0;
+        // Filtrar apenas funcionários ativos no client-side
+        const ativas = (solicitacoes || []).filter((s: any) => {
+          const profileStatus = s.profiles?.status;
+          return profileStatus !== 'demitido' && profileStatus !== 'pediu_demissao';
+        });
 
-      // Buscar saldo médio apenas de funcionários ativos
-      const { data: periodos } = await supabase
-        .from("periodos_aquisitivos")
-        .select(`
-          dias_disponiveis,
-          profiles:user_id!inner(status)
-        `)
-        .not("profiles.status", "in", '("demitido","pediu_demissao")');
+        const hoje = new Date().toISOString().split('T')[0];
+        
+        const pendentes = ativas.filter((s: any) => s.status === "pendente").length;
+        
+        const emAndamento = ativas.filter(
+          (s: any) => s.status === "em_andamento" || 
+          (s.status === "aprovado" && s.data_inicio <= hoje && s.data_fim >= hoje)
+        ).length;
+        
+        const proximas = ativas.filter(
+          (s: any) => s.status === "aprovado" && s.data_inicio > hoje
+        ).length;
 
-      const saldoMedio = periodos?.length
-        ? Math.round(
-            periodos.reduce((acc, p) => acc + p.dias_disponiveis, 0) / periodos.length
-          )
-        : 0;
+        const { data: periodos } = await supabase
+          .from("periodos_aquisitivos")
+          .select(`dias_disponiveis`);
 
-      return {
-        pendentes,
-        emAndamento,
-        proximas,
-        saldoMedio,
-      };
+        const saldoMedio = periodos?.length
+          ? Math.round(
+              periodos.reduce((acc, p) => acc + (p.dias_disponiveis || 0), 0) / periodos.length
+            )
+          : 0;
+
+        return { pendentes, emAndamento, proximas, saldoMedio };
+      } catch (error) {
+        console.error("Erro inesperado em useMetricasFerias:", error);
+        return { pendentes: 0, emAndamento: 0, proximas: 0, saldoMedio: 0 };
+      }
     },
   });
 };
