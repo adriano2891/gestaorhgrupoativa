@@ -14,13 +14,18 @@ export const HistoricoPonto = () => {
 
   useEffect(() => {
     const loadHistorico = async () => {
-      if (!profile?.id) return;
-
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id || profile?.id;
+        if (!userId) {
+          setLoading(false);
+          return;
+        }
+
         const { data, error } = await (supabase as any)
           .from("registros_ponto")
           .select("*")
-          .eq("user_id", profile.id)
+          .eq("user_id", userId)
           .order("data", { ascending: false })
           .limit(5);
 

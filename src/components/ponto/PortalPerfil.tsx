@@ -32,8 +32,10 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
       setEndereco((profile as any).endereco || "");
       // Fetch foto_url
       const fetchFoto = async () => {
-        if (user) {
-          const { data } = await supabase.from("profiles").select("foto_url").eq("id", user.id).maybeSingle() as { data: any };
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id || user?.id;
+        if (userId) {
+          const { data } = await supabase.from("profiles").select("foto_url").eq("id", userId).maybeSingle() as { data: any };
           if (data?.foto_url) setFotoUrl(data.foto_url);
         }
       };
@@ -76,9 +78,10 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
   };
 
   const handleSave = async () => {
-    if (!user) return;
-
     setSaving(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id || user?.id;
+    if (!userId) { setSaving(false); return; }
     try {
       const { error } = await supabase
         .from("profiles")
@@ -88,7 +91,7 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
           telefone: telefone.trim(),
           endereco: endereco.trim(),
         })
-        .eq("id", user.id);
+        .eq("id", userId);
 
       if (error) throw error;
 
