@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, User, Loader2 } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ArrowLeft, User, Loader2, Camera, Upload } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { PortalBackground } from "./PortalBackground";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,15 +19,59 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
+  const [fotoUrl, setFotoUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const photoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (profile) {
       setNome(profile.nome || "");
       setEmail(profile.email || "");
       setTelefone(profile.telefone || "");
+      // Fetch foto_url
+      const fetchFoto = async () => {
+        if (user) {
+          const { data } = await supabase.from("profiles").select("foto_url").eq("id", user.id).maybeSingle() as { data: any };
+          if (data?.foto_url) setFotoUrl(data.foto_url);
+        }
+      };
+      fetchFoto();
     }
-  }, [profile]);
+  }, [profile, user]);
+
+  const handlePhotoUpload = async (file: File) => {
+    if (!user) return;
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Use JPEG, PNG ou WebP.");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("A foto deve ter no máximo 2MB.");
+      return;
+    }
+    
+    const ext = file.name.split('.').pop();
+    const filePath = `${user.id}/foto.${ext}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('fotos-funcionarios')
+      .upload(filePath, file, { upsert: true });
+    
+    if (uploadError) {
+      toast.error("Erro ao fazer upload da foto.");
+      return;
+    }
+    
+    const { data: urlData } = supabase.storage
+      .from('fotos-funcionarios')
+      .getPublicUrl(filePath);
+    
+    const newUrl = urlData.publicUrl + '?t=' + Date.now();
+    await supabase.from("profiles").update({ foto_url: newUrl } as any).eq("id", user.id);
+    setFotoUrl(newUrl);
+    toast.success("Foto atualizada!");
+  };
 
   const handleSave = async () => {
     if (!user) return;
@@ -68,9 +113,32 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
         <div className="max-w-4xl mx-auto">
           <Card>
             <CardHeader>
-              <div className="flex items-center gap-3">
-                <User className="h-8 w-8 text-primary" />
-                <CardTitle className="text-2xl">Perfil do Funcionário</CardTitle>
+              <div className="flex items-center gap-4">
+                <div className="relative group cursor-pointer" onClick={() => photoRef.current?.click()}>
+                  <Avatar className="h-16 w-16 border-2 border-primary/20">
+                    {fotoUrl ? <AvatarImage src={fotoUrl} alt={nome} /> : null}
+                    <AvatarFallback className="bg-primary/10">
+                      <User className="h-8 w-8 text-primary" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Camera className="h-5 w-5 text-white" />
+                  </div>
+                  <input
+                    ref={photoRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handlePhotoUpload(file);
+                    }}
+                  />
+                </div>
+                <div>
+                  <CardTitle className="text-2xl">Perfil do Funcionário</CardTitle>
+                  <p className="text-xs text-muted-foreground mt-1">Clique na foto para alterar</p>
+                </div>
               </div>
             </CardHeader>
             <CardContent>

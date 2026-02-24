@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Layout } from "@/components/Layout";
-import { Plus, Search, Mail, Phone, Edit, Trash2, TrendingUp, Users, X } from "lucide-react";
+import { Plus, Search, Mail, Phone, Edit, Trash2, TrendingUp, Users, X, Camera, Upload } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { useFuncionariosRealtime, useSalariosRealtime } from "@/hooks/useRealtimeUpdates";
 import { Button } from "@/components/ui/button";
@@ -50,7 +50,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 type EmployeeStatus = "ativo" | "afastado" | "demitido" | "em_ferias" | "pediu_demissao";
 
@@ -63,6 +63,7 @@ interface Employee {
   department: string;
   status: EmployeeStatus;
   admissionDate: string;
+  foto_url?: string;
 }
 
 const employeeSchema = z.object({
@@ -175,7 +176,58 @@ const Funcionarios = () => {
     numero_pis: "",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [newPhotoFile, setNewPhotoFile] = useState<File | null>(null);
+  const [newPhotoPreview, setNewPhotoPreview] = useState<string | null>(null);
+  const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null);
+  const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null);
+  const newPhotoRef = useRef<HTMLInputElement>(null);
+  const editPhotoRef = useRef<HTMLInputElement>(null);
 
+  const handlePhotoSelect = (file: File | null, type: 'new' | 'edit') => {
+    if (!file) return;
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({ title: "Formato inválido", description: "Use JPEG, PNG ou WebP.", variant: "destructive" });
+      return;
+    }
+    
+    // Validate file size (max 2MB)
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Arquivo muito grande", description: "A foto deve ter no máximo 2MB.", variant: "destructive" });
+      return;
+    }
+    
+    const preview = URL.createObjectURL(file);
+    if (type === 'new') {
+      setNewPhotoFile(file);
+      setNewPhotoPreview(preview);
+    } else {
+      setEditPhotoFile(file);
+      setEditPhotoPreview(preview);
+    }
+  };
+
+  const uploadPhoto = async (file: File, userId: string): Promise<string | null> => {
+    const ext = file.name.split('.').pop();
+    const filePath = `${userId}/foto.${ext}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from('fotos-funcionarios')
+      .upload(filePath, file, { upsert: true });
+    
+    if (uploadError) {
+      console.error('Upload error:', uploadError);
+      return null;
+    }
+    
+    const { data: urlData } = supabase.storage
+      .from('fotos-funcionarios')
+      .getPublicUrl(filePath);
+    
+    return urlData.publicUrl;
+  };
   // Função para buscar funcionários do banco de dados
   const fetchEmployees = async () => {
     try {
@@ -192,9 +244,10 @@ const Funcionarios = () => {
           status,
           created_at,
           data_admissao,
+          foto_url,
           user_roles!inner(role)
         `)
-        .eq("user_roles.role", "funcionario");
+        .eq("user_roles.role", "funcionario") as { data: any[] | null; error: any };
 
       if (error) {
         console.error("Erro ao buscar funcionários:", error);
@@ -216,6 +269,7 @@ const Funcionarios = () => {
         department: profile.departamento || "Não informado",
         status: (profile.status || "ativo") as "ativo" | "afastado" | "demitido" | "em_ferias" | "pediu_demissao",
         admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
+        foto_url: profile.foto_url || undefined,
       }));
 
       setEmployees(formattedEmployees);
@@ -379,6 +433,8 @@ const Funcionarios = () => {
       
       setEditPassword("");
       setEditAdmissionDate(employee.admissionDate);
+      setEditPhotoFile(null);
+      setEditPhotoPreview(employee.foto_url || null);
       setIsEditDialogOpen(true);
     }
   };
@@ -466,6 +522,14 @@ const Funcionarios = () => {
 
         if (profileError) {
           throw profileError;
+        }
+
+        // Upload photo if selected
+        if (editPhotoFile) {
+          const fotoUrl = await uploadPhoto(editPhotoFile, editingEmployee.id);
+          if (fotoUrl) {
+            await supabase.from("profiles").update({ foto_url: fotoUrl } as any).eq("id", editingEmployee.id);
+          }
         }
 
         // Se senha foi fornecida, atualizar no auth
@@ -620,6 +684,15 @@ const Funcionarios = () => {
       if (!(createData as any)?.success) {
         throw new Error((createData as any)?.error || 'Falha ao criar funcionário');
       }
+
+      // Upload photo if selected
+      const newUserId = (createData as any)?.user?.id;
+      if (newPhotoFile && newUserId) {
+        const fotoUrl = await uploadPhoto(newPhotoFile, newUserId);
+        if (fotoUrl) {
+          await supabase.from("profiles").update({ foto_url: fotoUrl } as any).eq("id", newUserId);
+        }
+      }
       
       // Limpar o formulário
       setNewEmployee({
@@ -646,6 +719,8 @@ const Funcionarios = () => {
       });
 
       setValidationErrors({});
+      setNewPhotoFile(null);
+      setNewPhotoPreview(null);
       setIsAddDialogOpen(false);
       
       // Atualizar lista de funcionários imediatamente
@@ -754,6 +829,7 @@ const Funcionarios = () => {
                     <TableCell>
                       <div className="flex items-center gap-2 sm:gap-3">
                         <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
+                          {employee.foto_url && <AvatarImage src={employee.foto_url} alt={employee.name} />}
                           <AvatarFallback className="bg-primary text-primary-foreground text-xs sm:text-sm">
                             {getInitials(employee.name)}
                           </AvatarFallback>
@@ -842,6 +918,40 @@ const Funcionarios = () => {
           {editingEmployee && (
             <div className="grid gap-3 overflow-y-auto pr-2 -mr-2"
                  style={{ maxHeight: 'calc(90vh - 180px)' }}>
+              {/* Upload de Foto */}
+              <div className="grid gap-1.5">
+                <Label className="text-sm">Foto do Funcionário</Label>
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-16 w-16 border-2 border-dashed border-muted-foreground/30">
+                    {editPhotoPreview ? (
+                      <AvatarImage src={editPhotoPreview} alt="Preview" />
+                    ) : null}
+                    <AvatarFallback className="bg-muted">
+                      <Camera className="h-6 w-6 text-muted-foreground" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col gap-1">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 text-xs"
+                      onClick={() => editPhotoRef.current?.click()}
+                    >
+                      <Upload className="h-3 w-3 mr-1" />
+                      {editPhotoPreview ? "Trocar foto" : "Enviar foto"}
+                    </Button>
+                    <p className="text-[10px] text-muted-foreground">JPEG, PNG ou WebP. Máx 2MB.</p>
+                    <input
+                      ref={editPhotoRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => handlePhotoSelect(e.target.files?.[0] || null, 'edit')}
+                    />
+                  </div>
+                </div>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="name" className="text-sm">Nome</Label>
@@ -1024,6 +1134,40 @@ const Funcionarios = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 overflow-y-auto pr-2 -mr-2" style={{ maxHeight: 'calc(85vh - 150px)' }}>
+            {/* Upload de Foto */}
+            <div className="grid gap-1.5">
+              <Label className="text-sm">Foto do Funcionário</Label>
+              <div className="flex items-center gap-4">
+                <Avatar className="h-16 w-16 border-2 border-dashed border-muted-foreground/30">
+                  {newPhotoPreview ? (
+                    <AvatarImage src={newPhotoPreview} alt="Preview" />
+                  ) : null}
+                  <AvatarFallback className="bg-muted">
+                    <Camera className="h-6 w-6 text-muted-foreground" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col gap-1">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-8 text-xs"
+                    onClick={() => newPhotoRef.current?.click()}
+                  >
+                    <Upload className="h-3 w-3 mr-1" />
+                    {newPhotoPreview ? "Trocar foto" : "Enviar foto"}
+                  </Button>
+                  <p className="text-[10px] text-muted-foreground">JPEG, PNG ou WebP. Máx 2MB.</p>
+                  <input
+                    ref={newPhotoRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="hidden"
+                    onChange={(e) => handlePhotoSelect(e.target.files?.[0] || null, 'new')}
+                  />
+                </div>
+              </div>
+            </div>
             <div className="grid gap-1.5">
               <Label htmlFor="new-name" className="text-sm">Nome *</Label>
               <Input
