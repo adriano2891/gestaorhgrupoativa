@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -34,6 +35,13 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { signOut, roles } = useAuth();
   const isMobile = useIsMobile();
+
+  // Redirecionar funcionários para o portal
+  useEffect(() => {
+    if (roles.length > 0 && roles.includes("funcionario" as any) && !roles.includes("admin" as any) && !roles.includes("rh" as any) && !roles.includes("gestor" as any)) {
+      navigate("/portal-funcionario", { replace: true });
+    }
+  }, [roles, navigate]);
 
   // Filter modules based on user roles
   const modules = allModules.filter((m) => {
