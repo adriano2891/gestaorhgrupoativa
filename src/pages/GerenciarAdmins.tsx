@@ -108,7 +108,7 @@ const GerenciarAdmins = () => {
       ],
     },
     {
-      role: "Admin Financeiro",
+      role: "Admin Gestor",
       description: "Acesso aos módulos financeiros",
       permissions: [
         "Folha de pagamento",
