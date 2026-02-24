@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useAuth } from "./auth/AuthProvider";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import loginBackground from "@/assets/login-background.png";
+import { AdminNotificationBell } from "./AdminNotificationBell";
 
 const allNavItems = [
   { path: "/", label: "Dashboard", icon: "📊", allowedRoles: ["admin", "rh", "gestor"] },
@@ -66,6 +67,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             <span className="text-xs md:text-sm font-medium text-foreground hidden md:inline max-w-[150px] truncate">
               {profile?.nome || "Usuário"}
             </span>
+            <AdminNotificationBell />
             <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-8 w-8 md:h-10 md:w-10">
               {isDark ? <Sun className="h-4 w-4 md:h-5 md:w-5" /> : <Moon className="h-4 w-4 md:h-5 md:w-5" />}
             </Button>
