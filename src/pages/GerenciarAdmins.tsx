@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Shield, UserPlus, Edit, Trash2, Mail, Loader2, RefreshCw } from "lucide-react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { BackButton } from "@/components/ui/back-button";
 import { useAdmins, useDeleteAdmin, type Admin } from "@/hooks/useAdmins";
 import { useAdminsRealtime } from "@/hooks/useRealtimeUpdates";
@@ -37,6 +38,8 @@ import {
 const GerenciarAdmins = () => {
   const { data: admins = [], isLoading, refetch, isFetching } = useAdmins();
   const deleteAdmin = useDeleteAdmin();
+  const { roles } = useAuth();
+  const isSuperAdmin = roles.includes("admin");
   useAdminsRealtime();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | undefined>();
@@ -135,10 +138,12 @@ const GerenciarAdmins = () => {
           <Button variant="outline" onClick={handleRefresh} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
           </Button>
-          <Button onClick={handleAddAdmin}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Adicionar Admin
-          </Button>
+          {isSuperAdmin && (
+            <Button onClick={handleAddAdmin}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Adicionar Admin
+            </Button>
+          )}
         </div>
       </div>
 
@@ -207,41 +212,45 @@ const GerenciarAdmins = () => {
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleEditAdmin(admin)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      {admin.email !== "admin@sistema.com" && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>
-                                Remover Administrador?
-                              </AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta ação removerá as permissões administrativas de{" "}
-                                {admin.nome}. O usuário continuará no sistema como
-                                funcionário.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction
-                                onClick={() => handleDeleteAdmin(admin.id)}
-                              >
-                                Confirmar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
+                      {isSuperAdmin && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditAdmin(admin)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          {admin.email !== "admin@sistema.com" && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button variant="ghost" size="icon">
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Remover Administrador?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta ação removerá as permissões administrativas de{" "}
+                                    {admin.nome}. O usuário continuará no sistema como
+                                    funcionário.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteAdmin(admin.id)}
+                                  >
+                                    Confirmar
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </>
                       )}
                     </div>
                   </TableCell>
