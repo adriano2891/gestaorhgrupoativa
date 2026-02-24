@@ -20,6 +20,7 @@ import iconComunicados from "@/assets/icon-rh-comunicados.png";
 import iconAdmins from "@/assets/icon-rh-admins.png";
 import iconFormularios from "@/assets/icon-rh-formularios.png";
 import iconCursos from "@/assets/icon-rh-cursos.png";
+import iconFerias from "@/assets/icon-rh-ferias.png";
 
 interface ModuleItem {
   title: string;
@@ -73,6 +74,7 @@ const GestaoRH = () => {
     { title: "Comunicados", description: "Avisos e notificações internas", iconSrc: iconComunicados, path: "/comunicados", scaleIcon: true },
     { title: "Formulários", description: "Gestão de Formulários", iconSrc: iconFormularios, path: "/hrflow-pro", scaleIcon: true },
     { title: "Cursos", description: "Treinamentos corporativos", iconSrc: iconCursos, path: "/cursos", scaleIcon: true },
+    { title: "Controle de Férias", description: "Gestão de férias e licenças", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
     { title: "Suporte", description: "Chamados dos funcionários", iconSrc: iconComunicados, path: "/suporte-funcionarios", scaleIcon: true, badgeKey: "/suporte-funcionarios" },
   ];
 
