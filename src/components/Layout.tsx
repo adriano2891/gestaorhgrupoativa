@@ -6,25 +6,31 @@ import { useAuth } from "./auth/AuthProvider";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import loginBackground from "@/assets/login-background.png";
 
-const navItems = [
-  { path: "/", label: "Dashboard", icon: "📊" },
-  { path: "/funcionarios", label: "Funcionários", icon: "👥" },
-  { path: "/banco-talentos", label: "Banco de Talentos", icon: "🎯" },
-  { path: "/relatorios", label: "Relatórios", icon: "📈" },
-  { path: "/folha-ponto", label: "Folha de Ponto", icon: "🕐" },
-  { path: "/holerites", label: "Holerites", icon: "📄" },
-  { path: "/comunicados", label: "Comunicados", icon: "📢" },
-  { path: "/formularios-rh", label: "Formulários", icon: "📝" },
-  { path: "/cursos", label: "Cursos", icon: "🎓" },
-  { path: "/suporte-funcionarios", label: "Suporte", icon: "🎧" },
-  { path: "/admins", label: "Admins", icon: "⚙️" },
+const allNavItems = [
+  { path: "/", label: "Dashboard", icon: "📊", allowedRoles: ["admin", "rh", "gestor"] },
+  { path: "/funcionarios", label: "Funcionários", icon: "👥", allowedRoles: ["admin", "rh", "gestor"] },
+  { path: "/banco-talentos", label: "Banco de Talentos", icon: "🎯", allowedRoles: ["admin", "rh", "gestor"] },
+  { path: "/relatorios", label: "Relatórios", icon: "📈", allowedRoles: ["admin", "rh", "gestor"] },
+  { path: "/folha-ponto", label: "Folha de Ponto", icon: "🕐", allowedRoles: ["admin", "rh", "gestor"] },
+  { path: "/holerites", label: "Holerites", icon: "📄", allowedRoles: ["admin", "rh", "gestor"] },
+  { path: "/comunicados", label: "Comunicados", icon: "📢", allowedRoles: ["admin", "rh", "gestor"] },
+  { path: "/formularios-rh", label: "Formulários", icon: "📝", allowedRoles: ["admin", "rh", "gestor"] },
+  { path: "/cursos", label: "Cursos", icon: "🎓", allowedRoles: ["admin", "rh", "gestor"] },
+  { path: "/suporte-funcionarios", label: "Suporte", icon: "🎧", allowedRoles: ["admin", "rh", "gestor"] },
+  { path: "/admins", label: "Admins", icon: "⚙️", allowedRoles: ["admin"] },
 ];
 
 export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const [isDark, setIsDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { signOut, profile } = useAuth();
+  const { signOut, profile, roles } = useAuth();
+
+  // Filter nav items based on user roles
+  const navItems = allNavItems.filter((item) => {
+    if (!item.allowedRoles) return true;
+    return item.allowedRoles.some((r) => roles.includes(r as any));
+  });
 
   const toggleTheme = () => {
     setIsDark(!isDark);

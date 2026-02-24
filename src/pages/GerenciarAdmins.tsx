@@ -109,12 +109,11 @@ const GerenciarAdmins = () => {
     },
     {
       role: "Admin Gestor",
-      description: "Acesso aos módulos financeiros",
+      description: "Acesso às áreas autorizadas pelo Super Admin",
       permissions: [
-        "Folha de pagamento",
-        "Relatórios financeiros",
-        "Gestão de benefícios",
-        "Análises de custos",
+        "Módulos de RH autorizados",
+        "Permissões customizáveis",
+        "Acesso controlado pelo Super Admin",
       ],
     },
   ];
