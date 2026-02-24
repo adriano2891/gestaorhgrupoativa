@@ -57,19 +57,18 @@ export const HoleriteViewer = ({
   };
 
   const extractPath = (url: string) => {
-    if (!url.startsWith('http')) return url;
+    // Remove query params first
+    const cleanUrl = url.split('?')[0];
+    if (!cleanUrl.startsWith('http')) return cleanUrl;
     try {
-      const parsed = new URL(url);
+      const parsed = new URL(cleanUrl);
       const pathParts = parsed.pathname.split('/holerites/');
-      if (pathParts.length > 1) return pathParts[1];
+      if (pathParts.length > 1) return decodeURIComponent(pathParts[1]);
     } catch {}
-    const marker = "/public/holerites/";
-    const idx = url.indexOf(marker);
-    if (idx !== -1) return url.substring(idx + marker.length);
     const alt = "/holerites/";
-    const idx2 = url.indexOf(alt);
-    if (idx2 !== -1) return url.substring(idx2 + alt.length);
-    return url;
+    const idx = cleanUrl.indexOf(alt);
+    if (idx !== -1) return decodeURIComponent(cleanUrl.substring(idx + alt.length));
+    return cleanUrl;
   };
 
   const loadPdf = async () => {
