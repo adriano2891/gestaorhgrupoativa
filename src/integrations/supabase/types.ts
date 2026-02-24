@@ -2069,6 +2069,7 @@ export type Database = {
           departamento: string | null
           email: string
           endereco: string | null
+          foto_url: string | null
           id: string
           nome: string
           numero_pis: string | null
@@ -2088,6 +2089,7 @@ export type Database = {
           departamento?: string | null
           email: string
           endereco?: string | null
+          foto_url?: string | null
           id: string
           nome: string
           numero_pis?: string | null
@@ -2107,6 +2109,7 @@ export type Database = {
           departamento?: string | null
           email?: string
           endereco?: string | null
+          foto_url?: string | null
           id?: string
           nome?: string
           numero_pis?: string | null
