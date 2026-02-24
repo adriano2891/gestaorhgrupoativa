@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { PortalBackground } from "./PortalBackground";
 import { supabase } from "@/integrations/supabase/client";
+import { playNotificationSound } from "@/utils/notificationSound";
 
 interface PortalHoleriteProps {
   onBack: () => void;
@@ -77,6 +78,7 @@ export const PortalHolerite = ({ onBack }: PortalHoleriteProps) => {
         },
         () => {
           queryClient.invalidateQueries({ queryKey: ["holerites", user.id] });
+          playNotificationSound("success");
           toast({
             title: "Holerite atualizado",
             description: "Um novo holerite foi disponibilizado pelo RH.",

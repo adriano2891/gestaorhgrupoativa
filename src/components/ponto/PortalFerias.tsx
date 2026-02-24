@@ -11,6 +11,7 @@ import { ptBR } from "date-fns/locale";
 import { SolicitarFeriasDialog } from "./SolicitarFeriasDialog";
 import { PortalBackground } from "./PortalBackground";
 import { toast } from "@/hooks/use-toast";
+import { playNotificationSound } from "@/utils/notificationSound";
 
 interface PortalFeriasProps {
   onBack: () => void;
@@ -37,10 +38,13 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
         (payload) => {
           const newStatus = (payload.new as any)?.status;
           if (newStatus === 'aprovado') {
+            playNotificationSound("success");
             toast({ title: "Férias aprovadas!", description: "Sua solicitação de férias foi aprovada." });
           } else if (newStatus === 'reprovado') {
+            playNotificationSound("warning");
             toast({ title: "Férias reprovadas", description: "Sua solicitação de férias foi reprovada.", variant: "destructive" });
           } else if (newStatus === 'concluido' || newStatus === 'cancelado') {
+            playNotificationSound("info");
             toast({ title: "Solicitação atualizada", description: `Sua solicitação foi marcada como ${newStatus}.` });
           }
           queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias-portal", user.id] });
