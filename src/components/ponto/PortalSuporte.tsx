@@ -9,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, MessageCircle, Plus, Send, Paperclip, Download, Clock, CheckCircle } from "lucide-react";
 import { PortalBackground } from "./PortalBackground";
 import { usePortalAuth } from "./PortalAuthProvider";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   useMeusChamados,
   useMensagensChamado,
@@ -39,6 +41,7 @@ const CATEGORIAS = [
 
 export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
   const { user, profile } = usePortalAuth();
+  const queryClient = useQueryClient();
   const [view, setView] = useState<"lista" | "novo" | "chat">("lista");
   const [chamadoSelecionado, setChamadoSelecionado] = useState<ChamadoSuporte | null>(null);
 
@@ -57,6 +60,53 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
   const { data: mensagens = [] } = useMensagensChamado(chamadoSelecionado?.id || null);
   const criarChamado = useCriarChamado();
   const enviarMensagem = useEnviarMensagem();
+
+  // Realtime: escuta novas mensagens e mudanças de status dos chamados
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const channel = supabase
+      .channel(`portal-suporte:${user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'mensagens_chamado',
+        },
+        (payload) => {
+          const newMsg = payload.new as any;
+          if (newMsg.remetente_id !== user.id) {
+            toast.success("Nova resposta do RH recebida!");
+          }
+          queryClient.invalidateQueries({ queryKey: ["mensagens-chamado", newMsg.chamado_id] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chamados_suporte',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const newStatus = (payload.new as any)?.status;
+          if (newStatus === 'fechado') {
+            toast.info("Seu chamado foi fechado pelo RH.");
+          }
+          queryClient.invalidateQueries({ queryKey: ["meus-chamados"] });
+          if (chamadoSelecionado?.id === (payload.new as any)?.id) {
+            setChamadoSelecionado(prev => prev ? { ...prev, status: newStatus } : null);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient, chamadoSelecionado?.id]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });

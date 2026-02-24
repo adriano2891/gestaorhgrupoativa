@@ -87,7 +87,6 @@ export const useMensagensChamado = (chamadoId: string | null) => {
       return (data || []) as MensagemChamado[];
     },
     enabled: !!chamadoId,
-    refetchInterval: 5000,
   });
 };
 
