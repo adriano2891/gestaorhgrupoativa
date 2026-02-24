@@ -299,6 +299,33 @@ export const useCriarSolicitacaoFerias = () => {
         .single();
 
       if (error) throw error;
+
+      // Criar chamado automático no módulo Suporte ao Funcionário
+      const tipoLabel = tipo === 'ferias' ? 'Férias' : tipo === 'ferias_coletivas' ? 'Férias Coletivas' : 'Abono Pecuniário';
+      const assuntoChamado = `Solicitação de ${tipoLabel} - ${data_inicio} a ${data_fim}`;
+      const mensagemChamado = `Solicitação automática de ${tipoLabel}.\n\nPeríodo: ${data_inicio} a ${data_fim}\nDias solicitados: ${dias_solicitados}${observacao ? `\nObservação: ${observacao}` : ''}`;
+
+      try {
+        const { data: chamado } = await (supabase as any)
+          .from("chamados_suporte")
+          .insert({ user_id: user.id, categoria: "ferias", assunto: assuntoChamado })
+          .select()
+          .single();
+
+        if (chamado) {
+          await (supabase as any)
+            .from("mensagens_chamado")
+            .insert({
+              chamado_id: chamado.id,
+              remetente_id: user.id,
+              conteudo: mensagemChamado,
+            });
+        }
+      } catch (e) {
+        // Não bloquear a solicitação de férias se o chamado falhar
+        console.error("Erro ao criar chamado de suporte para férias:", e);
+      }
+
       return data;
     },
     onSuccess: () => {
