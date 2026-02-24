@@ -6,6 +6,7 @@ import { usePortalAuth } from "./PortalAuthProvider";
 import { toast } from "sonner";
 import { BirthdayPopup } from "./BirthdayPopup";
 import { PortalBackground } from "./PortalBackground";
+import { PortalNotificacoesBell } from "./PortalNotificacoesBell";
 
 interface PortalDashboardProps {
   onNavigate: (section: string) => void;
@@ -129,10 +130,13 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
                 </p>
               </div>
             </div>
-            <Button variant="outline" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sair
-            </Button>
+            <div className="flex items-center gap-2">
+              <PortalNotificacoesBell />
+              <Button variant="outline" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sair
+              </Button>
+            </div>
           </div>
         </div>
       </header>
