@@ -113,7 +113,8 @@ export const useCriarChamado = () => {
       let arquivo_url = null;
       let arquivo_nome = null;
       if (params.arquivo) {
-        const filePath = `${chamado.id}/${Date.now()}_${params.arquivo.name}`;
+        const sanitizedName = params.arquivo.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "_");
+        const filePath = `${chamado.id}/${Date.now()}_${sanitizedName}`;
         const { error: uploadError } = await supabase.storage
           .from("chamados-anexos")
           .upload(filePath, params.arquivo);
@@ -161,7 +162,8 @@ export const useEnviarMensagem = () => {
       let arquivo_url = null;
       let arquivo_nome = null;
       if (params.arquivo) {
-        const filePath = `${params.chamado_id}/${Date.now()}_${params.arquivo.name}`;
+        const sanitizedName = params.arquivo.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "_");
+        const filePath = `${params.chamado_id}/${Date.now()}_${sanitizedName}`;
         const { error: uploadError } = await supabase.storage
           .from("chamados-anexos")
           .upload(filePath, params.arquivo);
