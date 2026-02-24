@@ -23,6 +23,7 @@ export const PortalNotificacoesBell = () => {
   const { notificacoes, naoLidas, totalNaoLidas, marcarComoLida, marcarTodasComoLidas } =
     useNotificacoesPortal();
   const [open, setOpen] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -86,6 +87,7 @@ export const PortalNotificacoesBell = () => {
                     key={notif.id}
                     onClick={() => {
                       if (isUnread) marcarComoLida(notif.id);
+                      setExpandedId(expandedId === notif.id ? null : notif.id);
                     }}
                     className={`w-full text-left p-3 hover:bg-muted/50 transition-colors flex gap-3 items-start border-l-4 ${
                       PRIORIDADE_COLORS[notif.prioridade] || "border-l-transparent"
@@ -103,9 +105,15 @@ export const PortalNotificacoesBell = () => {
                           <span className="h-2 w-2 rounded-full bg-primary flex-shrink-0" />
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
-                        {notif.mensagem}
-                      </p>
+                      {expandedId === notif.id ? (
+                        <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">
+                          {notif.mensagem}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                          {notif.mensagem}
+                        </p>
+                      )}
                       <p className="text-[10px] text-muted-foreground/70 mt-1">
                         {formatDistanceToNow(new Date(notif.created_at), {
                           addSuffix: true,
