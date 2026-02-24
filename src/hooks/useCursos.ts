@@ -328,8 +328,8 @@ export const useMinhasMatriculas = () => {
   return useQuery({
     queryKey: ["minhas-matriculas"],
     queryFn: async () => {
-      const { data: user } = await supabase.auth.getUser();
-      if (!user.user) throw new Error("Usuário não autenticado");
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return [] as Matricula[];
 
       const { data, error } = await supabase
         .from("matriculas")
@@ -340,12 +340,17 @@ export const useMinhasMatriculas = () => {
             categoria:categorias_curso(*)
           )
         `)
-        .eq("user_id", user.user.id)
+        .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao carregar matrículas:", error);
+        return [] as Matricula[];
+      }
       return data as Matricula[];
     },
+    retry: 2,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -541,23 +546,8 @@ export const useMeusCertificados = () => {
     queryKey: ["meus-certificados"],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        // Fallback: tentar getUser
-        const { data: user } = await supabase.auth.getUser();
-        if (!user.user) return [] as Certificado[];
-        
-        const { data, error } = await supabase
-          .from("certificados")
-          .select(`
-            *,
-            curso:cursos(*)
-          `)
-          .eq("user_id", user.user.id)
-          .order("data_emissao", { ascending: false });
-
-        if (error) throw error;
-        return data as Certificado[];
-      }
+      const userId = session?.user?.id;
+      if (!userId) return [] as Certificado[];
 
       const { data, error } = await supabase
         .from("certificados")
@@ -565,15 +555,18 @@ export const useMeusCertificados = () => {
           *,
           curso:cursos(*)
         `)
-        .eq("user_id", session.user.id)
+        .eq("user_id", userId)
         .order("data_emissao", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao carregar certificados:", error);
+        return [] as Certificado[];
+      }
       return data as Certificado[];
     },
     staleTime: 1000 * 30,
     refetchOnWindowFocus: true,
-    retry: 3,
+    retry: 2,
     retryDelay: 1000,
   });
 };

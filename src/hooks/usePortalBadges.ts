@@ -19,6 +19,16 @@ function setLastViewed(section: string, userId: string) {
   } catch {}
 }
 
+// Helper to get actual session user ID for RLS-safe queries
+async function getActiveUserId(fallbackId?: string): Promise<string | null> {
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.user?.id || fallbackId || null;
+  } catch {
+    return fallbackId || null;
+  }
+}
+
 export function usePortalBadges() {
   const { user } = usePortalAuth();
   const queryClient = useQueryClient();
@@ -54,10 +64,13 @@ export function usePortalBadges() {
   const { data: comunicadosNaoLidos = 0 } = useQuery({
     queryKey: ["portal-badge-comunicados", user?.id],
     queryFn: async () => {
+      const userId = await getActiveUserId(user?.id);
+      if (!userId) return 0;
+
       const { data: lidos } = await (supabase as any)
         .from("comunicados_lidos")
         .select("comunicado_id")
-        .eq("user_id", user!.id);
+        .eq("user_id", userId);
       const lidosIds = (lidos || []).map((r: any) => r.comunicado_id);
 
       let query = (supabase as any)
@@ -65,7 +78,7 @@ export function usePortalBadges() {
         .select("id, created_at")
         .eq("ativo", true);
 
-      const lastViewed = getLastViewed("comunicados", user!.id);
+      const lastViewed = getLastViewed("comunicados", userId);
       if (lastViewed) {
         query = query.gt("created_at", lastViewed);
       }
@@ -81,50 +94,42 @@ export function usePortalBadges() {
     refetchInterval: 30000,
   });
 
-  // Chamados com respostas não lidas
+  // Chamados com respostas não lidas - OPTIMIZED: single query instead of N+1
   const { data: suporteNaoLido = 0 } = useQuery({
     queryKey: ["portal-badge-suporte", user?.id],
     queryFn: async () => {
+      const userId = await getActiveUserId(user?.id);
+      if (!userId) return 0;
+
       const { data: chamados } = await (supabase as any)
         .from("chamados_suporte")
-        .select("id, updated_at")
-        .eq("user_id", user!.id)
+        .select("id")
+        .eq("user_id", userId)
         .neq("status", "fechado");
 
       if (!chamados || chamados.length === 0) return 0;
 
-      const lastViewed = getLastViewed("suporte", user!.id);
+      const chamadoIds = chamados.map((c: any) => c.id);
+      const lastViewed = getLastViewed("suporte", userId);
 
-      let count = 0;
-      for (const chamado of chamados) {
-        const { data: msgs } = await (supabase as any)
-          .from("mensagens_chamado")
-          .select("id, remetente_id, created_at")
-          .eq("chamado_id", chamado.id)
-          .neq("remetente_id", user!.id)
-          .order("created_at", { ascending: false })
-          .limit(1);
+      // Fetch all messages from others in open chamados in one query
+      let msgsQuery = (supabase as any)
+        .from("mensagens_chamado")
+        .select("id, chamado_id, created_at")
+        .in("chamado_id", chamadoIds)
+        .neq("remetente_id", userId)
+        .order("created_at", { ascending: false });
 
-        if (msgs && msgs.length > 0) {
-          // If user viewed suporte after this message, skip
-          if (lastViewed && new Date(msgs[0].created_at) <= new Date(lastViewed)) {
-            continue;
-          }
-
-          const { data: myMsgs } = await (supabase as any)
-            .from("mensagens_chamado")
-            .select("created_at")
-            .eq("chamado_id", chamado.id)
-            .eq("remetente_id", user!.id)
-            .order("created_at", { ascending: false })
-            .limit(1);
-
-          if (!myMsgs || myMsgs.length === 0 || new Date(msgs[0].created_at) > new Date(myMsgs[0].created_at)) {
-            count++;
-          }
-        }
+      if (lastViewed) {
+        msgsQuery = msgsQuery.gt("created_at", lastViewed);
       }
-      return count;
+
+      const { data: otherMsgs } = await msgsQuery;
+      if (!otherMsgs || otherMsgs.length === 0) return 0;
+
+      // Get chamados that have unread messages from others
+      const chamadosComMsgs = new Set(otherMsgs.map((m: any) => m.chamado_id));
+      return chamadosComMsgs.size;
     },
     enabled: !!user,
     refetchInterval: 30000,
@@ -134,6 +139,9 @@ export function usePortalBadges() {
   const { data: notificacoesNaoLidas = 0 } = useQuery({
     queryKey: ["portal-badge-notificacoes", user?.id],
     queryFn: async () => {
+      const userId = await getActiveUserId(user?.id);
+      if (!userId) return 0;
+
       const { data: notifs } = await (supabase as any)
         .from("notificacoes")
         .select("id")
@@ -143,7 +151,7 @@ export function usePortalBadges() {
       const { data: lidas } = await (supabase as any)
         .from("notificacoes_lidas")
         .select("notificacao_id")
-        .eq("user_id", user!.id);
+        .eq("user_id", userId);
 
       const lidasSet = new Set((lidas || []).map((r: any) => r.notificacao_id));
       return (notifs || []).filter((n: any) => !lidasSet.has(n.id)).length;
@@ -156,8 +164,10 @@ export function usePortalBadges() {
   const { data: holeritesNovos = 0 } = useQuery({
     queryKey: ["portal-badge-holerites", user?.id],
     queryFn: async () => {
-      const lastViewed = getLastViewed("holerite", user!.id);
-      // If never viewed, show last 30 days; otherwise show since last view
+      const userId = await getActiveUserId(user?.id);
+      if (!userId) return 0;
+
+      const lastViewed = getLastViewed("holerite", userId);
       const since = lastViewed || (() => {
         const d = new Date();
         d.setDate(d.getDate() - 30);
@@ -167,7 +177,7 @@ export function usePortalBadges() {
       const { data, error } = await (supabase as any)
         .from("holerites")
         .select("id")
-        .eq("user_id", user!.id)
+        .eq("user_id", userId)
         .gt("created_at", since);
       if (error) return 0;
       return (data || []).length;
@@ -180,12 +190,15 @@ export function usePortalBadges() {
   const { data: feriasAtualizadas = 0 } = useQuery({
     queryKey: ["portal-badge-ferias", user?.id],
     queryFn: async () => {
-      const lastViewed = getLastViewed("ferias", user!.id);
+      const userId = await getActiveUserId(user?.id);
+      if (!userId) return 0;
+
+      const lastViewed = getLastViewed("ferias", userId);
 
       let query = (supabase as any)
         .from("solicitacoes_ferias")
         .select("id")
-        .eq("user_id", user!.id)
+        .eq("user_id", userId)
         .in("status", ["aprovada", "reprovada"]);
 
       if (lastViewed) {
@@ -205,7 +218,6 @@ export function usePortalBadges() {
   const markSectionViewed = useCallback((section: string) => {
     if (!user) return;
     setLastViewed(section, user.id);
-    // Invalidate the relevant query so badge updates immediately
     const keyMap: Record<string, string> = {
       comunicados: "portal-badge-comunicados",
       suporte: "portal-badge-suporte",
