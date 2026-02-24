@@ -1971,6 +1971,88 @@ export type Database = {
           },
         ]
       }
+      notificacoes: {
+        Row: {
+          agendado_para: string | null
+          created_at: string
+          criado_por: string | null
+          destinatario_departamento: string | null
+          destinatario_id: string | null
+          destinatario_tipo: string
+          id: string
+          mensagem: string
+          prioridade: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          agendado_para?: string | null
+          created_at?: string
+          criado_por?: string | null
+          destinatario_departamento?: string | null
+          destinatario_id?: string | null
+          destinatario_tipo?: string
+          id?: string
+          mensagem: string
+          prioridade?: string
+          tipo?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          agendado_para?: string | null
+          created_at?: string
+          criado_por?: string | null
+          destinatario_departamento?: string | null
+          destinatario_id?: string | null
+          destinatario_tipo?: string
+          id?: string
+          mensagem?: string
+          prioridade?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacoes_criado_por_fkey"
+            columns: ["criado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notificacoes_lidas: {
+        Row: {
+          id: string
+          lido_em: string
+          notificacao_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          lido_em?: string
+          notificacao_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          lido_em?: string
+          notificacao_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacoes_lidas_notificacao_id_fkey"
+            columns: ["notificacao_id"]
+            isOneToOne: false
+            referencedRelation: "notificacoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perguntas_avaliacao: {
         Row: {
           avaliacao_id: string
