@@ -101,10 +101,14 @@ export const useCriarChamado = () => {
       mensagem: string;
       arquivo?: File;
     }) => {
+      // Use current auth session to ensure user_id matches auth.uid()
+      const { data: { session } } = await supabase.auth.getSession();
+      const actualUserId = session?.user?.id || params.user_id;
+
       // Criar chamado
       const { data: chamado, error: chamadoError } = await (supabase as any)
         .from("chamados_suporte")
-        .insert({ user_id: params.user_id, categoria: params.categoria, assunto: params.assunto })
+        .insert({ user_id: actualUserId, categoria: params.categoria, assunto: params.assunto })
         .select()
         .single();
       if (chamadoError) throw chamadoError;
@@ -128,7 +132,7 @@ export const useCriarChamado = () => {
         .from("mensagens_chamado")
         .insert({
           chamado_id: chamado.id,
-          remetente_id: params.user_id,
+          remetente_id: actualUserId,
           conteudo: params.mensagem,
           arquivo_url,
           arquivo_nome,
@@ -171,11 +175,15 @@ export const useEnviarMensagem = () => {
         arquivo_nome = params.arquivo.name;
       }
 
+      // Use current auth session for remetente_id
+      const { data: { session } } = await supabase.auth.getSession();
+      const actualRemetenteId = session?.user?.id || params.remetente_id;
+
       const { data, error } = await (supabase as any)
         .from("mensagens_chamado")
         .insert({
           chamado_id: params.chamado_id,
-          remetente_id: params.remetente_id,
+          remetente_id: actualRemetenteId,
           conteudo: params.conteudo,
           arquivo_url,
           arquivo_nome,
