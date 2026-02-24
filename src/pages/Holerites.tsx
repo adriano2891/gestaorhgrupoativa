@@ -69,31 +69,26 @@ const Holerites = () => {
 
   const handleViewPayslip = (id: string) => {
     const holerite = getLatestHolerite(id);
+    const employee = funcionarios?.find((emp) => emp.id === id);
     
-    if (holerite?.arquivo_url) {
-      // Open the actual uploaded PDF file
-      window.open(holerite.arquivo_url, '_blank');
-    } else {
-      const employee = funcionarios?.find((emp) => emp.id === id);
-      if (employee) {
-        const payslipData = {
-          employeeName: employee.nome,
-          position: employee.cargo || "Não informado",
-          department: employee.departamento || "Não informado",
-          month: holerite ? getMesNome(holerite.mes) : "N/A",
-          year: holerite?.ano || new Date().getFullYear(),
-          salary: holerite?.salario_bruto || employee.salario || 0,
-          benefits: 0,
-          deductions: holerite?.descontos || 0,
-          fgts: 0,
-          inss: 0,
-          irrf: 0,
-          netSalary: holerite?.salario_liquido || 0,
-        };
-        setSelectedPayslip(payslipData);
-        setSelectedHolerite(holerite);
-        setViewerOpen(true);
-      }
+    if (employee) {
+      const payslipData = {
+        employeeName: employee.nome,
+        position: employee.cargo || "Não informado",
+        department: employee.departamento || "Não informado",
+        month: holerite ? getMesNome(holerite.mes) : "N/A",
+        year: holerite?.ano || new Date().getFullYear(),
+        salary: holerite?.salario_bruto || employee.salario || 0,
+        benefits: 0,
+        deductions: holerite?.descontos || 0,
+        fgts: 0,
+        inss: 0,
+        irrf: 0,
+        netSalary: holerite?.salario_liquido || 0,
+      };
+      setSelectedPayslip(payslipData);
+      setSelectedHolerite(holerite);
+      setViewerOpen(true);
     }
   };
 
@@ -244,8 +239,15 @@ const Holerites = () => {
         open={viewerOpen}
         onOpenChange={setViewerOpen}
         data={selectedPayslip}
-        onDownload={() => handleDownload(selectedPayslip?.employeeName || "")}
-        onSendEmail={() => handleSendEmail(selectedPayslip?.employeeName || "")}
+        arquivoUrl={selectedHolerite?.arquivo_url}
+        onDownload={() => {
+          const emp = funcionarios?.find(e => e.nome === selectedPayslip?.employeeName);
+          if (emp) handleDownload(emp.id);
+        }}
+        onSendEmail={() => {
+          const emp = funcionarios?.find(e => e.nome === selectedPayslip?.employeeName);
+          if (emp) handleSendEmail(emp.id);
+        }}
       />
 
       <UploadHolerite
