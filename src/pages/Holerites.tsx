@@ -68,27 +68,32 @@ const Holerites = () => {
   };
 
   const handleViewPayslip = (id: string) => {
-    const employee = funcionarios?.find((emp) => emp.id === id);
     const holerite = getLatestHolerite(id);
     
-    if (employee) {
-      const payslipData = {
-        employeeName: employee.nome,
-        position: employee.cargo || "Não informado",
-        department: employee.departamento || "Não informado",
-        month: holerite ? getMesNome(holerite.mes) : "N/A",
-        year: holerite?.ano || new Date().getFullYear(),
-        salary: holerite?.salario_bruto || employee.salario || 0,
-        benefits: 0,
-        deductions: holerite?.descontos || 0,
-        fgts: 0,
-        inss: 0,
-        irrf: 0,
-        netSalary: holerite?.salario_liquido || 0,
-      };
-      setSelectedPayslip(payslipData);
-      setSelectedHolerite(holerite);
-      setViewerOpen(true);
+    if (holerite?.arquivo_url) {
+      // Open the actual uploaded PDF file
+      window.open(holerite.arquivo_url, '_blank');
+    } else {
+      const employee = funcionarios?.find((emp) => emp.id === id);
+      if (employee) {
+        const payslipData = {
+          employeeName: employee.nome,
+          position: employee.cargo || "Não informado",
+          department: employee.departamento || "Não informado",
+          month: holerite ? getMesNome(holerite.mes) : "N/A",
+          year: holerite?.ano || new Date().getFullYear(),
+          salary: holerite?.salario_bruto || employee.salario || 0,
+          benefits: 0,
+          deductions: holerite?.descontos || 0,
+          fgts: 0,
+          inss: 0,
+          irrf: 0,
+          netSalary: holerite?.salario_liquido || 0,
+        };
+        setSelectedPayslip(payslipData);
+        setSelectedHolerite(holerite);
+        setViewerOpen(true);
+      }
     }
   };
 
