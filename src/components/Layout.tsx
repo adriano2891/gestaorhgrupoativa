@@ -157,6 +157,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
       {/* Main Content */}
       <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 lg:py-8">{children}</main>
+      <footer className="py-4 text-center text-xs text-muted-foreground border-t border-border/40 bg-card/50">
+        © 2025 Grupo Ativa • Todos os direitos reservados
+      </footer>
       </div>
     </div>
   );
