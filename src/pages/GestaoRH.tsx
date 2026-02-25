@@ -76,7 +76,7 @@ const GestaoRH = () => {
     { title: "Formulários", description: "Documentos e formulários RH", iconSrc: iconFormularios, path: "/hrflow-pro", scaleIcon: true },
     { title: "Cursos", description: "Treinamentos e capacitação", iconSrc: iconCursos, path: "/cursos", scaleIcon: true },
     { title: "Controle de Férias", description: "Férias e licenças", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
-    { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", scaleIcon: true, badgeKey: "/suporte-funcionarios" },
+    { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.8]", badgeKey: "/suporte-funcionarios" },
   ];
 
   if (isSuperAdmin) {
