@@ -250,19 +250,26 @@ const BancoTalentos = () => {
   const extractPathFromUrl = (url: string) => {
     // Se já é apenas o nome do arquivo (novo formato), retornar direto
     if (!url.startsWith('http')) return url;
-    // Compatibilidade com URLs antigas
-    const marker = "/public/resumes/";
-    const idx = url.indexOf(marker);
-    if (idx !== -1) return url.substring(idx + marker.length);
-    const alt = "/resumes/";
-    const idx2 = url.indexOf(alt);
-    if (idx2 !== -1) return url.substring(idx2 + alt.length);
-    // Tentar extrair de signed URL (token query param)
+    
     try {
       const parsed = new URL(url);
-      const pathParts = parsed.pathname.split('/resumes/');
-      if (pathParts.length > 1) return pathParts[1];
+      // Remove query params (tokens, etc.)
+      const pathname = parsed.pathname;
+      
+      // Try to extract path after /resumes/
+      const markers = ['/object/public/resumes/', '/object/sign/resumes/', '/resumes/'];
+      for (const marker of markers) {
+        const idx = pathname.indexOf(marker);
+        if (idx !== -1) return decodeURIComponent(pathname.substring(idx + marker.length));
+      }
     } catch {}
+    
+    // Fallback: try simple string matching without query params
+    const urlWithoutQuery = url.split('?')[0];
+    const alt = "/resumes/";
+    const idx = urlWithoutQuery.lastIndexOf(alt);
+    if (idx !== -1) return urlWithoutQuery.substring(idx + alt.length);
+    
     return url;
   };
 
