@@ -1,12 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar } from "lucide-react";
+import { ArrowLeft, Calendar, AlertTriangle, Info } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format } from "date-fns";
+import { format, differenceInDays, parseISO, isBefore, addYears } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SolicitarFeriasDialog } from "./SolicitarFeriasDialog";
 import { PortalBackground } from "./PortalBackground";
@@ -18,7 +18,7 @@ interface PortalFeriasProps {
 }
 
 export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
-  const { user } = usePortalAuth();
+  const { user, profile } = usePortalAuth();
   const queryClient = useQueryClient();
 
   // Realtime: escuta mudanças na solicitação de férias do funcionário
@@ -110,8 +110,82 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
     refetchOnWindowFocus: true,
   });
 
-  const periodoAtual = periodos?.[0];
-  const proximaSolicitacao = solicitacoes?.find(
+  // Calcular dados baseado na data de admissão e períodos aquisitivos (CLT)
+  const feriasInfo = useMemo(() => {
+    const hoje = new Date();
+    const profileData = profile as any;
+    const dataAdmissao = profileData?.data_admissao
+      ? parseISO(profileData.data_admissao)
+      : profileData?.created_at
+        ? new Date(profileData.created_at)
+        : null;
+
+    if (!periodos || periodos.length === 0 || !dataAdmissao) {
+      return {
+        saldoDisponivel: 0,
+        diasUsadosTotal: 0,
+        periodoAtualCompleto: false,
+        periodoAtual: null,
+        proximoPeriodoData: dataAdmissao ? addYears(dataAdmissao, 1) : null,
+        diasRestantesAquisicao: dataAdmissao
+          ? Math.max(0, differenceInDays(addYears(dataAdmissao, 1), hoje))
+          : null,
+        periodosCompletosComSaldo: [],
+        periodosEmAquisicao: [],
+      };
+    }
+
+    // Separar períodos completos (12 meses passaram) e em aquisição
+    const periodosCompletos = periodos.filter((p) => {
+      const fimPeriodo = parseISO(p.data_fim);
+      return isBefore(fimPeriodo, hoje);
+    });
+
+    const periodosEmAquisicao = periodos.filter((p) => {
+      const fimPeriodo = parseISO(p.data_fim);
+      return !isBefore(fimPeriodo, hoje);
+    });
+
+    // Saldo disponível = soma dos dias disponíveis de períodos COMPLETOS
+    const saldoDisponivel = periodosCompletos.reduce(
+      (acc, p) => acc + (p.dias_disponiveis ?? (p.dias_direito - p.dias_usados)),
+      0
+    );
+
+    // Dias usados total (todos os períodos)
+    const diasUsadosTotal = periodos.reduce((acc, p) => acc + (p.dias_usados || 0), 0);
+
+    // Período em aquisição atual (mais recente)
+    const periodoEmAquisicaoAtual = periodosEmAquisicao[0];
+
+    // Calcular próximo período com base na data de admissão
+    let proximoPeriodoData: Date | null = null;
+    if (periodoEmAquisicaoAtual) {
+      proximoPeriodoData = parseISO(periodoEmAquisicaoAtual.data_fim);
+    }
+
+    // Dias restantes para completar período aquisitivo atual
+    const diasRestantesAquisicao = periodoEmAquisicaoAtual
+      ? Math.max(0, differenceInDays(parseISO(periodoEmAquisicaoAtual.data_fim), hoje))
+      : null;
+
+    const periodoAtualCompleto = periodosCompletos.length > 0;
+
+    return {
+      saldoDisponivel: Math.max(0, saldoDisponivel),
+      diasUsadosTotal,
+      periodoAtualCompleto,
+      periodoAtual: periodosCompletos[0] || periodoEmAquisicaoAtual,
+      proximoPeriodoData,
+      diasRestantesAquisicao,
+      periodosCompletosComSaldo: periodosCompletos.filter(
+        (p) => (p.dias_disponiveis ?? (p.dias_direito - p.dias_usados)) > 0
+      ),
+      periodosEmAquisicao,
+    };
+  }, [periodos, profile]);
+
+  const proximaSolicitacaoAprovada = solicitacoes?.find(
     (s) => s.status === "aprovado" || s.status === "em_andamento"
   );
 
@@ -147,20 +221,26 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
                 </div>
               ) : (
                 <>
+                  {/* Cards de resumo */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <Card>
                       <CardContent className="pt-6">
                         <p className="text-sm text-muted-foreground">Saldo Disponível</p>
                         <p className="text-2xl font-bold text-primary">
-                          {periodoAtual?.dias_disponiveis || 0} dias
+                          {feriasInfo.saldoDisponivel} dias
                         </p>
+                        {!feriasInfo.periodoAtualCompleto && feriasInfo.periodosEmAquisicao.length > 0 && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Período aquisitivo em andamento
+                          </p>
+                        )}
                       </CardContent>
                     </Card>
                     <Card>
                       <CardContent className="pt-6">
                         <p className="text-sm text-muted-foreground">Dias Usados</p>
                         <p className="text-2xl font-bold">
-                          {periodoAtual?.dias_usados || 0} dias
+                          {feriasInfo.diasUsadosTotal} dias
                         </p>
                       </CardContent>
                     </Card>
@@ -168,13 +248,60 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
                       <CardContent className="pt-6">
                         <p className="text-sm text-muted-foreground">Próximo Período</p>
                         <p className="text-2xl font-bold">
-                          {proximaSolicitacao
-                            ? format(new Date(proximaSolicitacao.data_inicio), "dd/MM/yyyy", { locale: ptBR })
-                            : "-"}
+                          {proximaSolicitacaoAprovada
+                            ? format(new Date(proximaSolicitacaoAprovada.data_inicio), "dd/MM/yyyy", { locale: ptBR })
+                            : feriasInfo.proximoPeriodoData
+                              ? format(feriasInfo.proximoPeriodoData, "dd/MM/yyyy", { locale: ptBR })
+                              : "-"}
                         </p>
+                        {!proximaSolicitacaoAprovada && feriasInfo.diasRestantesAquisicao !== null && feriasInfo.diasRestantesAquisicao > 0 && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Faltam {feriasInfo.diasRestantesAquisicao} dias
+                          </p>
+                        )}
                       </CardContent>
                     </Card>
                   </div>
+
+                  {/* Info sobre data de admissão e período aquisitivo */}
+                  {(profile as any)?.data_admissao && (
+                    <div className="mb-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
+                      <div className="flex items-start gap-2">
+                        <Info className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                        <div className="text-sm text-muted-foreground">
+                          <p>
+                            <strong>Data de admissão:</strong>{" "}
+                            {format(parseISO((profile as any).data_admissao), "dd/MM/yyyy", { locale: ptBR })}
+                          </p>
+                          <p className="mt-0.5">
+                            Conforme Art. 130 da CLT, o direito a férias é adquirido após completar 12 meses de trabalho (período aquisitivo).
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Aviso se não houver período aquisitivo completo */}
+                  {!feriasInfo.periodoAtualCompleto && feriasInfo.periodosEmAquisicao.length > 0 && (
+                    <div className="mb-4 p-4 rounded-lg border-2 border-amber-300 bg-amber-50">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-amber-900">Período aquisitivo em andamento</p>
+                          <p className="text-sm text-amber-700 mt-1">
+                            Seu período aquisitivo atual ainda não foi completado.
+                            {feriasInfo.diasRestantesAquisicao !== null && (
+                              <>
+                                {" "}Faltam <strong>{feriasInfo.diasRestantesAquisicao} dias</strong> para completar
+                                ({format(parseISO(feriasInfo.periodosEmAquisicao[0].data_inicio), "dd/MM/yyyy", { locale: ptBR })} a{" "}
+                                {format(parseISO(feriasInfo.periodosEmAquisicao[0].data_fim), "dd/MM/yyyy", { locale: ptBR })}).
+                              </>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   
                   <SolicitarFeriasDialog periodos={periodos || []} />
 

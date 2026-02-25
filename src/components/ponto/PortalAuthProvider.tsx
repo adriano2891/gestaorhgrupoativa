@@ -13,6 +13,8 @@ interface Profile {
   data_nascimento: string | null;
   foto_url: string | null;
   deve_trocar_senha: boolean;
+  data_admissao: string | null;
+  created_at: string | null;
 }
 
 interface PortalAuthContextType {
