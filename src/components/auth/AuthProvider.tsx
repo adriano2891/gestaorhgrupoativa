@@ -139,7 +139,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
       
-      // Clear stale cache before new login
+      // Remove stale realtime channels from previous session
+      supabase.removeAllChannels();
+      
+      // Clear stale cache and cancel in-flight queries before new login
+      queryClient.cancelQueries();
       queryClient.clear();
       
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -180,12 +184,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     isSigningOut.current = true;
     
-    // Clear state immediately
+    // Clear state immediately for responsive UI
     clearAuthState();
     setLoading(false);
     
-    // Clear all React Query cache
+    // Remove ALL realtime channels to prevent stale subscriptions
+    // from re-populating queries after logout
+    supabase.removeAllChannels();
+    
+    // Clear all React Query cache AND cancel in-flight queries
+    queryClient.cancelQueries();
     queryClient.clear();
+    
+    // Clear any portal session data
+    localStorage.removeItem('portal_session');
     
     try {
       await Promise.race([
@@ -196,10 +208,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("Logout error (ignored):", error);
     }
     
-    // Small delay before re-enabling to let stale events pass
+    // Delay before re-enabling to let stale auth events pass
     setTimeout(() => {
       isSigningOut.current = false;
-    }, 500);
+    }, 800);
     
     navigate("/login");
   };

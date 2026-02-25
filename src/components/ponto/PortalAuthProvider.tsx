@@ -203,7 +203,11 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
     setLoading(false);
     localStorage.removeItem('portal_session');
     
-    // Clear React Query cache
+    // Remove ALL realtime channels to prevent stale subscriptions
+    supabase.removeAllChannels();
+    
+    // Clear React Query cache and cancel in-flight queries
+    queryClient.cancelQueries();
     queryClient.clear();
     
     try {
@@ -215,7 +219,9 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
       console.log("Logout error (ignored):", error);
     }
     
-    isSigningOut.current = false;
+    setTimeout(() => {
+      isSigningOut.current = false;
+    }, 800);
   };
 
   return (
