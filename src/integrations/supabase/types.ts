@@ -2173,6 +2173,7 @@ export type Database = {
           deve_trocar_senha: boolean
           email: string
           endereco: string | null
+          escala_trabalho: string | null
           foto_url: string | null
           id: string
           nome: string
@@ -2181,6 +2182,7 @@ export type Database = {
           salario: number | null
           status: string | null
           telefone: string | null
+          turno: string | null
           updated_at: string | null
           usuario: string | null
         }
@@ -2194,6 +2196,7 @@ export type Database = {
           deve_trocar_senha?: boolean
           email: string
           endereco?: string | null
+          escala_trabalho?: string | null
           foto_url?: string | null
           id: string
           nome: string
@@ -2202,6 +2205,7 @@ export type Database = {
           salario?: number | null
           status?: string | null
           telefone?: string | null
+          turno?: string | null
           updated_at?: string | null
           usuario?: string | null
         }
@@ -2215,6 +2219,7 @@ export type Database = {
           deve_trocar_senha?: boolean
           email?: string
           endereco?: string | null
+          escala_trabalho?: string | null
           foto_url?: string | null
           id?: string
           nome?: string
@@ -2223,6 +2228,7 @@ export type Database = {
           salario?: number | null
           status?: string | null
           telefone?: string | null
+          turno?: string | null
           updated_at?: string | null
           usuario?: string | null
         }
