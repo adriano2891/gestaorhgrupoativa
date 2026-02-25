@@ -1,7 +1,8 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useRef, useCallback } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 
 type UserRole = "admin" | "gestor" | "rh" | "funcionario";
 
@@ -32,6 +33,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [roles, setRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const isSigningOut = useRef(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -84,6 +87,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setLoading(false);
         }
       } else if (event === 'SIGNED_IN' && session?.user) {
+        if (isSigningOut.current) return; // Ignore stale events during logout
         setUser(session.user);
         await loadUserDataSafe(session.user.id);
         if (isMounted) setLoading(false);
@@ -91,6 +95,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(null);
         setProfile(null);
         setRoles([]);
+        setLoading(false);
+      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+        setUser(session.user);
       }
     });
 
@@ -170,11 +177,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const signOut = async () => {
+    isSigningOut.current = true;
+    
     // Limpar estado imediatamente para UX responsiva
     setUser(null);
     setProfile(null);
     setRoles([]);
     setLoading(false);
+    
+    // Limpar todo cache do React Query
+    queryClient.clear();
     
     try {
       await Promise.race([
@@ -185,6 +197,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("Logout error (ignored):", error);
     }
     
+    isSigningOut.current = false;
     navigate("/login");
   };
 
