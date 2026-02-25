@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Quote, QuoteItem } from '@/types/quotes';
 import { format } from 'date-fns';
