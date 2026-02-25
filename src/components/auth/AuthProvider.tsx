@@ -40,26 +40,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const loadUserData = useCallback(async (userId: string) => {
     try {
       const [profileResult, rolesResult] = await Promise.all([
-        (supabase as any)
+        supabase
           .from("profiles")
-          .select("*")
+          .select("id, nome, email, departamento, cargo")
           .eq("id", userId)
           .maybeSingle(),
-        (supabase as any)
+        supabase
           .from("user_roles")
           .select("role")
           .eq("user_id", userId),
       ]);
 
-      if (profileResult.error) {
-        console.error("Erro ao carregar perfil:", profileResult.error);
-      } else if (profileResult.data) {
+      if (profileResult.data) {
         setProfile(profileResult.data as Profile);
       }
 
-      if (rolesResult.error) {
-        console.error("Erro ao carregar roles:", rolesResult.error);
-      } else {
+      if (rolesResult.data) {
         setRoles((rolesResult.data as any[])?.map((r: any) => r.role as UserRole) || []);
       }
     } catch (error) {
@@ -83,7 +79,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         initialLoadDone = true;
         setLoading(false);
       }
-    }, 6000);
+    }, 3000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
@@ -139,10 +135,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       }
       
-      // Remove stale realtime channels from previous session
+      // Clear stale state
       supabase.removeAllChannels();
-      
-      // Clear stale cache and cancel in-flight queries before new login
       queryClient.cancelQueries();
       queryClient.clear();
       
@@ -154,19 +148,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (data.user) {
         setUser(data.user);
+        setLoading(false);
         
-        try {
-          await Promise.race([
-            loadUserData(data.user.id),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
-          ]);
-        } catch (err) {
-          console.error("Erro ao carregar dados após login:", err);
-        }
+        // Navigate IMMEDIATELY — don't wait for profile/roles
+        navigate("/dashboard");
+        
+        // Load profile/roles in background (Dashboard shows loading state for roles)
+        loadUserData(data.user.id).catch(console.error);
       }
-
-      setLoading(false);
-      navigate("/dashboard");
     } finally {
       isSigningIn.current = false;
     }
