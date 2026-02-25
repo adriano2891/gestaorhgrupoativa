@@ -974,6 +974,36 @@ export type Database = {
           },
         ]
       }
+      escalas_trabalho: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          id: string
+          jornada_horas: number
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          jornada_horas?: number
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          id?: string
+          jornada_horas?: number
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       feedback_curso: {
         Row: {
           comentario: string | null
@@ -2752,6 +2782,50 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      turnos_trabalho: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          descricao: string | null
+          escala_id: string | null
+          hora_fim: string
+          hora_inicio: string
+          id: string
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          escala_id?: string | null
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          descricao?: string | null
+          escala_id?: string | null
+          hora_fim?: string
+          hora_inicio?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turnos_trabalho_escala_id_fkey"
+            columns: ["escala_id"]
+            isOneToOne: false
+            referencedRelation: "escalas_trabalho"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
