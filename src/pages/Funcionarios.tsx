@@ -158,6 +158,8 @@ const Funcionarios = () => {
   const [editCpf, setEditCpf] = useState("");
   const [editEndereco, setEditEndereco] = useState("");
   const [editAdmissionDate, setEditAdmissionDate] = useState("");
+  const [editEscala, setEditEscala] = useState("8h");
+  const [editTurno, setEditTurno] = useState("diurno");
   
   const [newEmployee, setNewEmployee] = useState({
     name: "",
@@ -428,13 +430,15 @@ const Funcionarios = () => {
       // Buscar dados completos do banco
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("cpf, salario, endereco")
+        .select("cpf, salario, endereco, escala_trabalho, turno")
         .eq("id", employeeId)
         .maybeSingle();
       
       if (profileData) {
         setEditCpf(profileData.cpf || "");
         setEditEndereco((profileData as any).endereco || "");
+        setEditEscala((profileData as any).escala_trabalho || "8h");
+        setEditTurno((profileData as any).turno || "diurno");
         // Formatar salário no padrão brasileiro
         if (profileData.salario) {
           const salarioFormatado = parseFloat(profileData.salario.toString()).toLocaleString('pt-BR', {
@@ -521,6 +525,8 @@ const Funcionarios = () => {
           departamento: editingEmployee.department,
           status: editingEmployee.status,
           endereco: editEndereco.trim() || null,
+          escala_trabalho: editEscala,
+          turno: editTurno,
         };
 
         // Converter salário formatado para número
@@ -1129,6 +1135,33 @@ const Funcionarios = () => {
                   placeholder="Rua, número, bairro, cidade - UF"
                   className="h-9"
                 />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="escala" className="text-sm">Escala de Trabalho</Label>
+                  <Select value={editEscala} onValueChange={setEditEscala}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="8h">8h (CLT Padrão)</SelectItem>
+                      <SelectItem value="12x36">12x36</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="turno" className="text-sm">Turno</Label>
+                  <Select value={editTurno} onValueChange={setEditTurno}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="diurno">Diurno (07h-19h)</SelectItem>
+                      <SelectItem value="noturno">Noturno (19h-07h)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div className="space-y-1.5">

@@ -55,6 +55,8 @@ interface DayRecord {
   retorno_almoco?: string;
   total_horas?: string;
   horas_extras?: string;
+  horas_noturnas?: string;
+  adicional_noturno?: string;
   status: "completo" | "incompleto" | "ausente" | "falta" | "atestado";
 }
 
@@ -62,9 +64,12 @@ interface EmployeeMonthRecord {
   employee_id: string;
   employee_name: string;
   departamento?: string;
+  escala_trabalho?: string;
+  turno?: string;
   days: DayRecord[];
   total_horas_mes: number;
   total_horas_extras: number;
+  total_horas_noturnas: number;
   total_faltas: number;
   status: "completo" | "incompleto";
 }
@@ -107,9 +112,9 @@ const FolhaPonto = () => {
       const daysInMonth = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0).getDate();
       const endDate = `${selectedYear}-${selectedMonth}-${daysInMonth}`;
 
-      let query = supabase
+      let query = (supabase as any)
         .from("registros_ponto")
-        .select("*, profiles!inner(nome, departamento)")
+        .select("*, profiles!inner(nome, departamento, escala_trabalho, turno)")
         .gte("data", startDate)
         .lte("data", endDate);
 
@@ -146,16 +151,18 @@ const FolhaPonto = () => {
           employee_id: emp.id,
           employee_name: emp.nome,
           departamento: emp.departamento,
+          escala_trabalho: (emp as any).escala_trabalho || '8h',
+          turno: (emp as any).turno || 'diurno',
           days,
           total_horas_mes: 0,
           total_horas_extras: 0,
+          total_horas_noturnas: 0,
           total_faltas: 0,
           status: "incompleto"
         });
       });
 
-      // Jornada padrão CLT: 8 horas com tolerância de 10 minutos
-      const JORNADA_PADRAO_HORAS = 8;
+      // Tolerância CLT para marcação de ponto
       const TOLERANCIA_MINUTOS = 10;
 
       const parseIntervalToHours = (interval: string | null): number => {
@@ -169,6 +176,13 @@ const FolhaPonto = () => {
       registros?.forEach((reg: any) => {
         const empRecord = employeeMap.get(reg.user_id);
         if (empRecord) {
+          // Atualizar escala/turno do perfil se disponível nos registros
+          if (reg.profiles?.escala_trabalho) {
+            empRecord.escala_trabalho = reg.profiles.escala_trabalho;
+          }
+          if (reg.profiles?.turno) {
+            empRecord.turno = reg.profiles.turno;
+          }
           const day = new Date(reg.data).getDate();
           const dayIndex = day - 1;
 
@@ -188,11 +202,14 @@ const FolhaPonto = () => {
             return "0h 0min";
           };
 
+          // Jornada conforme escala do funcionário
+          const jornadaHoras = empRecord.escala_trabalho === '12x36' ? 12 : 8;
+
           // Determinar status automaticamente com base nas horas trabalhadas
           let autoStatus: DayRecord["status"] = "ausente";
           if (reg.entrada && reg.saida) {
             const horasTrabalhadas = parseIntervalToHours(reg.total_horas);
-            const limiteCompleto = JORNADA_PADRAO_HORAS - (TOLERANCIA_MINUTOS / 60);
+            const limiteCompleto = jornadaHoras - (TOLERANCIA_MINUTOS / 60);
             autoStatus = horasTrabalhadas >= limiteCompleto ? "completo" : "incompleto";
           } else if (reg.entrada) {
             autoStatus = "incompleto";
@@ -207,6 +224,8 @@ const FolhaPonto = () => {
             retorno_almoco: formatTime(reg.retorno_almoco),
             total_horas: formatInterval(reg.total_horas),
             horas_extras: formatInterval(reg.horas_extras),
+            horas_noturnas: formatInterval(reg.horas_noturnas),
+            adicional_noturno: formatInterval(reg.adicional_noturno),
             status: autoStatus
           };
 
@@ -218,37 +237,46 @@ const FolhaPonto = () => {
           if (reg.horas_extras) {
             empRecord.total_horas_extras += parseIntervalToHours(reg.horas_extras);
           }
+
+          if (reg.horas_noturnas) {
+            empRecord.total_horas_noturnas += parseIntervalToHours(reg.horas_noturnas);
+          }
         }
       });
 
       // Calcular faltas e status final do mês
-      // Dias úteis do mês (excluindo sábados e domingos)
-      const diasUteis = (() => {
-        let count = 0;
-        for (let d = 1; d <= daysInMonth; d++) {
-          const dayOfWeek = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1, d).getDay();
-          if (dayOfWeek !== 0 && dayOfWeek !== 6) count++;
-        }
-        return count;
-      })();
-
       employeeMap.forEach(record => {
-        // Contar ausências apenas em dias úteis
-        record.total_faltas = record.days.filter(d => {
-          const dayOfWeek = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1, d.day).getDay();
-          const isDiaUtil = dayOfWeek !== 0 && dayOfWeek !== 6;
-          return isDiaUtil && (d.status === "ausente" || d.status === "falta");
-        }).length;
-
-        const completos = record.days.filter(d => d.status === "completo").length;
-        const incompletos = record.days.filter(d => d.status === "incompleto").length;
-        const atestados = record.days.filter(d => d.status === "atestado").length;
-
-        // Status final: completo se todos os dias úteis foram cumpridos ou justificados
-        if (completos + atestados >= diasUteis) {
-          record.status = "completo";
+        if (record.escala_trabalho === '12x36') {
+          // Escala 12x36: funcionário trabalha dia sim, dia não (aprox. 15 dias/mês)
+          // Contar apenas dias que deveriam ter sido trabalhados
+          const diasEsperados = Math.ceil(daysInMonth / 2);
+          record.total_faltas = record.days.filter(d => 
+            d.status === "ausente" || d.status === "falta"
+          ).length;
+          
+          const completos = record.days.filter(d => d.status === "completo").length;
+          const atestados = record.days.filter(d => d.status === "atestado").length;
+          record.status = (completos + atestados >= diasEsperados) ? "completo" : "incompleto";
         } else {
-          record.status = "incompleto";
+          // Escala 8h: dias úteis (seg-sex)
+          const diasUteis = (() => {
+            let count = 0;
+            for (let d = 1; d <= daysInMonth; d++) {
+              const dayOfWeek = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1, d).getDay();
+              if (dayOfWeek !== 0 && dayOfWeek !== 6) count++;
+            }
+            return count;
+          })();
+
+          record.total_faltas = record.days.filter(d => {
+            const dayOfWeek = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1, d.day).getDay();
+            const isDiaUtil = dayOfWeek !== 0 && dayOfWeek !== 6;
+            return isDiaUtil && (d.status === "ausente" || d.status === "falta");
+          }).length;
+
+          const completos = record.days.filter(d => d.status === "completo").length;
+          const atestados = record.days.filter(d => d.status === "atestado").length;
+          record.status = (completos + atestados >= diasUteis) ? "completo" : "incompleto";
         }
       });
 
@@ -751,7 +779,14 @@ const FolhaPonto = () => {
                       </Avatar>
                       <div>
                         <CardTitle className="text-lg">{record.employee_name}</CardTitle>
-                        <CardDescription>{record.departamento || "Sem departamento"}</CardDescription>
+                        <CardDescription>
+                          {record.departamento || "Sem departamento"}
+                          {record.escala_trabalho === '12x36' && (
+                            <Badge variant="outline" className="ml-2 text-xs">
+                              12x36 {record.turno === 'noturno' ? '(Noturno)' : '(Diurno)'}
+                            </Badge>
+                          )}
+                        </CardDescription>
                       </div>
                     </div>
                     <div className="flex items-center gap-4 text-sm">
@@ -763,6 +798,12 @@ const FolhaPonto = () => {
                         <div className="text-muted-foreground">Horas Extras</div>
                         <div className="font-bold text-yellow-600">{record.total_horas_extras.toFixed(1)}h</div>
                       </div>
+                      {record.total_horas_noturnas > 0 && (
+                        <div className="text-center">
+                          <div className="text-muted-foreground">H. Noturnas</div>
+                          <div className="font-bold text-indigo-600">{record.total_horas_noturnas.toFixed(1)}h</div>
+                        </div>
+                      )}
                       <div className="text-center">
                         <div className="text-muted-foreground">Faltas</div>
                         <div className="font-bold text-red-600">{record.total_faltas}</div>
