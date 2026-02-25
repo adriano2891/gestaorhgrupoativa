@@ -20,6 +20,7 @@ import {
   type ChamadoSuporte,
 } from "@/hooks/useChamadosSuporte";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -39,6 +40,7 @@ const CATEGORIAS = [
 
 const SuporteFuncionarios = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const { data: chamados = [], isLoading } = useTodosChamados();
   const [chamadoSelecionado, setChamadoSelecionado] = useState<ChamadoSuporte | null>(null);
   const [busca, setBusca] = useState("");
@@ -52,6 +54,35 @@ const SuporteFuncionarios = () => {
   const { data: mensagens = [], isLoading: loadingMensagens } = useMensagensChamado(chamadoSelecionado?.id || null);
   const enviarMensagem = useEnviarMensagem();
   const atualizarStatus = useAtualizarStatusChamado();
+
+  // Realtime: escuta novas mensagens e mudanças nos chamados
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-suporte')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'mensagens_chamado' },
+        (payload) => {
+          const newMsg = payload.new as any;
+          if (newMsg.remetente_id !== user?.id) {
+            toast.info("Nova mensagem de funcionário recebida!");
+          }
+          queryClient.invalidateQueries({ queryKey: ["mensagens-chamado", newMsg.chamado_id] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'chamados_suporte' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["todos-chamados"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, queryClient]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
