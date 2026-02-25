@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +16,29 @@ interface HistoricoAcoesPontoProps {
 
 export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAcoesPontoProps) => {
   const [expanded, setExpanded] = useState(false);
+  const queryClient = useQueryClient();
 
+  // Realtime subscription for instant updates
+  useEffect(() => {
+    const channel = supabase
+      .channel('logs-edicao-ponto-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'logs_edicao_ponto'
+        },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["logs-edicao-ponto", selectedMonth, selectedYear] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient, selectedMonth, selectedYear]);
   const { data: logs, isLoading } = useQuery({
     queryKey: ["logs-edicao-ponto", selectedMonth, selectedYear],
     queryFn: async () => {
