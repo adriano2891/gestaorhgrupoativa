@@ -65,7 +65,7 @@ const PortalContent = () => {
     case "dashboard":
       return <PortalDashboard onNavigate={handleNavigate} />;
     case "ponto":
-      return <PainelPonto />;
+      return <PainelPonto onBack={handleBack} />;
     case "holerite":
       return <PortalHolerite onBack={handleBack} />;
     case "ferias":
