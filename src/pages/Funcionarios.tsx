@@ -450,10 +450,22 @@ const Funcionarios = () => {
 
   const handleEdit = async (employeeId: string) => {
     const employee = employees.find(emp => emp.id === employeeId);
-    if (employee) {
-      setEditingEmployee({ ...employee });
-      
-      // Buscar dados completos do banco
+    if (!employee) return;
+    
+    setEditingEmployee({ ...employee });
+    setEditPassword("");
+    setEditCpf("");
+    setEditSalary("");
+    setEditEndereco("");
+    setEditEscala("8h");
+    setEditTurno("diurno");
+    setEditAdmissionDate(employee.admissionDate);
+    setEditPhotoFile(null);
+    setEditPhotoPreview(employee.foto_url || null);
+    setIsEditDialogOpen(true);
+    
+    // Buscar dados completos do banco (não bloqueia a abertura do dialog)
+    try {
       const { data: profileData } = await supabase
         .from("profiles")
         .select("cpf, salario, endereco, escala_trabalho, turno")
@@ -465,23 +477,16 @@ const Funcionarios = () => {
         setEditEndereco((profileData as any).endereco || "");
         setEditEscala((profileData as any).escala_trabalho || "8h");
         setEditTurno((profileData as any).turno || "diurno");
-        // Formatar salário no padrão brasileiro
         if (profileData.salario) {
           const salarioFormatado = parseFloat(profileData.salario.toString()).toLocaleString('pt-BR', {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
           });
           setEditSalary(salarioFormatado);
-        } else {
-          setEditSalary("");
         }
       }
-      
-      setEditPassword("");
-      setEditAdmissionDate(employee.admissionDate);
-      setEditPhotoFile(null);
-      setEditPhotoPreview(employee.foto_url || null);
-      setIsEditDialogOpen(true);
+    } catch (error) {
+      console.error("Erro ao buscar dados do funcionário:", error);
     }
   };
 
@@ -779,7 +784,7 @@ const Funcionarios = () => {
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors: Record<string, string> = {};
-        error.errors.forEach((err) => {
+        (error.issues || (error as any).errors || []).forEach((err: any) => {
           if (err.path[0]) {
             errors[err.path[0].toString()] = err.message;
           }
