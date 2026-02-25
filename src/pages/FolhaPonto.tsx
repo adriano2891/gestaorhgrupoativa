@@ -45,6 +45,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { SuperAdminAuthDialog } from "@/components/ponto/SuperAdminAuthDialog";
+import { HistoricoAcoesPonto } from "@/components/ponto/HistoricoAcoesPonto";
 
 interface DayRecord {
   day: number;
@@ -913,6 +914,9 @@ const FolhaPonto = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Histórico de Ações */}
+      <HistoricoAcoesPonto selectedMonth={selectedMonth} selectedYear={selectedYear} />
 
       <SuperAdminAuthDialog
         open={showAuthDialog}
