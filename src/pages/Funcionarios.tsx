@@ -340,7 +340,15 @@ const Funcionarios = () => {
         .select("nome, descricao, escala_id, escalas_trabalho(nome)")
         .eq("ativo", true);
       if (turnos) {
-        setTurnosDisponiveis((turnos as any[]).map((t: any) => ({
+        // Deduplicate turnos by nome+escala_nome
+        const seen = new Set<string>();
+        const deduped = (turnos as any[]).filter((t: any) => {
+          const key = `${t.nome}-${t.escalas_trabalho?.nome || ''}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        setTurnosDisponiveis(deduped.map((t: any) => ({
           nome: t.nome,
           descricao: t.descricao,
           escala_nome: t.escalas_trabalho?.nome,
@@ -1180,8 +1188,8 @@ const Funcionarios = () => {
                     <SelectContent>
                       {turnosDisponiveis
                         .filter((t) => !t.escala_nome || t.escala_nome === editEscala)
-                        .map((t) => (
-                          <SelectItem key={t.nome} value={t.nome}>{t.descricao || t.nome}</SelectItem>
+                        .map((t, idx) => (
+                          <SelectItem key={`${t.nome}-${idx}`} value={t.nome}>{t.descricao || t.nome}</SelectItem>
                         ))}
                     </SelectContent>
                   </Select>
@@ -1412,8 +1420,8 @@ const Funcionarios = () => {
                   <SelectContent>
                     {turnosDisponiveis
                       .filter((t) => !t.escala_nome || t.escala_nome === newEscala)
-                      .map((t) => (
-                        <SelectItem key={t.nome} value={t.nome}>{t.descricao || t.nome}</SelectItem>
+                      .map((t, idx) => (
+                        <SelectItem key={`${t.nome}-${idx}`} value={t.nome}>{t.descricao || t.nome}</SelectItem>
                       ))}
                   </SelectContent>
                 </Select>
