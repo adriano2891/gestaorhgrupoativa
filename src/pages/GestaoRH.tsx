@@ -239,7 +239,7 @@ const GestaoRH = () => {
                   </div>
                 </div>
                 <p 
-                  className="text-center mt-1.5 sm:mt-2 font-semibold text-white text-[9px] sm:text-[10px] md:text-xs leading-tight max-w-[80px] sm:max-w-[90px]"
+                  className="text-center mt-1.5 sm:mt-2 font-bold text-white text-[10px] sm:text-xs md:text-sm leading-tight max-w-[90px] sm:max-w-[100px] drop-shadow-md"
                   style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}
                 >
                   {module.title}
@@ -319,7 +319,7 @@ const GestaoRH = () => {
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
-                <p className="text-center mt-3 font-semibold text-white text-sm max-w-[120px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+                <p className="text-center mt-3 font-bold text-white text-base max-w-[140px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
                   {module.title}
                 </p>
               </div>
@@ -349,7 +349,7 @@ const GestaoRH = () => {
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
-                <p className="text-center mt-2 font-semibold text-white text-xs max-w-[100px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+                <p className="text-center mt-2 font-bold text-white text-sm max-w-[120px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
                   {module.title}
                 </p>
               </div>
@@ -379,7 +379,7 @@ const GestaoRH = () => {
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
-                <p className="text-center mt-2 font-semibold text-white text-[10px] max-w-[80px]" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+                <p className="text-center mt-2 font-bold text-white text-xs max-w-[100px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
                   {module.title}
                 </p>
               </div>
@@ -403,7 +403,7 @@ const GestaoRH = () => {
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
-                <p className="text-center mt-2 font-semibold text-white text-[9px] sm:text-[10px] max-w-[65px] sm:max-w-[70px] leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}>
+                <p className="text-center mt-2 font-bold text-white text-[10px] sm:text-xs max-w-[80px] sm:max-w-[90px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
                   {module.title}
                 </p>
               </div>
