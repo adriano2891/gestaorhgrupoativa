@@ -1697,6 +1697,36 @@ export type Database = {
           },
         ]
       }
+      logs_alteracao_escala: {
+        Row: {
+          alterado_por: string | null
+          campo_alterado: string
+          created_at: string
+          id: string
+          user_id: string
+          valor_anterior: string | null
+          valor_novo: string | null
+        }
+        Insert: {
+          alterado_por?: string | null
+          campo_alterado: string
+          created_at?: string
+          id?: string
+          user_id: string
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Update: {
+          alterado_por?: string | null
+          campo_alterado?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Relationships: []
+      }
       logs_autorizacao_folga: {
         Row: {
           autorizado_por: string
