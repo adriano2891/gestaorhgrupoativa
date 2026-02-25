@@ -44,7 +44,7 @@ const Comunicados = () => {
   const [selectedComunicado, setSelectedComunicado] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: comunicados, isLoading } = useQuery({
+  const { data: comunicados, isLoading, error } = useQuery({
     queryKey: ["comunicados-admin"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -52,9 +52,13 @@ const Comunicados = () => {
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao buscar comunicados:", error);
+        throw error;
+      }
       return data as Comunicado[];
     },
+    retry: 2,
   });
 
   const deleteMutation = useMutation({
@@ -159,6 +163,17 @@ const Comunicados = () => {
               <Skeleton className="h-24 w-full" />
               <Skeleton className="h-24 w-full" />
               <Skeleton className="h-24 w-full" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-12">
+              <Bell className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+              <p className="text-muted-foreground mb-2">
+                Erro ao carregar comunicados
+              </p>
+              <p className="text-sm text-muted-foreground mb-4">{(error as Error).message}</p>
+              <Button variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["comunicados-admin"] })}>
+                Tentar novamente
+              </Button>
             </div>
           ) : !comunicados || comunicados.length === 0 ? (
             <div className="text-center py-12">
