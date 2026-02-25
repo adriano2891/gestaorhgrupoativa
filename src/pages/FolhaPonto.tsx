@@ -72,8 +72,8 @@ const FolhaPonto = () => {
   usePontoRealtime();
   useFuncionariosRealtime();
   
-  const { data: funcionarios } = useFuncionarios();
-  
+  const { data: funcionarios, isLoading: loadingFuncionarios } = useFuncionarios();
+
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState((currentDate.getMonth() + 1).toString().padStart(2, '0'));
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear().toString());
@@ -81,7 +81,7 @@ const FolhaPonto = () => {
   const [selectedDepartamento, setSelectedDepartamento] = useState("todos");
   const [viewMode, setViewMode] = useState<"resumo" | "detalhado">("detalhado");
   const [monthRecords, setMonthRecords] = useState<EmployeeMonthRecord[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [editingCell, setEditingCell] = useState<{empId: string, day: number, field: 'status' | 'horas_extras'} | null>(null);
   const [editValue, setEditValue] = useState("");
@@ -94,8 +94,10 @@ const FolhaPonto = () => {
   const departamentos = [...new Set(employees.map(e => e.departamento).filter(Boolean))] as string[];
 
   useEffect(() => {
-    loadMonthRecords();
-  }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, funcionarios]);
+    if (!loadingFuncionarios) {
+      loadMonthRecords();
+    }
+  }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, funcionarios, loadingFuncionarios]);
 
   const loadMonthRecords = async () => {
     setLoading(true);
