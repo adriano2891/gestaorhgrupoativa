@@ -161,6 +161,11 @@ const Funcionarios = () => {
   const [editEscala, setEditEscala] = useState("8h");
   const [editTurno, setEditTurno] = useState("diurno");
   
+  const [newEscala, setNewEscala] = useState("8h");
+  const [newTurno, setNewTurno] = useState("diurno");
+  const [escalasDisponiveis, setEscalasDisponiveis] = useState<{nome: string; descricao: string}[]>([]);
+  const [turnosDisponiveis, setTurnosDisponiveis] = useState<{nome: string; descricao: string; escala_nome?: string}[]>([]);
+
   const [newEmployee, setNewEmployee] = useState({
     name: "",
     email: "",
@@ -310,27 +315,40 @@ const Funcionarios = () => {
   useEffect(() => {
     fetchEmployees();
 
-    // Subscrever a mudanças em tempo real na tabela profiles
     const channel = supabase
       .channel('profiles-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles'
-        },
-        () => {
-          // Recarregar funcionários quando houver mudanças
-          fetchEmployees();
-        }
-      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        fetchEmployees();
+      })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    return () => { supabase.removeChannel(channel); };
   }, [toast]);
+
+  // Fetch available escalas and turnos
+  useEffect(() => {
+    const fetchEscalasTurnos = async () => {
+      const { data: escalas } = await supabase
+        .from("escalas_trabalho")
+        .select("nome, descricao")
+        .eq("ativo", true)
+        .order("nome");
+      if (escalas) setEscalasDisponiveis(escalas as any);
+
+      const { data: turnos } = await (supabase as any)
+        .from("turnos_trabalho")
+        .select("nome, descricao, escala_id, escalas_trabalho(nome)")
+        .eq("ativo", true);
+      if (turnos) {
+        setTurnosDisponiveis((turnos as any[]).map((t: any) => ({
+          nome: t.nome,
+          descricao: t.descricao,
+          escala_nome: t.escalas_trabalho?.nome,
+        })));
+      }
+    };
+    fetchEscalasTurnos();
+  }, []);
 
   // Buscar histórico de alterações
   useEffect(() => {
@@ -692,6 +710,8 @@ const Funcionarios = () => {
             endereco: newEmployee.endereco || null,
             rg: newEmployee.rg || null,
             numero_pis: newEmployee.numero_pis || null,
+            escala_trabalho: newEscala,
+            turno: newTurno,
             dependentes: dependentesPayload,
           },
         }
@@ -1140,13 +1160,14 @@ const Funcionarios = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
                   <Label htmlFor="escala" className="text-sm">Escala de Trabalho</Label>
-                  <Select value={editEscala} onValueChange={setEditEscala}>
+                  <Select value={editEscala} onValueChange={(v) => { setEditEscala(v); setEditTurno("diurno"); }}>
                     <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="8h">8h (CLT Padrão)</SelectItem>
-                      <SelectItem value="12x36">12x36</SelectItem>
+                      {escalasDisponiveis.map((e) => (
+                        <SelectItem key={e.nome} value={e.nome}>{e.descricao || e.nome}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1157,8 +1178,11 @@ const Funcionarios = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="diurno">Diurno (07h-19h)</SelectItem>
-                      <SelectItem value="noturno">Noturno (19h-07h)</SelectItem>
+                      {turnosDisponiveis
+                        .filter((t) => !t.escala_nome || t.escala_nome === editEscala)
+                        .map((t) => (
+                          <SelectItem key={t.nome} value={t.nome}>{t.descricao || t.nome}</SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1364,6 +1388,36 @@ const Funcionarios = () => {
                 placeholder="Rua, número, bairro, cidade - UF"
                 className="h-9"
               />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="new-escala" className="text-sm">Escala de Trabalho *</Label>
+                <Select value={newEscala} onValueChange={(v) => { setNewEscala(v); setNewTurno("diurno"); }}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {escalasDisponiveis.map((e) => (
+                      <SelectItem key={e.nome} value={e.nome}>{e.descricao || e.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label htmlFor="new-turno" className="text-sm">Turno *</Label>
+                <Select value={newTurno} onValueChange={setNewTurno}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {turnosDisponiveis
+                      .filter((t) => !t.escala_nome || t.escala_nome === newEscala)
+                      .map((t) => (
+                        <SelectItem key={t.nome} value={t.nome}>{t.descricao || t.nome}</SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="grid gap-1.5">
