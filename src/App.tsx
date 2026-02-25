@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
+import { GlobalFooter } from "./components/GlobalFooter";
 import { AuthProvider } from "./components/auth/AuthProvider";
 import { QuotesProvider } from "./contexts/QuotesContext";
 import SplashScreen from "./components/SplashScreen";
@@ -70,281 +71,286 @@ const App = () => {
       <BrowserRouter>
         <AuthProvider>
           <QuotesProvider>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/criar-admin" element={<CreateAdmin />} />
-              <Route path="/portal-funcionario" element={<PortalFuncionario />} />
-              <Route path="/portal-funcionario/cursos/:cursoId" element={<PortalCursoPlayer />} />
-              <Route path="/public/:publicId" element={<OrcamentosPublic />} />
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <Navigate to="/dashboard" replace />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/gestao-rh"
-                element={
-                  <ProtectedRoute>
-                    <GestaoRH />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/funcionarios"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Funcionarios />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/banco-talentos"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <BancoTalentos />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/relatorios"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Relatorios />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/folha-ponto"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <FolhaPonto />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/holerites"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Holerites />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admins"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <Layout>
-                      <GerenciarAdmins />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/controle-ferias"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <ControleFerias />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/comunicados"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Comunicados />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              {/* Gestão de Clientes Route */}
-              <Route
-                path="/gestao-clientes"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <GestaoClientes />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Orçamentos Routes */}
-              <Route
-                path="/orcamentos"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <OrcamentosDashboard />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orcamentos/lista"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <OrcamentosLista />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orcamentos/novo"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <OrcamentosBuilder />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orcamentos/:id"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <OrcamentosDetail />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orcamentos/:id/editar"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <OrcamentosBuilder />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orcamentos/itens"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <ItensOrcamento />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orcamentos/clientes/novo"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <OrcamentosClienteForm />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Fornecedores Routes */}
-              <Route
-                path="/fornecedores"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <Fornecedores />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/fornecedores/novo"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <FornecedorForm />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/fornecedores/:id"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <FornecedorDetalhes />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/fornecedores/:id/editar"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <FornecedorForm />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Inventário de Equipamentos Route */}
-              <Route
-                path="/inventario"
-                element={
-                  <ProtectedRoute requiredRoles={["admin"]}>
-                    <InventarioEquipamentos />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Formulários RH Routes */}
-              <Route
-                path="/formularios-rh"
-                element={
-                  <ProtectedRoute>
-                    <FormulariosRH />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/formularios-rh/:id"
-                element={
-                  <ProtectedRoute>
-                    <FormularioDetalhes />
-                  </ProtectedRoute>
-                }
-              />
-              {/* HRFlow Pro Route */}
-              <Route
-                path="/hrflow-pro"
-                element={
-                  <ProtectedRoute>
-                    <HRFlowPro />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Documentações Route */}
-              <Route
-                path="/documentacoes"
-                element={
-                  <ProtectedRoute>
-                    <Layout>
-                      <Documentacoes />
-                    </Layout>
-                  </ProtectedRoute>
-                }
-              />
-              {/* Cursos Admin Route */}
-              <Route
-                path="/cursos"
-                element={
-                  <ProtectedRoute>
-                    <CursosAdmin />
-                  </ProtectedRoute>
-                }
-              />
-              {/* Suporte Funcionários Route */}
-              <Route
-                path="/suporte-funcionarios"
-                element={
-                  <ProtectedRoute>
-                    <SuporteFuncionarios />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <div className="min-h-screen flex flex-col">
+              <div className="flex-1">
+                <Routes>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/criar-admin" element={<CreateAdmin />} />
+                  <Route path="/portal-funcionario" element={<PortalFuncionario />} />
+                  <Route path="/portal-funcionario/cursos/:cursoId" element={<PortalCursoPlayer />} />
+                  <Route path="/public/:publicId" element={<OrcamentosPublic />} />
+                  <Route
+                    path="/"
+                    element={
+                      <ProtectedRoute>
+                        <Navigate to="/dashboard" replace />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/gestao-rh"
+                    element={
+                      <ProtectedRoute>
+                        <GestaoRH />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/funcionarios"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Funcionarios />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/banco-talentos"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <BancoTalentos />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/relatorios"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Relatorios />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/folha-ponto"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <FolhaPonto />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/holerites"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Holerites />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admins"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <Layout>
+                          <GerenciarAdmins />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/controle-ferias"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <ControleFerias />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/comunicados"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Comunicados />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Gestão de Clientes Route */}
+                  <Route
+                    path="/gestao-clientes"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <GestaoClientes />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Orçamentos Routes */}
+                  <Route
+                    path="/orcamentos"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <OrcamentosDashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/orcamentos/lista"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <OrcamentosLista />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/orcamentos/novo"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <OrcamentosBuilder />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/orcamentos/:id"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <OrcamentosDetail />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/orcamentos/:id/editar"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <OrcamentosBuilder />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/orcamentos/itens"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <ItensOrcamento />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/orcamentos/clientes/novo"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <OrcamentosClienteForm />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Fornecedores Routes */}
+                  <Route
+                    path="/fornecedores"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <Fornecedores />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/fornecedores/novo"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <FornecedorForm />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/fornecedores/:id"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <FornecedorDetalhes />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/fornecedores/:id/editar"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <FornecedorForm />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Inventário de Equipamentos Route */}
+                  <Route
+                    path="/inventario"
+                    element={
+                      <ProtectedRoute requiredRoles={["admin"]}>
+                        <InventarioEquipamentos />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Formulários RH Routes */}
+                  <Route
+                    path="/formularios-rh"
+                    element={
+                      <ProtectedRoute>
+                        <FormulariosRH />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/formularios-rh/:id"
+                    element={
+                      <ProtectedRoute>
+                        <FormularioDetalhes />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* HRFlow Pro Route */}
+                  <Route
+                    path="/hrflow-pro"
+                    element={
+                      <ProtectedRoute>
+                        <HRFlowPro />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Documentações Route */}
+                  <Route
+                    path="/documentacoes"
+                    element={
+                      <ProtectedRoute>
+                        <Layout>
+                          <Documentacoes />
+                        </Layout>
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Cursos Admin Route */}
+                  <Route
+                    path="/cursos"
+                    element={
+                      <ProtectedRoute>
+                        <CursosAdmin />
+                      </ProtectedRoute>
+                    }
+                  />
+                  {/* Suporte Funcionários Route */}
+                  <Route
+                    path="/suporte-funcionarios"
+                    element={
+                      <ProtectedRoute>
+                        <SuporteFuncionarios />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </div>
+              <GlobalFooter />
+            </div>
           </QuotesProvider>
         </AuthProvider>
       </BrowserRouter>

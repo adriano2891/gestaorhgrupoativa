@@ -336,9 +336,6 @@ export default function OrcamentosPublic() {
           </GlassPanel>
         )}
 
-        <p className="text-center text-white/80 text-sm">
-          © {new Date().getFullYear()} Grupo Ativa • Todos os direitos reservados
-        </p>
       </div>
     </div>
   );
