@@ -134,6 +134,9 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
   }, [loadProfile]); // removed profile from deps to avoid re-subscription
 
   const signInWithCPF = async (cpf: string, password: string) => {
+    // Reset signing out flag in case it got stuck
+    isSigningOut.current = false;
+    
     const cpfNumeros = cpf.replace(/\D/g, "");
 
     const { data: profileData, error: profileError } = await supabase
@@ -162,15 +165,26 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
       throw error;
     }
 
-    // Profile will be loaded by onAuthStateChange SIGNED_IN event
-    // But also load eagerly for faster UX
+    // Load profile eagerly with timeout to prevent hanging
     if (data.user) {
-      const loadedProfile = await loadProfile(data.user.id);
-      if (loadedProfile) {
+      try {
+        const loadedProfile = await Promise.race([
+          loadProfile(data.user.id),
+          new Promise<null>((_, reject) => setTimeout(() => reject(new Error('profile_timeout')), 5000))
+        ]);
+        if (loadedProfile) {
+          setUser(data.user);
+          setProfile(loadedProfile);
+          lastLoadedUserId.current = data.user.id;
+        } else {
+          // Set user even without profile so UI progresses
+          setUser(data.user);
+        }
+      } catch (err) {
+        console.warn("Profile load timeout, proceeding with user:", err);
         setUser(data.user);
-        setProfile(loadedProfile);
-        lastLoadedUserId.current = data.user.id;
       }
+      setLoading(false);
       localStorage.setItem('portal_session', JSON.stringify({
         user_id: data.user.id,
         email: userEmail,
