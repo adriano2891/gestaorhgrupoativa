@@ -190,19 +190,22 @@ const SuporteFuncionarios = () => {
                   <p className="text-center text-muted-foreground text-sm py-4">Nenhuma mensagem encontrada.</p>
                 ) : (
                   mensagens.map((msg) => {
-                    const isAdmin = msg.remetente_id === user?.id;
+                    const isFromEmployee = msg.remetente_id === chamadoSelecionado?.user_id;
+                    const isMyMsg = msg.remetente_id === user?.id;
                     return (
-                      <div key={msg.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
+                      <div key={msg.id} className={`flex ${isFromEmployee ? "justify-start" : "justify-end"}`}>
                         <div className={`max-w-[75%] rounded-2xl p-3 shadow-md ${
-                          isAdmin 
-                            ? "rounded-br-sm" 
-                            : "rounded-bl-sm border border-border"
-                        }`} style={isAdmin 
-                          ? { background: 'linear-gradient(135deg, #1abc9c, #16a085)', color: '#fff' } 
-                          : { background: '#f0f4f8', color: '#1a202c' }
+                          isFromEmployee 
+                            ? "rounded-bl-sm border border-border" 
+                            : "rounded-br-sm"
+                        }`} style={isFromEmployee 
+                          ? { background: '#f0f4f8', color: '#1a202c' } 
+                          : { background: 'linear-gradient(135deg, #1abc9c, #16a085)', color: '#fff' }
                         }>
                           <p className="text-[11px] font-bold mb-1" style={{ opacity: 0.85 }}>
-                            {isAdmin ? `🛡️ Você (Admin)` : `👤 ${msg.profiles?.nome || "Funcionário"}`}
+                            {isFromEmployee 
+                              ? `👤 ${msg.profiles?.nome || "Funcionário"}` 
+                              : `🛡️ ${isMyMsg ? "Você (Admin)" : (msg.profiles?.nome || "Admin")}`}
                           </p>
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.conteudo}</p>
                           {msg.arquivo_url && (
@@ -227,6 +230,7 @@ const SuporteFuncionarios = () => {
                       </div>
                     );
                   })
+
                 )}
                 <div ref={chatEndRef} />
               </div>

@@ -275,19 +275,22 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
               </div>
             ) : null}
             {mensagens.map((msg) => {
-              const isMe = msg.remetente_id === user?.id;
+              const isFromEmployee = msg.remetente_id === chamadoSelecionado?.user_id;
+              const isMyMsg = msg.remetente_id === user?.id;
               return (
-                <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
+                <div key={msg.id} className={`flex ${isFromEmployee ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[75%] rounded-2xl p-3.5 shadow-md ${
-                    isMe 
+                    isFromEmployee 
                       ? "rounded-br-sm" 
                       : "rounded-bl-sm border border-border"
-                  }`} style={isMe 
+                  }`} style={isFromEmployee 
                     ? { background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff' } 
                     : { background: 'linear-gradient(135deg, #1abc9c, #16a085)', color: '#fff' }
                   }>
                     <p className="text-[11px] font-bold mb-1.5" style={{ opacity: 0.85 }}>
-                      {isMe ? "👤 Você" : `🛡️ ${msg.profiles?.nome || "RH / Admin"}`}
+                      {isFromEmployee 
+                        ? `👤 ${isMyMsg ? "Você" : (msg.profiles?.nome || "Funcionário")}` 
+                        : `🛡️ ${msg.profiles?.nome || "RH / Admin"}`}
                     </p>
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.conteudo}</p>
                     {msg.arquivo_url && (
