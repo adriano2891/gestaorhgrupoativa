@@ -155,15 +155,14 @@ All colors MUST be HSL.
     color: hsl(210 40% 98%) !important;
   }
 
-  /* Responsive font scaling */
+  /* Fluid font scaling with clamp */
   html {
-    font-size: 16px;
+    font-size: clamp(13px, 0.8rem + 0.25vw, 16px);
   }
 
-  @media (max-width: 640px) {
-    html {
-      font-size: 14px;
-    }
+  /* Prevent horizontal overflow globally */
+  body {
+    overflow-x: hidden;
   }
 }
 
@@ -204,28 +203,63 @@ All colors MUST be HSL.
     overflow: hidden;
   }
 
+  .text-truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
   /* Responsive spacing helpers */
   .container-responsive {
-    @apply px-4 sm:px-6 lg:px-8;
+    @apply px-3 sm:px-4 md:px-6 lg:px-8;
   }
 
-  /* Card grid responsive */
+  /* Card grid responsive - mobile-first */
   .card-grid {
-    @apply grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+    @apply grid gap-3 sm:gap-4 grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-4;
   }
 
-  /* Form responsive layout */
+  /* Form responsive layout - single column mobile, multi desktop */
   .form-grid {
-    @apply grid gap-4 grid-cols-1 sm:grid-cols-2;
+    @apply grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2;
+  }
+
+  .form-grid-3 {
+    @apply grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3;
   }
 
   /* Table responsive wrapper */
   .table-responsive {
-    @apply overflow-x-auto -mx-4 sm:mx-0;
+    @apply overflow-x-auto -mx-3 sm:mx-0 rounded-md;
+    -webkit-overflow-scrolling: touch;
   }
 
   .table-responsive > table {
     @apply min-w-full;
+  }
+
+  /* Modal/dialog scroll container */
+  .modal-scroll {
+    @apply max-h-[85vh] sm:max-h-[90vh] overflow-y-auto;
+  }
+
+  /* Fluid heading sizes */
+  .heading-fluid-xl {
+    font-size: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  }
+
+  .heading-fluid-lg {
+    font-size: clamp(1.25rem, 0.9rem + 1.5vw, 2rem);
+  }
+
+  .heading-fluid-md {
+    font-size: clamp(1rem, 0.8rem + 1vw, 1.5rem);
+  }
+
+  /* Responsive image */
+  .img-responsive {
+    @apply w-full h-auto max-w-full;
   }
 }
 
