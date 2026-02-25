@@ -190,22 +190,21 @@ const SuporteFuncionarios = () => {
                   <p className="text-center text-muted-foreground text-sm py-4">Nenhuma mensagem encontrada.</p>
                 ) : (
                   mensagens.map((msg) => {
-                    const isRH = msg.remetente_id !== chamadoSelecionado.user_id;
+                    const isAdmin = msg.remetente_id === user?.id;
                     return (
-                      <div key={msg.id} className={`flex ${isRH ? "justify-end" : "justify-start"}`}>
+                      <div key={msg.id} className={`flex ${isAdmin ? "justify-end" : "justify-start"}`}>
                         <div className={`max-w-[75%] rounded-2xl p-3 shadow-md ${
-                          isRH 
-                            ? "bg-primary text-primary-foreground rounded-br-sm" 
-                            : "bg-card border-l-4 border-l-muted-foreground/40 border border-border text-foreground rounded-bl-sm"
-                        }`}>
-                          <p className={`text-[11px] font-bold mb-1 ${
-                            isRH ? "text-primary-foreground/90" : "text-muted-foreground"
-                          }`}>
-                            {isRH ? `🛡️ ${msg.profiles?.nome || "RH / Admin"}` : `👤 ${msg.profiles?.nome || "Funcionário"}`}
+                          isAdmin 
+                            ? "rounded-br-sm" 
+                            : "rounded-bl-sm border border-border"
+                        }`} style={isAdmin 
+                          ? { background: 'linear-gradient(135deg, #1abc9c, #16a085)', color: '#fff' } 
+                          : { background: '#f0f4f8', color: '#1a202c' }
+                        }>
+                          <p className="text-[11px] font-bold mb-1" style={{ opacity: 0.85 }}>
+                            {isAdmin ? `🛡️ Você (Admin)` : `👤 ${msg.profiles?.nome || "Funcionário"}`}
                           </p>
-                          <p className={`text-sm whitespace-pre-wrap leading-relaxed ${
-                            isRH ? "text-primary-foreground" : "text-foreground"
-                          }`}>{msg.conteudo}</p>
+                          <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.conteudo}</p>
                           {msg.arquivo_url && (
                             <button
                               onClick={async (e) => {
@@ -215,12 +214,13 @@ const SuporteFuncionarios = () => {
                                 if (error || !data?.signedUrl) { return; }
                                 window.open(data.signedUrl, "_blank");
                               }}
-                              className={`flex items-center gap-1 mt-2 text-xs underline cursor-pointer ${isRH ? "text-primary-foreground/90" : "text-primary"}`}
+                              className="flex items-center gap-1 mt-2 text-xs underline cursor-pointer"
+                              style={{ opacity: 0.85 }}
                             >
                               <Download className="h-3 w-3" /> {msg.arquivo_nome || "Anexo"}
                             </button>
                           )}
-                          <p className={`text-[10px] mt-1.5 ${isRH ? "text-primary-foreground/60" : "text-muted-foreground"}`}>
+                          <p className="text-[10px] mt-1.5 text-right" style={{ opacity: 0.55 }}>
                             {format(new Date(msg.created_at), "dd/MM HH:mm", { locale: ptBR })}
                           </p>
                         </div>
