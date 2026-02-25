@@ -31,13 +31,9 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
-  const loadingRef = useRef(false); // Prevents concurrent loadUserData calls
+  const lastLoadedUserId = useRef<string | null>(null);
 
-  const loadUserData = useCallback(async (userId: string): Promise<boolean> => {
-    // Prevent concurrent calls
-    if (loadingRef.current) return false;
-    loadingRef.current = true;
-
+  const loadProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     try {
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
@@ -45,57 +41,85 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
         .eq("id", userId)
         .maybeSingle();
 
-      if (profileError) throw profileError;
-      if (!profileData) throw new Error("Perfil não encontrado");
+      if (profileError) {
+        console.error("Erro ao carregar perfil:", profileError);
+        return null;
+      }
+      if (!profileData) {
+        console.error("Perfil não encontrado para:", userId);
+        return null;
+      }
 
-      setProfile({
+      return {
         ...profileData,
         deve_trocar_senha: (profileData as any).deve_trocar_senha ?? false,
-      } as Profile);
-      setUser({ id: userId } as User);
-      return true;
+      } as Profile;
     } catch (error) {
-      console.error("Erro ao carregar dados do usuário:", error);
-      setUser(null);
-      setProfile(null);
-      return false;
-    } finally {
-      loadingRef.current = false;
+      console.error("Erro inesperado ao carregar perfil:", error);
+      return null;
     }
   }, []);
 
   useEffect(() => {
     let isMounted = true;
-    let initialLoadDone = false;
 
-    // Safety timeout - never stay loading more than 6 seconds
+    // Safety timeout - never stay loading more than 8 seconds
     const safetyTimeout = setTimeout(() => {
-      if (isMounted && !initialLoadDone) {
+      if (isMounted && loading) {
         console.warn("Portal: safety timeout reached, releasing loading state");
-        initialLoadDone = true;
         setLoading(false);
       }
-    }, 6000);
+    }, 8000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
 
       if (event === 'INITIAL_SESSION') {
-        // This is the first event - handle initial session
         if (session?.user) {
-          await loadUserData(session.user.id);
+          const loadedProfile = await loadProfile(session.user.id);
+          if (isMounted) {
+            if (loadedProfile) {
+              setUser(session.user);
+              setProfile(loadedProfile);
+              lastLoadedUserId.current = session.user.id;
+            } else {
+              setUser(null);
+              setProfile(null);
+            }
+          }
         }
-        if (isMounted && !initialLoadDone) {
-          initialLoadDone = true;
-          setLoading(false);
-        }
-      } else if (event === 'SIGNED_IN' && session?.user) {
-        await loadUserData(session.user.id);
         if (isMounted) setLoading(false);
+      } else if (event === 'SIGNED_IN' && session?.user) {
+        // Only reload if it's a different user or profile hasn't been loaded
+        if (lastLoadedUserId.current !== session.user.id || !profile) {
+          const loadedProfile = await loadProfile(session.user.id);
+          if (isMounted) {
+            if (loadedProfile) {
+              setUser(session.user);
+              setProfile(loadedProfile);
+              lastLoadedUserId.current = session.user.id;
+            }
+            setLoading(false);
+          }
+        } else {
+          // Same user, just update the User object (token may have refreshed)
+          if (isMounted) {
+            setUser(session.user);
+            setLoading(false);
+          }
+        }
+      } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+        // Update user object with fresh token, keep profile
+        if (isMounted) {
+          setUser(session.user);
+        }
       } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setProfile(null);
-        localStorage.removeItem('portal_session');
+        if (isMounted) {
+          setUser(null);
+          setProfile(null);
+          lastLoadedUserId.current = null;
+          localStorage.removeItem('portal_session');
+        }
       }
     });
 
@@ -104,7 +128,7 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
       clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
-  }, [loadUserData]);
+  }, [loadProfile]); // removed profile from deps to avoid re-subscription
 
   const signInWithCPF = async (cpf: string, password: string) => {
     const cpfNumeros = cpf.replace(/\D/g, "");
@@ -138,7 +162,12 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
     // Profile will be loaded by onAuthStateChange SIGNED_IN event
     // But also load eagerly for faster UX
     if (data.user) {
-      await loadUserData(data.user.id);
+      const loadedProfile = await loadProfile(data.user.id);
+      if (loadedProfile) {
+        setUser(data.user);
+        setProfile(loadedProfile);
+        lastLoadedUserId.current = data.user.id;
+      }
       localStorage.setItem('portal_session', JSON.stringify({
         user_id: data.user.id,
         email: userEmail,
@@ -148,14 +177,17 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
   };
 
   const signOut = async () => {
+    // Clear state immediately for responsive UI
+    setUser(null);
+    setProfile(null);
+    lastLoadedUserId.current = null;
+    localStorage.removeItem('portal_session');
+    
     try {
       await supabase.auth.signOut();
     } catch (error) {
       console.log("Logout error (ignored):", error);
     }
-    setUser(null);
-    setProfile(null);
-    localStorage.removeItem('portal_session');
   };
 
   return (

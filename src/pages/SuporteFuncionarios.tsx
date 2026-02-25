@@ -102,14 +102,18 @@ const SuporteFuncionarios = () => {
 
   const handleEnviarResposta = async () => {
     if (!user || !chamadoSelecionado || !resposta.trim()) return;
-    await enviarMensagem.mutateAsync({
-      chamado_id: chamadoSelecionado.id,
-      remetente_id: user.id,
-      conteudo: resposta,
-      arquivo: arquivoResposta || undefined,
-    });
-    setResposta("");
-    setArquivoResposta(null);
+    try {
+      await enviarMensagem.mutateAsync({
+        chamado_id: chamadoSelecionado.id,
+        remetente_id: user.id,
+        conteudo: resposta,
+        arquivo: arquivoResposta || undefined,
+      });
+      setResposta("");
+      setArquivoResposta(null);
+    } catch (error) {
+      console.error("Erro ao enviar resposta:", error);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,8 +126,12 @@ const SuporteFuncionarios = () => {
 
   const handleFechar = async () => {
     if (!chamadoSelecionado) return;
-    await atualizarStatus.mutateAsync({ chamado_id: chamadoSelecionado.id, status: "fechado" });
-    setChamadoSelecionado({ ...chamadoSelecionado, status: "fechado" });
+    try {
+      await atualizarStatus.mutateAsync({ chamado_id: chamadoSelecionado.id, status: "fechado" });
+      setChamadoSelecionado({ ...chamadoSelecionado, status: "fechado" });
+    } catch (error) {
+      console.error("Erro ao fechar chamado:", error);
+    }
   };
 
   const getStatusDisplay = (status: string) => {
