@@ -88,24 +88,7 @@ export const useMensagensChamado = (chamadoId: string | null) => {
     queryFn: async () => {
       if (!chamadoId) return [] as MensagemChamado[];
       
-      // Try with profile join first, fallback to without
-      try {
-        const { data, error } = await (supabase as any)
-          .from("mensagens_chamado")
-          .select("*, profiles:remetente_id(nome)")
-          .eq("chamado_id", chamadoId)
-          .order("created_at", { ascending: true });
-        
-        if (!error && data) {
-          return (data || []) as MensagemChamado[];
-        }
-        
-        console.warn("Fallback: loading messages without profile join:", error?.message);
-      } catch (e) {
-        console.warn("Join failed, using fallback:", e);
-      }
-
-      // Fallback: fetch without join
+      // Fetch messages without join (most reliable)
       const { data: rawData, error: rawError } = await (supabase as any)
         .from("mensagens_chamado")
         .select("*")
@@ -117,8 +100,12 @@ export const useMensagensChamado = (chamadoId: string | null) => {
         throw rawError;
       }
       
-      // Fetch profile names separately for unique remetente_ids
-      if (rawData && rawData.length > 0) {
+      if (!rawData || rawData.length === 0) {
+        return [] as MensagemChamado[];
+      }
+
+      // Fetch profile names separately
+      try {
         const uniqueIds = [...new Set(rawData.map((m: any) => m.remetente_id))] as string[];
         const { data: profiles } = await (supabase as any)
           .from("profiles")
@@ -130,9 +117,13 @@ export const useMensagensChamado = (chamadoId: string | null) => {
           ...msg,
           profiles: profileMap.get(msg.remetente_id) || null,
         })) as MensagemChamado[];
+      } catch (e) {
+        console.warn("Failed to fetch profiles:", e);
+        return rawData.map((msg: any) => ({
+          ...msg,
+          profiles: null,
+        })) as MensagemChamado[];
       }
-      
-      return (rawData || []) as MensagemChamado[];
     },
     enabled: !!chamadoId,
     refetchOnWindowFocus: true,
