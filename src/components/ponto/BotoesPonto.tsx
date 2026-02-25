@@ -32,11 +32,59 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
         setLoading(null);
         return;
       }
+
+      // Validar descanso de 36h para escala 12x36
+      if (campo === "entrada") {
+        const { data: profileData } = await (supabase as any)
+          .from("profiles")
+          .select("escala_trabalho, turno")
+          .eq("id", userId)
+          .single();
+
+        if (profileData?.escala_trabalho === "12x36") {
+          // Buscar último registro com saída
+          const { data: ultimoRegistro } = await (supabase as any)
+            .from("registros_ponto")
+            .select("saida, data")
+            .eq("user_id", userId)
+            .not("saida", "is", null)
+            .order("data", { ascending: false })
+            .limit(1)
+            .single();
+
+          if (ultimoRegistro?.saida) {
+            const ultimaSaida = new Date(ultimoRegistro.saida);
+            const agora = new Date();
+            const horasDescanso = (agora.getTime() - ultimaSaida.getTime()) / (1000 * 60 * 60);
+
+            if (horasDescanso < 36) {
+              const horasRestantes = (36 - horasDescanso).toFixed(1);
+              toast.error("Descanso mínimo não atingido", {
+                description: `Escala 12x36: Faltam ${horasRestantes}h para completar as 36h de descanso obrigatório (CLT art. 59-A).`,
+              });
+              setLoading(null);
+              return;
+            }
+          }
+
+          // Validar turno configurado
+          const horaAtual = new Date().getHours();
+          if (profileData.turno === "diurno" && (horaAtual < 5 || horaAtual >= 21)) {
+            toast.warning("Atenção: Registro fora do turno diurno (07h-19h)", {
+              description: "Prosseguindo. Alterações fora do turno ficam sujeitas a validação administrativa.",
+            });
+          } else if (profileData.turno === "noturno" && (horaAtual >= 9 && horaAtual < 17)) {
+            toast.warning("Atenção: Registro fora do turno noturno (19h-07h)", {
+              description: "Prosseguindo. Alterações fora do turno ficam sujeitas a validação administrativa.",
+            });
+          }
+        }
+      }
+
       const agora = new Date().toISOString();
       const hoje = new Date().toISOString().split('T')[0];
 
       if (!registroHoje) {
-        // Criar novo registro
         const { error } = await (supabase as any)
           .from("registros_ponto")
           .insert({
@@ -47,7 +95,6 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
 
         if (error) throw error;
       } else {
-        // Atualizar registro existente
         const { error } = await (supabase as any)
           .from("registros_ponto")
           .update({ [campo]: agora })
