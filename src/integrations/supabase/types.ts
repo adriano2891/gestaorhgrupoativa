@@ -1298,6 +1298,27 @@ export type Database = {
         }
         Relationships: []
       }
+      gestor_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          modulo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          modulo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          modulo?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       historico_ferias: {
         Row: {
           acao: string

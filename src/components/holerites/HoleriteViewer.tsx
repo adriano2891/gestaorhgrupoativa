@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -47,17 +47,7 @@ export const HoleriteViewer = ({
   const [isLoadingPdf, setIsLoadingPdf] = useState(false);
   const [pdfError, setPdfError] = useState(false);
 
-  if (!data) return null;
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
-  };
-
   const extractPath = (url: string) => {
-    // Remove query params first
     const cleanUrl = url.split('?')[0];
     if (!cleanUrl.startsWith('http')) return cleanUrl;
     try {
@@ -95,16 +85,25 @@ export const HoleriteViewer = ({
     }
   };
 
-  const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen && arquivoUrl) {
+  // Auto-load PDF when dialog opens with arquivoUrl
+  useEffect(() => {
+    if (open && arquivoUrl && !pdfBlobUrl && !isLoadingPdf) {
       loadPdf();
     }
-    if (!isOpen && pdfBlobUrl) {
+    if (!open && pdfBlobUrl) {
       URL.revokeObjectURL(pdfBlobUrl);
       setPdfBlobUrl(null);
       setPdfError(false);
     }
-    onOpenChange(isOpen);
+  }, [open, arquivoUrl]);
+
+  if (!data) return null;
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(value);
   };
 
   const handleOpenExternal = () => {
@@ -118,7 +117,7 @@ export const HoleriteViewer = ({
   // If there's a PDF file, show PDF viewer
   if (arquivoUrl) {
     return (
-      <Dialog open={open} onOpenChange={handleOpenChange}>
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>Holerite - {data.month}/{data.year}</DialogTitle>
