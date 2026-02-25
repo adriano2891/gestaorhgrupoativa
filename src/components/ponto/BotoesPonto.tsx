@@ -33,7 +33,7 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
         return;
       }
 
-      // Validar descanso de 36h para escala 12x36
+      // Validações CLT na entrada
       if (campo === "entrada") {
         const { data: profileData } = await (supabase as any)
           .from("profiles")
@@ -41,22 +41,23 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
           .eq("id", userId)
           .single();
 
-        if (profileData?.escala_trabalho === "12x36") {
-          // Buscar último registro com saída
-          const { data: ultimoRegistro } = await (supabase as any)
-            .from("registros_ponto")
-            .select("saida, data")
-            .eq("user_id", userId)
-            .not("saida", "is", null)
-            .order("data", { ascending: false })
-            .limit(1)
-            .single();
+        // Buscar último registro com saída para validações de descanso
+        const { data: ultimoRegistro } = await (supabase as any)
+          .from("registros_ponto")
+          .select("saida, data")
+          .eq("user_id", userId)
+          .not("saida", "is", null)
+          .order("data", { ascending: false })
+          .limit(1)
+          .single();
 
-          if (ultimoRegistro?.saida) {
-            const ultimaSaida = new Date(ultimoRegistro.saida);
-            const agora = new Date();
-            const horasDescanso = (agora.getTime() - ultimaSaida.getTime()) / (1000 * 60 * 60);
+        if (ultimoRegistro?.saida) {
+          const ultimaSaida = new Date(ultimoRegistro.saida);
+          const agora2 = new Date();
+          const horasDescanso = (agora2.getTime() - ultimaSaida.getTime()) / (1000 * 60 * 60);
 
+          if (profileData?.escala_trabalho === "12x36") {
+            // Escala 12x36: descanso mínimo de 36h (CLT art. 59-A)
             if (horasDescanso < 36) {
               const horasRestantes = (36 - horasDescanso).toFixed(1);
               toast.error("Descanso mínimo não atingido", {
@@ -65,9 +66,21 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
               setLoading(null);
               return;
             }
+          } else {
+            // Escala padrão: intervalo interjornada mínimo de 11h (CLT art. 66)
+            if (horasDescanso < 11) {
+              const horasRestantes = (11 - horasDescanso).toFixed(1);
+              toast.error("Intervalo interjornada insuficiente", {
+                description: `Faltam ${horasRestantes}h para completar as 11h de descanso obrigatório entre jornadas (CLT art. 66).`,
+              });
+              setLoading(null);
+              return;
+            }
           }
+        }
 
-          // Validar turno configurado
+        // Validar turno configurado (apenas warning, não bloqueia)
+        if (profileData?.escala_trabalho === "12x36") {
           const horaAtual = new Date().getHours();
           if (profileData.turno === "diurno" && (horaAtual < 5 || horaAtual >= 21)) {
             toast.warning("Atenção: Registro fora do turno diurno (07h-19h)", {
@@ -78,6 +91,34 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
               description: "Prosseguindo. Alterações fora do turno ficam sujeitas a validação administrativa.",
             });
           }
+        }
+
+        // DSR: avisar se está registrando em domingo
+        const diaSemana = new Date().getDay();
+        if (diaSemana === 0) {
+          toast.info("Registro em DSR (Domingo)", {
+            description: "Horas trabalhadas serão classificadas com adicional de 100% (CLT art. 70).",
+            duration: 5000,
+          });
+        }
+      }
+
+      // Validação de intervalo intrajornada no retorno do almoço
+      if (campo === "retorno_almoco" && registroHoje?.saida_almoco) {
+        const saidaAlmoco = new Date(registroHoje.saida_almoco);
+        const retorno = new Date();
+        const intervaloMin = (retorno.getTime() - saidaAlmoco.getTime()) / (1000 * 60);
+        
+        if (intervaloMin < 60) {
+          toast.warning("Intervalo intrajornada inferior a 1h", {
+            description: `Intervalo de ${Math.round(intervaloMin)}min. O mínimo legal é 1h para jornadas >6h (CLT art. 71). Uma ocorrência será registrada.`,
+            duration: 6000,
+          });
+        } else if (intervaloMin > 120) {
+          toast.warning("Intervalo intrajornada superior a 2h", {
+            description: `Intervalo de ${Math.round(intervaloMin)}min. O máximo recomendado é 2h (CLT art. 71). Uma ocorrência será registrada.`,
+            duration: 6000,
+          });
         }
       }
 
