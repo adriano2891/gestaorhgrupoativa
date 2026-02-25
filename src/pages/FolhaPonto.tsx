@@ -143,6 +143,27 @@ const FolhaPonto = () => {
     }
   }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, funcionarios, loadingFuncionarios]);
 
+  // Realtime: re-fetch stats when registros_ponto changes
+  useEffect(() => {
+    const channel = supabase
+      .channel('folha-ponto-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'registros_ponto' },
+        () => {
+          if (!loadingFuncionarios) {
+            loadMonthRecords();
+            loadRegistrosFolga();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, funcionarios, loadingFuncionarios]);
+
   const loadMonthRecords = async () => {
     setLoading(true);
     try {
