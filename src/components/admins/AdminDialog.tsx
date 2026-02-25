@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -27,7 +27,20 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Shield } from "lucide-react";
 import { Admin, useCreateAdmin, useUpdateAdmin } from "@/hooks/useAdmins";
+import { supabase } from "@/integrations/supabase/client";
+
+const MODULOS_DISPONIVEIS = [
+  { id: "gestao-rh", label: "Recursos Humanos" },
+  { id: "gestao-clientes", label: "Clientes" },
+  { id: "inventario", label: "Inventário" },
+  { id: "documentacoes", label: "Documentos" },
+  { id: "fornecedores", label: "Fornecedores" },
+  { id: "orcamentos", label: "Orçamentos" },
+];
 
 const adminSchema = z.object({
   nome: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
@@ -61,6 +74,7 @@ export const AdminDialog = ({ open, onOpenChange, admin }: AdminDialogProps) => 
   const isEditing = !!admin;
   const createAdmin = useCreateAdmin();
   const updateAdmin = useUpdateAdmin();
+  const [selectedModulos, setSelectedModulos] = useState<string[]>([]);
 
   const form = useForm<AdminFormData>({
     resolver: zodResolver(adminSchema),
@@ -74,6 +88,40 @@ export const AdminDialog = ({ open, onOpenChange, admin }: AdminDialogProps) => 
       role: (admin?.roles[0] as "admin" | "gestor" | "rh") || "admin",
     },
   });
+
+  const watchedRole = form.watch("role");
+
+  // Load existing permissions when editing a gestor
+  useEffect(() => {
+    if (isEditing && admin && admin.roles.includes("gestor")) {
+      supabase
+        .from("gestor_permissions" as any)
+        .select("modulo")
+        .eq("user_id", admin.id)
+        .then(({ data }) => {
+          if (data) {
+            setSelectedModulos((data as any[]).map((d: any) => d.modulo));
+          }
+        });
+    } else {
+      setSelectedModulos([]);
+    }
+  }, [admin, isEditing]);
+
+  // Reset permissions when role changes away from gestor
+  useEffect(() => {
+    if (watchedRole !== "gestor") {
+      setSelectedModulos([]);
+    }
+  }, [watchedRole]);
+
+  const toggleModulo = (moduloId: string) => {
+    setSelectedModulos((prev) =>
+      prev.includes(moduloId)
+        ? prev.filter((m) => m !== moduloId)
+        : [...prev, moduloId]
+    );
+  };
 
   const onSubmit = async (data: AdminFormData) => {
     if (isEditing) {
@@ -102,13 +150,49 @@ export const AdminDialog = ({ open, onOpenChange, admin }: AdminDialogProps) => 
         role: data.role,
       });
     }
+
+    // Save gestor permissions
+    if (data.role === "gestor") {
+      const userId = isEditing ? admin.id : undefined;
+      // For new admins, we need to find the user by email after creation
+      if (userId) {
+        await saveGestorPermissions(userId, selectedModulos);
+      } else {
+        // For new users, save permissions after a short delay to allow user creation
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("email", data.email)
+          .maybeSingle();
+        if (profile) {
+          await saveGestorPermissions(profile.id, selectedModulos);
+        }
+      }
+    }
+
     onOpenChange(false);
     form.reset();
+    setSelectedModulos([]);
+  };
+
+  const saveGestorPermissions = async (userId: string, modulos: string[]) => {
+    // Delete existing permissions
+    await (supabase as any)
+      .from("gestor_permissions")
+      .delete()
+      .eq("user_id", userId);
+
+    // Insert new permissions
+    if (modulos.length > 0) {
+      await (supabase as any)
+        .from("gestor_permissions")
+        .insert(modulos.map((modulo) => ({ user_id: userId, modulo })));
+    }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {isEditing ? "Editar Administrador" : "Novo Administrador"}
@@ -214,6 +298,35 @@ export const AdminDialog = ({ open, onOpenChange, admin }: AdminDialogProps) => 
                 </FormItem>
               )}
             />
+
+            {/* Card de permissões do Gestor */}
+            {watchedRole === "gestor" && (
+              <Card className="border-2 border-primary/30 bg-primary/5">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-primary" />
+                    Permissões de Acesso
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    Selecione os módulos que este gestor poderá acessar
+                  </p>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 gap-3">
+                  {MODULOS_DISPONIVEIS.map((modulo) => (
+                    <label
+                      key={modulo.id}
+                      className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors"
+                    >
+                      <Checkbox
+                        checked={selectedModulos.includes(modulo.id)}
+                        onCheckedChange={() => toggleModulo(modulo.id)}
+                      />
+                      <span className="text-sm font-medium">{modulo.label}</span>
+                    </label>
+                  ))}
+                </CardContent>
+              </Card>
+            )}
 
             <FormField
               control={form.control}
