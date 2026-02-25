@@ -2287,11 +2287,13 @@ export type Database = {
       }
       registros_ponto: {
         Row: {
+          adicional_noturno: unknown
           created_at: string
           data: string
           entrada: string | null
           fim_he: string | null
           horas_extras: unknown
+          horas_noturnas: unknown
           id: string
           inicio_he: string | null
           retorno_almoco: string | null
@@ -2306,11 +2308,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          adicional_noturno?: unknown
           created_at?: string
           data?: string
           entrada?: string | null
           fim_he?: string | null
           horas_extras?: unknown
+          horas_noturnas?: unknown
           id?: string
           inicio_he?: string | null
           retorno_almoco?: string | null
@@ -2325,11 +2329,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          adicional_noturno?: unknown
           created_at?: string
           data?: string
           entrada?: string | null
           fim_he?: string | null
           horas_extras?: unknown
+          horas_noturnas?: unknown
           id?: string
           inicio_he?: string | null
           retorno_almoco?: string | null
