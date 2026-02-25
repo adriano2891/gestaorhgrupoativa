@@ -87,6 +87,14 @@ export const useMensagensChamado = (chamadoId: string | null) => {
     queryKey: ["mensagens-chamado", chamadoId],
     queryFn: async () => {
       if (!chamadoId) return [] as MensagemChamado[];
+      
+      // Ensure we have an active session for RLS
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        console.warn("useMensagensChamado: Nenhuma sessão ativa");
+        return [] as MensagemChamado[];
+      }
+
       const { data, error } = await (supabase as any)
         .from("mensagens_chamado")
         .select("*, profiles:remetente_id(nome)")
@@ -94,12 +102,16 @@ export const useMensagensChamado = (chamadoId: string | null) => {
         .order("created_at", { ascending: true });
       if (error) {
         console.error("Erro ao carregar mensagens:", error);
-        return [] as MensagemChamado[];
+        throw error;
       }
       return (data || []) as MensagemChamado[];
     },
     enabled: !!chamadoId,
     refetchOnWindowFocus: true,
+    refetchInterval: 10000,
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 1000 * 5,
   });
 };
 
