@@ -3,9 +3,9 @@ import { Calendar, Clock, Download, Filter, AlertTriangle, CheckCircle, XCircle,
 import { BackButton } from "@/components/ui/back-button";
 import { usePontoRealtime, useFuncionariosRealtime } from "@/hooks/useRealtimeUpdates";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -447,48 +447,65 @@ const FolhaPonto = () => {
     toast.success("PDF detalhado exportado com sucesso!");
   };
 
-  const exportToExcel = () => {
-    const workbook = XLSX.utils.book_new();
+  const exportToExcel = async () => {
+    const workbook = new ExcelJS.Workbook();
     
     monthRecords.forEach(record => {
-      const data = record.days.map(day => ({
-        'Dia': day.day.toString().padStart(2, '0'),
-        'Tipo Dia': day.tipo_dia === 'dsr' ? 'DSR' : day.tipo_dia === 'feriado' ? 'Feriado' : 'Útil',
-        'Entrada': day.entrada || '-',
-        'Saída Almoço': day.saida_almoco || '-',
-        'Retorno Almoço': day.retorno_almoco || '-',
-        'Saída': day.saida || '-',
-        'Total Horas': day.total_horas || '-',
-        'Horas Extras': day.horas_extras || '-',
-        '% HE': day.percentual_he || '-',
-        'H. Noturnas': day.horas_noturnas || '-',
-        'H. Not. Fictas': day.horas_noturnas_fictas || '-',
-        'Status': day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : day.status === 'atestado' ? 'Atestado' : day.status === 'falta' ? 'Falta' : day.status === 'pendente_folga' ? 'Pendente (Folga)' : day.status === 'invalidado' ? 'Invalidado' : 'Ausente'
-      }));
+      const sheetName = record.employee_name.substring(0, 31);
+      const worksheet = workbook.addWorksheet(sheetName);
       
-      // Adicionar linha de resumo no início
-      data.unshift({
-        'Dia': 'RESUMO',
-        'Tipo Dia': `Escala: ${record.escala_trabalho || '8h'}`,
-        'Entrada': `Total: ${record.total_horas_mes.toFixed(1)}h`,
-        'Saída Almoço': `HE: ${record.total_horas_extras.toFixed(1)}h`,
-        'Retorno Almoço': `H.Not: ${record.total_horas_noturnas.toFixed(1)}h`,
-        'Saída': `Faltas: ${record.total_faltas}`,
-        'Total Horas': `Depto: ${record.departamento || '-'}`,
-        'Horas Extras': '',
-        '% HE': '',
-        'H. Noturnas': '',
-        'H. Not. Fictas': '',
-        'Status': ''
+      worksheet.columns = [
+        { header: 'Dia', key: 'dia', width: 8 },
+        { header: 'Tipo Dia', key: 'tipo_dia', width: 12 },
+        { header: 'Entrada', key: 'entrada', width: 12 },
+        { header: 'Saída Almoço', key: 'saida_almoco', width: 14 },
+        { header: 'Retorno Almoço', key: 'retorno_almoco', width: 16 },
+        { header: 'Saída', key: 'saida', width: 12 },
+        { header: 'Total Horas', key: 'total_horas', width: 12 },
+        { header: 'Horas Extras', key: 'horas_extras', width: 12 },
+        { header: '% HE', key: 'percentual_he', width: 8 },
+        { header: 'H. Noturnas', key: 'horas_noturnas', width: 12 },
+        { header: 'H. Not. Fictas', key: 'horas_noturnas_fictas', width: 14 },
+        { header: 'Status', key: 'status', width: 14 },
+      ];
+
+      // Resumo
+      worksheet.addRow({
+        dia: 'RESUMO',
+        tipo_dia: `Escala: ${record.escala_trabalho || '8h'}`,
+        entrada: `Total: ${record.total_horas_mes.toFixed(1)}h`,
+        saida_almoco: `HE: ${record.total_horas_extras.toFixed(1)}h`,
+        retorno_almoco: `H.Not: ${record.total_horas_noturnas.toFixed(1)}h`,
+        saida: `Faltas: ${record.total_faltas}`,
+        total_horas: `Depto: ${record.departamento || '-'}`,
       });
-      
-      const worksheet = XLSX.utils.json_to_sheet(data);
-      const sheetName = record.employee_name.substring(0, 31); // Excel limita a 31 caracteres
-      XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+      record.days.forEach(day => {
+        worksheet.addRow({
+          dia: day.day.toString().padStart(2, '0'),
+          tipo_dia: day.tipo_dia === 'dsr' ? 'DSR' : day.tipo_dia === 'feriado' ? 'Feriado' : 'Útil',
+          entrada: day.entrada || '-',
+          saida_almoco: day.saida_almoco || '-',
+          retorno_almoco: day.retorno_almoco || '-',
+          saida: day.saida || '-',
+          total_horas: day.total_horas || '-',
+          horas_extras: day.horas_extras || '-',
+          percentual_he: day.percentual_he || '-',
+          horas_noturnas: day.horas_noturnas || '-',
+          horas_noturnas_fictas: day.horas_noturnas_fictas || '-',
+          status: day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : day.status === 'atestado' ? 'Atestado' : day.status === 'falta' ? 'Falta' : day.status === 'pendente_folga' ? 'Pendente (Folga)' : day.status === 'invalidado' ? 'Invalidado' : 'Ausente'
+        });
+      });
     });
     
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const link = document.createElement('a');
     const fileName = `folha-ponto-detalhada-${selectedMonth}-${selectedYear}.xlsx`;
-    XLSX.writeFile(workbook, fileName);
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+    URL.revokeObjectURL(link.href);
     
     toast.success("Excel detalhado exportado com sucesso!");
   };

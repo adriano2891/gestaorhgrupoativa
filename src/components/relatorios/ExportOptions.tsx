@@ -1,9 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { FileText, Sheet, FileSpreadsheet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import jsPDF from "jspdf";
+import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
 import ExcelJS from "exceljs";
 
 interface ExportOptionsProps {
@@ -470,8 +469,15 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
       return;
     }
 
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const csv = XLSX.utils.sheet_to_csv(worksheet);
+    const headers = Object.keys(data[0]);
+    const csvRows = [
+      headers.join(','),
+      ...data.map(row => headers.map(h => {
+        const val = String(row[h] ?? '');
+        return val.includes(',') || val.includes('"') || val.includes('\n') ? `"${val.replace(/"/g, '""')}"` : val;
+      }).join(','))
+    ];
+    const csv = csvRows.join('\n');
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
