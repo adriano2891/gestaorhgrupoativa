@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/dialog";
 import { SuperAdminAuthDialog } from "@/components/ponto/SuperAdminAuthDialog";
 import { HistoricoAcoesPonto } from "@/components/ponto/HistoricoAcoesPonto";
+import { AutorizacaoFolgaDialog } from "@/components/ponto/AutorizacaoFolgaDialog";
 
 interface DayRecord {
   day: number;
@@ -57,7 +58,9 @@ interface DayRecord {
   horas_extras?: string;
   horas_noturnas?: string;
   adicional_noturno?: string;
-  status: "completo" | "incompleto" | "ausente" | "falta" | "atestado";
+  status: "completo" | "incompleto" | "ausente" | "falta" | "atestado" | "pendente_folga" | "invalidado";
+  registro_folga?: boolean;
+  status_validacao?: string;
 }
 
 interface EmployeeMonthRecord {
@@ -94,14 +97,45 @@ const FolhaPonto = () => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [pendingEdit, setPendingEdit] = useState<{empId: string, day: number, field: 'status' | 'horas_extras', currentValue: string} | null>(null);
   const [authorizedAdmin, setAuthorizedAdmin] = useState<{id: string, name: string} | null>(null);
+  const [showFolgaDialog, setShowFolgaDialog] = useState(false);
+  const [registrosFolga, setRegistrosFolga] = useState<any[]>([]);
+  const [countFolga, setCountFolga] = useState(0);
 
   // Extrair lista de funcionários e departamentos dos dados sincronizados
   const employees = funcionarios || [];
   const departamentos = [...new Set(employees.map(e => e.departamento).filter(Boolean))] as string[];
 
+  const loadRegistrosFolga = async () => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from("registros_ponto")
+        .select("*, profiles:user_id(nome)")
+        .eq("registro_folga", true)
+        .eq("status_validacao", "pendente")
+        .order("data", { ascending: false });
+
+      if (error) throw error;
+
+      const mapped = (data || []).map((r: any) => ({
+        id: r.id,
+        user_id: r.user_id,
+        employee_name: r.profiles?.nome || "Desconhecido",
+        data: r.data,
+        entrada: r.entrada,
+        saida: r.saida,
+        total_horas: r.total_horas,
+      }));
+      setRegistrosFolga(mapped);
+      setCountFolga(mapped.length);
+    } catch (error) {
+      console.error("Erro ao carregar registros de folga:", error);
+    }
+  };
+
   useEffect(() => {
     if (!loadingFuncionarios) {
       loadMonthRecords();
+      loadRegistrosFolga();
     }
   }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, funcionarios, loadingFuncionarios]);
 
@@ -207,7 +241,13 @@ const FolhaPonto = () => {
 
           // Determinar status automaticamente com base nas horas trabalhadas
           let autoStatus: DayRecord["status"] = "ausente";
-          if (reg.entrada && reg.saida) {
+          
+          // Verificar se é registro em dia de folga pendente/invalidado
+          if (reg.registro_folga && reg.status_validacao === "pendente") {
+            autoStatus = "pendente_folga";
+          } else if (reg.registro_folga && reg.status_validacao === "invalidado") {
+            autoStatus = "invalidado";
+          } else if (reg.entrada && reg.saida) {
             const horasTrabalhadas = parseIntervalToHours(reg.total_horas);
             const limiteCompleto = jornadaHoras - (TOLERANCIA_MINUTOS / 60);
             autoStatus = horasTrabalhadas >= limiteCompleto ? "completo" : "incompleto";
@@ -226,7 +266,9 @@ const FolhaPonto = () => {
             horas_extras: formatInterval(reg.horas_extras),
             horas_noturnas: formatInterval(reg.horas_noturnas),
             adicional_noturno: formatInterval(reg.adicional_noturno),
-            status: autoStatus
+            status: autoStatus,
+            registro_folga: reg.registro_folga,
+            status_validacao: reg.status_validacao,
           };
 
           // Calcular totais
@@ -305,6 +347,8 @@ const FolhaPonto = () => {
       case "ausente": return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
       case "falta": return "bg-red-500/10 text-red-700 dark:text-red-400";
       case "atestado": return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
+      case "pendente_folga": return "bg-amber-500/10 text-amber-700 dark:text-amber-400";
+      case "invalidado": return "bg-red-500/10 text-red-700 dark:text-red-400 line-through";
       default: return "";
     }
   };
@@ -342,7 +386,7 @@ const FolhaPonto = () => {
         day.saida || '-',
         day.total_horas || '-',
         day.horas_extras || '-',
-        day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : day.status === 'atestado' ? 'Atestado' : day.status === 'falta' ? 'Falta' : 'Ausente'
+        day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : day.status === 'atestado' ? 'Atestado' : day.status === 'falta' ? 'Falta' : day.status === 'pendente_folga' ? 'Pendente (Folga)' : day.status === 'invalidado' ? 'Invalidado' : 'Ausente'
       ]);
       
       autoTable(doc, {
@@ -383,7 +427,7 @@ const FolhaPonto = () => {
         'Saída': day.saida || '-',
         'Total Horas': day.total_horas || '-',
         'Horas Extras': day.horas_extras || '-',
-        'Status': day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : day.status === 'atestado' ? 'Atestado' : day.status === 'falta' ? 'Falta' : 'Ausente'
+        'Status': day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : day.status === 'atestado' ? 'Atestado' : day.status === 'falta' ? 'Falta' : day.status === 'pendente_folga' ? 'Pendente (Folga)' : day.status === 'invalidado' ? 'Invalidado' : 'Ausente'
       }));
       
       // Adicionar linha de resumo no início
@@ -559,6 +603,19 @@ const FolhaPonto = () => {
           </p>
         </div>
         <div className="flex gap-2 flex-wrap sm:flex-nowrap">
+          {countFolga > 0 && (
+            <Button
+              variant="outline"
+              className="flex-1 sm:flex-none text-sm border-amber-300 text-amber-700 hover:bg-amber-50 relative"
+              onClick={() => {
+                loadRegistrosFolga();
+                setShowFolgaDialog(true);
+              }}
+            >
+              <AlertTriangle className="h-4 w-4 mr-2" />
+              Folga ({countFolga})
+            </Button>
+          )}
           <Dialog open={showFilters} onOpenChange={setShowFilters}>
             <DialogTrigger asChild>
               <Button variant="outline" className="flex-1 sm:flex-none text-sm">
@@ -869,6 +926,8 @@ const FolhaPonto = () => {
                                       <SelectItem value="ausente">Ausente</SelectItem>
                                       <SelectItem value="falta">Falta</SelectItem>
                                       <SelectItem value="atestado">Atestado</SelectItem>
+                                      <SelectItem value="pendente_folga">Pendente (Folga)</SelectItem>
+                                      <SelectItem value="invalidado">Invalidado</SelectItem>
                                     </SelectContent>
                                   </Select>
                                   <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleSaveEdit}>
@@ -1010,6 +1069,16 @@ const FolhaPonto = () => {
         }}
         onAuthorized={handleAdminAuthorized}
         actionDescription="editar registros de ponto"
+      />
+
+      <AutorizacaoFolgaDialog
+        open={showFolgaDialog}
+        onOpenChange={setShowFolgaDialog}
+        registros={registrosFolga}
+        onDecisaoTomada={() => {
+          loadRegistrosFolga();
+          loadMonthRecords();
+        }}
       />
     </div>
   );
