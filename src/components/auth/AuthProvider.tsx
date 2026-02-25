@@ -35,12 +35,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const isSigningOut = useRef(false);
+  const isSigningIn = useRef(false);
+
+  const loadUserData = useCallback(async (userId: string) => {
+    try {
+      const [profileResult, rolesResult] = await Promise.all([
+        (supabase as any)
+          .from("profiles")
+          .select("*")
+          .eq("id", userId)
+          .maybeSingle(),
+        (supabase as any)
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId),
+      ]);
+
+      if (profileResult.error) {
+        console.error("Erro ao carregar perfil:", profileResult.error);
+      } else if (profileResult.data) {
+        setProfile(profileResult.data as Profile);
+      }
+
+      if (rolesResult.error) {
+        console.error("Erro ao carregar roles:", rolesResult.error);
+      } else {
+        setRoles((rolesResult.data as any[])?.map((r: any) => r.role as UserRole) || []);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar dados do usuário:", error);
+    }
+  }, []);
+
+  const clearAuthState = useCallback(() => {
+    setUser(null);
+    setProfile(null);
+    setRoles([]);
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
     let initialLoadDone = false;
 
-    // Safety timeout - never stay loading more than 6 seconds
     const safetyTimeout = setTimeout(() => {
       if (isMounted && !initialLoadDone) {
         console.warn("Auth: safety timeout reached, releasing loading state");
@@ -49,52 +85,26 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }, 6000);
 
-    const loadUserDataSafe = async (userId: string) => {
-      try {
-        const { data: profileData, error: profileError } = await (supabase as any)
-          .from("profiles")
-          .select("*")
-          .eq("id", userId)
-          .maybeSingle();
-
-        if (!isMounted) return;
-        if (profileError) throw profileError;
-        if (profileData) setProfile(profileData as Profile);
-
-        const { data: rolesData, error: rolesError } = await (supabase as any)
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userId);
-
-        if (!isMounted) return;
-        if (rolesError) throw rolesError;
-        setRoles((rolesData as any[])?.map((r: any) => r.role as UserRole) || []);
-      } catch (error) {
-        console.error("Erro ao carregar dados do usuário:", error);
-      }
-    };
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
 
       if (event === 'INITIAL_SESSION') {
-        setUser(session?.user ?? null);
         if (session?.user) {
-          await loadUserDataSafe(session.user.id);
+          setUser(session.user);
+          await loadUserData(session.user.id);
         }
         if (isMounted && !initialLoadDone) {
           initialLoadDone = true;
           setLoading(false);
         }
       } else if (event === 'SIGNED_IN' && session?.user) {
-        if (isSigningOut.current) return; // Ignore stale events during logout
+        // Skip if signOut is in progress OR if signIn is handling it eagerly
+        if (isSigningOut.current || isSigningIn.current) return;
         setUser(session.user);
-        await loadUserDataSafe(session.user.id);
+        await loadUserData(session.user.id);
         if (isMounted) setLoading(false);
       } else if (event === 'SIGNED_OUT') {
-        setUser(null);
-        setProfile(null);
-        setRoles([]);
+        clearAuthState();
         setLoading(false);
       } else if (event === 'TOKEN_REFRESHED' && session?.user) {
         setUser(session.user);
@@ -106,72 +116,63 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
-  }, []);
-
-
+  }, [loadUserData, clearAuthState]);
 
   const signIn = async (email: string, password: string) => {
-    let loginEmail = email;
+    isSigningIn.current = true;
     
-    if (!email.includes('@')) {
-      if (email === "admin") {
-        loginEmail = "admin@sistema.com";
-      } else {
-        const { data: emailData, error: emailError } = await supabase
-          .rpc("get_email_by_username", { username_input: email });
-        
-        if (emailError || !emailData || emailData.length === 0) {
-          throw new Error("Usuário não encontrado");
+    try {
+      let loginEmail = email;
+      
+      if (!email.includes('@')) {
+        if (email === "admin") {
+          loginEmail = "admin@sistema.com";
+        } else {
+          const { data: emailData, error: emailError } = await supabase
+            .rpc("get_email_by_username", { username_input: email });
+          
+          if (emailError || !emailData || emailData.length === 0) {
+            throw new Error("Usuário não encontrado");
+          }
+          
+          loginEmail = emailData[0].email;
         }
+      }
+      
+      // Clear stale cache before new login
+      queryClient.clear();
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginEmail,
+        password,
+      });
+      if (error) throw error;
+
+      if (data.user) {
+        setUser(data.user);
         
-        loginEmail = emailData[0].email;
-      }
-    }
-    
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: loginEmail,
-      password,
-    });
-    if (error) throw error;
-
-    // Load user data with timeout to prevent hanging
-    if (data.user) {
-      setUser(data.user);
-      try {
-        const loadWithTimeout = <T,>(promise: Promise<T>, ms = 5000): Promise<T> =>
-          Promise.race([
-            promise,
-            new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+        try {
+          await Promise.race([
+            loadUserData(data.user.id),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
           ]);
-
-        const profileResult: any = await loadWithTimeout(
-          (supabase as any).from("profiles").select("*").eq("id", data.user.id).maybeSingle()
-        );
-        if (profileResult?.data) setProfile(profileResult.data as Profile);
-
-        const rolesResult: any = await loadWithTimeout(
-          (supabase as any).from("user_roles").select("role").eq("user_id", data.user.id)
-        );
-        setRoles((rolesResult?.data as any[])?.map((r: any) => r.role as UserRole) || []);
-      } catch (err) {
-        console.error("Erro ao carregar dados após login:", err);
-        // Even on error, proceed to dashboard - onAuthStateChange will retry
+        } catch (err) {
+          console.error("Erro ao carregar dados após login:", err);
+        }
       }
-    }
 
-    setLoading(false);
-    navigate("/dashboard");
+      setLoading(false);
+      navigate("/dashboard");
+    } finally {
+      isSigningIn.current = false;
+    }
   };
 
   const signUp = async (email: string, password: string, nome: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: {
-          nome,
-        },
-      },
+      options: { data: { nome } },
     });
     if (error) throw error;
   };
@@ -179,13 +180,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     isSigningOut.current = true;
     
-    // Limpar estado imediatamente para UX responsiva
-    setUser(null);
-    setProfile(null);
-    setRoles([]);
+    // Clear state immediately
+    clearAuthState();
     setLoading(false);
     
-    // Limpar todo cache do React Query
+    // Clear all React Query cache
     queryClient.clear();
     
     try {
@@ -197,7 +196,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("Logout error (ignored):", error);
     }
     
-    isSigningOut.current = false;
+    // Small delay before re-enabling to let stale events pass
+    setTimeout(() => {
+      isSigningOut.current = false;
+    }, 500);
+    
     navigate("/login");
   };
 
