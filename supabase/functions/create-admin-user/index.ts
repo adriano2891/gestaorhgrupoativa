@@ -112,6 +112,13 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Remove the auto-assigned 'funcionario' role from the trigger
+    await supabaseAdmin
+      .from('user_roles')
+      .delete()
+      .eq('user_id', userData.user.id)
+      .eq('role', 'funcionario');
+
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
       .insert({ user_id: userData.user.id, role });
