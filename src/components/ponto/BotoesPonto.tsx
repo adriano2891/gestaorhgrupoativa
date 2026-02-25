@@ -84,6 +84,42 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
       const agora = new Date().toISOString();
       const hoje = new Date().toISOString().split('T')[0];
 
+      // Detectar se é dia de folga para escala 12x36
+      let isRegistroFolga = false;
+      if (campo === "entrada") {
+        const { data: profileData2 } = await (supabase as any)
+          .from("profiles")
+          .select("escala_trabalho")
+          .eq("id", userId)
+          .single();
+
+        if (profileData2?.escala_trabalho === "12x36") {
+          // Buscar último registro de trabalho (com entrada) para determinar padrão
+          const { data: ultimoTrabalho } = await (supabase as any)
+            .from("registros_ponto")
+            .select("data")
+            .eq("user_id", userId)
+            .not("entrada", "is", null)
+            .order("data", { ascending: false })
+            .limit(1)
+            .single();
+
+          if (ultimoTrabalho?.data) {
+            const ultimaData = new Date(ultimoTrabalho.data + "T12:00:00");
+            const hojeDate = new Date(hoje + "T12:00:00");
+            const diffDias = Math.round((hojeDate.getTime() - ultimaData.getTime()) / (1000 * 60 * 60 * 24));
+            // Na escala 12x36, trabalha-se dia sim, dia não. Se diferença é ímpar = dia de trabalho, par = folga
+            if (diffDias > 0 && diffDias % 2 === 0) {
+              isRegistroFolga = true;
+              toast.warning("Registro em dia de folga (12x36)", {
+                description: "Este registro será enviado para aprovação do administrador como possível hora extra.",
+                duration: 6000,
+              });
+            }
+          }
+        }
+      }
+
       if (!registroHoje) {
         const { error } = await (supabase as any)
           .from("registros_ponto")
@@ -91,6 +127,8 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
             user_id: userId,
             data: hoje,
             [campo]: agora,
+            registro_folga: isRegistroFolga,
+            status_validacao: isRegistroFolga ? "pendente" : "validado",
           });
 
         if (error) throw error;
