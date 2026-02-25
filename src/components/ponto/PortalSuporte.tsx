@@ -58,7 +58,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const { data: chamados = [], isLoading } = useMeusChamados();
-  const { data: mensagens = [] } = useMensagensChamado(chamadoSelecionado?.id || null);
+  const { data: mensagens = [], isLoading: isLoadingMensagens } = useMensagensChamado(chamadoSelecionado?.id || null);
   const criarChamado = useCriarChamado();
   const enviarMensagem = useEnviarMensagem();
 
@@ -265,11 +265,15 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
         <main className="container mx-auto px-4 py-4 flex flex-col" style={{ height: "calc(100vh - 160px)" }}>
           {/* Messages */}
           <div className="flex-1 overflow-y-auto space-y-4 mb-4 px-2">
-            {mensagens.length === 0 && (
+            {isLoadingMensagens ? (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-muted-foreground text-sm">Carregando mensagens...</p>
+              </div>
+            ) : mensagens.length === 0 ? (
               <div className="flex items-center justify-center h-full">
                 <p className="text-muted-foreground text-sm">Nenhuma mensagem ainda. Envie a primeira!</p>
               </div>
-            )}
+            ) : null}
             {mensagens.map((msg) => {
               const isMe = msg.remetente_id === user?.id;
               return (
