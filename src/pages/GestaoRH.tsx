@@ -319,7 +319,7 @@ const GestaoRH = () => {
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
-                <p className="text-center mt-3 font-bold text-white text-base max-w-[140px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
+                <p className="text-center mt-3 font-bold text-white text-sm max-w-[130px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
                   {module.title}
                 </p>
               </div>
@@ -349,7 +349,7 @@ const GestaoRH = () => {
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
-                <p className="text-center mt-2 font-bold text-white text-sm max-w-[120px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
+                <p className="text-center mt-2 font-bold text-white text-xs max-w-[110px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
                   {module.title}
                 </p>
               </div>
@@ -379,7 +379,7 @@ const GestaoRH = () => {
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
-                <p className="text-center mt-2 font-bold text-white text-xs max-w-[100px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
+                <p className="text-center mt-2 font-bold text-white text-[11px] max-w-[90px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
                   {module.title}
                 </p>
               </div>
