@@ -1,6 +1,6 @@
 export const GlobalFooter = () => {
   return (
-    <footer className="py-px text-center text-[8px] sm:text-[9px] text-muted-foreground/70 relative z-10">
+    <footer className="py-1.5 sm:py-2 text-center text-[9px] sm:text-[10px] text-white/90 relative z-10 bg-gradient-to-r from-[hsl(174,72%,56%)] to-[hsl(174,72%,46%)]">
       © 2025 Grupo Ativa • Todos os direitos reservados
     </footer>
   );
