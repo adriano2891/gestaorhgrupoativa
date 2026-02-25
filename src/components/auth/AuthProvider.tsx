@@ -106,13 +106,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     let loginEmail = email;
     
-    // Se não for um email válido, buscar o email pelo username
     if (!email.includes('@')) {
-      // Converter "admin" para o email correto
       if (email === "admin") {
         loginEmail = "admin@sistema.com";
       } else {
-        // Buscar email pelo username usando função segura
         const { data: emailData, error: emailError } = await supabase
           .rpc("get_email_by_username", { username_input: email });
         
@@ -124,11 +121,33 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     }
     
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: loginEmail,
       password,
     });
     if (error) throw error;
+
+    // Load user data BEFORE navigating to avoid race condition
+    if (data.user) {
+      setUser(data.user);
+      try {
+        const { data: profileData } = await (supabase as any)
+          .from("profiles")
+          .select("*")
+          .eq("id", data.user.id)
+          .maybeSingle();
+        if (profileData) setProfile(profileData as Profile);
+
+        const { data: rolesData } = await (supabase as any)
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", data.user.id);
+        setRoles((rolesData as any[])?.map((r: any) => r.role as UserRole) || []);
+      } catch (err) {
+        console.error("Erro ao carregar dados após login:", err);
+      }
+    }
+
     navigate("/dashboard");
   };
 
