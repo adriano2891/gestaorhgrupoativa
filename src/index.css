@@ -121,28 +121,37 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 
-  /* Force dark mode text to white, overriding inline styles */
-  .dark h1,
-  .dark h2,
-  .dark h3,
-  .dark h4,
-  .dark h5,
-  .dark h6,
-  .dark p,
-  .dark span,
-  .dark label,
-  .dark td,
-  .dark th,
-  .dark li,
-  .dark div {
-    color: inherit;
+  /* Force dark mode: override inline black/dark color styles */
+  .dark [style*="color: #000"],
+  .dark [style*="color:#000"],
+  .dark [style*="color: #000000"],
+  .dark [style*="color:#000000"],
+  .dark [style*="color: black"],
+  .dark [style*="color:black"],
+  .dark [style*="color: rgb(0, 0, 0)"],
+  .dark [style*="color: rgb(0,0,0)"] {
+    color: hsl(210 40% 98%) !important;
   }
 
-  .dark [style*="color: #000000"],
-  .dark [style*="color: #000"],
-  .dark [style*="color: black"],
-  .dark [style*="color:#000000"],
-  .dark [style*="color:#000"] {
+  /* Ensure all headings use foreground in dark mode even with inline styles */
+  .dark h1[style],
+  .dark h2[style],
+  .dark h3[style],
+  .dark h4[style],
+  .dark h5[style],
+  .dark h6[style] {
+    color: hsl(210 40% 98%) !important;
+  }
+
+  /* Ensure paragraphs with inline dark styles are readable */
+  .dark p[style*="color: #000"],
+  .dark p[style*="color:#000"],
+  .dark p[style*="color: #000000"],
+  .dark p[style*="color:#000000"],
+  .dark p[style*="color: black"],
+  .dark span[style*="color: #000"],
+  .dark span[style*="color:#000"],
+  .dark span[style*="color: black"] {
     color: hsl(210 40% 98%) !important;
   }
 
