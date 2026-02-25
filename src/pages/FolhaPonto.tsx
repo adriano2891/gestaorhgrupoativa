@@ -55,7 +55,7 @@ interface DayRecord {
   retorno_almoco?: string;
   total_horas?: string;
   horas_extras?: string;
-  status: "completo" | "incompleto" | "ausente" | "falta";
+  status: "completo" | "incompleto" | "ausente" | "falta" | "atestado";
 }
 
 interface EmployeeMonthRecord {
@@ -236,6 +236,7 @@ const FolhaPonto = () => {
       case "incompleto": return "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400";
       case "ausente": return "bg-gray-500/10 text-gray-700 dark:text-gray-400";
       case "falta": return "bg-red-500/10 text-red-700 dark:text-red-400";
+      case "atestado": return "bg-blue-500/10 text-blue-700 dark:text-blue-400";
       default: return "";
     }
   };
@@ -273,7 +274,7 @@ const FolhaPonto = () => {
         day.saida || '-',
         day.total_horas || '-',
         day.horas_extras || '-',
-        day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : 'Ausente'
+        day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : day.status === 'atestado' ? 'Atestado' : day.status === 'falta' ? 'Falta' : 'Ausente'
       ]);
       
       autoTable(doc, {
@@ -314,7 +315,7 @@ const FolhaPonto = () => {
         'Saída': day.saida || '-',
         'Total Horas': day.total_horas || '-',
         'Horas Extras': day.horas_extras || '-',
-        'Status': day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : 'Ausente'
+        'Status': day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : day.status === 'atestado' ? 'Atestado' : day.status === 'falta' ? 'Falta' : 'Ausente'
       }));
       
       // Adicionar linha de resumo no início
@@ -374,7 +375,7 @@ const FolhaPonto = () => {
             };
             
             // Recalcular totais
-            const total_faltas = newDays.filter(d => d.status === "ausente" || d.status === "falta").length;
+            const total_faltas = newDays.filter(d => d.status === "ausente" || d.status === "falta" || d.status === "atestado").length;
             const completos = newDays.filter(d => d.status === "completo").length;
             
             return { 
@@ -786,6 +787,7 @@ const FolhaPonto = () => {
                                       <SelectItem value="incompleto">Incompleto</SelectItem>
                                       <SelectItem value="ausente">Ausente</SelectItem>
                                       <SelectItem value="falta">Falta</SelectItem>
+                                      <SelectItem value="atestado">Atestado</SelectItem>
                                     </SelectContent>
                                   </Select>
                                   <Button size="sm" variant="ghost" className="h-7 px-2" onClick={handleSaveEdit}>
@@ -800,6 +802,7 @@ const FolhaPonto = () => {
                                   {day.status === "completo" && <CheckCircle className="h-3 w-3" />}
                                   {day.status === "incompleto" && <AlertTriangle className="h-3 w-3" />}
                                   {day.status === "ausente" && <XCircle className="h-3 w-3" />}
+                                  {day.status === "atestado" && <FileText className="h-3 w-3" />}
                                   {day.status}
                                 </div>
                               )}
