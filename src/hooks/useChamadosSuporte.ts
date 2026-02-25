@@ -43,7 +43,7 @@ export const useMeusChamados = () => {
         .order("created_at", { ascending: false });
       if (error) {
         console.error("Erro ao carregar chamados:", error);
-        return [] as ChamadoSuporte[];
+        throw error;
       }
       return (data || []) as ChamadoSuporte[];
     },

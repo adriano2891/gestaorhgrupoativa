@@ -132,30 +132,38 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
       toast.error("Preencha todos os campos obrigatórios");
       return;
     }
-    await criarChamado.mutateAsync({
-      user_id: user.id,
-      categoria,
-      assunto,
-      mensagem,
-      arquivo: arquivo || undefined,
-    });
-    setCategoria("");
-    setAssunto("");
-    setMensagem("");
-    setArquivo(null);
-    setView("lista");
+    try {
+      await criarChamado.mutateAsync({
+        user_id: user.id,
+        categoria,
+        assunto,
+        mensagem,
+        arquivo: arquivo || undefined,
+      });
+      setCategoria("");
+      setAssunto("");
+      setMensagem("");
+      setArquivo(null);
+      setView("lista");
+    } catch (error) {
+      console.error("Erro ao criar chamado:", error);
+    }
   };
 
   const handleEnviarResposta = async () => {
     if (!user || !chamadoSelecionado || !resposta.trim()) return;
-    await enviarMensagem.mutateAsync({
-      chamado_id: chamadoSelecionado.id,
-      remetente_id: user.id,
-      conteudo: resposta,
-      arquivo: arquivoResposta || undefined,
-    });
-    setResposta("");
-    setArquivoResposta(null);
+    try {
+      await enviarMensagem.mutateAsync({
+        chamado_id: chamadoSelecionado.id,
+        remetente_id: user.id,
+        conteudo: resposta,
+        arquivo: arquivoResposta || undefined,
+      });
+      setResposta("");
+      setArquivoResposta(null);
+    } catch (error) {
+      console.error("Erro ao enviar mensagem:", error);
+    }
   };
 
   const abrirChat = (chamado: ChamadoSuporte) => {
