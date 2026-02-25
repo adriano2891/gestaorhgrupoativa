@@ -26,13 +26,12 @@ export const useRegistrosPonto = (startDate?: Date, endDate?: Date) => {
         .from("registros_ponto")
         .select(`
           *,
-          profiles:user_id!inner (
+          profiles:user_id (
             nome,
             departamento,
             status
           )
         `)
-        .not("profiles.status", "in", '("demitido","pediu_demissao")')
         .order("data", { ascending: false });
 
       if (startDate) {
@@ -43,10 +42,18 @@ export const useRegistrosPonto = (startDate?: Date, endDate?: Date) => {
       }
 
       const { data, error } = await query;
-
       if (error) throw error;
-      return data as RegistroPonto[];
+
+      // Filter dismissed employees client-side for reliability
+      const filtered = (data || []).filter((r: any) => {
+        const status = r.profiles?.status;
+        return status !== 'demitido' && status !== 'pediu_demissao';
+      });
+
+      return filtered as RegistroPonto[];
     },
+    retry: 2,
+    staleTime: 1000 * 30,
   });
 };
 
@@ -63,21 +70,25 @@ export const useAbsenteismoPorDepartamento = (mes?: Date) => {
           user_id,
           data,
           entrada,
-          profiles:user_id!inner (
+          profiles:user_id (
             departamento,
             status
           )
         `)
-        .not("profiles.status", "in", '("demitido","pediu_demissao")')
         .gte("data", format(inicio, "yyyy-MM-dd"))
         .lte("data", format(fim, "yyyy-MM-dd"));
 
       if (error) throw error;
 
-      // Calcular absenteísmo por departamento
-      const departamentos: any = {};
+      // Filter dismissed employees client-side
+      const activeRecords = (registros || []).filter((r: any) => {
+        const status = r.profiles?.status;
+        return status !== 'demitido' && status !== 'pediu_demissao';
+      });
+
+      const departamentos: Record<string, { total: number; ausencias: number }> = {};
       
-      registros.forEach((registro: any) => {
+      activeRecords.forEach((registro: any) => {
         const dept = registro.profiles?.departamento || "Sem Departamento";
         if (!departamentos[dept]) {
           departamentos[dept] = { total: 0, ausencias: 0 };
@@ -88,10 +99,12 @@ export const useAbsenteismoPorDepartamento = (mes?: Date) => {
         }
       });
 
-      return Object.entries(departamentos).map(([departamento, stats]: [string, any]) => ({
+      return Object.entries(departamentos).map(([departamento, stats]) => ({
         departamento,
         taxa: stats.total > 0 ? ((stats.ausencias / stats.total) * 100).toFixed(1) : 0,
       }));
     },
+    retry: 2,
+    staleTime: 1000 * 30,
   });
 };
