@@ -280,17 +280,16 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
                 <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                   <div className={`max-w-[75%] rounded-2xl p-3.5 shadow-md ${
                     isMe 
-                      ? "bg-primary text-primary-foreground rounded-br-sm" 
-                      : "bg-card border-l-4 border-l-amber-500 border border-border text-foreground rounded-bl-sm"
-                  }`}>
-                    <p className={`text-[11px] font-bold mb-1.5 ${
-                      isMe ? "text-primary-foreground/80" : "text-amber-600 dark:text-amber-400"
-                    }`}>
+                      ? "rounded-br-sm" 
+                      : "rounded-bl-sm border border-border"
+                  }`} style={isMe 
+                    ? { background: 'linear-gradient(135deg, #3b82f6, #2563eb)', color: '#fff' } 
+                    : { background: 'linear-gradient(135deg, #1abc9c, #16a085)', color: '#fff' }
+                  }>
+                    <p className="text-[11px] font-bold mb-1.5" style={{ opacity: 0.85 }}>
                       {isMe ? "👤 Você" : `🛡️ ${msg.profiles?.nome || "RH / Admin"}`}
                     </p>
-                    <p className={`text-sm whitespace-pre-wrap leading-relaxed ${
-                      isMe ? "text-primary-foreground" : "text-foreground"
-                    }`}>{msg.conteudo}</p>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{msg.conteudo}</p>
                     {msg.arquivo_url && (
                       <button
                         onClick={async (e) => {
@@ -300,12 +299,13 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
                           if (error || !data?.signedUrl) return;
                           window.open(data.signedUrl, "_blank");
                         }}
-                        className={`flex items-center gap-1 mt-2 text-xs underline cursor-pointer ${isMe ? "text-primary-foreground/90" : "text-primary"}`}
+                        className="flex items-center gap-1 mt-2 text-xs underline cursor-pointer"
+                        style={{ opacity: 0.85 }}
                       >
                         <Download className="h-3 w-3" /> {msg.arquivo_nome || "Anexo"}
                       </button>
                     )}
-                    <p className={`text-[10px] mt-1.5 text-right ${isMe ? "text-primary-foreground/50" : "text-muted-foreground"}`}>
+                    <p className="text-[10px] mt-1.5 text-right" style={{ opacity: 0.55 }}>
                       {format(new Date(msg.created_at), "dd/MM HH:mm", { locale: ptBR })}
                     </p>
                   </div>
