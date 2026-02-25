@@ -59,7 +59,8 @@ export const EnviarNotificacaoDialog = ({ open, onOpenChange }: Props) => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, nome, departamento")
+        .select("id, nome, departamento, user_roles!inner(role)")
+        .eq("user_roles.role", "funcionario")
         .order("nome");
       if (error) throw error;
       return data as { id: string; nome: string; departamento: string | null }[];

@@ -39,7 +39,8 @@ export const AtribuirFormularioDialog = ({ open, onOpenChange, formularioId }: A
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, nome, email, departamento")
+        .select("id, nome, email, departamento, user_roles!inner(role)")
+        .eq("user_roles.role", "funcionario")
         .order("nome");
 
       if (error) throw error;
