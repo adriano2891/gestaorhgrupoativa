@@ -2121,6 +2121,86 @@ export type Database = {
           },
         ]
       }
+      ocorrencias_ponto: {
+        Row: {
+          created_at: string
+          data: string
+          descricao: string
+          id: string
+          justificativa_resolucao: string | null
+          registro_ponto_id: string | null
+          resolvido: boolean
+          resolvido_em: string | null
+          resolvido_por: string | null
+          severidade: string
+          tipo: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          data: string
+          descricao: string
+          id?: string
+          justificativa_resolucao?: string | null
+          registro_ponto_id?: string | null
+          resolvido?: boolean
+          resolvido_em?: string | null
+          resolvido_por?: string | null
+          severidade?: string
+          tipo: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          data?: string
+          descricao?: string
+          id?: string
+          justificativa_resolucao?: string | null
+          registro_ponto_id?: string | null
+          resolvido?: boolean
+          resolvido_em?: string | null
+          resolvido_por?: string | null
+          severidade?: string
+          tipo?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ocorrencias_ponto_registro_ponto_id_fkey"
+            columns: ["registro_ponto_id"]
+            isOneToOne: false
+            referencedRelation: "registros_ponto"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parametros_ponto: {
+        Row: {
+          chave: string
+          descricao: string | null
+          id: string
+          updated_at: string | null
+          updated_by: string | null
+          valor: string
+        }
+        Insert: {
+          chave: string
+          descricao?: string | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          valor: string
+        }
+        Update: {
+          chave?: string
+          descricao?: string | null
+          id?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          valor?: string
+        }
+        Relationships: []
+      }
       perguntas_avaliacao: {
         Row: {
           avaliacao_id: string
@@ -2341,9 +2421,11 @@ export type Database = {
           fim_he: string | null
           horas_extras: unknown
           horas_noturnas: unknown
+          horas_noturnas_fictas: unknown
           id: string
           inicio_he: string | null
           justificativa_folga: string | null
+          percentual_he: number | null
           registro_folga: boolean
           retorno_almoco: string | null
           retorno_pausa_1: string | null
@@ -2353,6 +2435,7 @@ export type Database = {
           saida_pausa_1: string | null
           saida_pausa_2: string | null
           status_validacao: string
+          tipo_dia: string | null
           total_horas: unknown
           updated_at: string
           user_id: string
@@ -2365,9 +2448,11 @@ export type Database = {
           fim_he?: string | null
           horas_extras?: unknown
           horas_noturnas?: unknown
+          horas_noturnas_fictas?: unknown
           id?: string
           inicio_he?: string | null
           justificativa_folga?: string | null
+          percentual_he?: number | null
           registro_folga?: boolean
           retorno_almoco?: string | null
           retorno_pausa_1?: string | null
@@ -2377,6 +2462,7 @@ export type Database = {
           saida_pausa_1?: string | null
           saida_pausa_2?: string | null
           status_validacao?: string
+          tipo_dia?: string | null
           total_horas?: unknown
           updated_at?: string
           user_id: string
@@ -2389,9 +2475,11 @@ export type Database = {
           fim_he?: string | null
           horas_extras?: unknown
           horas_noturnas?: unknown
+          horas_noturnas_fictas?: unknown
           id?: string
           inicio_he?: string | null
           justificativa_folga?: string | null
+          percentual_he?: number | null
           registro_folga?: boolean
           retorno_almoco?: string | null
           retorno_pausa_1?: string | null
@@ -2401,6 +2489,7 @@ export type Database = {
           saida_pausa_1?: string | null
           saida_pausa_2?: string | null
           status_validacao?: string
+          tipo_dia?: string | null
           total_horas?: unknown
           updated_at?: string
           user_id?: string
