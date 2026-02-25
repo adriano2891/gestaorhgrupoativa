@@ -127,27 +127,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     });
     if (error) throw error;
 
-    // Load user data BEFORE navigating to avoid race condition
+    // Load user data with timeout to prevent hanging
     if (data.user) {
       setUser(data.user);
       try {
-        const { data: profileData } = await (supabase as any)
-          .from("profiles")
-          .select("*")
-          .eq("id", data.user.id)
-          .maybeSingle();
-        if (profileData) setProfile(profileData as Profile);
+        const loadWithTimeout = <T,>(promise: Promise<T>, ms = 5000): Promise<T> =>
+          Promise.race([
+            promise,
+            new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms))
+          ]);
 
-        const { data: rolesData } = await (supabase as any)
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", data.user.id);
-        setRoles((rolesData as any[])?.map((r: any) => r.role as UserRole) || []);
+        const profileResult: any = await loadWithTimeout(
+          (supabase as any).from("profiles").select("*").eq("id", data.user.id).maybeSingle()
+        );
+        if (profileResult?.data) setProfile(profileResult.data as Profile);
+
+        const rolesResult: any = await loadWithTimeout(
+          (supabase as any).from("user_roles").select("role").eq("user_id", data.user.id)
+        );
+        setRoles((rolesResult?.data as any[])?.map((r: any) => r.role as UserRole) || []);
       } catch (err) {
         console.error("Erro ao carregar dados após login:", err);
+        // Even on error, proceed to dashboard - onAuthStateChange will retry
       }
     }
 
+    setLoading(false);
     navigate("/dashboard");
   };
 
@@ -169,11 +174,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(null);
     setProfile(null);
     setRoles([]);
+    setLoading(false);
     
     try {
-      // Timeout de 3s para não travar se a rede estiver lenta
       await Promise.race([
-        supabase.auth.signOut(),
+        supabase.auth.signOut({ scope: 'local' }),
         new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
       ]);
     } catch (error) {
