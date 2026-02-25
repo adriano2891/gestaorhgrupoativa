@@ -96,7 +96,28 @@ Deno.serve(async (req) => {
       }
     };
 
-    // 1) Delete leaf records (no FK children) in parallel
+    // Helper: delete from table where column IN (list of ids)
+    const deleteByIds = async (table: string, column: string, ids: string[]) => {
+      if (!ids.length) return;
+      const { error } = await supabaseAdmin.from(table).delete().in(column, ids);
+      if (error) {
+        console.error(`[delete-employee-user:${requestId}] Failed deleting from ${table}.${column} by ids: ${error.message}`);
+        throw new Error(`Falha ao remover registros relacionados (${table}): ${error.message}`);
+      }
+    };
+
+    // 0) Fetch IDs needed for cascading deletes
+    const [chamadosRes, atribuicoesRes, docsRes] = await Promise.all([
+      supabaseAdmin.from('chamados_suporte').select('id').eq('user_id', user_id),
+      supabaseAdmin.from('formulario_atribuicoes').select('id').eq('user_id', user_id),
+      supabaseAdmin.from('documentos').select('id').or(`criado_por.eq.${user_id},atualizado_por.eq.${user_id}`),
+    ]);
+
+    const chamadoIds = (chamadosRes.data || []).map(c => c.id);
+    const atribuicaoIds = (atribuicoesRes.data || []).map(a => a.id);
+    const docIds = (docsRes.data || []).map(d => d.id);
+
+    // 1) Delete deepest leaf records in parallel
     await Promise.all([
       deleteByUserId('dependentes_funcionario'),
       deleteByUserId('historico_salarios'),
@@ -106,11 +127,6 @@ Deno.serve(async (req) => {
       deleteByUserId('logs_envio_holerites'),
       deleteByUserId('logs_relatorios', 'usuario_id'),
       deleteByUserId('historico_ferias'),
-      deleteByUserId('documentos_acessos'),
-      deleteByUserId('documentos_comentarios'),
-      deleteByUserId('documentos_favoritos'),
-      deleteByUserId('documentos_permissoes'),
-      deleteByUserId('documentos_versoes', 'criado_por'),
       deleteByUserId('holerites'),
       deleteByUserId('registros_ponto'),
       deleteByUserId('notificacoes_lidas'),
@@ -118,19 +134,35 @@ Deno.serve(async (req) => {
       deleteByUserId('logs_acesso_curso'),
       deleteByUserId('logs_edicao_ponto', 'employee_id'),
       deleteByUserId('logs_edicao_ponto', 'autorizado_por'),
-      deleteByUserId('mensagens_chamado', 'remetente_id'),
       deleteByUserId('periodos_aquisitivos'),
       deleteByUserId('matriculas'),
-      deleteByUserId('formulario_atribuicoes'),
+      // Delete all messages in user's chamados (from ANY sender)
+      deleteByIds('mensagens_chamado', 'chamado_id', chamadoIds),
+      // Also delete messages sent by user in other people's chamados
+      deleteByUserId('mensagens_chamado', 'remetente_id'),
+      // Delete formulario_respostas before atribuicoes
+      deleteByIds('formulario_respostas', 'atribuicao_id', atribuicaoIds),
+      // Delete document children by document ID
+      deleteByIds('documentos_acessos', 'documento_id', docIds),
+      deleteByIds('documentos_comentarios', 'documento_id', docIds),
+      deleteByIds('documentos_favoritos', 'documento_id', docIds),
+      deleteByIds('documentos_permissoes', 'documento_id', docIds),
+      deleteByIds('documentos_versoes', 'documento_id', docIds),
+      // Also delete user's own doc interactions
+      deleteByUserId('documentos_acessos'),
+      deleteByUserId('documentos_comentarios'),
+      deleteByUserId('documentos_favoritos'),
+      deleteByUserId('documentos_permissoes'),
+      deleteByUserId('documentos_versoes', 'criado_por'),
     ]);
 
-    // 2) Delete parent records that had FK children above
+    // 2) Delete parent records
     await Promise.all([
       deleteByUserId('chamados_suporte'),
+      deleteByUserId('formulario_atribuicoes'),
       deleteByUserId('formularios_rh', 'criado_por'),
       deleteByUserId('formularios_rh', 'aprovado_por'),
-      deleteByUserId('documentos', 'criado_por'),
-      deleteByUserId('documentos', 'atualizado_por'),
+      deleteByIds('documentos', 'id', docIds),
       deleteByUserId('solicitacoes_ferias'),
     ]);
 
