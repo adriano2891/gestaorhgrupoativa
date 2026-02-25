@@ -154,6 +154,17 @@ const FolhaPonto = () => {
         });
       });
 
+      // Jornada padrão CLT: 8 horas com tolerância de 10 minutos
+      const JORNADA_PADRAO_HORAS = 8;
+      const TOLERANCIA_MINUTOS = 10;
+
+      const parseIntervalToHours = (interval: string | null): number => {
+        if (!interval) return 0;
+        const match = interval.match(/(\d+):(\d+):(\d+)/);
+        if (!match) return 0;
+        return parseInt(match[1]) + parseInt(match[2]) / 60;
+      };
+
       // Preencher com registros reais
       registros?.forEach((reg: any) => {
         const empRecord = employeeMap.get(reg.user_id);
@@ -177,6 +188,17 @@ const FolhaPonto = () => {
             return "0h 0min";
           };
 
+          // Determinar status automaticamente com base nas horas trabalhadas
+          let autoStatus: DayRecord["status"] = "ausente";
+          if (reg.entrada && reg.saida) {
+            const horasTrabalhadas = parseIntervalToHours(reg.total_horas);
+            const limiteCompleto = JORNADA_PADRAO_HORAS - (TOLERANCIA_MINUTOS / 60);
+            autoStatus = horasTrabalhadas >= limiteCompleto ? "completo" : "incompleto";
+          } else if (reg.entrada) {
+            autoStatus = "incompleto";
+          }
+          // Se não tem entrada, permanece "ausente" — admin valida manualmente
+
           empRecord.days[dayIndex] = {
             day,
             entrada: formatTime(reg.entrada),
@@ -185,31 +207,49 @@ const FolhaPonto = () => {
             retorno_almoco: formatTime(reg.retorno_almoco),
             total_horas: formatInterval(reg.total_horas),
             horas_extras: formatInterval(reg.horas_extras),
-            status: reg.entrada && reg.saida ? "completo" : reg.entrada ? "incompleto" : "ausente"
+            status: autoStatus
           };
 
           // Calcular totais
           if (reg.total_horas) {
-            const match = reg.total_horas.match(/(\d+):(\d+):(\d+)/);
-            if (match) {
-              empRecord.total_horas_mes += parseInt(match[1]) + parseInt(match[2]) / 60;
-            }
+            empRecord.total_horas_mes += parseIntervalToHours(reg.total_horas);
           }
 
           if (reg.horas_extras) {
-            const match = reg.horas_extras.match(/(\d+):(\d+):(\d+)/);
-            if (match) {
-              empRecord.total_horas_extras += parseInt(match[1]) + parseInt(match[2]) / 60;
-            }
+            empRecord.total_horas_extras += parseIntervalToHours(reg.horas_extras);
           }
         }
       });
 
-      // Calcular faltas e status final
+      // Calcular faltas e status final do mês
+      // Dias úteis do mês (excluindo sábados e domingos)
+      const diasUteis = (() => {
+        let count = 0;
+        for (let d = 1; d <= daysInMonth; d++) {
+          const dayOfWeek = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1, d).getDay();
+          if (dayOfWeek !== 0 && dayOfWeek !== 6) count++;
+        }
+        return count;
+      })();
+
       employeeMap.forEach(record => {
-        record.total_faltas = record.days.filter(d => d.status === "ausente").length;
+        // Contar ausências apenas em dias úteis
+        record.total_faltas = record.days.filter(d => {
+          const dayOfWeek = new Date(parseInt(selectedYear), parseInt(selectedMonth) - 1, d.day).getDay();
+          const isDiaUtil = dayOfWeek !== 0 && dayOfWeek !== 6;
+          return isDiaUtil && (d.status === "ausente" || d.status === "falta");
+        }).length;
+
         const completos = record.days.filter(d => d.status === "completo").length;
-        record.status = completos > 0 ? "completo" : "incompleto";
+        const incompletos = record.days.filter(d => d.status === "incompleto").length;
+        const atestados = record.days.filter(d => d.status === "atestado").length;
+
+        // Status final: completo se todos os dias úteis foram cumpridos ou justificados
+        if (completos + atestados >= diasUteis) {
+          record.status = "completo";
+        } else {
+          record.status = "incompleto";
+        }
       });
 
       setMonthRecords(Array.from(employeeMap.values()));
