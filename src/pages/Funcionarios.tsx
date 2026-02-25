@@ -232,7 +232,15 @@ const Funcionarios = () => {
   // Função para buscar funcionários do banco de dados
   const fetchEmployees = async () => {
     try {
-      const { data: profilesData, error } = await supabase
+      // First get admin user IDs to exclude them
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .in("role", ["admin", "gestor", "rh"]);
+      
+      const adminUserIds = (adminRoles || []).map(r => r.user_id);
+
+      let query = supabase
         .from("profiles")
         .select(`
           id,
@@ -248,7 +256,13 @@ const Funcionarios = () => {
           foto_url,
           user_roles!inner(role)
         `)
-        .eq("user_roles.role", "funcionario") as { data: any[] | null; error: any };
+        .eq("user_roles.role", "funcionario");
+      
+      if (adminUserIds.length > 0) {
+        query = query.not("id", "in", `(${adminUserIds.join(",")})`);
+      }
+
+      const { data: profilesData, error } = await query as { data: any[] | null; error: any };
 
       if (error) {
         console.error("Erro ao buscar funcionários:", error);
