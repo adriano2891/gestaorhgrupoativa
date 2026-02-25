@@ -47,6 +47,7 @@ import {
 import { SuperAdminAuthDialog } from "@/components/ponto/SuperAdminAuthDialog";
 import { HistoricoAcoesPonto } from "@/components/ponto/HistoricoAcoesPonto";
 import { AutorizacaoFolgaDialog } from "@/components/ponto/AutorizacaoFolgaDialog";
+import { OcorrenciasPontoCard } from "@/components/ponto/OcorrenciasPontoCard";
 
 interface DayRecord {
   day: number;
@@ -61,6 +62,9 @@ interface DayRecord {
   status: "completo" | "incompleto" | "ausente" | "falta" | "atestado" | "pendente_folga" | "invalidado";
   registro_folga?: boolean;
   status_validacao?: string;
+  tipo_dia?: string;
+  percentual_he?: number;
+  horas_noturnas_fictas?: string;
 }
 
 interface EmployeeMonthRecord {
@@ -269,6 +273,9 @@ const FolhaPonto = () => {
             status: autoStatus,
             registro_folga: reg.registro_folga,
             status_validacao: reg.status_validacao,
+            tipo_dia: reg.tipo_dia,
+            percentual_he: reg.percentual_he,
+            horas_noturnas_fictas: formatInterval(reg.horas_noturnas_fictas),
           };
 
           // Calcular totais
@@ -374,37 +381,41 @@ const FolhaPonto = () => {
       
       // Resumo do funcionário
       doc.setFontSize(9);
-      doc.text(`Total Horas: ${record.total_horas_mes.toFixed(1)}h | Horas Extras: ${record.total_horas_extras.toFixed(1)}h | Faltas: ${record.total_faltas}`, 14, yPos);
+      doc.text(`Total Horas: ${record.total_horas_mes.toFixed(1)}h | Horas Extras: ${record.total_horas_extras.toFixed(1)}h | H. Noturnas: ${record.total_horas_noturnas.toFixed(1)}h | Faltas: ${record.total_faltas}`, 14, yPos);
       yPos += 5;
       
-      // Tabela detalhada
+      // Tabela detalhada - Espelho de Ponto (Portaria 671)
       const tableData = record.days.map(day => [
         day.day.toString().padStart(2, '0'),
+        (day.tipo_dia === 'dsr' ? 'DSR' : day.tipo_dia === 'feriado' ? 'FER' : ''),
         day.entrada || '-',
         day.saida_almoco || '-',
         day.retorno_almoco || '-',
         day.saida || '-',
         day.total_horas || '-',
-        day.horas_extras || '-',
-        day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : day.status === 'atestado' ? 'Atestado' : day.status === 'falta' ? 'Falta' : day.status === 'pendente_folga' ? 'Pendente (Folga)' : day.status === 'invalidado' ? 'Invalidado' : 'Ausente'
+        day.horas_extras ? `${day.horas_extras} (${day.percentual_he || 50}%)` : '-',
+        day.horas_noturnas || '-',
+        day.status === 'completo' ? 'OK' : day.status === 'incompleto' ? 'Inc.' : day.status === 'atestado' ? 'Atest.' : day.status === 'falta' ? 'Falta' : day.status === 'pendente_folga' ? 'Pend.' : day.status === 'invalidado' ? 'Inv.' : 'Aus.'
       ]);
       
       autoTable(doc, {
         startY: yPos,
-        head: [['Dia', 'Entrada', 'Saída Almoço', 'Retorno Almoço', 'Saída', 'Total Horas', 'HE', 'Status']],
+        head: [['Dia', 'Tipo', 'Entrada', 'S.Almoço', 'R.Almoço', 'Saída', 'Total', 'HE (%)', 'H.Not.', 'Status']],
         body: tableData,
         theme: 'grid',
-        styles: { fontSize: 7 },
+        styles: { fontSize: 6 },
         headStyles: { fillColor: [17, 188, 183] },
         columnStyles: {
-          0: { cellWidth: 12 },
-          1: { cellWidth: 20 },
-          2: { cellWidth: 25 },
-          3: { cellWidth: 25 },
-          4: { cellWidth: 20 },
-          5: { cellWidth: 25 },
+          0: { cellWidth: 10 },
+          1: { cellWidth: 12 },
+          2: { cellWidth: 18 },
+          3: { cellWidth: 18 },
+          4: { cellWidth: 18 },
+          5: { cellWidth: 18 },
           6: { cellWidth: 20 },
-          7: { cellWidth: 25 }
+          7: { cellWidth: 25 },
+          8: { cellWidth: 18 },
+          9: { cellWidth: 15 }
         }
       });
     });
@@ -421,24 +432,32 @@ const FolhaPonto = () => {
     monthRecords.forEach(record => {
       const data = record.days.map(day => ({
         'Dia': day.day.toString().padStart(2, '0'),
+        'Tipo Dia': day.tipo_dia === 'dsr' ? 'DSR' : day.tipo_dia === 'feriado' ? 'Feriado' : 'Útil',
         'Entrada': day.entrada || '-',
         'Saída Almoço': day.saida_almoco || '-',
         'Retorno Almoço': day.retorno_almoco || '-',
         'Saída': day.saida || '-',
         'Total Horas': day.total_horas || '-',
         'Horas Extras': day.horas_extras || '-',
+        '% HE': day.percentual_he || '-',
+        'H. Noturnas': day.horas_noturnas || '-',
+        'H. Not. Fictas': day.horas_noturnas_fictas || '-',
         'Status': day.status === 'completo' ? 'Completo' : day.status === 'incompleto' ? 'Incompleto' : day.status === 'atestado' ? 'Atestado' : day.status === 'falta' ? 'Falta' : day.status === 'pendente_folga' ? 'Pendente (Folga)' : day.status === 'invalidado' ? 'Invalidado' : 'Ausente'
       }));
       
       // Adicionar linha de resumo no início
       data.unshift({
         'Dia': 'RESUMO',
+        'Tipo Dia': `Escala: ${record.escala_trabalho || '8h'}`,
         'Entrada': `Total: ${record.total_horas_mes.toFixed(1)}h`,
         'Saída Almoço': `HE: ${record.total_horas_extras.toFixed(1)}h`,
-        'Retorno Almoço': `Faltas: ${record.total_faltas}`,
-        'Saída': `Depto: ${record.departamento || '-'}`,
-        'Total Horas': '',
+        'Retorno Almoço': `H.Not: ${record.total_horas_noturnas.toFixed(1)}h`,
+        'Saída': `Faltas: ${record.total_faltas}`,
+        'Total Horas': `Depto: ${record.departamento || '-'}`,
         'Horas Extras': '',
+        '% HE': '',
+        'H. Noturnas': '',
+        'H. Not. Fictas': '',
         'Status': ''
       });
       
@@ -1060,6 +1079,9 @@ const FolhaPonto = () => {
 
       {/* Histórico de Ações */}
       <HistoricoAcoesPonto selectedMonth={selectedMonth} selectedYear={selectedYear} />
+
+      {/* Ocorrências CLT */}
+      <OcorrenciasPontoCard mes={selectedMonth} ano={selectedYear} />
 
       <SuperAdminAuthDialog
         open={showAuthDialog}
