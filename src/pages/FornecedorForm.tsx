@@ -23,7 +23,7 @@ const fornecedorSchema = z.object({
   email: z.string().email('E-mail inválido'),
   status: z.enum(['ativo', 'inativo']),
   condicoes_pagamento: z.string().optional(),
-  prazo_medio_entrega: z.coerce.number().optional(),
+  prazo_medio_entrega: z.number().optional(),
   observacoes: z.string().optional(),
   // Endereço
   cep: z.string().optional(),
@@ -35,7 +35,7 @@ const fornecedorSchema = z.object({
   estado: z.string().optional(),
 });
 
-type FornecedorFormData = z.infer<typeof fornecedorSchema>;
+type FornecedorFormData = z.input<typeof fornecedorSchema>;
 
 export default function FornecedorForm() {
   const navigate = useNavigate();
@@ -446,11 +446,11 @@ export default function FornecedorForm() {
                 <FormField
                   control={form.control}
                   name="prazo_medio_entrega"
-                  render={({ field }) => (
+                    render={({ field }) => (
                     <FormItem>
                       <FormLabel>Prazo Médio de Entrega (dias)</FormLabel>
                       <FormControl>
-                        <Input {...field} type="number" min={0} />
+                        <Input {...field} type="number" min={0} value={field.value ?? ''} onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

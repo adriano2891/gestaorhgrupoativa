@@ -26,13 +26,13 @@ const formSchema = z.object({
   titulo: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
   descricao: z.string().optional(),
   categoria: z.enum(['admissao', 'desligamento', 'avaliacao_desempenho', 'feedback', 'solicitacao', 'treinamento', 'documentos', 'outro'] as const),
-  is_template: z.boolean().default(false),
+  is_template: z.boolean().optional().default(false),
   template_origem_id: z.string().optional(),
   departamento_destino: z.string().optional(),
-  requer_assinatura: z.boolean().default(false),
+  requer_assinatura: z.boolean().optional().default(false),
 });
 
-type FormData = z.infer<typeof formSchema>;
+type FormData = z.input<typeof formSchema>;
 
 interface CriarFormularioDialogProps {
   open: boolean;
