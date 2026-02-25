@@ -316,9 +316,8 @@ export const useMatriculas = (cursoId?: string) => {
         .select(`
           *,
           curso:cursos(*),
-          profile:profiles!inner(id, nome, email, departamento, cargo, status)
+          profile:profiles(id, nome, email, departamento, cargo, status)
         `)
-        .not("profile.status", "in", '("demitido","pediu_demissao")')
         .order("created_at", { ascending: false });
 
       if (cursoId) {
@@ -327,8 +326,17 @@ export const useMatriculas = (cursoId?: string) => {
 
       const { data, error } = await query;
       if (error) throw error;
-      return data as Matricula[];
+
+      // Filter dismissed employees client-side for reliability
+      const filtered = (data || []).filter((m: any) => {
+        const status = m.profile?.status;
+        return status !== 'demitido' && status !== 'pediu_demissao';
+      });
+
+      return filtered as Matricula[];
     },
+    retry: 2,
+    staleTime: 1000 * 30,
   });
 };
 

@@ -18,29 +18,39 @@ export const useFuncionarios = () => {
   return useQuery({
     queryKey: ["funcionarios"],
     queryFn: async () => {
-      // Get admin user IDs to exclude
-      const { data: adminRoles } = await supabase
+      // Step 1: Get employee user IDs
+      const { data: employeeRoles, error: rolesError } = await supabase
         .from("user_roles")
-        .select("user_id")
-        .in("role", ["admin", "gestor", "rh"]);
-      
-      const adminUserIds = (adminRoles || []).map(r => r.user_id);
+        .select("user_id, role");
 
-      let query = supabase
+      if (rolesError) throw rolesError;
+
+      // Build maps: employees and admins
+      const employeeIds = new Set<string>();
+      const adminIds = new Set<string>();
+      
+      (employeeRoles || []).forEach(r => {
+        if (r.role === 'funcionario') employeeIds.add(r.user_id);
+        if (['admin', 'gestor', 'rh'].includes(r.role as string)) adminIds.add(r.user_id);
+      });
+
+      // Only employees that are NOT also admins
+      const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
+      if (targetIds.length === 0) return [] as Funcionario[];
+
+      // Step 2: Fetch profiles for those IDs
+      const { data, error } = await supabase
         .from("profiles")
-        .select("*, user_roles!inner(role)")
-        .eq("user_roles.role", "funcionario")
+        .select("*")
+        .in("id", targetIds)
         .not("status", "in", '("demitido","pediu_demissao")')
         .order("nome", { ascending: true });
 
-      if (adminUserIds.length > 0) {
-        query = query.not("id", "in", `(${adminUserIds.join(",")})`);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
       return data as Funcionario[];
     },
+    retry: 2,
+    staleTime: 1000 * 30,
   });
 };
 
@@ -48,33 +58,32 @@ export const useFuncionariosPorDepartamento = () => {
   return useQuery({
     queryKey: ["funcionarios-por-departamento"],
     queryFn: async () => {
-      const { data: adminRoles } = await supabase
+      const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
-        .select("user_id")
-        .in("role", ["admin", "gestor", "rh"]);
-      const adminUserIds = (adminRoles || []).map(r => r.user_id);
+        .select("user_id, role");
+      if (rolesError) throw rolesError;
 
-      let query = supabase
+      const employeeIds = new Set<string>();
+      const adminIds = new Set<string>();
+      (roles || []).forEach(r => {
+        if (r.role === 'funcionario') employeeIds.add(r.user_id);
+        if (['admin', 'gestor', 'rh'].includes(r.role as string)) adminIds.add(r.user_id);
+      });
+      const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
+      if (targetIds.length === 0) return [];
+
+      const { data, error } = await supabase
         .from("profiles")
-        .select("departamento, id, user_roles!inner(role)")
-        .eq("user_roles.role", "funcionario")
+        .select("departamento, id")
+        .in("id", targetIds)
         .not("status", "in", '("demitido","pediu_demissao")')
         .order("departamento", { ascending: true });
 
-      if (adminUserIds.length > 0) {
-        query = query.not("id", "in", `(${adminUserIds.join(",")})`);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
 
-      // Agrupar por departamento
-      const grouped = data.reduce((acc: any, curr: any) => {
+      const grouped = (data || []).reduce((acc: Record<string, number>, curr: any) => {
         const dept = curr.departamento || "Sem Departamento";
-        if (!acc[dept]) {
-          acc[dept] = 0;
-        }
-        acc[dept]++;
+        acc[dept] = (acc[dept] || 0) + 1;
         return acc;
       }, {});
 
@@ -83,6 +92,8 @@ export const useFuncionariosPorDepartamento = () => {
         funcionarios: count,
       }));
     },
+    retry: 2,
+    staleTime: 1000 * 30,
   });
 };
 
@@ -90,33 +101,32 @@ export const useFuncionariosPorCargo = () => {
   return useQuery({
     queryKey: ["funcionarios-por-cargo"],
     queryFn: async () => {
-      const { data: adminRoles } = await supabase
+      const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
-        .select("user_id")
-        .in("role", ["admin", "gestor", "rh"]);
-      const adminUserIds = (adminRoles || []).map(r => r.user_id);
+        .select("user_id, role");
+      if (rolesError) throw rolesError;
 
-      let query = supabase
+      const employeeIds = new Set<string>();
+      const adminIds = new Set<string>();
+      (roles || []).forEach(r => {
+        if (r.role === 'funcionario') employeeIds.add(r.user_id);
+        if (['admin', 'gestor', 'rh'].includes(r.role as string)) adminIds.add(r.user_id);
+      });
+      const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
+      if (targetIds.length === 0) return [];
+
+      const { data, error } = await supabase
         .from("profiles")
-        .select("cargo, id, user_roles!inner(role)")
-        .eq("user_roles.role", "funcionario")
+        .select("cargo, id")
+        .in("id", targetIds)
         .not("status", "in", '("demitido","pediu_demissao")')
         .order("cargo", { ascending: true });
 
-      if (adminUserIds.length > 0) {
-        query = query.not("id", "in", `(${adminUserIds.join(",")})`);
-      }
-
-      const { data, error } = await query;
       if (error) throw error;
 
-      // Agrupar por cargo
-      const grouped = data.reduce((acc: any, curr: any) => {
+      const grouped = (data || []).reduce((acc: Record<string, number>, curr: any) => {
         const position = curr.cargo || "Sem Cargo";
-        if (!acc[position]) {
-          acc[position] = 0;
-        }
-        acc[position]++;
+        acc[position] = (acc[position] || 0) + 1;
         return acc;
       }, {});
 
@@ -125,5 +135,7 @@ export const useFuncionariosPorCargo = () => {
         funcionarios: count,
       }));
     },
+    retry: 2,
+    staleTime: 1000 * 30,
   });
 };
