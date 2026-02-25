@@ -96,29 +96,34 @@ Deno.serve(async (req) => {
       }
     };
 
-    // 1) Delete dependent/child records that commonly reference profiles.id
-    // NOTE: This prevents silent failures where the profile delete is blocked by FK constraints.
-    await deleteByUserId('dependentes_funcionario');
-    await deleteByUserId('historico_salarios');
-    await deleteByUserId('certificados');
-    await deleteByUserId('matriculas');
-    await deleteByUserId('feedback_curso');
-    await deleteByUserId('comunicados_lidos');
-    await deleteByUserId('logs_envio_holerites');
-    await deleteByUserId('logs_relatorios', 'usuario_id');
-    await deleteByUserId('historico_ferias');
-    await deleteByUserId('formularios_rh', 'criado_por');
-    await deleteByUserId('formularios_rh', 'aprovado_por');
-    await deleteByUserId('formulario_atribuicoes');
-    await deleteByUserId('documentos', 'criado_por');
-    await deleteByUserId('documentos', 'atualizado_por');
-    await deleteByUserId('documentos_acessos');
-    await deleteByUserId('documentos_comentarios');
-    await deleteByUserId('documentos_favoritos');
-    await deleteByUserId('documentos_permissoes');
-    await deleteByUserId('holerites');
+    // 1) Delete dependent/child records in parallel for speed
+    await Promise.all([
+      deleteByUserId('dependentes_funcionario'),
+      deleteByUserId('historico_salarios'),
+      deleteByUserId('certificados'),
+      deleteByUserId('matriculas'),
+      deleteByUserId('feedback_curso'),
+      deleteByUserId('comunicados_lidos'),
+      deleteByUserId('logs_envio_holerites'),
+      deleteByUserId('logs_relatorios', 'usuario_id'),
+      deleteByUserId('historico_ferias'),
+      deleteByUserId('formulario_atribuicoes'),
+      deleteByUserId('documentos_acessos'),
+      deleteByUserId('documentos_comentarios'),
+      deleteByUserId('documentos_favoritos'),
+      deleteByUserId('documentos_permissoes'),
+      deleteByUserId('holerites'),
+    ]);
 
-    // 2) Remove roles
+    // 2) Delete records that may have FK deps on the above
+    await Promise.all([
+      deleteByUserId('formularios_rh', 'criado_por'),
+      deleteByUserId('formularios_rh', 'aprovado_por'),
+      deleteByUserId('documentos', 'criado_por'),
+      deleteByUserId('documentos', 'atualizado_por'),
+    ]);
+
+    // 3) Remove roles
     await deleteByUserId('user_roles');
 
     // 3) Remove profile
