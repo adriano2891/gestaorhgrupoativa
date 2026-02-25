@@ -96,31 +96,42 @@ Deno.serve(async (req) => {
       }
     };
 
-    // 1) Delete dependent/child records in parallel for speed
+    // 1) Delete leaf records (no FK children) in parallel
     await Promise.all([
       deleteByUserId('dependentes_funcionario'),
       deleteByUserId('historico_salarios'),
       deleteByUserId('certificados'),
-      deleteByUserId('matriculas'),
       deleteByUserId('feedback_curso'),
       deleteByUserId('comunicados_lidos'),
       deleteByUserId('logs_envio_holerites'),
       deleteByUserId('logs_relatorios', 'usuario_id'),
       deleteByUserId('historico_ferias'),
-      deleteByUserId('formulario_atribuicoes'),
       deleteByUserId('documentos_acessos'),
       deleteByUserId('documentos_comentarios'),
       deleteByUserId('documentos_favoritos'),
       deleteByUserId('documentos_permissoes'),
+      deleteByUserId('documentos_versoes', 'criado_por'),
       deleteByUserId('holerites'),
+      deleteByUserId('registros_ponto'),
+      deleteByUserId('notificacoes_lidas'),
+      deleteByUserId('tentativas_avaliacao'),
+      deleteByUserId('logs_acesso_curso'),
+      deleteByUserId('logs_edicao_ponto', 'employee_id'),
+      deleteByUserId('logs_edicao_ponto', 'autorizado_por'),
+      deleteByUserId('mensagens_chamado', 'remetente_id'),
+      deleteByUserId('periodos_aquisitivos'),
+      deleteByUserId('matriculas'),
+      deleteByUserId('formulario_atribuicoes'),
     ]);
 
-    // 2) Delete records that may have FK deps on the above
+    // 2) Delete parent records that had FK children above
     await Promise.all([
+      deleteByUserId('chamados_suporte'),
       deleteByUserId('formularios_rh', 'criado_por'),
       deleteByUserId('formularios_rh', 'aprovado_por'),
       deleteByUserId('documentos', 'criado_por'),
       deleteByUserId('documentos', 'atualizado_por'),
+      deleteByUserId('solicitacoes_ferias'),
     ]);
 
     // 3) Remove roles
