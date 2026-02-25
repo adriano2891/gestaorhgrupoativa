@@ -1044,7 +1044,7 @@ const Relatorios = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary via-primary to-primary-dark">
+    <div className="min-h-screen bg-gradient-to-br from-primary via-primary to-primary-dark dark:from-gray-900 dark:via-gray-800 dark:to-gray-950">
       <div className="container mx-auto px-3 sm:px-4 md:px-6 py-6 sm:py-8 md:py-12">
         <BackButton to="/gestao-rh" variant="light" />
         
@@ -1055,7 +1055,7 @@ const Relatorios = () => {
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-2 sm:mb-3 tracking-tight px-2">
             Relatórios e Análises
           </h1>
-          <p className="text-sm sm:text-base md:text-lg text-primary-foreground/90 max-w-2xl mx-auto px-4">
+          <p className="text-sm sm:text-base md:text-lg text-primary-foreground/90 dark:text-gray-300 max-w-2xl mx-auto px-4">
             Escolha o relatório para análise
           </p>
           <div className="mt-4 sm:mt-6 flex items-center justify-center gap-2">
@@ -1073,7 +1073,7 @@ const Relatorios = () => {
               <Button 
                 variant="secondary"
                 onClick={() => setSelectedReport(null)}
-                className="bg-white/95 hover:bg-white text-primary shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
+                className="bg-white/95 hover:bg-white dark:bg-gray-700 dark:hover:bg-gray-600 dark:text-white text-primary shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 w-full sm:w-auto"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -1100,7 +1100,7 @@ const Relatorios = () => {
               )}
             </div>
 
-            <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8">
+            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8">
               <div className="mb-4 sm:mb-6 md:mb-8">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-2">
                   {reportTypes.find(r => r.id === selectedReport)?.icon && (
