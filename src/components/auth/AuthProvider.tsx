@@ -35,18 +35,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     let isMounted = true;
+    let initialLoadDone = false;
 
-    const loadUserDataSafe = async (userId: string, controlLoading: boolean) => {
+    // Safety timeout - never stay loading more than 6 seconds
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted && !initialLoadDone) {
+        console.warn("Auth: safety timeout reached, releasing loading state");
+        initialLoadDone = true;
+        setLoading(false);
+      }
+    }, 6000);
+
+    const loadUserDataSafe = async (userId: string) => {
       try {
         const { data: profileData, error: profileError } = await (supabase as any)
           .from("profiles")
           .select("*")
           .eq("id", userId)
-          .single();
+          .maybeSingle();
 
         if (!isMounted) return;
         if (profileError) throw profileError;
-        setProfile(profileData as Profile);
+        if (profileData) setProfile(profileData as Profile);
 
         const { data: rolesData, error: rolesError } = await (supabase as any)
           .from("user_roles")
@@ -58,48 +68,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setRoles((rolesData as any[])?.map((r: any) => r.role as UserRole) || []);
       } catch (error) {
         console.error("Erro ao carregar dados do usuário:", error);
-      } finally {
-        if (isMounted && controlLoading) {
-          setLoading(false);
-        }
       }
     };
 
-    // Listener for ONGOING auth changes (does NOT control loading)
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        // Fire and forget - don't control loading
-        loadUserDataSafe(session.user.id, false);
-      } else {
+
+      if (event === 'INITIAL_SESSION') {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          await loadUserDataSafe(session.user.id);
+        }
+        if (isMounted && !initialLoadDone) {
+          initialLoadDone = true;
+          setLoading(false);
+        }
+      } else if (event === 'SIGNED_IN' && session?.user) {
+        setUser(session.user);
+        await loadUserDataSafe(session.user.id);
+        if (isMounted) setLoading(false);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
         setProfile(null);
         setRoles([]);
       }
     });
 
-    // INITIAL load (controls loading)
-    const initializeAuth = async () => {
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!isMounted) return;
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          await loadUserDataSafe(session.user.id, true);
-        }
-      } catch (error) {
-        console.error("Erro na inicialização da autenticação:", error);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    initializeAuth();
-
     return () => {
       isMounted = false;
+      clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
   }, []);
