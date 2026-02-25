@@ -1667,6 +1667,53 @@ export type Database = {
           },
         ]
       }
+      logs_autorizacao_folga: {
+        Row: {
+          autorizado_por: string
+          autorizado_por_nome: string
+          created_at: string
+          data_registro: string
+          decisao: string
+          employee_id: string
+          employee_name: string
+          id: string
+          justificativa: string
+          registro_ponto_id: string
+        }
+        Insert: {
+          autorizado_por: string
+          autorizado_por_nome: string
+          created_at?: string
+          data_registro: string
+          decisao: string
+          employee_id: string
+          employee_name: string
+          id?: string
+          justificativa: string
+          registro_ponto_id: string
+        }
+        Update: {
+          autorizado_por?: string
+          autorizado_por_nome?: string
+          created_at?: string
+          data_registro?: string
+          decisao?: string
+          employee_id?: string
+          employee_name?: string
+          id?: string
+          justificativa?: string
+          registro_ponto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "logs_autorizacao_folga_registro_ponto_id_fkey"
+            columns: ["registro_ponto_id"]
+            isOneToOne: false
+            referencedRelation: "registros_ponto"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       logs_edicao_ponto: {
         Row: {
           autorizado_por: string
@@ -2296,6 +2343,8 @@ export type Database = {
           horas_noturnas: unknown
           id: string
           inicio_he: string | null
+          justificativa_folga: string | null
+          registro_folga: boolean
           retorno_almoco: string | null
           retorno_pausa_1: string | null
           retorno_pausa_2: string | null
@@ -2303,6 +2352,7 @@ export type Database = {
           saida_almoco: string | null
           saida_pausa_1: string | null
           saida_pausa_2: string | null
+          status_validacao: string
           total_horas: unknown
           updated_at: string
           user_id: string
@@ -2317,6 +2367,8 @@ export type Database = {
           horas_noturnas?: unknown
           id?: string
           inicio_he?: string | null
+          justificativa_folga?: string | null
+          registro_folga?: boolean
           retorno_almoco?: string | null
           retorno_pausa_1?: string | null
           retorno_pausa_2?: string | null
@@ -2324,6 +2376,7 @@ export type Database = {
           saida_almoco?: string | null
           saida_pausa_1?: string | null
           saida_pausa_2?: string | null
+          status_validacao?: string
           total_horas?: unknown
           updated_at?: string
           user_id: string
@@ -2338,6 +2391,8 @@ export type Database = {
           horas_noturnas?: unknown
           id?: string
           inicio_he?: string | null
+          justificativa_folga?: string | null
+          registro_folga?: boolean
           retorno_almoco?: string | null
           retorno_pausa_1?: string | null
           retorno_pausa_2?: string | null
@@ -2345,6 +2400,7 @@ export type Database = {
           saida_almoco?: string | null
           saida_pausa_1?: string | null
           saida_pausa_2?: string | null
+          status_validacao?: string
           total_horas?: unknown
           updated_at?: string
           user_id?: string
