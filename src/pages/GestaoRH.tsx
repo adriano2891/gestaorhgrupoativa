@@ -291,12 +291,12 @@ const GestaoRH = () => {
           <div 
             className="rounded-full flex items-center justify-center"
             style={{
-              width: 'clamp(240px, 35vw, 400px)',
-              height: 'clamp(240px, 35vw, 400px)',
-              background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.2) 40%, rgba(62,224,207,0.2) 60%, transparent 75%)',
-              boxShadow: '0 0 100px 50px rgba(255,255,255,0.2), 0 0 60px 20px rgba(62,224,207,0.15), inset 0 0 80px 30px rgba(255,255,255,0.15)',
-              border: '3px solid rgba(255,255,255,0.4)',
-              ...(isAnimating ? {} : { opacity: 0.9 }),
+              width: 'clamp(260px, 38vw, 420px)',
+              height: 'clamp(260px, 38vw, 420px)',
+              background: 'radial-gradient(circle, rgba(200,245,240,0.85) 0%, rgba(150,235,225,0.7) 45%, rgba(62,224,207,0.5) 70%, rgba(62,224,207,0.15) 85%, transparent 100%)',
+              boxShadow: '0 0 40px 15px rgba(62,224,207,0.4), 0 0 80px 30px rgba(62,224,207,0.2), inset 0 0 40px 10px rgba(255,255,255,0.3)',
+              border: '4px solid rgba(62,224,207,0.6)',
+              ...(isAnimating ? {} : { opacity: 0.95 }),
             }}
           >
             <img 
