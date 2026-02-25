@@ -151,7 +151,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
   };
 
   const handleEnviarResposta = async () => {
-    if (!user || !chamadoSelecionado || !resposta.trim()) return;
+    if (!user || !chamadoSelecionado || (!resposta.trim() && !arquivoResposta)) return;
     try {
       await enviarMensagem.mutateAsync({
         chamado_id: chamadoSelecionado.id,
@@ -327,7 +327,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
                   {arquivoResposta && <span className="text-xs text-muted-foreground">{arquivoResposta.name}</span>}
                   <input ref={replyFileRef} type="file" className="hidden" onChange={(e) => handleFileChange(e, true)} />
                 </div>
-                <Button onClick={handleEnviarResposta} disabled={enviarMensagem.isPending || !resposta.trim()}>
+                <Button onClick={handleEnviarResposta} disabled={enviarMensagem.isPending || (!resposta.trim() && !arquivoResposta)}>
                   <Send className="h-4 w-4 mr-1" /> Enviar
                 </Button>
               </div>
