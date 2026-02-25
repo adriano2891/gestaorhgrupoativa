@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.77.0";
 import { z } from "https://esm.sh/zod@3.23.8";
 
 const corsHeaders = {
@@ -16,6 +17,44 @@ serve(async (req) => {
   }
 
   try {
+    // 1. Require authorization header
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Autorização necessária' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 2. Verify user authentication
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser();
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Não autenticado' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 3. Verify user has admin or RH role
+    const { data: roleData } = await supabaseClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .in('role', ['admin', 'rh']);
+
+    if (!roleData || roleData.length === 0) {
+      return new Response(
+        JSON.stringify({ error: 'Acesso negado' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Validate input
     const rawBody = await req.json();
     const parseResult = GenerateFormSchema.safeParse(rawBody);
@@ -29,7 +68,10 @@ serve(async (req) => {
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+      console.error('LOVABLE_API_KEY is not configured');
+      return new Response(JSON.stringify({ error: 'Erro de configuração do servidor' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const systemPrompt = `Você é um especialista em RH que cria formulários profissionais. 
@@ -96,13 +138,18 @@ Responda APENAS com o JSON, sem texto adicional.`;
           status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      throw new Error('Erro ao gerar formulário');
+      return new Response(JSON.stringify({ error: 'Erro ao gerar formulário' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     const data = await response.json();
     const generatedContent = data.choices?.[0]?.message?.content;
     if (!generatedContent) {
-      throw new Error('No content generated');
+      console.error('No content generated from AI');
+      return new Response(JSON.stringify({ error: 'Erro ao gerar formulário' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     let formData;
@@ -111,7 +158,9 @@ Responda APENAS com o JSON, sem texto adicional.`;
       formData = JSON.parse(cleanedContent);
     } catch (parseError) {
       console.error('Failed to parse generated JSON:', parseError);
-      throw new Error('Falha ao processar resposta da IA. Tente novamente.');
+      return new Response(JSON.stringify({ error: 'Falha ao processar resposta da IA. Tente novamente.' }), {
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
     return new Response(JSON.stringify({ form: formData }), {

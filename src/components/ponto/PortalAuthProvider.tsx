@@ -185,11 +185,6 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
         setUser(data.user);
       }
       setLoading(false);
-      localStorage.setItem('portal_session', JSON.stringify({
-        user_id: data.user.id,
-        email: userEmail,
-        timestamp: new Date().toISOString()
-      }));
     }
   };
 

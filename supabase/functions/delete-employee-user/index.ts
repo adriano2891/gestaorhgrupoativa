@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
 
     if (roleErr) {
       console.error(`[delete-employee-user:${requestId}] Role query error: ${roleErr.message}`);
-      return new Response(JSON.stringify({ error: roleErr.message }), {
+      return new Response(JSON.stringify({ error: 'Erro interno ao verificar permissões' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
       });
@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
       const { error } = await supabaseAdmin.from(table).delete().eq(column, user_id);
       if (error) {
         console.error(`[delete-employee-user:${requestId}] Failed deleting from ${table}.${column}: ${error.message}`);
-        throw new Error(`Falha ao remover registros relacionados (${table}): ${error.message}`);
+        throw new Error('Falha ao remover registros relacionados');
       }
     };
 
@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
       const { error } = await supabaseAdmin.from(table).delete().in(column, ids);
       if (error) {
         console.error(`[delete-employee-user:${requestId}] Failed deleting from ${table}.${column} by ids: ${error.message}`);
-        throw new Error(`Falha ao remover registros relacionados (${table}): ${error.message}`);
+        throw new Error('Falha ao remover registros relacionados');
       }
     };
 
@@ -173,15 +173,14 @@ Deno.serve(async (req) => {
     const { error: profileDeleteError } = await supabaseAdmin.from('profiles').delete().eq('id', user_id);
     if (profileDeleteError) {
       console.error(`[delete-employee-user:${requestId}] Failed deleting profile: ${profileDeleteError.message}`);
-      throw new Error(`Falha ao remover o perfil: ${profileDeleteError.message}`);
+      throw new Error('Falha ao remover o perfil');
     }
 
     // Finally delete auth user (prevents login)
     const { error: delAuthErr } = await supabaseAdmin.auth.admin.deleteUser(user_id);
     if (delAuthErr) {
-      // The DB rows are already gone; report but keep success false to prompt operator action.
       console.error(`[delete-employee-user:${requestId}] Failed deleting auth user: ${delAuthErr.message}`);
-      return new Response(JSON.stringify({ error: delAuthErr.message }), {
+      return new Response(JSON.stringify({ error: 'Erro ao remover conta de autenticação' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400,
       });
@@ -194,7 +193,7 @@ Deno.serve(async (req) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Erro desconhecido';
     console.error(`[delete-employee-user] Unhandled error: ${message}`);
-    return new Response(JSON.stringify({ error: message }), {
+    return new Response(JSON.stringify({ error: 'Erro interno ao processar a solicitação' }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     });
