@@ -8,50 +8,111 @@ interface ReportFiltersProps {
   filters: any;
   onFilterChange: (filters: any) => void;
   onGenerate: () => void;
+  funcionarios?: { id: string; nome: string }[];
+  escalas?: string[];
+  turnos?: string[];
 }
 
-export const ReportFilters = ({ reportType, filters, onFilterChange, onGenerate }: ReportFiltersProps) => {
+export const ReportFilters = ({ reportType, filters, onFilterChange, onGenerate, funcionarios, escalas, turnos }: ReportFiltersProps) => {
   const handleChange = (key: string, value: string) => {
     onFilterChange({ ...filters, [key]: value });
   };
 
-  const getFiltersForReport = () => {
-    const commonFilters = (
-      <>
+  const isPontoReport = ["faltas-atrasos", "pontos", "absenteismo"].includes(reportType);
+
+  const commonFilters = (
+    <>
+      <div className="space-y-2">
+        <Label>Período Inicial</Label>
+        <Input
+          type="date"
+          value={filters.dataInicio || ""}
+          onChange={(e) => handleChange("dataInicio", e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Período Final</Label>
+        <Input
+          type="date"
+          value={filters.dataFim || ""}
+          onChange={(e) => handleChange("dataFim", e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label>Departamento</Label>
+        <Select value={filters.departamento} onValueChange={(v) => handleChange("departamento", v)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Todos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos</SelectItem>
+            <SelectItem value="ti">TI</SelectItem>
+            <SelectItem value="rh">RH</SelectItem>
+            <SelectItem value="financeiro">Financeiro</SelectItem>
+            <SelectItem value="comercial">Comercial</SelectItem>
+            <SelectItem value="operacional">Operacional</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </>
+  );
+
+  const pontoFilters = (
+    <>
+      {commonFilters}
+      {funcionarios && funcionarios.length > 0 && (
         <div className="space-y-2">
-          <Label>Período Inicial</Label>
-          <Input
-            type="date"
-            value={filters.dataInicio || ""}
-            onChange={(e) => handleChange("dataInicio", e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Período Final</Label>
-          <Input
-            type="date"
-            value={filters.dataFim || ""}
-            onChange={(e) => handleChange("dataFim", e.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Departamento</Label>
-          <Select value={filters.departamento} onValueChange={(v) => handleChange("departamento", v)}>
+          <Label>Colaborador</Label>
+          <Select value={filters.colaborador} onValueChange={(v) => handleChange("colaborador", v)}>
             <SelectTrigger>
               <SelectValue placeholder="Todos" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos</SelectItem>
-              <SelectItem value="ti">TI</SelectItem>
-              <SelectItem value="rh">RH</SelectItem>
-              <SelectItem value="financeiro">Financeiro</SelectItem>
-              <SelectItem value="comercial">Comercial</SelectItem>
-              <SelectItem value="operacional">Operacional</SelectItem>
+              {funcionarios.map((f) => (
+                <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
-      </>
-    );
+      )}
+      {escalas && escalas.length > 0 && (
+        <div className="space-y-2">
+          <Label>Escala</Label>
+          <Select value={filters.escala} onValueChange={(v) => handleChange("escala", v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Todas" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas</SelectItem>
+              {escalas.map((e) => (
+                <SelectItem key={e} value={e}>{e}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+      {turnos && turnos.length > 0 && (
+        <div className="space-y-2">
+          <Label>Turno</Label>
+          <Select value={filters.turno} onValueChange={(v) => handleChange("turno", v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              {turnos.map((t) => (
+                <SelectItem key={t} value={t}>{t}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+    </>
+  );
+
+  const getFiltersForReport = () => {
+    if (isPontoReport) return pontoFilters;
 
     switch (reportType) {
       case "funcionarios":
@@ -106,26 +167,6 @@ export const ReportFilters = ({ reportType, filters, onFilterChange, onGenerate 
                   <SelectItem value="concluido">Concluído</SelectItem>
                   <SelectItem value="em_andamento">Em Andamento</SelectItem>
                   <SelectItem value="cancelado">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </>
-        );
-
-      case "faltas-atrasos":
-        return (
-          <>
-            {commonFilters}
-            <div className="space-y-2">
-              <Label>Tipo de Ausência</Label>
-              <Select value={filters.tipoAusencia} onValueChange={(v) => handleChange("tipoAusencia", v)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="justificada">Justificada</SelectItem>
-                  <SelectItem value="nao-justificada">Não Justificada</SelectItem>
                 </SelectContent>
               </Select>
             </div>

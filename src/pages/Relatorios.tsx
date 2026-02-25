@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useFuncionariosRealtime, usePontoRealtime, useMetricasRealtime } from "@/hooks/useRealtimeUpdates";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,10 @@ import { useFuncionarios, useFuncionariosPorDepartamento } from "@/hooks/useFunc
 import { useRegistrosPonto, useAbsenteismoPorDepartamento } from "@/hooks/useRegistrosPonto";
 import { useMetricas } from "@/hooks/useMetricas";
 import { useCursos, useMatriculas } from "@/hooks/useCursos";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useToast } from "@/hooks/use-toast";
 
 interface DownloadedReport {
   id: string;
@@ -44,6 +47,7 @@ const Relatorios = () => {
   useFuncionariosRealtime();
   usePontoRealtime();
   useMetricasRealtime();
+  const { toast } = useToast();
   const [selectedReport, setSelectedReport] = useState<string | null>(null);
   const [filters, setFilters] = useState<any>({});
   const [reportData, setReportData] = useState<any>(null);
@@ -57,6 +61,83 @@ const Relatorios = () => {
   const { data: metricas } = useMetricas(1);
   const { data: cursos } = useCursos();
   const { data: todasMatriculas } = useMatriculas();
+
+  // Fetch all profiles with escala/turno for ponto reports
+  const { data: profilesComEscala } = useQuery({
+    queryKey: ["profiles-escala-turno"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, nome, departamento, cargo, escala_trabalho, turno, status")
+        .neq("status", "demitido")
+        .neq("status", "pediu_demissao");
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+
+  // Unique escalas and turnos for filter dropdowns
+  const escalasUnicas = Array.from(new Set((profilesComEscala || []).map(p => p.escala_trabalho).filter(Boolean)));
+  const turnosUnicos = Array.from(new Set((profilesComEscala || []).map(p => p.turno).filter(Boolean)));
+  const funcionariosLista = (profilesComEscala || []).map(p => ({ id: p.id, nome: p.nome }));
+
+  // Helper: get jornada padrão from escala
+  const getJornadaHoras = (escala: string | null) => {
+    if (escala === "12x36") return 12;
+    return 8;
+  };
+
+  // Helper: filter registros by advanced filters
+  const filterRegistros = useCallback((registros: any[], filts: any) => {
+    const profileMap = new Map((profilesComEscala || []).map(p => [p.id, p]));
+    let filtered = registros;
+
+    if (filts.dataInicio) {
+      filtered = filtered.filter(r => r.data >= filts.dataInicio);
+    }
+    if (filts.dataFim) {
+      filtered = filtered.filter(r => r.data <= filts.dataFim);
+    }
+    if (filts.departamento && filts.departamento !== "todos") {
+      filtered = filtered.filter(r => {
+        const prof = profileMap.get(r.user_id);
+        return prof?.departamento?.toLowerCase() === filts.departamento.toLowerCase();
+      });
+    }
+    if (filts.colaborador && filts.colaborador !== "todos") {
+      filtered = filtered.filter(r => r.user_id === filts.colaborador);
+    }
+    if (filts.escala && filts.escala !== "todos") {
+      filtered = filtered.filter(r => {
+        const prof = profileMap.get(r.user_id);
+        return prof?.escala_trabalho === filts.escala;
+      });
+    }
+    if (filts.turno && filts.turno !== "todos") {
+      filtered = filtered.filter(r => {
+        const prof = profileMap.get(r.user_id);
+        return prof?.turno === filts.turno;
+      });
+    }
+    return filtered;
+  }, [profilesComEscala]);
+
+  // Log report generation for audit
+  const logReportGeneration = async (tipo: string, filts: any) => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      await supabase.from("relatorios_gerados").insert({
+        tipo,
+        periodo_inicio: filts.dataInicio || format(new Date(), "yyyy-MM-dd"),
+        periodo_fim: filts.dataFim || format(new Date(), "yyyy-MM-dd"),
+        departamento: filts.departamento !== "todos" ? filts.departamento : null,
+        formato: "tela",
+        gerado_por: user?.id || null,
+      });
+    } catch (e) {
+      // silent - audit log should not break reports
+    }
+  };
 
   const reportTypes = [
     {
@@ -155,9 +236,12 @@ const Relatorios = () => {
     setFilters(newFilters);
   };
 
-  const handleGenerateReport = () => {
+  const handleGenerateReport = async () => {
     const data = generateReportData(selectedReport, filters);
     setReportData(data);
+    if (selectedReport) {
+      await logReportGeneration(selectedReport, filters);
+    }
   };
 
   const generateReportData = (reportType: string | null, filters: any) => {
@@ -235,15 +319,14 @@ const Relatorios = () => {
           ],
         };
 
-      case "pontos":
-        // Gera dados mesmo sem registros de ponto
-        const pontoData = registrosPonto || [];
-        
-        // Agrupa registros por dia da semana
+      case "pontos": {
+        const profileMap = new Map((profilesComEscala || []).map(p => [p.id, p]));
+        const pontoRaw = registrosPonto || [];
+        const pontoData = filterRegistros(pontoRaw, filters);
+
         const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
         const registrosPorDia: Record<string, number> = {};
         diasSemana.forEach(d => registrosPorDia[d] = 0);
-        
         pontoData.forEach(r => {
           const dia = diasSemana[new Date(r.data).getDay()];
           if (r.entrada) registrosPorDia[dia]++;
@@ -251,186 +334,276 @@ const Relatorios = () => {
 
         const totalComEntrada = pontoData.filter(r => r.entrada).length;
         const totalComSaida = pontoData.filter(r => r.saida).length;
-        const taxaCompletude = pontoData.length > 0 ? ((totalComSaida / pontoData.length) * 100).toFixed(1) : "100";
-        
+        const taxaCompletude = pontoData.length > 0 ? ((totalComSaida / pontoData.length) * 100).toFixed(1) : "0";
+
+        // Calc total HE
+        const parseInterval = (v: any): number => {
+          if (!v) return 0;
+          const s = String(v);
+          const m = s.match(/(\d+):(\d+)/);
+          if (m) return parseInt(m[1]) + parseInt(m[2]) / 60;
+          return 0;
+        };
+
+        const totalHE = pontoData.reduce((acc, r) => acc + parseInterval(r.horas_extras), 0);
+        const totalHorasTrab = pontoData.reduce((acc, r) => acc + parseInterval(r.total_horas), 0);
+
         return {
           ...baseData,
           summary: {
-            "Total Registros": pontoData.length || 0,
+            "Total Registros": pontoData.length,
             "Com Entrada": totalComEntrada,
             "Com Saída Completa": totalComSaida,
             "Taxa de Completude": `${taxaCompletude}%`,
+            "Total Horas Trabalhadas": `${totalHorasTrab.toFixed(1)}h`,
+            "Total Horas Extras": `${totalHE.toFixed(1)}h`,
           },
-          details: pontoData.length > 0 ? pontoData.slice(0, 50).map(r => ({
-            nome: r.profiles?.nome || "Não informado",
-            departamento: r.profiles?.departamento || "Não informado",
-            data: format(new Date(r.data), "dd/MM/yyyy"),
-            entrada: r.entrada ? format(new Date(r.entrada), "HH:mm") : "Não registrado",
-            saida: r.saida ? format(new Date(r.saida), "HH:mm") : "Não registrado",
-            totalHoras: r.total_horas || "0h",
-            horasExtras: r.horas_extras || "0h",
-          })) : [{
-            nome: "Nenhum registro encontrado",
-            departamento: "-",
-            data: "-",
-            entrada: "-",
-            saida: "-",
-            totalHoras: "-",
-            horasExtras: "-",
-          }],
+          details: pontoData.length > 0 ? pontoData.slice(0, 100).map(r => {
+            const prof = profileMap.get(r.user_id);
+            const jornadaPrevista = getJornadaHoras(prof?.escala_trabalho);
+            return {
+              nome: r.profiles?.nome || prof?.nome || "N/I",
+              departamento: r.profiles?.departamento || prof?.departamento || "N/I",
+              data: format(new Date(r.data), "dd/MM/yyyy"),
+              entrada: r.entrada ? format(new Date(r.entrada), "HH:mm") : "-",
+              saidaAlmoco: r.saida_almoco ? format(new Date(r.saida_almoco), "HH:mm") : "-",
+              retornoAlmoco: r.retorno_almoco ? format(new Date(r.retorno_almoco), "HH:mm") : "-",
+              saida: r.saida ? format(new Date(r.saida), "HH:mm") : "-",
+              cargaPrevista: `${jornadaPrevista}h`,
+              horasTrabalhadas: r.total_horas ? String(r.total_horas).substring(0, 5) : "0:00",
+              horasExtras: r.horas_extras ? String(r.horas_extras).substring(0, 5) : "0:00",
+            };
+          }) : [{ nome: "Nenhum registro", departamento: "-", data: "-", entrada: "-", saidaAlmoco: "-", retornoAlmoco: "-", saida: "-", cargaPrevista: "-", horasTrabalhadas: "-", horasExtras: "-" }],
           charts: [
             {
               type: "bar",
               title: "Registros de Ponto por Dia da Semana",
               description: "Distribuição dos registros ao longo da semana",
               dataName: "Registros",
-              insight: "Analise os dias com menor frequência de registros para identificar padrões de ausência.",
-              data: diasSemana.map(dia => ({
-                dia,
-                valor: registrosPorDia[dia],
-              })),
+              insight: "Analise os dias com menor frequência para identificar padrões de ausência.",
+              data: diasSemana.map(dia => ({ dia, valor: registrosPorDia[dia] })),
             },
             {
               type: "pie",
               title: "Status dos Registros",
               description: "Proporção entre registros completos e incompletos",
               data: pontoData.length > 0 ? [
-                { status: "Completos", valor: totalComSaida || 1 },
+                { status: "Completos", valor: totalComSaida || 0 },
                 { status: "Apenas Entrada", valor: Math.max(totalComEntrada - totalComSaida, 0) },
                 { status: "Sem Registro", valor: Math.max(pontoData.length - totalComEntrada, 0) },
-              ].filter(d => d.valor > 0) : [
-                { status: "Sem dados", valor: 1 },
-              ],
+              ].filter(d => d.valor > 0) : [{ status: "Sem dados", valor: 1 }],
             },
           ],
         };
+      }
 
-      case "absenteismo":
-        // Gera dados mesmo sem absenteismoDept
-        const absenteismoDeptData = absenteismoDept && absenteismoDept.length > 0 
-          ? absenteismoDept 
-          : (funcionariosPorDept?.map(d => ({
-              departamento: d.departamento,
-              taxa: (Math.random() * 5 + 1).toFixed(1),
-            })) || [
-              { departamento: "Administrativo", taxa: "2.5" },
-              { departamento: "Operacional", taxa: "4.2" },
-              { departamento: "Comercial", taxa: "3.1" },
-              { departamento: "TI", taxa: "1.8" },
-            ]);
-        
-        const taxaMedia = absenteismoDeptData.reduce((acc, d) => acc + parseFloat(d.taxa as string), 0) / absenteismoDeptData.length || 0;
-        const deptMaiorAbsenteismo = absenteismoDeptData.reduce((max, d) => 
-          parseFloat(d.taxa as string) > parseFloat(max.taxa as string) ? d : max
-        , absenteismoDeptData[0]);
-        const deptMenorAbsenteismo = absenteismoDeptData.reduce((min, d) => 
-          parseFloat(d.taxa as string) < parseFloat(min.taxa as string) ? d : min
-        , absenteismoDeptData[0]);
-        
+      case "absenteismo": {
+        const profileMapAbs = new Map((profilesComEscala || []).map(p => [p.id, p]));
+        const absRaw = registrosPonto || [];
+        const absData = filterRegistros(absRaw, filters);
+
+        // Group by employee
+        const porFuncionario: Record<string, { nome: string; dept: string; previstas: number; perdidas: number }> = {};
+        absData.forEach(r => {
+          const prof = profileMapAbs.get(r.user_id);
+          const nome = r.profiles?.nome || prof?.nome || "N/I";
+          const dept = r.profiles?.departamento || prof?.departamento || "N/I";
+          const jornada = getJornadaHoras(prof?.escala_trabalho);
+          
+          if (!porFuncionario[r.user_id]) {
+            porFuncionario[r.user_id] = { nome, dept, previstas: 0, perdidas: 0 };
+          }
+          porFuncionario[r.user_id].previstas += jornada;
+
+          if (!r.entrada) {
+            // Full day absent
+            porFuncionario[r.user_id].perdidas += jornada;
+          } else if (r.total_horas) {
+            const trabalhadas = (() => {
+              const s = String(r.total_horas);
+              const m = s.match(/(\d+):(\d+)/);
+              return m ? parseInt(m[1]) + parseInt(m[2]) / 60 : 0;
+            })();
+            if (trabalhadas < jornada) {
+              porFuncionario[r.user_id].perdidas += (jornada - trabalhadas);
+            }
+          }
+        });
+
+        // Group by dept
+        const porDept: Record<string, { previstas: number; perdidas: number }> = {};
+        Object.values(porFuncionario).forEach(f => {
+          if (!porDept[f.dept]) porDept[f.dept] = { previstas: 0, perdidas: 0 };
+          porDept[f.dept].previstas += f.previstas;
+          porDept[f.dept].perdidas += f.perdidas;
+        });
+
+        const totalPrevistas = Object.values(porFuncionario).reduce((a, f) => a + f.previstas, 0);
+        const totalPerdidas = Object.values(porFuncionario).reduce((a, f) => a + f.perdidas, 0);
+        const taxaGeralAbs = totalPrevistas > 0 ? (totalPerdidas / totalPrevistas) * 100 : 0;
+
+        const deptEntries = Object.entries(porDept).map(([dept, s]) => ({
+          departamento: dept,
+          taxa: s.previstas > 0 ? ((s.perdidas / s.previstas) * 100).toFixed(1) : "0",
+        }));
+
+        const funcEntries = Object.values(porFuncionario).map(f => ({
+          funcionario: f.nome,
+          departamento: f.dept,
+          horasPrevistas: `${f.previstas.toFixed(1)}h`,
+          horasPerdidas: `${f.perdidas.toFixed(1)}h`,
+          taxaAbsenteismo: f.previstas > 0 ? `${((f.perdidas / f.previstas) * 100).toFixed(1)}%` : "0%",
+          status: f.previstas > 0
+            ? ((f.perdidas / f.previstas) * 100) <= 3 ? "Excelente"
+            : ((f.perdidas / f.previstas) * 100) <= 5 ? "Bom"
+            : ((f.perdidas / f.previstas) * 100) <= 8 ? "Atenção" : "Crítico"
+            : "Sem dados",
+        }));
+
         return {
           ...baseData,
           summary: {
-            "Taxa Média Geral": `${taxaMedia.toFixed(1)}%`,
-            "Maior Taxa": `${deptMaiorAbsenteismo?.departamento}: ${deptMaiorAbsenteismo?.taxa}%`,
-            "Menor Taxa": `${deptMenorAbsenteismo?.departamento}: ${deptMenorAbsenteismo?.taxa}%`,
-            "Total Departamentos": absenteismoDeptData.length,
+            "Taxa Média Geral": `${taxaGeralAbs.toFixed(1)}%`,
+            "Horas Previstas": `${totalPrevistas.toFixed(0)}h`,
+            "Horas Perdidas": `${totalPerdidas.toFixed(1)}h`,
+            "Funcionários Analisados": Object.keys(porFuncionario).length,
+            "Departamentos": Object.keys(porDept).length,
           },
-          details: absenteismoDeptData.map(d => ({
-            departamento: d.departamento,
-            taxaAbsenteismo: `${d.taxa}%`,
-            status: parseFloat(d.taxa as string) <= 3 ? "Excelente" : 
-                    parseFloat(d.taxa as string) <= 5 ? "Bom" : 
-                    parseFloat(d.taxa as string) <= 8 ? "Atenção" : "Crítico",
-          })),
+          details: funcEntries.length > 0 ? funcEntries : [{ funcionario: "Sem dados", departamento: "-", horasPrevistas: "-", horasPerdidas: "-", taxaAbsenteismo: "-", status: "-" }],
           charts: [
             {
               type: "bar",
               title: "Taxa de Absenteísmo por Departamento",
-              description: "Comparativo das taxas de ausência entre departamentos",
+              description: "(Horas perdidas ÷ Horas previstas) × 100",
               dataName: "Taxa (%)",
-              insight: `A taxa média de absenteísmo é ${taxaMedia.toFixed(1)}%. Valores acima de 5% indicam necessidade de investigação.`,
-              data: absenteismoDeptData.map(d => ({
-                departamento: d.departamento || "Sem Dept.",
-                valor: parseFloat(d.taxa as string),
-              })),
+              insight: `A taxa média geral é ${taxaGeralAbs.toFixed(1)}%. Valores acima de 5% requerem investigação.`,
+              data: deptEntries.map(d => ({ departamento: d.departamento, valor: parseFloat(d.taxa) })),
             },
             {
               type: "pie",
               title: "Distribuição do Absenteísmo",
-              description: "Proporção do absenteísmo entre departamentos",
-              data: absenteismoDeptData.map(d => ({
-                departamento: d.departamento || "Sem Dept.",
-                valor: parseFloat(d.taxa as string),
-              })),
+              description: "Proporção de horas perdidas entre departamentos",
+              data: Object.entries(porDept).map(([dept, s]) => ({ departamento: dept, valor: parseFloat(s.perdidas.toFixed(1)) })),
             },
           ],
         };
+      }
 
-      case "faltas-atrasos":
-        // Gera dados mesmo sem registros de ponto
-        const registrosFaltas = registrosPonto || [];
-        
-        const semEntrada = registrosFaltas.filter(r => !r.entrada).length;
-        const comAtraso = registrosFaltas.filter(r => {
-          if (!r.entrada) return false;
-          const horaEntrada = new Date(r.entrada).getHours();
-          return horaEntrada >= 9; // Considera atraso após 9h
-        }).length;
-        const totalNormal = Math.max(registrosFaltas.length - semEntrada - comAtraso, 0);
-        
-        // Valores para exibição - usa estimativas quando não há dados
-        const faltasExibir = semEntrada > 0 ? semEntrada : 3;
-        const atrasosExibir = comAtraso > 0 ? comAtraso : 5;
-        const normalExibir = totalNormal > 0 ? totalNormal : 42;
-        const totalRegistrosFaltas = registrosFaltas.length > 0 ? registrosFaltas.length : 50;
-        
+      case "faltas-atrasos": {
+        const profileMapFA = new Map((profilesComEscala || []).map(p => [p.id, p]));
+        const faltasRaw = registrosPonto || [];
+        const faltasData = filterRegistros(faltasRaw, filters);
+
+        // Detect based on turno schedule
+        const ocorrencias: any[] = [];
+        let totalFaltas = 0, totalAtrasos = 0, totalSaidasAntecipadas = 0;
+
+        faltasData.forEach(r => {
+          const prof = profileMapFA.get(r.user_id);
+          const nome = r.profiles?.nome || prof?.nome || "N/I";
+          const dept = r.profiles?.departamento || prof?.departamento || "N/I";
+          const jornada = getJornadaHoras(prof?.escala_trabalho);
+
+          if (!r.entrada) {
+            // Falta
+            totalFaltas++;
+            const justificada = r.registro_folga || r.justificativa_folga;
+            ocorrencias.push({
+              nome,
+              departamento: dept,
+              data: format(new Date(r.data), "dd/MM/yyyy"),
+              tipo: justificada ? "Falta Justificada" : "Falta Injustificada",
+              tempoApurado: `${jornada}h00min`,
+              horaEntrada: "-",
+            });
+          } else {
+            // Check atraso (based on turno name or default 8h)
+            const horaEntrada = new Date(r.entrada).getHours();
+            const minEntrada = new Date(r.entrada).getMinutes();
+            // Generic: consider late if hour >= 9 or turno-based
+            const turnoNome = prof?.turno || "";
+            let horaEsperada = 8;
+            const turnoMatch = turnoNome.match(/(\d+)h/);
+            if (turnoMatch) horaEsperada = parseInt(turnoMatch[1]);
+
+            const atrasoMin = (horaEntrada * 60 + minEntrada) - (horaEsperada * 60);
+            if (atrasoMin > 5) {
+              totalAtrasos++;
+              ocorrencias.push({
+                nome,
+                departamento: dept,
+                data: format(new Date(r.data), "dd/MM/yyyy"),
+                tipo: "Atraso",
+                tempoApurado: `${Math.floor(atrasoMin / 60)}h${(atrasoMin % 60).toString().padStart(2, "0")}min`,
+                horaEntrada: format(new Date(r.entrada), "HH:mm"),
+              });
+            }
+
+            // Check early departure
+            if (r.saida) {
+              const trabalhadas = (() => {
+                const s = String(r.total_horas || "");
+                const m = s.match(/(\d+):(\d+)/);
+                return m ? parseInt(m[1]) + parseInt(m[2]) / 60 : 0;
+              })();
+              if (trabalhadas > 0 && trabalhadas < jornada - 0.25) {
+                const diff = jornada - trabalhadas;
+                totalSaidasAntecipadas++;
+                ocorrencias.push({
+                  nome,
+                  departamento: dept,
+                  data: format(new Date(r.data), "dd/MM/yyyy"),
+                  tipo: "Saída Antecipada",
+                  tempoApurado: `${Math.floor(diff)}h${Math.round((diff % 1) * 60).toString().padStart(2, "0")}min`,
+                  horaEntrada: format(new Date(r.entrada), "HH:mm"),
+                });
+              }
+            }
+          }
+        });
+
+        const totalOcorrencias = totalFaltas + totalAtrasos + totalSaidasAntecipadas;
+        const totalNormal = Math.max(faltasData.length - totalFaltas, 0);
+
+        // Group by dept for chart
+        const ocorrPorDept: Record<string, number> = {};
+        ocorrencias.forEach(o => {
+          ocorrPorDept[o.departamento] = (ocorrPorDept[o.departamento] || 0) + 1;
+        });
+
         return {
           ...baseData,
           summary: {
-            "Total de Faltas": faltasExibir,
-            "Total de Atrasos": atrasosExibir,
-            "Taxa de Faltas": `${((faltasExibir / totalRegistrosFaltas) * 100).toFixed(1)}%`,
-            "Taxa de Atrasos": `${((atrasosExibir / totalRegistrosFaltas) * 100).toFixed(1)}%`,
+            "Total de Faltas": totalFaltas,
+            "Total de Atrasos": totalAtrasos,
+            "Saídas Antecipadas": totalSaidasAntecipadas,
+            "Total Registros Analisados": faltasData.length,
+            "Taxa de Ocorrências": `${faltasData.length > 0 ? ((totalOcorrencias / faltasData.length) * 100).toFixed(1) : 0}%`,
           },
-          details: registrosFaltas.length > 0 
-            ? registrosFaltas.filter(r => !r.entrada || new Date(r.entrada!).getHours() >= 9).slice(0, 30).map(r => ({
-                nome: r.profiles?.nome || "Não informado",
-                departamento: r.profiles?.departamento || "Não informado",
-                data: format(new Date(r.data), "dd/MM/yyyy"),
-                tipo: !r.entrada ? "Falta" : "Atraso",
-                horaEntrada: r.entrada ? format(new Date(r.entrada), "HH:mm") : "-",
-              }))
-            : [
-                { nome: "João Silva", departamento: "Administrativo", data: format(new Date(), "dd/MM/yyyy"), tipo: "Atraso", horaEntrada: "09:15" },
-                { nome: "Maria Santos", departamento: "Operacional", data: format(new Date(), "dd/MM/yyyy"), tipo: "Falta", horaEntrada: "-" },
-                { nome: "Carlos Lima", departamento: "Financeiro", data: format(new Date(), "dd/MM/yyyy"), tipo: "Atraso", horaEntrada: "09:30" },
-              ],
+          details: ocorrencias.length > 0 ? ocorrencias.slice(0, 100) : [{ nome: "Nenhuma ocorrência encontrada", departamento: "-", data: "-", tipo: "-", tempoApurado: "-", horaEntrada: "-" }],
           charts: [
             {
               type: "pie",
-              title: "Proporção Faltas vs Atrasos",
-              description: "Distribuição percentual entre faltas e atrasos registrados",
+              title: "Proporção por Tipo de Ocorrência",
+              description: "Distribuição entre faltas, atrasos e saídas antecipadas",
               data: [
-                { categoria: "Faltas", valor: faltasExibir },
-                { categoria: "Atrasos", valor: atrasosExibir },
-                { categoria: "Normal", valor: normalExibir },
-              ],
+                { categoria: "Faltas", valor: totalFaltas },
+                { categoria: "Atrasos", valor: totalAtrasos },
+                { categoria: "Saída Antecipada", valor: totalSaidasAntecipadas },
+                { categoria: "Normal", valor: totalNormal },
+              ].filter(d => d.valor > 0),
             },
             {
               type: "bar",
-              title: "Faltas e Atrasos por Período",
-              description: "Distribuição de ocorrências ao longo do tempo",
+              title: "Ocorrências por Departamento",
+              description: "Total de faltas, atrasos e saídas antecipadas por setor",
               dataName: "Ocorrências",
-              insight: "Monitore padrões de faltas e atrasos para identificar tendências.",
-              data: [
-                { periodo: "Semana 1", valor: Math.max(Math.floor(faltasExibir * 0.3) + Math.floor(atrasosExibir * 0.25), 2) },
-                { periodo: "Semana 2", valor: Math.max(Math.floor(faltasExibir * 0.25) + Math.floor(atrasosExibir * 0.3), 3) },
-                { periodo: "Semana 3", valor: Math.max(Math.floor(faltasExibir * 0.2) + Math.floor(atrasosExibir * 0.2), 1) },
-                { periodo: "Semana 4", valor: Math.max(Math.floor(faltasExibir * 0.25) + Math.floor(atrasosExibir * 0.25), 2) },
-              ],
+              insight: "Setores com mais ocorrências podem necessitar de acompanhamento específico.",
+              data: Object.entries(ocorrPorDept).map(([dept, val]) => ({ departamento: dept, valor: val })),
             },
           ],
         };
+      }
 
       case "beneficios":
         const beneficiosLista = [
@@ -959,6 +1132,9 @@ const Relatorios = () => {
                   filters={filters}
                   onFilterChange={handleFilterChange}
                   onGenerate={handleGenerateReport}
+                  funcionarios={funcionariosLista}
+                  escalas={escalasUnicas}
+                  turnos={turnosUnicos}
                 />
 
                 {reportData && (
