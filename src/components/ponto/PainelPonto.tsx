@@ -11,7 +11,11 @@ import { CronometroPausa } from "./CronometroPausa";
 import { supabase } from "@/integrations/supabase/client";
 import { PortalBackground } from "./PortalBackground";
 
-export const PainelPonto = () => {
+interface PainelPontoProps {
+  onBack?: () => void;
+}
+
+export const PainelPonto = ({ onBack }: PainelPontoProps) => {
   const { profile } = usePortalAuth();
   const [registroHoje, setRegistroHoje] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -51,7 +55,11 @@ export const PainelPonto = () => {
   }, [profile?.id]);
 
   const handleBack = () => {
-    window.history.back();
+    if (onBack) {
+      onBack();
+    } else {
+      window.history.back();
+    }
   };
 
   return (
