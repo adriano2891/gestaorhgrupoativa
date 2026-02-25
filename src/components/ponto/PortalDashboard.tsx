@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Clock, FileText, Calendar, Bell, User, Gift, GraduationCap, LifeBuoy } from "lucide-react";
+import { LogOut, Clock, FileText, Calendar, Bell, User, Gift, GraduationCap, Headset } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { toast } from "sonner";
 import { BirthdayPopup } from "./BirthdayPopup";
@@ -96,7 +96,7 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
       id: "suporte",
       title: "Suporte/Contato RH",
       description: "Dúvidas e solicitações",
-      icon: LifeBuoy,
+      icon: Headset,
       color: "from-orange-500/10 to-orange-500/5",
       iconColor: "text-orange-600",
     },
