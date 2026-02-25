@@ -25,9 +25,9 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
           style={{ animationDelay: `${idx * 0.1}s` }}
         >
           <div className="mb-3 sm:mb-5 flex items-center gap-2 sm:gap-3">
-            <div className="h-1 w-8 sm:w-12 bg-white/40 rounded-full"></div>
+            <div className="h-1 w-8 sm:w-12 bg-white/40 dark:bg-white/20 rounded-full"></div>
             <h3 className="text-base sm:text-lg md:text-xl font-bold text-white tracking-wide" style={{ fontFamily: 'Arial, sans-serif' }}>{category}</h3>
-            <div className="h-1 flex-1 bg-white/20 rounded-full"></div>
+            <div className="h-1 flex-1 bg-white/20 dark:bg-white/10 rounded-full"></div>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
@@ -39,7 +39,7 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
                   <button
                     key={report.id}
                     onClick={() => onSelectReport(report.id)}
-                    className="relative bg-white rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] sm:hover:scale-[1.03] hover:-translate-y-1 text-left group overflow-hidden"
+                    className="relative bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] sm:hover:scale-[1.03] hover:-translate-y-1 text-left group overflow-hidden"
                     style={{ animationDelay: `${(idx * 0.1) + (reportIdx * 0.05)}s` }}
                   >
                     {/* Gradient overlay on hover */}
@@ -55,10 +55,10 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
                         </div>
                         
                         <div className="flex-1 min-w-0 pt-0.5 sm:pt-1">
-                          <h4 className="font-bold text-foreground mb-1 sm:mb-1.5 group-hover:text-primary transition-colors text-sm sm:text-base leading-tight" style={{ fontFamily: 'Arial, sans-serif' }}>
+                          <h4 className="font-bold text-foreground dark:text-gray-100 mb-1 sm:mb-1.5 group-hover:text-primary transition-colors text-sm sm:text-base leading-tight" style={{ fontFamily: 'Arial, sans-serif' }}>
                             {report.name}
                           </h4>
-                          <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-relaxed" style={{ fontFamily: 'Arial, sans-serif' }}>
+                          <p className="text-xs sm:text-sm text-muted-foreground dark:text-gray-400 line-clamp-2 leading-relaxed" style={{ fontFamily: 'Arial, sans-serif' }}>
                             {report.description}
                           </p>
                         </div>
