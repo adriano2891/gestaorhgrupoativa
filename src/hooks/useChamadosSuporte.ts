@@ -88,23 +88,51 @@ export const useMensagensChamado = (chamadoId: string | null) => {
     queryFn: async () => {
       if (!chamadoId) return [] as MensagemChamado[];
       
-      // Ensure we have an active session for RLS
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        console.warn("useMensagensChamado: Nenhuma sessão ativa");
-        return [] as MensagemChamado[];
+      // Try with profile join first, fallback to without
+      try {
+        const { data, error } = await (supabase as any)
+          .from("mensagens_chamado")
+          .select("*, profiles:remetente_id(nome)")
+          .eq("chamado_id", chamadoId)
+          .order("created_at", { ascending: true });
+        
+        if (!error && data) {
+          return (data || []) as MensagemChamado[];
+        }
+        
+        console.warn("Fallback: loading messages without profile join:", error?.message);
+      } catch (e) {
+        console.warn("Join failed, using fallback:", e);
       }
 
-      const { data, error } = await (supabase as any)
+      // Fallback: fetch without join
+      const { data: rawData, error: rawError } = await (supabase as any)
         .from("mensagens_chamado")
-        .select("*, profiles:remetente_id(nome)")
+        .select("*")
         .eq("chamado_id", chamadoId)
         .order("created_at", { ascending: true });
-      if (error) {
-        console.error("Erro ao carregar mensagens:", error);
-        throw error;
+      
+      if (rawError) {
+        console.error("Erro ao carregar mensagens:", rawError);
+        throw rawError;
       }
-      return (data || []) as MensagemChamado[];
+      
+      // Fetch profile names separately for unique remetente_ids
+      if (rawData && rawData.length > 0) {
+        const uniqueIds = [...new Set(rawData.map((m: any) => m.remetente_id))] as string[];
+        const { data: profiles } = await (supabase as any)
+          .from("profiles")
+          .select("id, nome")
+          .in("id", uniqueIds);
+        
+        const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+        return rawData.map((msg: any) => ({
+          ...msg,
+          profiles: profileMap.get(msg.remetente_id) || null,
+        })) as MensagemChamado[];
+      }
+      
+      return (rawData || []) as MensagemChamado[];
     },
     enabled: !!chamadoId,
     refetchOnWindowFocus: true,
