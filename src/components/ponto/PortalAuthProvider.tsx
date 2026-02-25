@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Profile {
   id: string;
@@ -32,6 +33,8 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const lastLoadedUserId = useRef<string | null>(null);
+  const isSigningOut = useRef(false);
+  const queryClient = useQueryClient();
 
   const loadProfile = useCallback(async (userId: string): Promise<Profile | null> => {
     try {
@@ -90,6 +93,7 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
         }
         if (isMounted) setLoading(false);
       } else if (event === 'SIGNED_IN' && session?.user) {
+        if (isSigningOut.current) return;
         // Only reload if it's a different user or profile hasn't been loaded
         if (lastLoadedUserId.current !== session.user.id || !profile) {
           const loadedProfile = await loadProfile(session.user.id);
@@ -102,14 +106,12 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
             setLoading(false);
           }
         } else {
-          // Same user, just update the User object (token may have refreshed)
           if (isMounted) {
             setUser(session.user);
             setLoading(false);
           }
         }
       } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-        // Update user object with fresh token, keep profile
         if (isMounted) {
           setUser(session.user);
         }
@@ -118,6 +120,7 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
           setUser(null);
           setProfile(null);
           lastLoadedUserId.current = null;
+          setLoading(false);
           localStorage.removeItem('portal_session');
         }
       }
@@ -177,17 +180,28 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
   };
 
   const signOut = async () => {
+    isSigningOut.current = true;
+    
     // Clear state immediately for responsive UI
     setUser(null);
     setProfile(null);
     lastLoadedUserId.current = null;
+    setLoading(false);
     localStorage.removeItem('portal_session');
     
+    // Clear React Query cache
+    queryClient.clear();
+    
     try {
-      await supabase.auth.signOut();
+      await Promise.race([
+        supabase.auth.signOut({ scope: 'local' }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
+      ]);
     } catch (error) {
       console.log("Logout error (ignored):", error);
     }
+    
+    isSigningOut.current = false;
   };
 
   return (
