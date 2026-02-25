@@ -286,25 +286,14 @@ const GestaoRH = () => {
       {/* Container central */}
       <div className="relative w-full flex items-center justify-center px-4 min-h-[400px]" style={{ height: 'calc(100vh - 180px)' }}>
         
-        {/* Logo Central com círculo brilhante */}
+        {/* Logo Central */}
         <div className={`absolute inset-0 flex items-center justify-center pointer-events-none z-0 ${isAnimating ? 'rh-animate-logo' : 'opacity-90'}`}>
-          <div 
-            className="rounded-full flex items-center justify-center"
-            style={{
-              width: 'clamp(260px, 38vw, 420px)',
-              height: 'clamp(260px, 38vw, 420px)',
-              background: 'radial-gradient(circle, rgba(200,245,240,0.85) 0%, rgba(150,235,225,0.7) 45%, rgba(62,224,207,0.5) 70%, rgba(62,224,207,0.15) 85%, transparent 100%)',
-              boxShadow: '0 0 40px 15px rgba(62,224,207,0.4), 0 0 80px 30px rgba(62,224,207,0.2), inset 0 0 40px 10px rgba(255,255,255,0.3)',
-              border: '4px solid rgba(62,224,207,0.6)',
-              ...(isAnimating ? {} : { opacity: 0.95 }),
-            }}
-          >
-            <img 
-              src={logoAtiva} 
-              alt="Logo Grupo Ativa" 
-              className="w-32 md:w-44 lg:w-56 xl:w-64 2xl:w-72 h-auto"
-            />
-          </div>
+          <img 
+            src={logoAtiva} 
+            alt="Logo Grupo Ativa" 
+            className="w-40 md:w-56 lg:w-72 xl:w-80 2xl:w-96 h-auto"
+            style={!isAnimating ? { opacity: 0.9 } : {}}
+          />
         </div>
 
         {/* Layout Circular - XL */}
@@ -325,7 +314,7 @@ const GestaoRH = () => {
               >
                 <div className="relative">
                   {renderBadge(module)}
-                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-28 h-28 ring-[3px] ring-white/50" style={{ boxShadow: '0 0 20px rgba(255,255,255,0.3), 0 8px 25px rgba(0,0,0,0.15)' }}>
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-28 h-28 ring-4 ring-white/30">
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
@@ -355,7 +344,7 @@ const GestaoRH = () => {
               >
                 <div className="relative">
                   {renderBadge(module)}
-                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-24 h-24 ring-[3px] ring-white/50" style={{ boxShadow: '0 0 20px rgba(255,255,255,0.3), 0 8px 25px rgba(0,0,0,0.15)' }}>
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-24 h-24 ring-3 ring-white/30">
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
@@ -385,7 +374,7 @@ const GestaoRH = () => {
               >
                 <div className="relative">
                   {renderBadge(module)}
-                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 ring-[2.5px] ring-white/50" style={{ boxShadow: '0 0 15px rgba(255,255,255,0.3), 0 6px 20px rgba(0,0,0,0.15)' }}>
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
