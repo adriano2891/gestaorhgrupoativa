@@ -68,7 +68,7 @@ const GestaoRH = () => {
 
   const modules: ModuleItem[] = [
     { title: "Funcionários", description: "Cadastro e gestão de colaboradores", iconSrc: iconFuncionarios, path: "/funcionarios" },
-    { title: "Talentos", description: "Recrutamento e seleção", iconSrc: iconTalentos, path: "/banco-talentos", scaleIcon: true },
+    { title: "Banco de Talentos", description: "Recrutamento e seleção", iconSrc: iconTalentos, path: "/banco-talentos", scaleIcon: true },
     { title: "Relatórios", description: "Análises e indicadores", iconSrc: iconRelatorios, path: "/relatorios" },
     { title: "Ponto", description: "Registro de jornada", iconSrc: iconPonto, path: "/folha-ponto", iconScale: "scale-150" },
     { title: "Holerites", description: "Contracheques e pagamentos", iconSrc: iconHolerites, path: "/holerites", scaleIcon: true },
