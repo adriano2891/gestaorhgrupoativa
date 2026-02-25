@@ -412,6 +412,9 @@ const GestaoRH = () => {
         </div>
 
       </div>
+      <div className="text-center pb-3 sm:pb-4 text-white/70 text-[10px] sm:text-xs md:text-sm">
+        © 2025 Grupo Ativa • Todos os direitos reservados
+      </div>
     </div>
   );
 };
