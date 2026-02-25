@@ -121,6 +121,31 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 
+  /* Force dark mode text to white, overriding inline styles */
+  .dark h1,
+  .dark h2,
+  .dark h3,
+  .dark h4,
+  .dark h5,
+  .dark h6,
+  .dark p,
+  .dark span,
+  .dark label,
+  .dark td,
+  .dark th,
+  .dark li,
+  .dark div {
+    color: inherit;
+  }
+
+  .dark [style*="color: #000000"],
+  .dark [style*="color: #000"],
+  .dark [style*="color: black"],
+  .dark [style*="color:#000000"],
+  .dark [style*="color:#000"] {
+    color: hsl(210 40% 98%) !important;
+  }
+
   /* Responsive font scaling */
   html {
     font-size: 16px;
