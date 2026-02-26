@@ -120,10 +120,11 @@ export default function OrcamentosClienteForm() {
 
     setIsSubmitting(true);
     try {
-      await addCliente.mutateAsync(formData);
-      navigate('/orcamentos/novo', { state: { newClientCreated: true } });
-    } catch (error) {
+      const savedClient = await addCliente.mutateAsync(formData);
+      navigate('/orcamentos/novo', { state: { selectedClientId: savedClient.id } });
+    } catch (error: any) {
       console.error('Erro ao salvar cliente:', error);
+      toast.error('Erro ao salvar cliente: ' + (error?.message || 'Tente novamente'));
     } finally {
       setIsSubmitting(false);
     }
