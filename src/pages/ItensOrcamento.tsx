@@ -423,11 +423,17 @@ export default function ItensOrcamento() {
                   <Label htmlFor="preco_base">Preço Base (R$) *</Label>
                   <Input
                     id="preco_base"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={formData.preco_base}
-                    onChange={(e) => setFormData({ ...formData, preco_base: parseFloat(e.target.value) || 0 })}
+                    type="text"
+                    inputMode="decimal"
+                    placeholder="0,00"
+                    value={formData.preco_base ? formData.preco_base.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                    onChange={(e) => {
+                      // Allow only digits and comma
+                      const raw = e.target.value.replace(/[^\d,]/g, '');
+                      // Convert Brazilian format to number
+                      const numeric = parseFloat(raw.replace(',', '.')) || 0;
+                      setFormData({ ...formData, preco_base: numeric });
+                    }}
                     required
                   />
                 </div>
