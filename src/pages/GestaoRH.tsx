@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -97,6 +97,25 @@ const GestaoRH = () => {
   const handleLogout = async () => {
     await signOut();
   };
+
+  // Prefetch module chunks on hover for instant navigation
+  const prefetchMap: Record<string, () => void> = useMemo(() => ({
+    '/funcionarios': () => import("./Funcionarios"),
+    '/banco-talentos': () => import("./BancoTalentos"),
+    '/relatorios': () => import("./Relatorios"),
+    '/folha-ponto': () => import("./FolhaPonto"),
+    '/holerites': () => import("./Holerites"),
+    '/comunicados': () => import("./Comunicados"),
+    '/hrflow-pro': () => import("./HRFlowPro"),
+    '/cursos': () => import("./CursosAdmin"),
+    '/controle-ferias': () => import("./ControleFerias"),
+    '/suporte-funcionarios': () => import("./SuporteFuncionarios"),
+    '/admins': () => import("./GerenciarAdmins"),
+  }), []);
+
+  const handlePrefetch = useCallback((path: string) => {
+    prefetchMap[path]?.();
+  }, [prefetchMap]);
 
   // Calculate circular position
   const getModulePosition = (index: number, total: number, radius: number) => {
@@ -231,6 +250,7 @@ const GestaoRH = () => {
                 className={`rh-module-icon cursor-pointer flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
                 style={isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {}}
                 onClick={() => navigate(module.path)}
+                onMouseEnter={() => handlePrefetch(module.path)}
               >
                 <div className="relative">
                   {renderBadge(module)}
@@ -312,6 +332,7 @@ const GestaoRH = () => {
                   ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
                 }}
                 onClick={() => navigate(module.path)}
+                onMouseEnter={() => handlePrefetch(module.path)}
               >
                 <div className="relative">
                   {renderBadge(module)}
@@ -342,6 +363,7 @@ const GestaoRH = () => {
                   ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
                 }}
                 onClick={() => navigate(module.path)}
+                onMouseEnter={() => handlePrefetch(module.path)}
               >
                 <div className="relative">
                   {renderBadge(module)}
@@ -372,6 +394,7 @@ const GestaoRH = () => {
                   ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
                 }}
                 onClick={() => navigate(module.path)}
+                onMouseEnter={() => handlePrefetch(module.path)}
               >
                 <div className="relative">
                   {renderBadge(module)}
@@ -396,6 +419,7 @@ const GestaoRH = () => {
                 className={`rh-module-icon cursor-pointer flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
                 style={isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {}}
                 onClick={() => navigate(module.path)}
+                onMouseEnter={() => handlePrefetch(module.path)}
               >
                 <div className="relative">
                   {renderBadge(module)}

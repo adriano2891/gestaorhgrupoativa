@@ -48,9 +48,9 @@ const CursosAdmin = lazy(() => import("./pages/CursosAdmin"));
 const SuporteFuncionarios = lazy(() => import("./pages/SuporteFuncionarios"));
 const PortalCursoPlayerLazy = lazy(() => import("./components/ponto/PortalCursoPlayer").then(m => ({ default: m.PortalCursoPlayer })));
 
-// Lazy loaded layout
-const Layout = lazy(() => import("./components/Layout").then(m => ({ default: m.Layout })));
-const GlobalFooter = lazy(() => import("./components/GlobalFooter").then(m => ({ default: m.GlobalFooter })));
+// Eagerly loaded layout (used on most routes, no reason to lazy-load)
+import { Layout } from "./components/Layout";
+import { GlobalFooter } from "./components/GlobalFooter";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -71,9 +71,7 @@ const PageLoader = () => (
 );
 
 const LazyLayout = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={<PageLoader />}>
-    <Layout>{children}</Layout>
-  </Suspense>
+  <Layout>{children}</Layout>
 );
 
 const App = () => {
@@ -381,9 +379,7 @@ const App = () => {
                   </Routes>
                 </Suspense>
               </div>
-              <Suspense fallback={null}>
-                <GlobalFooter />
-              </Suspense>
+              <GlobalFooter />
             </div>
           </QuotesProvider>
         </AuthProvider>
