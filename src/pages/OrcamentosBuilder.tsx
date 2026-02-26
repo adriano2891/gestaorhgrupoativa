@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { 
   Search, 
   Plus, 
@@ -45,6 +45,7 @@ import { useClientesOrcamentos } from '@/hooks/useClientesOrcamentos';
 export default function OrcamentosBuilder() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const location = useLocation();
   const { products, addQuote, getQuote, updateQuote } = useQuotes();
   const { itens: dbItens, isLoading: isLoadingItens } = useItensOrcamento();
   const { clientes, isLoading: isLoadingClientes } = useClientesOrcamentos();
@@ -52,8 +53,11 @@ export default function OrcamentosBuilder() {
   const isEditing = Boolean(id);
   const existingQuote = id ? getQuote(id) : undefined;
 
+  // Check if a client was just created and passed via navigation state
+  const selectedClientFromNav = (location.state as any)?.selectedClientId || '';
+
   // Form state
-  const [clientId, setClientId] = useState(existingQuote?.clientId || '');
+  const [clientId, setClientId] = useState(existingQuote?.clientId || selectedClientFromNav);
   const [validityDays, setValidityDays] = useState(30);
   const [status, setStatus] = useState<QuoteStatus>(existingQuote?.status || 'rascunho');
   const [observations, setObservations] = useState(existingQuote?.observations || '');
