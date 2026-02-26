@@ -66,26 +66,13 @@ const Dashboard = () => {
     }
   }, [user, roles.length]);
 
-  // Show loading while roles are being fetched, but not forever
-  const isWaitingForRoles = user && roles.length === 0 && !rolesTimeout;
-  if (loading || isWaitingForRoles) {
-    return (
-      <div 
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: '#40E0D0' }}
-      >
-        <div className="flex flex-col items-center gap-4">
-          <img src={logoAtiva} alt="Logo Grupo Ativa" className="w-32 h-auto opacity-80 animate-pulse" />
-          <p className="text-white/80 text-sm">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
+  // While roles are loading, show all modules (will filter once loaded)
+  const rolesReady = roles.length > 0 || rolesTimeout;
 
-  // Filter modules based on user roles (if roles loaded); show all if timeout
   const modules = allModules.filter((m) => {
     if (!m.allowedRoles) return true;
-    if (rolesTimeout && roles.length === 0) return true; // show all if roles failed to load
+    if (!rolesReady) return true; // show all modules while roles load
+    if (rolesTimeout && roles.length === 0) return true;
     return m.allowedRoles.some((r) => roles.includes(r as any));
   });
 
