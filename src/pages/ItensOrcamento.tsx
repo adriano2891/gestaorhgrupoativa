@@ -114,29 +114,50 @@ export default function ItensOrcamento() {
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `items/${fileName}`;
 
-      const uploadResult = await Promise.race([
-        supabase.storage.from('produtos').upload(filePath, file),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('TIMEOUT')), 15000)
-        ),
-      ]);
+      // Upload directly via fetch to bypass LockManager issues with supabase client
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      // Try to get access token from localStorage to avoid LockManager hang
+      let accessToken = supabaseKey;
+      try {
+        const storageKey = `sb-${import.meta.env.VITE_SUPABASE_PROJECT_ID || supabaseUrl?.split('//')[1]?.split('.')[0]}-auth-token`;
+        const stored = localStorage.getItem(storageKey);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.access_token) {
+            accessToken = parsed.access_token;
+          }
+        }
+      } catch {
+        // fallback to anon key
+      }
 
-      if (uploadResult.error) throw uploadResult.error;
+      const uploadResponse = await fetch(
+        `${supabaseUrl}/storage/v1/object/produtos/${filePath}`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'apikey': supabaseKey,
+          },
+          body: file,
+        }
+      );
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('produtos')
-        .getPublicUrl(filePath);
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json().catch(() => ({}));
+        throw new Error(errorData?.message || `Upload falhou (${uploadResponse.status})`);
+      }
+
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/produtos/${filePath}`;
 
       setFormData(prev => ({ ...prev, imagem_url: publicUrl }));
       setImagePreview(publicUrl);
       toast.success('Imagem enviada com sucesso!');
     } catch (error: any) {
-      const msg = error?.message || '';
-      if (msg === 'TIMEOUT' || msg.includes('LockManager') || msg.includes('auth-token')) {
-        toast.error('Falha na autenticação. Faça logout e login novamente.');
-      } else {
-        toast.error('Erro ao enviar imagem: ' + msg);
-      }
+      console.error('Erro no upload:', error);
+      toast.error('Erro ao enviar imagem: ' + (error?.message || 'Tente novamente'));
     } finally {
       setUploading(false);
     }
