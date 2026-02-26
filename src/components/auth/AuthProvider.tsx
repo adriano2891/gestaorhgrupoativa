@@ -149,8 +149,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (data.user) {
         setUser(data.user);
         
-        // Load profile/roles BEFORE navigating to prevent "Acesso Negado"
-        await loadUserData(data.user.id);
+        // Load profile/roles with timeout to prevent hanging
+        try {
+          await Promise.race([
+            loadUserData(data.user.id),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('loadUserData timeout')), 5000))
+          ]);
+        } catch (e) {
+          console.warn("loadUserData during signIn failed/timed out:", e);
+        }
         
         setLoading(false);
         navigate("/dashboard");
