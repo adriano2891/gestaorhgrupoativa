@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock } from "lucide-react";
 
@@ -8,6 +8,12 @@ interface RelogioTurnoProps {
 
 export const RelogioTurno = ({ registroHoje }: RelogioTurnoProps) => {
   const [tempoTotal, setTempoTotal] = useState<string>("00:00:00");
+  const registroRef = useRef<any>(null);
+
+  // Keep ref in sync without restarting the interval
+  useEffect(() => {
+    registroRef.current = registroHoje;
+  }, [registroHoje]);
 
   useEffect(() => {
     if (!registroHoje?.entrada) {
@@ -16,47 +22,34 @@ export const RelogioTurno = ({ registroHoje }: RelogioTurnoProps) => {
     }
 
     const calcularTempo = () => {
-      const entrada = new Date(registroHoje.entrada);
-      const agora = registroHoje.saida ? new Date(registroHoje.saida) : new Date();
-      
+      const reg = registroRef.current;
+      if (!reg?.entrada) return;
+
+      const entrada = new Date(reg.entrada);
+      const agora = reg.saida ? new Date(reg.saida) : new Date();
+
       let totalSegundos = Math.floor((agora.getTime() - entrada.getTime()) / 1000);
 
-      // Descontar pausas
-      if (registroHoje.saida_pausa_1 && registroHoje.retorno_pausa_1) {
-        const pausa1 = Math.floor(
-          (new Date(registroHoje.retorno_pausa_1).getTime() - 
-           new Date(registroHoje.saida_pausa_1).getTime()) / 1000
+      // Only subtract COMPLETED pauses — never subtract active ones
+      if (reg.saida_pausa_1 && reg.retorno_pausa_1) {
+        totalSegundos -= Math.floor(
+          (new Date(reg.retorno_pausa_1).getTime() - new Date(reg.saida_pausa_1).getTime()) / 1000
         );
-        totalSegundos -= pausa1;
-      } else if (registroHoje.saida_pausa_1) {
-        // Pausa em andamento
-        const pausaAtual = Math.floor((agora.getTime() - new Date(registroHoje.saida_pausa_1).getTime()) / 1000);
-        totalSegundos -= pausaAtual;
       }
 
-      if (registroHoje.saida_almoco && registroHoje.retorno_almoco) {
-        const almoco = Math.floor(
-          (new Date(registroHoje.retorno_almoco).getTime() - 
-           new Date(registroHoje.saida_almoco).getTime()) / 1000
+      if (reg.saida_almoco && reg.retorno_almoco) {
+        totalSegundos -= Math.floor(
+          (new Date(reg.retorno_almoco).getTime() - new Date(reg.saida_almoco).getTime()) / 1000
         );
-        totalSegundos -= almoco;
-      } else if (registroHoje.saida_almoco) {
-        // Almoço em andamento
-        const almocoAtual = Math.floor((agora.getTime() - new Date(registroHoje.saida_almoco).getTime()) / 1000);
-        totalSegundos -= almocoAtual;
       }
 
-      if (registroHoje.saida_pausa_2 && registroHoje.retorno_pausa_2) {
-        const pausa2 = Math.floor(
-          (new Date(registroHoje.retorno_pausa_2).getTime() - 
-           new Date(registroHoje.saida_pausa_2).getTime()) / 1000
+      if (reg.saida_pausa_2 && reg.retorno_pausa_2) {
+        totalSegundos -= Math.floor(
+          (new Date(reg.retorno_pausa_2).getTime() - new Date(reg.saida_pausa_2).getTime()) / 1000
         );
-        totalSegundos -= pausa2;
-      } else if (registroHoje.saida_pausa_2) {
-        // Pausa em andamento
-        const pausaAtual = Math.floor((agora.getTime() - new Date(registroHoje.saida_pausa_2).getTime()) / 1000);
-        totalSegundos -= pausaAtual;
       }
+
+      if (totalSegundos < 0) totalSegundos = 0;
 
       const horas = Math.floor(totalSegundos / 3600);
       const minutos = Math.floor((totalSegundos % 3600) / 60);
@@ -71,7 +64,9 @@ export const RelogioTurno = ({ registroHoje }: RelogioTurnoProps) => {
     const intervalo = setInterval(calcularTempo, 1000);
 
     return () => clearInterval(intervalo);
-  }, [registroHoje]);
+    // Only restart interval when entrada changes, not on every registroHoje update
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [registroHoje?.entrada]);
 
   if (!registroHoje?.entrada) {
     return null;
