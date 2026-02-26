@@ -3,6 +3,7 @@ import { PortalAuthProvider, usePortalAuth } from "@/components/ponto/PortalAuth
 import { LoginFuncionario } from "@/components/ponto/LoginFuncionario";
 import { TrocarSenhaObrigatoria } from "@/components/ponto/TrocarSenhaObrigatoria";
 import { PortalDashboard } from "@/components/ponto/PortalDashboard";
+import { PortalBeneficios } from "@/components/ponto/PortalBeneficios";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHoleritesRealtime, useComunicadosRealtime, useFeriasRealtime } from "@/hooks/useRealtimeUpdates";
 
@@ -12,7 +13,6 @@ const PortalHolerite = lazy(() => import("@/components/ponto/PortalHolerite").th
 const PortalFerias = lazy(() => import("@/components/ponto/PortalFerias").then(m => ({ default: m.PortalFerias })));
 const PortalComunicados = lazy(() => import("@/components/ponto/PortalComunicados").then(m => ({ default: m.PortalComunicados })));
 const PortalPerfil = lazy(() => import("@/components/ponto/PortalPerfil").then(m => ({ default: m.PortalPerfil })));
-const PortalBeneficios = lazy(() => import("@/components/ponto/PortalBeneficios").then(m => ({ default: m.PortalBeneficios })));
 const PortalCursos = lazy(() => import("@/components/ponto/PortalCursos").then(m => ({ default: m.PortalCursos })));
 const PortalSuporte = lazy(() => import("@/components/ponto/PortalSuporte").then(m => ({ default: m.PortalSuporte })));
 
@@ -82,13 +82,22 @@ const PortalContent = () => {
     );
   }
 
+  // Benefícios is a static component, render eagerly
+  if (currentSection === "beneficios") {
+    return (
+      <>
+        <RealtimeSubscriptions />
+        <PortalBeneficios onBack={handleBack} />
+      </>
+    );
+  }
+
   const sectionMap: Record<string, JSX.Element> = {
     ponto: <PainelPonto onBack={handleBack} />,
     holerite: <PortalHolerite onBack={handleBack} />,
     ferias: <PortalFerias onBack={handleBack} />,
     comunicados: <PortalComunicados onBack={handleBack} />,
     perfil: <PortalPerfil onBack={handleBack} />,
-    beneficios: <PortalBeneficios onBack={handleBack} />,
     cursos: <PortalCursos onBack={handleBack} />,
     suporte: <PortalSuporte onBack={handleBack} />,
   };
