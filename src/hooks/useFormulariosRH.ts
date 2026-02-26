@@ -14,8 +14,10 @@ export const useFormulariosRH = () => {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as FormularioRH[];
+      return (data ?? []) as FormularioRH[];
     },
+    staleTime: 1000 * 60 * 2,
+    retry: 2,
   });
 };
 

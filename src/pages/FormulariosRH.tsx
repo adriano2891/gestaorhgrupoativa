@@ -16,7 +16,7 @@ import { Layout } from "@/components/Layout";
 
 const FormulariosRH = () => {
   const navigate = useNavigate();
-  const { data: formularios, isLoading } = useFormulariosRH();
+  const { data: formularios, isLoading, error, refetch } = useFormulariosRH();
   
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<FormCategory | "todos">("todos");
@@ -114,6 +114,12 @@ const FormulariosRH = () => {
                 {[...Array(6)].map((_, i) => (
                   <Skeleton key={i} className="h-48 rounded-xl" />
                 ))}
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <FileText className="h-16 w-16 mx-auto text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-medium text-destructive">Erro ao carregar formulários</h3>
+                <Button variant="outline" size="sm" className="mt-4" onClick={() => refetch()}>Tentar novamente</Button>
               </div>
             ) : formulariosList?.length === 0 ? (
               <div className="text-center py-12">
