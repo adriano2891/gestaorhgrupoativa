@@ -57,7 +57,9 @@ const adminSchema = z.object({
     .or(z.literal("")),
   departamento: z.string().optional(),
   cargo: z.string().optional(),
-  role: z.literal("admin").or(z.literal("gestor")).or(z.literal("rh")),
+  role: z.enum(["admin", "gestor", "rh"], {
+    required_error: "Selecione uma função",
+  }),
 });
 
 type AdminFormData = z.infer<typeof adminSchema>;
