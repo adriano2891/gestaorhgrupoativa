@@ -39,22 +39,31 @@ export default function Fornecedores() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#3EE0CF] rounded-xl p-4 shadow-md">
-          <div className="flex items-center gap-3">
-            <BackButton to="/dashboard" variant="light" className="text-black hover:bg-black/10" />
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-black">Fornecedores</h1>
-              <p className="text-black/70 text-sm">Gerencie seus fornecedores e produtos</p>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-[#3EE0CF] shadow-md">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-0 sm:h-16 gap-2 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <BackButton to="/dashboard" variant="light" className="text-black hover:bg-black/10" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-sm sm:text-lg font-bold text-black truncate">Fornecedores</h1>
+                <p className="text-[10px] sm:text-xs text-black/70 truncate">Gerencie seus fornecedores e produtos</p>
+              </div>
             </div>
+            <Button onClick={() => navigate('/fornecedores/novo')} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-black hover:bg-black/90 text-white">
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Adicionar Fornecedor</span>
+              <span className="sm:hidden">Novo</span>
+            </Button>
           </div>
-          <Button onClick={() => navigate('/fornecedores/novo')} className="gap-2 bg-black hover:bg-black/90 text-white">
-            <Plus className="h-4 w-4" />
-            Adicionar Fornecedor
-          </Button>
         </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
