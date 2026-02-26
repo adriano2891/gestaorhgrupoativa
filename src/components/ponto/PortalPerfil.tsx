@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, User, Loader2, Camera, Upload } from "lucide-react";
+import { ArrowLeft, User, Loader2, Camera } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { PortalBackground } from "./PortalBackground";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +22,7 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
   const [endereco, setEndereco] = useState("");
   const [fotoUrl, setFotoUrl] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -30,13 +31,23 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
       setEmail(profile.email || "");
       setTelefone(profile.telefone || "");
       setEndereco((profile as any).endereco || "");
-      // Fetch foto_url
+      // Fetch foto via signed URL
       const fetchFoto = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id || user?.id;
-        if (userId) {
+        const userId = user?.id || profile?.id;
+        if (!userId) return;
+        try {
           const { data } = await supabase.from("profiles").select("foto_url").eq("id", userId).maybeSingle() as { data: any };
-          if (data?.foto_url) setFotoUrl(data.foto_url);
+          if (data?.foto_url) {
+            // Extract path from stored URL or use as path directly
+            const pathMatch = data.foto_url.match(/fotos-funcionarios\/(.+?)(\?|$)/);
+            const storagePath = pathMatch ? pathMatch[1] : `${userId}/foto.jpg`;
+            const { data: signedData } = await supabase.storage.from('fotos-funcionarios').createSignedUrl(storagePath, 3600);
+            if (signedData?.signedUrl) {
+              setFotoUrl(signedData.signedUrl);
+            }
+          }
+        } catch (e) {
+          console.error("Erro ao buscar foto:", e);
         }
       };
       fetchFoto();
@@ -54,27 +65,44 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
       toast.error("A foto deve ter no máximo 2MB.");
       return;
     }
-    
-    const ext = file.name.split('.').pop();
-    const filePath = `${user.id}/foto.${ext}`;
-    
-    const { error: uploadError } = await supabase.storage
-      .from('fotos-funcionarios')
-      .upload(filePath, file, { upsert: true });
-    
-    if (uploadError) {
-      toast.error("Erro ao fazer upload da foto.");
-      return;
+
+    setUploadingPhoto(true);
+
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const filePath = `${user.id}/foto.${ext}`;
+
+      // Show instant preview via local URL
+      const localPreview = URL.createObjectURL(file);
+      setFotoUrl(localPreview);
+
+      const { error: uploadError } = await supabase.storage
+        .from('fotos-funcionarios')
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) {
+        toast.error("Erro ao fazer upload da foto.");
+        setFotoUrl(null);
+        return;
+      }
+
+      // Store the path reference in profile
+      const storedUrl = `fotos-funcionarios/${filePath}`;
+      await supabase.from("profiles").update({ foto_url: storedUrl } as any).eq("id", user.id);
+
+      // Get signed URL for display
+      const { data: signedData } = await supabase.storage.from('fotos-funcionarios').createSignedUrl(filePath, 3600);
+      if (signedData?.signedUrl) {
+        setFotoUrl(signedData.signedUrl);
+      }
+
+      toast.success("Foto atualizada com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar foto:", error);
+      toast.error("Erro ao atualizar foto.");
+    } finally {
+      setUploadingPhoto(false);
     }
-    
-    const { data: urlData } = supabase.storage
-      .from('fotos-funcionarios')
-      .getPublicUrl(filePath);
-    
-    const newUrl = urlData.publicUrl + '?t=' + Date.now();
-    await supabase.from("profiles").update({ foto_url: newUrl } as any).eq("id", user.id);
-    setFotoUrl(newUrl);
-    toast.success("Foto atualizada!");
   };
 
   const handleSave = async () => {
@@ -120,24 +148,30 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
           <Card>
             <CardHeader>
               <div className="flex items-center gap-4">
-                <div className="relative group cursor-pointer" onClick={() => photoRef.current?.click()}>
-                  <Avatar className="h-16 w-16 border-2 border-primary/20">
-                    {fotoUrl ? <AvatarImage src={fotoUrl} alt={nome} /> : null}
+                <div className="relative group cursor-pointer" onClick={() => !uploadingPhoto && photoRef.current?.click()}>
+                  <Avatar className="h-20 w-20 border-3 border-primary/30 shadow-lg">
+                    {fotoUrl ? <AvatarImage src={fotoUrl} alt={nome} className="object-cover" /> : null}
                     <AvatarFallback className="bg-primary/10">
-                      <User className="h-8 w-8 text-primary" />
+                      <User className="h-10 w-10 text-primary" />
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Camera className="h-5 w-5 text-white" />
+                  <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    {uploadingPhoto ? (
+                      <Loader2 className="h-6 w-6 text-white animate-spin" />
+                    ) : (
+                      <Camera className="h-6 w-6 text-white" />
+                    )}
                   </div>
                   <input
                     ref={photoRef}
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
+                    capture="environment"
                     className="hidden"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
                       if (file) handlePhotoUpload(file);
+                      e.target.value = '';
                     }}
                   />
                 </div>
