@@ -75,7 +75,7 @@ const GestaoRH = () => {
     { title: "Holerites", description: "Contracheques e pagamentos", iconSrc: iconHolerites, path: "/holerites", scaleIcon: true },
     { title: "Comunicados", description: "Avisos internos", iconSrc: iconComunicados, path: "/comunicados", scaleIcon: true },
     { title: "Formulários", description: "Documentos e formulários RH", iconSrc: iconFormularios, path: "/hrflow-pro", iconScale: "scale-[1.8]" },
-    { title: "Cursos", description: "Treinamentos e capacitação", iconSrc: iconCursos, path: "/cursos", scaleIcon: true },
+    { title: "Cursos", description: "Treinamentos e capacitação", iconSrc: iconCursos, path: "/cursos", iconScale: "scale-[1.8]" },
     { title: "Controle de Férias", description: "Férias e licenças", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
     { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.8]", badgeKey: "/suporte-funcionarios" },
     { title: "Documentos", description: "Gestão de documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.8]" },
