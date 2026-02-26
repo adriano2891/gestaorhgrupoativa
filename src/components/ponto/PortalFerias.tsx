@@ -279,45 +279,7 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
                     </Card>
                   </div>
 
-                  {/* Info sobre data de admissão e período aquisitivo */}
-                  {(profile as any)?.data_admissao && (
-                    <div className="mb-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
-                      <div className="flex items-start gap-2">
-                        <Info className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-                        <div className="text-sm text-muted-foreground">
-                          <p>
-                            <strong>Data de admissão:</strong>{" "}
-                            {format(parseISO((profile as any).data_admissao), "dd/MM/yyyy", { locale: ptBR })}
-                          </p>
-                          <p className="mt-0.5">
-                            Conforme Art. 130 da CLT, o direito a férias é adquirido após completar 12 meses de trabalho (período aquisitivo).
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Aviso se não houver período aquisitivo completo */}
-                  {!feriasInfo.periodoAtualCompleto && feriasInfo.periodosEmAquisicao.length > 0 && (
-                    <div className="mb-4 p-4 rounded-lg border-2 border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-950/40">
-                      <div className="flex items-start gap-3">
-                        <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                        <div>
-                           <p className="font-semibold text-amber-900 dark:text-amber-200">Período aquisitivo em andamento</p>
-                           <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                            Seu período aquisitivo atual ainda não foi completado.
-                            {feriasInfo.diasRestantesAquisicao !== null && (
-                              <>
-                                {" "}Faltam <strong>{feriasInfo.diasRestantesAquisicao} dias</strong> para completar
-                                ({format(parseISO(feriasInfo.periodosEmAquisicao[0].data_inicio), "dd/MM/yyyy", { locale: ptBR })} a{" "}
-                                {format(parseISO(feriasInfo.periodosEmAquisicao[0].data_fim), "dd/MM/yyyy", { locale: ptBR })}).
-                              </>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                  
                   
                   <SolicitarFeriasDialog periodos={periodos || []} />
 

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,6 +27,7 @@ interface SolicitarFeriasDialogProps {
 
 export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) => {
   const [open, setOpen] = useState(false);
+  const [showIndisponivelDialog, setShowIndisponivelDialog] = useState(false);
   const [periodoSelecionado, setPeriodoSelecionado] = useState("");
   const [dataInicio, setDataInicio] = useState<Date>();
   const [dataFim, setDataFim] = useState<Date>();
@@ -35,7 +36,6 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
 
   const criarSolicitacao = useCriarSolicitacaoFerias();
 
-  // Filtrar apenas períodos aquisitivos completos (data_fim já passou) e com saldo
   const periodosElegiveis = useMemo(() => {
     const hoje = new Date();
     return periodos.filter((p) => {
@@ -44,7 +44,6 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
     });
   }, [periodos]);
 
-  // Períodos ainda em aquisição (não completaram 12 meses)
   const periodosEmAquisicao = useMemo(() => {
     const hoje = new Date();
     return periodos.filter((p) => {
@@ -58,17 +57,25 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
 
   const podeAbrir = periodosElegiveis.length > 0;
 
+  const periodoEmAndamento = periodosEmAquisicao[0];
+  const diasRestantesAquisicao = periodoEmAndamento
+    ? Math.max(0, differenceInDays(parseISO(periodoEmAndamento.data_fim), new Date()))
+    : null;
+
+  const handleClickSolicitar = () => {
+    if (!podeAbrir) {
+      setShowIndisponivelDialog(true);
+    } else {
+      setOpen(true);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!periodoSelecionado || !dataInicio || !dataFim) {
-      return;
-    }
+    if (!periodoSelecionado || !dataInicio || !dataFim) return;
 
     const diasDisp = periodo ? (periodo.dias_disponiveis ?? (periodo.dias_direito - periodo.dias_usados)) : 0;
-    if (diasSolicitados > diasDisp) {
-      return;
-    }
+    if (diasSolicitados > diasDisp) return;
 
     await criarSolicitacao.mutateAsync({
       periodo_aquisitivo_id: periodoSelecionado,
@@ -87,53 +94,46 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
     setObservacao("");
   };
 
-  // Calcular dias restantes para o período em aquisição mais recente
-  const periodoEmAndamento = periodosEmAquisicao[0];
-  const diasRestantesAquisicao = periodoEmAndamento
-    ? Math.max(0, differenceInDays(parseISO(periodoEmAndamento.data_fim), new Date()))
-    : null;
-
   return (
     <>
-      {!podeAbrir && (
-        <div className="mb-4 p-4 rounded-lg border-2 border-amber-300 bg-amber-50">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="font-semibold text-amber-900">Solicitação de férias indisponível</p>
-              {periodos.length === 0 ? (
-                <p className="text-sm text-amber-700 mt-1">
-                  Você ainda não possui períodos aquisitivos cadastrados. Entre em contato com o RH.
-                </p>
-              ) : periodosEmAquisicao.length > 0 ? (
-                <div className="text-sm text-amber-700 mt-1 space-y-1">
-                  <p>
-                    Conforme a CLT (Art. 130), o direito a férias é adquirido após completar 12 meses de trabalho (período aquisitivo).
-                  </p>
-                  {diasRestantesAquisicao !== null && (
-                    <p className="font-medium">
-                      Faltam <span className="text-amber-900 font-bold">{diasRestantesAquisicao} dias</span> para completar seu período aquisitivo atual
-                      ({format(parseISO(periodoEmAndamento!.data_inicio), "dd/MM/yyyy", { locale: ptBR })} a{" "}
-                      {format(parseISO(periodoEmAndamento!.data_fim), "dd/MM/yyyy", { locale: ptBR })}).
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-amber-700 mt-1">
-                  Todos os seus períodos aquisitivos já foram utilizados. Aguarde o próximo período.
-                </p>
-              )}
+      {/* Popup de indisponível */}
+      <Dialog open={showIndisponivelDialog} onOpenChange={setShowIndisponivelDialog}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              <DialogTitle>Férias indisponíveis</DialogTitle>
             </div>
-          </div>
-        </div>
-      )}
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button className="w-full" disabled={!podeAbrir}>
-            {podeAbrir ? "Solicitar Férias" : "Solicitar Férias (Indisponível)"}
+            <DialogDescription className="pt-3 text-sm leading-relaxed">
+              {periodos.length === 0 ? (
+                "Você ainda não possui períodos aquisitivos cadastrados. Entre em contato com o RH."
+              ) : periodosEmAquisicao.length > 0 && diasRestantesAquisicao !== null ? (
+                <>
+                  Seu período aquisitivo está em andamento. Faltam{" "}
+                  <strong className="text-foreground">{diasRestantesAquisicao} dias</strong> para completar os 12 meses
+                  {periodoEmAndamento && (
+                    <> ({format(parseISO(periodoEmAndamento.data_inicio), "dd/MM/yyyy", { locale: ptBR })} a{" "}
+                    {format(parseISO(periodoEmAndamento.data_fim), "dd/MM/yyyy", { locale: ptBR })})</>
+                  )}.
+                </>
+              ) : (
+                "Todos os seus períodos aquisitivos já foram utilizados. Aguarde o próximo período."
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <Button variant="outline" className="w-full mt-2" onClick={() => setShowIndisponivelDialog(false)}>
+            Entendi
           </Button>
-        </DialogTrigger>
+        </DialogContent>
+      </Dialog>
+
+      {/* Botão único */}
+      <Button className="w-full" onClick={handleClickSolicitar}>
+        Solicitar Férias
+      </Button>
+
+      {/* Dialog de solicitação */}
+      <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Solicitar Férias</DialogTitle>
@@ -167,112 +167,76 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
               </Select>
             </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tipo">Tipo</Label>
-            <Select value={tipo} onValueChange={(v: any) => setTipo(v)}>
-              <SelectTrigger id="tipo">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ferias">Férias</SelectItem>
-                <SelectItem value="ferias_coletivas">Férias Coletivas</SelectItem>
-                <SelectItem value="abono_pecuniario">Abono Pecuniário</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Data de Início</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !dataInicio && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dataInicio ? format(dataInicio, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dataInicio}
-                  onSelect={setDataInicio}
-                  initialFocus
-                  className="pointer-events-auto"
-                  disabled={(date) => date < new Date()}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Data de Fim</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !dataFim && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dataFim ? format(dataFim, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={dataFim}
-                  onSelect={setDataFim}
-                  initialFocus
-                  className="pointer-events-auto"
-                  disabled={(date) => !dataInicio || date < dataInicio}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          {diasSolicitados > 0 && (
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm font-medium">Dias solicitados: {diasSolicitados}</p>
-              {periodo && diasSolicitados > (periodo.dias_disponiveis ?? (periodo.dias_direito - periodo.dias_usados)) && (
-                <p className="text-sm text-destructive mt-1">
-                  Você não tem saldo suficiente neste período
-                </p>
-              )}
+            <div className="space-y-2">
+              <Label htmlFor="tipo">Tipo</Label>
+              <Select value={tipo} onValueChange={(v: any) => setTipo(v)}>
+                <SelectTrigger id="tipo">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ferias">Férias</SelectItem>
+                  <SelectItem value="ferias_coletivas">Férias Coletivas</SelectItem>
+                  <SelectItem value="abono_pecuniario">Abono Pecuniário</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          )}
 
-          <div className="space-y-2">
-            <Label htmlFor="observacao">Observação (opcional)</Label>
-            <Textarea
-              id="observacao"
-              value={observacao}
-              onChange={(e) => setObservacao(e.target.value)}
-              placeholder="Adicione uma observação se necessário"
-              rows={3}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label>Data de Início</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn("w-full justify-start text-left font-normal", !dataInicio && "text-muted-foreground")}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dataInicio ? format(dataInicio, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={dataInicio} onSelect={setDataInicio} initialFocus className="pointer-events-auto" disabled={(date) => date < new Date()} />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Data de Fim</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn("w-full justify-start text-left font-normal", !dataFim && "text-muted-foreground")}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dataFim ? format(dataFim, "dd/MM/yyyy", { locale: ptBR }) : "Selecione a data"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar mode="single" selected={dataFim} onSelect={setDataFim} initialFocus className="pointer-events-auto" disabled={(date) => !dataInicio || date < dataInicio} />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {diasSolicitados > 0 && (
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm font-medium">Dias solicitados: {diasSolicitados}</p>
+                {periodo && diasSolicitados > (periodo.dias_disponiveis ?? (periodo.dias_direito - periodo.dias_usados)) && (
+                  <p className="text-sm text-destructive mt-1">Você não tem saldo suficiente neste período</p>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label htmlFor="observacao">Observação (opcional)</Label>
+              <Textarea id="observacao" value={observacao} onChange={(e) => setObservacao(e.target.value)} placeholder="Adicione uma observação se necessário" rows={3} />
+            </div>
 
             <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">
-                Cancelar
-              </Button>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)} className="flex-1">Cancelar</Button>
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={
-                  !periodoSelecionado ||
-                  !dataInicio ||
-                  !dataFim ||
-                  (periodo ? diasSolicitados > (periodo.dias_disponiveis ?? (periodo.dias_direito - periodo.dias_usados)) : false) ||
-                  criarSolicitacao.isPending
-                }
+                disabled={!periodoSelecionado || !dataInicio || !dataFim || (periodo ? diasSolicitados > (periodo.dias_disponiveis ?? (periodo.dias_direito - periodo.dias_usados)) : false) || criarSolicitacao.isPending}
               >
                 {criarSolicitacao.isPending ? "Enviando..." : "Solicitar"}
               </Button>
