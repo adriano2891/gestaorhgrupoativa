@@ -134,11 +134,15 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
     isSigningOut.current = false;
     isSigningIn.current = true;
     
+    const timeoutController = new AbortController();
+    const globalTimeout = setTimeout(() => timeoutController.abort(), 15000);
+    
     try {
       const cpfNumeros = cpf.replace(/\D/g, "");
 
-      const { data: profileData, error: profileError } = await supabase
-        .rpc("get_email_by_cpf", { cpf_input: cpfNumeros });
+      const rpcPromise = supabase.rpc("get_email_by_cpf", { cpf_input: cpfNumeros });
+      const rpcTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Tempo limite excedido ao buscar CPF")), 8000));
+      const { data: profileData, error: profileError } = await Promise.race([rpcPromise, rpcTimeout]) as any;
 
       if (profileError) {
         console.error("Erro ao buscar CPF:", profileError);
@@ -151,10 +155,12 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
 
       const userEmail = profileData[0].email;
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const authPromise = supabase.auth.signInWithPassword({
         email: userEmail,
         password,
       });
+      const authTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Tempo limite excedido na autenticação")), 8000));
+      const { data, error } = await Promise.race([authPromise, authTimeout]) as any;
 
       if (error) {
         if (error.message.includes("Invalid login credentials")) {
@@ -178,7 +184,7 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
         setLoading(false);
       }
     } finally {
-      // Release the signing in flag after a short delay to skip the SIGNED_IN event
+      clearTimeout(globalTimeout);
       setTimeout(() => {
         isSigningIn.current = false;
       }, 1000);
