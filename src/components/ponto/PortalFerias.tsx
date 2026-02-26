@@ -301,12 +301,12 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
 
                   {/* Aviso se não houver período aquisitivo completo */}
                   {!feriasInfo.periodoAtualCompleto && feriasInfo.periodosEmAquisicao.length > 0 && (
-                    <div className="mb-4 p-4 rounded-lg border-2 border-amber-300 bg-amber-50">
+                    <div className="mb-4 p-4 rounded-lg border-2 border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-950/40">
                       <div className="flex items-start gap-3">
                         <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                         <div>
-                          <p className="font-semibold text-amber-900">Período aquisitivo em andamento</p>
-                          <p className="text-sm text-amber-700 mt-1">
+                           <p className="font-semibold text-amber-900 dark:text-amber-200">Período aquisitivo em andamento</p>
+                           <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
                             Seu período aquisitivo atual ainda não foi completado.
                             {feriasInfo.diasRestantesAquisicao !== null && (
                               <>
@@ -326,24 +326,24 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
                   {/* Solicitações Pendentes - destaque */}
                   {solicitacoes && solicitacoes.filter(s => s.status === "pendente").length > 0 && (
                     <div className="mt-6">
-                      <h3 className="font-semibold mb-3 text-amber-700">⏳ Aguardando Análise do RH</h3>
+                      <h3 className="font-semibold mb-3 text-amber-700 dark:text-amber-300">⏳ Aguardando Análise do RH</h3>
                       <div className="space-y-3">
                         {solicitacoes.filter(s => s.status === "pendente").map((sol) => (
-                          <Card key={sol.id} className="border-2 border-amber-300 bg-amber-50/80 shadow-md animate-in fade-in">
+                          <Card key={sol.id} className="border-2 border-amber-300 dark:border-amber-600 bg-amber-50/80 dark:bg-amber-950/40 shadow-md animate-in fade-in">
                             <CardContent className="pt-4 pb-4">
                               <div className="flex justify-between items-center">
                                 <div>
-                                  <p className="font-semibold text-amber-900">
-                                    {format(new Date(sol.data_inicio), "dd/MM/yyyy", { locale: ptBR })} - {format(new Date(sol.data_fim), "dd/MM/yyyy", { locale: ptBR })}
-                                  </p>
-                                  <p className="text-sm text-amber-700">
-                                    {sol.dias_solicitados} dias • {sol.tipo === "ferias" ? "Férias" : sol.tipo === "ferias_coletivas" ? "Férias Coletivas" : "Abono Pecuniário"}
-                                  </p>
+                                   <p className="font-semibold text-amber-900 dark:text-amber-200">
+                                     {format(new Date(sol.data_inicio), "dd/MM/yyyy", { locale: ptBR })} - {format(new Date(sol.data_fim), "dd/MM/yyyy", { locale: ptBR })}
+                                   </p>
+                                   <p className="text-sm text-amber-700 dark:text-amber-300">
+                                     {sol.dias_solicitados} dias • {sol.tipo === "ferias" ? "Férias" : sol.tipo === "ferias_coletivas" ? "Férias Coletivas" : "Abono Pecuniário"}
+                                   </p>
                                   {sol.observacao && (
-                                    <p className="text-xs text-amber-600 mt-1 italic">"{sol.observacao}"</p>
+                                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 italic">"{sol.observacao}"</p>
                                   )}
                                 </div>
-                                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-200 text-amber-900 border border-amber-300">
+                                <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-amber-200 dark:bg-amber-800 text-amber-900 dark:text-amber-100 border border-amber-300 dark:border-amber-600">
                                   Pendente
                                 </span>
                               </div>
@@ -361,8 +361,8 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
                       <div className="space-y-2">
                         {solicitacoes.filter(s => s.status !== "pendente").map((sol) => (
                           <Card key={sol.id} className={`border ${
-                            sol.status === "aprovado" ? "border-green-300 bg-green-50/60" :
-                            sol.status === "reprovado" ? "border-red-300 bg-red-50/60" :
+                            sol.status === "aprovado" ? "border-green-300 dark:border-green-700 bg-green-50/60 dark:bg-green-950/40" :
+                            sol.status === "reprovado" ? "border-red-300 dark:border-red-700 bg-red-50/60 dark:bg-red-950/40" :
                             "border-border"
                           }`}>
                             <CardContent className="pt-4 pb-4">
@@ -375,15 +375,15 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
                                     {sol.dias_solicitados} dias
                                   </p>
                                   {sol.motivo_reprovacao && (
-                                    <p className="text-xs text-red-600 mt-1">Motivo: {sol.motivo_reprovacao}</p>
+                                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">Motivo: {sol.motivo_reprovacao}</p>
                                   )}
                                 </div>
                                 <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${
-                                  sol.status === "aprovado" ? "bg-green-200 text-green-900" :
-                                  sol.status === "reprovado" ? "bg-red-200 text-red-900" :
-                                  sol.status === "concluido" ? "bg-blue-200 text-blue-900" :
-                                  sol.status === "cancelado" ? "bg-gray-200 text-gray-900" :
-                                  "bg-gray-100 text-gray-800"
+                                  sol.status === "aprovado" ? "bg-green-200 dark:bg-green-800 text-green-900 dark:text-green-100" :
+                                  sol.status === "reprovado" ? "bg-red-200 dark:bg-red-800 text-red-900 dark:text-red-100" :
+                                  sol.status === "concluido" ? "bg-blue-200 dark:bg-blue-800 text-blue-900 dark:text-blue-100" :
+                                  sol.status === "cancelado" ? "bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100" :
+                                  "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                                 }`}>
                                   {sol.status === "aprovado" ? "✅ Aprovado" :
                                    sol.status === "reprovado" ? "❌ Reprovado" :

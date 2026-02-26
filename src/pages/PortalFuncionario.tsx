@@ -6,6 +6,7 @@ import { PortalDashboard } from "@/components/ponto/PortalDashboard";
 import { PortalBeneficios } from "@/components/ponto/PortalBeneficios";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useHoleritesRealtime, useComunicadosRealtime, useFeriasRealtime } from "@/hooks/useRealtimeUpdates";
+import { usePortalTheme } from "@/hooks/usePortalTheme";
 
 // Lazy load heavy portal sections
 const PainelPonto = lazy(() => import("@/components/ponto/PainelPonto").then(m => ({ default: m.PainelPonto })));
@@ -36,6 +37,8 @@ const PortalContent = () => {
   const { user, profile, loading } = usePortalAuth();
   const [currentSection, setCurrentSection] = useState<string>("dashboard");
   const [senhaAlterada, setSenhaAlterada] = useState(false);
+  // Initialize theme on portal mount (applies dark class to <html>)
+  usePortalTheme();
 
   if (loading) {
     return (
