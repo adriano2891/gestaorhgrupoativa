@@ -48,7 +48,7 @@ export const PortalBeneficios = ({ onBack }: PortalBeneficiosProps) => {
                           <p className="font-medium text-lg">{beneficio.nome}</p>
                           <p className="text-sm text-muted-foreground">{beneficio.valor}</p>
                         </div>
-                        <span className="text-xs font-medium px-3 py-1 rounded-full bg-green-500/10 text-green-600">
+                        <span className="text-xs font-medium px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
                           {beneficio.status}
                         </span>
                       </div>

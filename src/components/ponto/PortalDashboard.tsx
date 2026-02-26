@@ -1,13 +1,14 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Clock, FileText, Calendar, Bell, User, Gift, GraduationCap, Headset } from "lucide-react";
+import { LogOut, Clock, FileText, Calendar, Bell, User, Gift, GraduationCap, Headset, Moon, Sun } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { toast } from "sonner";
 import { BirthdayPopup } from "./BirthdayPopup";
 import { PortalBackground } from "./PortalBackground";
 import { PortalNotificacoesBell } from "./PortalNotificacoesBell";
 import { usePortalBadges } from "@/hooks/usePortalBadges";
+import { usePortalTheme } from "@/hooks/usePortalTheme";
 
 interface PortalDashboardProps {
   onNavigate: (section: string) => void;
@@ -16,6 +17,7 @@ interface PortalDashboardProps {
 export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
   const { profile, signOut } = usePortalAuth();
   const { badges, markSectionViewed } = usePortalBadges();
+  const { isDark, toggle: toggleTheme } = usePortalTheme();
 
   const getInitials = (name: string) => {
     return name
@@ -134,6 +136,9 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
             </div>
             <div className="flex items-center gap-2">
               <PortalNotificacoesBell />
+              <Button variant="ghost" size="icon" onClick={toggleTheme} title={isDark ? "Modo claro" : "Modo escuro"}>
+                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
               <Button variant="outline" onClick={handleSignOut}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair
