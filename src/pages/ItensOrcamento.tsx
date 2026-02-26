@@ -364,7 +364,7 @@ export default function ItensOrcamento() {
                       <span className="text-xs text-zinc-500 mt-1">Upload</span>
                     </div>
                   )}
-                  <div className="flex-1">
+                  <div className="flex-1 space-y-2">
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -381,9 +381,24 @@ export default function ItensOrcamento() {
                     >
                       {uploading ? 'Enviando...' : 'Selecionar Imagem'}
                     </Button>
-                    <p className="text-xs text-zinc-500 mt-2">
+                    <p className="text-xs text-zinc-500">
                       Formatos: JPG, PNG, GIF. Máximo 50MB.
                     </p>
+                    <div className="pt-1">
+                      <Label htmlFor="imagem_url" className="text-xs text-zinc-500">Ou cole a URL da imagem:</Label>
+                      <Input
+                        id="imagem_url"
+                        type="url"
+                        placeholder="https://exemplo.com/imagem.jpg"
+                        value={formData.imagem_url || ''}
+                        onChange={(e) => {
+                          const url = e.target.value;
+                          setFormData(prev => ({ ...prev, imagem_url: url }));
+                          setImagePreview(url || null);
+                        }}
+                        className="mt-1 text-sm"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
