@@ -44,15 +44,25 @@ export function useClientesOrcamentos() {
   const { data: clientes, isLoading, error } = useQuery({
     queryKey: ['clientes-orcamentos'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('clientes_orcamentos')
-        .select('*')
-        .eq('ativo', true)
-        .order('nome_condominio', { ascending: true });
+      try {
+        const { data, error } = await supabase
+          .from('clientes_orcamentos')
+          .select('*')
+          .eq('ativo', true)
+          .order('nome_condominio', { ascending: true });
 
-      if (error) throw error;
-      return data as ClienteOrcamento[];
+        if (error) {
+          console.error('Erro ao buscar clientes:', error.message);
+          return [] as ClienteOrcamento[];
+        }
+        return (data ?? []) as ClienteOrcamento[];
+      } catch (err) {
+        console.error('Erro inesperado ao buscar clientes:', err);
+        return [] as ClienteOrcamento[];
+      }
     },
+    retry: 2,
+    staleTime: 2 * 60 * 1000,
   });
 
   const addCliente = useMutation({
