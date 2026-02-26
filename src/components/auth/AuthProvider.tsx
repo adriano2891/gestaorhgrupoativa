@@ -148,13 +148,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (data.user) {
         setUser(data.user);
+        
+        // Load profile/roles BEFORE navigating to prevent "Acesso Negado"
+        await loadUserData(data.user.id);
+        
         setLoading(false);
-        
-        // Navigate IMMEDIATELY — don't wait for profile/roles
         navigate("/dashboard");
-        
-        // Load profile/roles in background (Dashboard shows loading state for roles)
-        loadUserData(data.user.id).catch(console.error);
       }
     } finally {
       isSigningIn.current = false;
