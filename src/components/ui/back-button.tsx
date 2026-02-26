@@ -43,6 +43,7 @@ export const BackButton = ({
       onClick={handleClick}
       className={cn(
         "gap-2 px-2 transition-opacity",
+        variant === "light" && "hover:bg-[#159a8a]",
         variants[variant],
         className
       )}
