@@ -46,7 +46,7 @@ export const UploadDocumentoDialog = ({ open, onOpenChange, categorias }: Upload
   const [tagInput, setTagInput] = useState("");
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       titulo: "",
       descricao: "",

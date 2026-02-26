@@ -224,7 +224,7 @@ const BancoTalentos = () => {
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errors: Record<string, string> = {};
-        error.errors.forEach((err) => {
+        (error as any).issues?.forEach((err: any) => {
           if (err.path[0]) {
             errors[err.path[0].toString()] = err.message;
           }
