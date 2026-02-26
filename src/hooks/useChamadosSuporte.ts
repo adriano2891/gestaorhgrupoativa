@@ -29,23 +29,28 @@ export const useMeusChamados = () => {
   return useQuery({
     queryKey: ["meus-chamados"],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        console.warn("useMeusChamados: Nenhuma sessão ativa encontrada");
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          console.warn("useMeusChamados: Nenhuma sessão ativa encontrada");
+          return [] as ChamadoSuporte[];
+        }
+        
+        const userId = session.user.id;
+        const { data, error } = await (supabase as any)
+          .from("chamados_suporte")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
+        if (error) {
+          console.error("Erro ao carregar chamados:", error);
+          return [] as ChamadoSuporte[];
+        }
+        return (data || []) as ChamadoSuporte[];
+      } catch (e) {
+        console.error("Erro inesperado em meus chamados:", e);
         return [] as ChamadoSuporte[];
       }
-      
-      const userId = session.user.id;
-      const { data, error } = await (supabase as any)
-        .from("chamados_suporte")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
-      if (error) {
-        console.error("Erro ao carregar chamados:", error);
-        throw error;
-      }
-      return (data || []) as ChamadoSuporte[];
     },
     retry: 2,
     retryDelay: 1000,
