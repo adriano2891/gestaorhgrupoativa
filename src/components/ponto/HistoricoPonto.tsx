@@ -15,6 +15,7 @@ export const HistoricoPonto = () => {
   useEffect(() => {
     const loadHistorico = async () => {
       try {
+        setLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         const userId = session?.user?.id || profile?.id;
         if (!userId) {
@@ -22,17 +23,22 @@ export const HistoricoPonto = () => {
           return;
         }
 
-        const { data, error } = await (supabase as any)
+        const { data, error } = await supabase
           .from("registros_ponto")
           .select("*")
           .eq("user_id", userId)
           .order("data", { ascending: false })
           .limit(5);
 
-        if (error) throw error;
-        setRegistros(data || []);
+        if (error) {
+          console.error("Erro ao carregar histórico:", error);
+          setRegistros([]);
+        } else {
+          setRegistros(data || []);
+        }
       } catch (error) {
         console.error("Erro ao carregar histórico:", error);
+        setRegistros([]);
       } finally {
         setLoading(false);
       }
@@ -42,7 +48,7 @@ export const HistoricoPonto = () => {
   }, [profile?.id]);
 
   const formatData = (data: string) => {
-    return new Date(data).toLocaleDateString("pt-BR", {
+    return new Date(data + "T12:00:00").toLocaleDateString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
