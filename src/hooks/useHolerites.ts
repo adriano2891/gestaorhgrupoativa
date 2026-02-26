@@ -21,19 +21,26 @@ export const useHolerites = (userId?: string) => {
     queryKey: ["holerites", userId || "all"],
     queryFn: async () => {
       if (userId) {
-        // Use active session to ensure RLS works correctly
-        const { data: { session } } = await supabase.auth.getSession();
-        const activeUserId = session?.user?.id || userId;
-        
-        const { data, error } = await supabase
-          .from("holerites")
-          .select("*")
-          .eq("user_id", activeUserId)
-          .order("ano", { ascending: false })
-          .order("mes", { ascending: false });
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          const activeUserId = session?.user?.id || userId;
+          
+          const { data, error } = await supabase
+            .from("holerites")
+            .select("*")
+            .eq("user_id", activeUserId)
+            .order("ano", { ascending: false })
+            .order("mes", { ascending: false });
 
-        if (error) throw error;
-        return data as Holerite[];
+          if (error) {
+            console.error("Erro ao buscar holerites do funcionário:", error);
+            return [] as Holerite[];
+          }
+          return (data || []) as Holerite[];
+        } catch (e) {
+          console.error("Erro inesperado em useHolerites (funcionário):", e);
+          return [] as Holerite[];
+        }
       }
 
       // Admin: fetch all holerites, filter active employees separately
