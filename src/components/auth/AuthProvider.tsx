@@ -73,13 +73,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     let isMounted = true;
     let initialLoadDone = false;
 
-    const safetyTimeout = setTimeout(() => {
+    const safetyTimeout = setTimeout(async () => {
       if (isMounted && !initialLoadDone) {
-        console.warn("Auth: safety timeout reached, releasing loading state");
-        initialLoadDone = true;
-        setLoading(false);
+        console.warn("Auth: safety timeout reached, attempting manual session recovery");
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (isMounted && session?.user) {
+            setUser(session.user);
+            await loadUserData(session.user.id);
+          }
+        } catch (err) {
+          console.warn("Auth: manual session recovery failed:", err);
+        }
+        if (isMounted && !initialLoadDone) {
+          initialLoadDone = true;
+          setLoading(false);
+        }
       }
-    }, 3000);
+    }, 4000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
