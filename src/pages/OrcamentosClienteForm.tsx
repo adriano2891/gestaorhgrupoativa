@@ -119,10 +119,43 @@ export default function OrcamentosClienteForm() {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
+    
+    // Safety timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      setIsSubmitting(false);
+      toast.error('Tempo esgotado ao salvar. Verifique sua conexão e tente novamente.');
+    }, 15000);
+
     try {
-      const savedClient = await addCliente.mutateAsync(formData);
-      navigate('/orcamentos/novo', { state: { selectedClientId: savedClient.id } });
+      // Clean empty strings to null for optional fields
+      const cleanedData: ClienteOrcamentoInput = {
+        nome_condominio: formData.nome_condominio.trim(),
+        nome_sindico: formData.nome_sindico.trim(),
+        email: formData.email.trim(),
+        telefone: formData.telefone || undefined,
+        cep: formData.cep || undefined,
+        rua: formData.rua || undefined,
+        numero: formData.numero || undefined,
+        complemento: formData.complemento || undefined,
+        bairro: formData.bairro || undefined,
+        cidade: formData.cidade || undefined,
+        estado: formData.estado || undefined,
+        numero_unidades: formData.numero_unidades || undefined,
+        observacoes: formData.observacoes || undefined,
+      };
+
+      console.log('Saving client data:', cleanedData);
+      const savedClient = await addCliente.mutateAsync(cleanedData);
+      clearTimeout(timeout);
+      console.log('Client saved successfully:', savedClient);
+      
+      if (savedClient?.id) {
+        navigate('/orcamentos/novo', { state: { selectedClientId: savedClient.id } });
+      } else {
+        toast.error('Cliente salvo mas ID não retornado. Tente novamente.');
+      }
     } catch (error: any) {
+      clearTimeout(timeout);
       console.error('Erro ao salvar cliente:', error);
       toast.error('Erro ao salvar cliente: ' + (error?.message || 'Tente novamente'));
     } finally {
