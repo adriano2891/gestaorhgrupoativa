@@ -37,6 +37,7 @@ export default function ItensOrcamento() {
   const [uploading, setUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [precoText, setPrecoText] = useState('');
   const [formData, setFormData] = useState<ItemOrcamentoInput>({
     nome: '',
     descricao: '',
@@ -60,6 +61,7 @@ export default function ItensOrcamento() {
 
   const handleOpenCreate = () => {
     setSelectedItem(null);
+    setPrecoText('');
     setFormData({
       nome: '',
       descricao: '',
@@ -74,10 +76,12 @@ export default function ItensOrcamento() {
 
   const handleOpenEdit = (item: any) => {
     setSelectedItem(item.id);
+    const preco = Number(item.preco_base);
+    setPrecoText(preco ? preco.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '');
     setFormData({
       nome: item.nome,
       descricao: item.descricao || '',
-      preco_base: Number(item.preco_base),
+      preco_base: preco,
       categoria: item.categoria || '',
       imagem_url: item.imagem_url || '',
       ativo: item.ativo
@@ -431,13 +435,12 @@ export default function ItensOrcamento() {
                     type="text"
                     inputMode="decimal"
                     placeholder="0,00"
-                    value={formData.preco_base ? formData.preco_base.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : ''}
+                    value={precoText}
                     onChange={(e) => {
-                      // Allow only digits and comma
                       const raw = e.target.value.replace(/[^\d,]/g, '');
-                      // Convert Brazilian format to number
+                      setPrecoText(raw);
                       const numeric = parseFloat(raw.replace(',', '.')) || 0;
-                      setFormData({ ...formData, preco_base: numeric });
+                      setFormData(prev => ({ ...prev, preco_base: numeric }));
                     }}
                     required
                   />
