@@ -26,7 +26,7 @@ const formSchema = z.object({
   titulo: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
   descricao: z.string().optional(),
   categoria_id: z.string().optional(),
-  publico: z.boolean().default(false),
+  publico: z.boolean().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
