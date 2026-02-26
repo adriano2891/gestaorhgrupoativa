@@ -68,17 +68,17 @@ const GestaoRH = () => {
   }, []);
 
   const modules: ModuleItem[] = [
-    { title: "Funcionários", description: "Cadastro e gestão de colaboradores", iconSrc: iconFuncionarios, path: "/funcionarios", iconScale: "scale-[1.8]" },
+    { title: "Funcionários", description: "Cadastro e gestão de colaboradores", iconSrc: iconFuncionarios, path: "/funcionarios", iconScale: "scale-[1.4]" },
     { title: "Banco de Talentos", description: "Recrutamento e seleção", iconSrc: iconTalentos, path: "/banco-talentos", scaleIcon: true },
-    { title: "Relatórios", description: "Análises e indicadores", iconSrc: iconRelatorios, path: "/relatorios", iconScale: "scale-[1.8]" },
-    { title: "Controle de Ponto", description: "Registro de jornada", iconSrc: iconPonto, path: "/folha-ponto", iconScale: "scale-150" },
+    { title: "Relatórios", description: "Análises e indicadores", iconSrc: iconRelatorios, path: "/relatorios", iconScale: "scale-[1.4]" },
+    { title: "Controle de Ponto", description: "Registro de jornada", iconSrc: iconPonto, path: "/folha-ponto", iconScale: "scale-[1.3]" },
     { title: "Holerites", description: "Contracheques e pagamentos", iconSrc: iconHolerites, path: "/holerites", scaleIcon: true },
     { title: "Comunicados", description: "Avisos internos", iconSrc: iconComunicados, path: "/comunicados", scaleIcon: true },
-    { title: "Formulários", description: "Documentos e formulários RH", iconSrc: iconFormularios, path: "/hrflow-pro", iconScale: "scale-[1.8]" },
-    { title: "Cursos", description: "Treinamentos e capacitação", iconSrc: iconCursos, path: "/cursos", iconScale: "scale-[1.8]" },
+    { title: "Formulários", description: "Documentos e formulários RH", iconSrc: iconFormularios, path: "/hrflow-pro", iconScale: "scale-[1.4]" },
+    { title: "Cursos", description: "Treinamentos e capacitação", iconSrc: iconCursos, path: "/cursos", iconScale: "scale-[1.4]" },
     { title: "Controle de Férias", description: "Férias e licenças", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
-    { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.8]", badgeKey: "/suporte-funcionarios" },
-    { title: "Documentos", description: "Gestão de documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.8]" },
+    { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.4]", badgeKey: "/suporte-funcionarios" },
+    { title: "Documentos", description: "Gestão de documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.4]" },
   ];
 
   if (isSuperAdmin) {
