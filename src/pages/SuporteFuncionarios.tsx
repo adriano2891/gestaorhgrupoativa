@@ -41,7 +41,7 @@ const CATEGORIAS = [
 const SuporteFuncionarios = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { data: chamados = [], isLoading } = useTodosChamados();
+  const { data: chamados = [], isLoading, error, refetch } = useTodosChamados();
   const [chamadoSelecionado, setChamadoSelecionado] = useState<ChamadoSuporte | null>(null);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
@@ -325,6 +325,13 @@ const SuporteFuncionarios = () => {
         {/* List */}
         {isLoading ? (
           <p className="text-center text-muted-foreground py-8">Carregando chamados...</p>
+        ) : error ? (
+          <Card>
+            <CardContent className="py-12 text-center space-y-3">
+              <p className="text-destructive">Erro ao carregar chamados.</p>
+              <Button variant="outline" onClick={() => refetch()}>Tentar novamente</Button>
+            </CardContent>
+          </Card>
         ) : chamadosFiltrados.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
