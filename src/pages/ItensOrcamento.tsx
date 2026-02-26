@@ -110,25 +110,33 @@ export default function ItensOrcamento() {
     setUploading(true);
 
     try {
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `items/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('produtos')
-        .upload(filePath, file);
+      const uploadResult = await Promise.race([
+        supabase.storage.from('produtos').upload(filePath, file),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('TIMEOUT')), 15000)
+        ),
+      ]);
 
-      if (uploadError) throw uploadError;
+      if (uploadResult.error) throw uploadResult.error;
 
       const { data: { publicUrl } } = supabase.storage
         .from('produtos')
         .getPublicUrl(filePath);
 
-      setFormData({ ...formData, imagem_url: publicUrl });
+      setFormData(prev => ({ ...prev, imagem_url: publicUrl }));
       setImagePreview(publicUrl);
       toast.success('Imagem enviada com sucesso!');
     } catch (error: any) {
-      toast.error('Erro ao enviar imagem: ' + error.message);
+      const msg = error?.message || '';
+      if (msg === 'TIMEOUT' || msg.includes('LockManager') || msg.includes('auth-token')) {
+        toast.error('Falha na autenticação. Faça logout e login novamente.');
+      } else {
+        toast.error('Erro ao enviar imagem: ' + msg);
+      }
     } finally {
       setUploading(false);
     }
