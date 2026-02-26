@@ -16,9 +16,21 @@ export const HistoricoPonto = () => {
     const loadHistorico = async () => {
       try {
         setLoading(true);
-        const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id || profile?.id;
+        let userId = profile?.id;
+
         if (!userId) {
+          try {
+            const sessionPromise = supabase.auth.getSession();
+            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 4000));
+            const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+            userId = session?.user?.id;
+          } catch {
+            // Session fetch timed out or failed
+          }
+        }
+
+        if (!userId) {
+          setRegistros([]);
           setLoading(false);
           return;
         }
