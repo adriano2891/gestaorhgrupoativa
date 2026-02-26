@@ -18,15 +18,25 @@ export const useCategoriasCurso = () => {
   return useQuery({
     queryKey: ["categorias-curso"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("categorias_curso")
-        .select("*")
-        .eq("ativo", true)
-        .order("ordem", { ascending: true });
+      try {
+        const { data, error } = await supabase
+          .from("categorias_curso")
+          .select("*")
+          .eq("ativo", true)
+          .order("ordem", { ascending: true });
 
-      if (error) throw error;
-      return data as CategoriaCurso[];
+        if (error) {
+          console.error("Erro ao carregar categorias:", error);
+          return [] as CategoriaCurso[];
+        }
+        return (data || []) as CategoriaCurso[];
+      } catch (e) {
+        console.error("Erro inesperado em categorias:", e);
+        return [] as CategoriaCurso[];
+      }
     },
+    retry: 2,
+    staleTime: 1000 * 30,
   });
 };
 
@@ -38,20 +48,20 @@ export const useCursos = (status?: 'rascunho' | 'publicado' | 'arquivado') => {
     refetchOnWindowFocus: true,
     retry: 2,
     queryFn: async () => {
-      // Fetch cursos without join first for reliability
-      const query = supabase
-        .from("cursos")
-        .select("*")
-        .order("created_at", { ascending: false });
+      try {
+        const query = supabase
+          .from("cursos")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-      const { data, error } = status 
-        ? await query.eq("status", status)
-        : await query;
-        
-      if (error) {
-        console.error("Erro ao carregar cursos:", error);
-        throw error;
-      }
+        const { data, error } = status 
+          ? await query.eq("status", status)
+          : await query;
+          
+        if (error) {
+          console.error("Erro ao carregar cursos:", error);
+          return [] as Curso[];
+        }
 
       if (!data || data.length === 0) return [] as Curso[];
 
@@ -70,11 +80,15 @@ export const useCursos = (status?: 'rascunho' | 'publicado' | 'arquivado') => {
             categoria: curso.categoria_id ? catMap.get(curso.categoria_id) || null : null,
           })) as Curso[];
         }
-      } catch (e) {
-        console.warn("Failed to fetch categories:", e);
+      } catch (catError) {
+        console.warn("Failed to fetch categories:", catError);
       }
 
       return data as Curso[];
+      } catch (e) {
+        console.error("Erro inesperado em cursos:", e);
+        return [] as Curso[];
+      }
     },
   });
 };
