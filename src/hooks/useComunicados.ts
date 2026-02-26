@@ -24,17 +24,16 @@ export const useComunicados = (userId?: string) => {
   return useQuery({
     queryKey: ["comunicados", userId],
     queryFn: async () => {
-      // Use active session to ensure RLS works correctly
-      const { data: { session } } = await supabase.auth.getSession();
-      const activeUserId = session?.user?.id || userId;
-      
-      if (!activeUserId) return [] as ComunicadoComLeitura[];
-
       try {
-        // Buscar comunicados (RLS filters based on active session)
+        const { data: { session } } = await supabase.auth.getSession();
+        const activeUserId = session?.user?.id || userId;
+        
+        if (!activeUserId) return [] as ComunicadoComLeitura[];
+
         const { data: comunicados, error: comunicadosError } = await supabase
           .from("comunicados")
           .select("*")
+          .eq("ativo", true)
           .order("created_at", { ascending: false });
 
         if (comunicadosError) {
@@ -42,36 +41,28 @@ export const useComunicados = (userId?: string) => {
           return [] as ComunicadoComLeitura[];
         }
 
-        // Buscar leituras do usuário
-        const { data: leituras, error: leiturasError } = await supabase
+        const { data: leituras } = await supabase
           .from("comunicados_lidos")
           .select("comunicado_id, lido_em")
           .eq("user_id", activeUserId);
 
-        if (leiturasError) {
-          console.error("Erro ao buscar leituras:", leiturasError);
-        }
-
-        // Mapear leituras
         const leiturasMap = new Map(
           leituras?.map((l) => [l.comunicado_id, l.lido_em]) || []
         );
 
-        // Combinar dados
-        const comunicadosComLeitura: ComunicadoComLeitura[] = (comunicados || []).map((c) => ({
+        return (comunicados || []).map((c) => ({
           ...c,
           lido: leiturasMap.has(c.id),
           lido_em: leiturasMap.get(c.id) || null,
-        }));
-
-        return comunicadosComLeitura;
+        })) as ComunicadoComLeitura[];
       } catch (error) {
         console.error("Erro inesperado em useComunicados:", error);
         return [] as ComunicadoComLeitura[];
       }
     },
     enabled: !!userId,
-    refetchOnWindowFocus: true,
+    retry: 2,
+    staleTime: 1000 * 30,
   });
 };
 
