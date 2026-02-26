@@ -172,7 +172,7 @@ export default function ItensOrcamento() {
           </div>
           <Button 
             onClick={handleOpenCreate}
-            className="bg-[#006fee] hover:bg-[#0058c4] text-white shadow-lg"
+            className="bg-[#3EE0CF] hover:bg-[#35c9ba] text-black shadow-lg"
           >
             <Plus className="w-4 h-4 mr-2" />
             Novo Item
@@ -320,7 +320,7 @@ export default function ItensOrcamento() {
                   ) : (
                     <div 
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-24 h-24 border-2 border-dashed border-zinc-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-blue-500 hover:bg-blue-50/50 transition-colors"
+                      className="w-24 h-24 border-2 border-dashed border-zinc-300 rounded-lg flex flex-col items-center justify-center cursor-pointer hover:border-[#3EE0CF] hover:bg-[#3EE0CF]/10 transition-colors"
                     >
                       <Upload className="w-6 h-6 text-zinc-400" />
                       <span className="text-xs text-zinc-500 mt-1">Upload</span>
@@ -408,7 +408,7 @@ export default function ItensOrcamento() {
               </Button>
               <Button 
                 type="submit" 
-                className="bg-[#006fee] hover:bg-[#0058c4]"
+                className="bg-[#3EE0CF] hover:bg-[#35c9ba] text-black"
                 disabled={createItem.isPending || updateItem.isPending || uploading}
               >
                 {selectedItem ? 'Salvar' : 'Criar'}

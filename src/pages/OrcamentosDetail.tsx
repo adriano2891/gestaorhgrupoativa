@@ -62,7 +62,7 @@ export default function OrcamentosDetail() {
               <Edit className="w-4 h-4 mr-2" />Editar
             </Button>
             <Button variant="outline" onClick={handleDownloadPDF}><FileDown className="w-4 h-4 mr-2" />PDF</Button>
-            <Button onClick={handleCopyLink} className="bg-[#006fee] text-white">
+            <Button onClick={handleCopyLink} className="bg-[#3EE0CF] text-black">
               <Link className="w-4 h-4 mr-2" />Link
             </Button>
           </div>
@@ -106,7 +106,7 @@ export default function OrcamentosDetail() {
                   <span>{formatCurrency(quote.financials.taxAmount)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold">
-                  <span>Total</span><span className="text-[#006fee]">{formatCurrency(quote.financials.total)}</span>
+                  <span>Total</span><span className="text-[#3EE0CF]">{formatCurrency(quote.financials.total)}</span>
                 </div>
               </div>
             </GlassPanel>
