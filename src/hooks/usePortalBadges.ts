@@ -91,7 +91,6 @@ export function usePortalBadges() {
       return naoLidos.length;
     },
     enabled: !!user,
-    refetchInterval: 30000,
   });
 
   // Chamados com respostas não lidas - OPTIMIZED: single query instead of N+1
@@ -132,7 +131,6 @@ export function usePortalBadges() {
       return chamadosComMsgs.size;
     },
     enabled: !!user,
-    refetchInterval: 30000,
   });
 
   // Notificações não lidas
@@ -157,7 +155,6 @@ export function usePortalBadges() {
       return (notifs || []).filter((n: any) => !lidasSet.has(n.id)).length;
     },
     enabled: !!user,
-    refetchInterval: 30000,
   });
 
   // Holerites novos (desde última visualização)
@@ -183,7 +180,6 @@ export function usePortalBadges() {
       return (data || []).length;
     },
     enabled: !!user,
-    refetchInterval: 60000,
   });
 
   // Férias com status atualizado
@@ -212,7 +208,6 @@ export function usePortalBadges() {
       return (data || []).length;
     },
     enabled: !!user,
-    refetchInterval: 30000,
   });
 
   const markSectionViewed = useCallback((section: string) => {
