@@ -148,19 +148,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (data.user) {
         setUser(data.user);
-        
-        // Load profile/roles with timeout to prevent hanging
-        try {
-          await Promise.race([
-            loadUserData(data.user.id),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('loadUserData timeout')), 5000))
-          ]);
-        } catch (e) {
-          console.warn("loadUserData during signIn failed/timed out:", e);
-        }
-        
         setLoading(false);
+        
+        // Navigate IMMEDIATELY for fast UX
         navigate("/dashboard");
+        
+        // Load profile/roles in background
+        loadUserData(data.user.id).catch(console.error);
       }
     } finally {
       isSigningIn.current = false;
