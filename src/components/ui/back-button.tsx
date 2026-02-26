@@ -33,7 +33,7 @@ export const BackButton = ({
   const variants = {
     default: "text-foreground hover:text-foreground/80",
     ghost: "text-muted-foreground hover:text-foreground",
-    light: "text-white bg-[#1abc9c] hover:bg-[#159a8a] hover:opacity-100",
+    light: "text-white bg-[#1abc9c] hover:bg-[#1abc9c] hover:opacity-100",
   };
 
   return (
@@ -43,7 +43,7 @@ export const BackButton = ({
       onClick={handleClick}
       className={cn(
         "gap-2 px-2 transition-opacity",
-        variant === "light" && "hover:bg-[#159a8a]",
+        variant === "light" && "hover:bg-[#1abc9c]",
         variants[variant],
         className
       )}
