@@ -47,11 +47,20 @@ const CursosAdmin = lazy(() => import("./pages/CursosAdmin"));
 const SuporteFuncionarios = lazy(() => import("./pages/SuporteFuncionarios"));
 const PortalCursoPlayerLazy = lazy(() => import("./components/ponto/PortalCursoPlayer").then(m => ({ default: m.PortalCursoPlayer })));
 
-// Lazy loaded layout
-const Layout = lazy(() => import("./components/Layout").then(m => ({ default: m.Layout })));
-const GlobalFooter = lazy(() => import("./components/GlobalFooter").then(m => ({ default: m.GlobalFooter })));
+// Eagerly loaded layout (used on most routes, avoid lazy overhead)
+import { Layout } from "./components/Layout";
+import { GlobalFooter } from "./components/GlobalFooter";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes - prevents refetch on every navigation
+      gcTime: 1000 * 60 * 10, // 10 minutes garbage collection
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const PageLoader = () => (
   <div className="space-y-4 p-8">
@@ -60,10 +69,8 @@ const PageLoader = () => (
   </div>
 );
 
-const LazyLayout = ({ children }: { children: React.ReactNode }) => (
-  <Suspense fallback={<PageLoader />}>
-    <Layout>{children}</Layout>
-  </Suspense>
+const WrappedLayout = ({ children }: { children: React.ReactNode }) => (
+  <Layout>{children}</Layout>
 );
 
 const App = () => {
@@ -126,9 +133,9 @@ const App = () => {
                       path="/funcionarios"
                       element={
                         <ProtectedRoute>
-                          <LazyLayout>
+                          <WrappedLayout>
                             <Funcionarios />
-                          </LazyLayout>
+                          </WrappedLayout>
                         </ProtectedRoute>
                       }
                     />
@@ -136,9 +143,9 @@ const App = () => {
                       path="/banco-talentos"
                       element={
                         <ProtectedRoute>
-                          <LazyLayout>
+                          <WrappedLayout>
                             <BancoTalentos />
-                          </LazyLayout>
+                          </WrappedLayout>
                         </ProtectedRoute>
                       }
                     />
@@ -146,9 +153,9 @@ const App = () => {
                       path="/relatorios"
                       element={
                         <ProtectedRoute>
-                          <LazyLayout>
+                          <WrappedLayout>
                             <Relatorios />
-                          </LazyLayout>
+                          </WrappedLayout>
                         </ProtectedRoute>
                       }
                     />
@@ -156,9 +163,9 @@ const App = () => {
                       path="/folha-ponto"
                       element={
                         <ProtectedRoute>
-                          <LazyLayout>
+                          <WrappedLayout>
                             <FolhaPonto />
-                          </LazyLayout>
+                          </WrappedLayout>
                         </ProtectedRoute>
                       }
                     />
@@ -166,9 +173,9 @@ const App = () => {
                       path="/holerites"
                       element={
                         <ProtectedRoute>
-                          <LazyLayout>
+                          <WrappedLayout>
                             <Holerites />
-                          </LazyLayout>
+                          </WrappedLayout>
                         </ProtectedRoute>
                       }
                     />
@@ -176,9 +183,9 @@ const App = () => {
                       path="/admins"
                       element={
                         <ProtectedRoute requiredRoles={["admin"]}>
-                          <LazyLayout>
+                          <WrappedLayout>
                             <GerenciarAdmins />
-                          </LazyLayout>
+                          </WrappedLayout>
                         </ProtectedRoute>
                       }
                     />
@@ -186,9 +193,9 @@ const App = () => {
                       path="/controle-ferias"
                       element={
                         <ProtectedRoute>
-                          <LazyLayout>
+                          <WrappedLayout>
                             <ControleFerias />
-                          </LazyLayout>
+                          </WrappedLayout>
                         </ProtectedRoute>
                       }
                     />
@@ -196,9 +203,9 @@ const App = () => {
                       path="/comunicados"
                       element={
                         <ProtectedRoute>
-                          <LazyLayout>
+                          <WrappedLayout>
                             <Comunicados />
-                          </LazyLayout>
+                          </WrappedLayout>
                         </ProtectedRoute>
                       }
                     />
@@ -334,9 +341,9 @@ const App = () => {
                       path="/documentacoes"
                       element={
                         <ProtectedRoute>
-                          <LazyLayout>
+                          <WrappedLayout>
                             <Documentacoes />
-                          </LazyLayout>
+                          </WrappedLayout>
                         </ProtectedRoute>
                       }
                     />
@@ -360,9 +367,7 @@ const App = () => {
                   </Routes>
                 </Suspense>
               </div>
-              <Suspense fallback={null}>
-                <GlobalFooter />
-              </Suspense>
+              <GlobalFooter />
             </div>
           </QuotesProvider>
         </AuthProvider>

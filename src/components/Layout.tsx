@@ -1,7 +1,7 @@
-import { Building2, Moon, Sun, LogOut, Menu, X } from "lucide-react";
+import { Building2, Moon, Sun, LogOut, Menu } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
-import { useState } from "react";
+import { useState, useMemo, memo } from "react";
 import { useAuth } from "./auth/AuthProvider";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import loginBackground from "@/assets/login-background.png";
@@ -21,29 +21,29 @@ const allNavItems = [
   { path: "/admins", label: "Admins", icon: "⚙️", allowedRoles: ["admin"] },
 ];
 
-export const Layout = ({ children }: { children: React.ReactNode }) => {
+export const Layout = memo(({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const [isDark, setIsDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { signOut, profile, roles } = useAuth();
 
-  // Filter nav items based on user roles
-  const navItems = allNavItems.filter((item) => {
+  // Memoize filtered nav items
+  const navItems = useMemo(() => allNavItems.filter((item) => {
     if (!item.allowedRoles) return true;
     return item.allowedRoles.some((r) => roles.includes(r as any));
-  });
+  }), [roles]);
 
   const toggleTheme = () => {
     setIsDark(!isDark);
     document.documentElement.classList.toggle("dark");
   };
 
-  const currentDate = new Intl.DateTimeFormat("pt-BR", {
+  const currentDate = useMemo(() => new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",
     day: "numeric",
     month: "long",
     year: "numeric",
-  }).format(new Date());
+  }).format(new Date()), []);
 
   return (
     <div 
@@ -160,4 +160,4 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </div>
     </div>
   );
-};
+});
