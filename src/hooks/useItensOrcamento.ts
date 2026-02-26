@@ -23,6 +23,55 @@ export interface ItemOrcamentoInput {
   ativo?: boolean;
 }
 
+function getSupabaseConfig() {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  
+  let accessToken = supabaseKey;
+  try {
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || supabaseUrl?.split('//')[1]?.split('.')[0];
+    const storageKey = `sb-${projectId}-auth-token`;
+    const stored = localStorage.getItem(storageKey);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (parsed?.access_token) {
+        accessToken = parsed.access_token;
+      }
+    }
+  } catch {
+    // fallback to anon key
+  }
+  
+  return { supabaseUrl, supabaseKey, accessToken };
+}
+
+async function supabaseRestCall(method: string, body?: any, query?: string) {
+  const { supabaseUrl, supabaseKey, accessToken } = getSupabaseConfig();
+  const url = `${supabaseUrl}/rest/v1/itens_orcamento${query || ''}`;
+  
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${accessToken}`,
+    'apikey': supabaseKey,
+    'Content-Type': 'application/json',
+    'Prefer': method === 'POST' ? 'return=representation' : method === 'PATCH' ? 'return=representation' : 'return=minimal',
+  };
+
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err?.message || `Request failed (${res.status})`);
+  }
+
+  if (method === 'DELETE') return null;
+  const data = await res.json();
+  return data;
+}
+
 export function useItensOrcamento() {
   const queryClient = useQueryClient();
 
@@ -30,18 +79,10 @@ export function useItensOrcamento() {
     queryKey: ['itens_orcamento'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('itens_orcamento')
-          .select('*')
-          .order('nome');
-        
-        if (error) {
-          console.error('Erro ao buscar itens:', error.message);
-          return [] as ItemOrcamento[];
-        }
+        const data = await supabaseRestCall('GET', undefined, '?select=*&order=nome');
         return (data ?? []) as ItemOrcamento[];
       } catch (err) {
-        console.error('Erro inesperado ao buscar itens:', err);
+        console.error('Erro ao buscar itens:', err);
         return [] as ItemOrcamento[];
       }
     },
@@ -51,15 +92,7 @@ export function useItensOrcamento() {
 
   const createItem = useMutation({
     mutationFn: async (item: ItemOrcamentoInput) => {
-      const { data, error } = await supabase
-        .from('itens_orcamento')
-        .insert(item)
-        .select();
-      
-      if (error) {
-        console.error('Supabase insert error:', error);
-        throw new Error(error.message);
-      }
+      const data = await supabaseRestCall('POST', item);
       if (!data || data.length === 0) {
         throw new Error('Não foi possível criar o item. Verifique se você está autenticado.');
       }
@@ -77,16 +110,7 @@ export function useItensOrcamento() {
 
   const updateItem = useMutation({
     mutationFn: async ({ id, ...item }: ItemOrcamentoInput & { id: string }) => {
-      const { data, error } = await supabase
-        .from('itens_orcamento')
-        .update(item)
-        .eq('id', id)
-        .select();
-      
-      if (error) {
-        console.error('Supabase update error:', error);
-        throw new Error(error.message);
-      }
+      const data = await supabaseRestCall('PATCH', item, `?id=eq.${id}`);
       if (!data || data.length === 0) {
         throw new Error('Não foi possível atualizar o item.');
       }
@@ -104,18 +128,13 @@ export function useItensOrcamento() {
 
   const deleteItem = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('itens_orcamento')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
+      await supabaseRestCall('DELETE', undefined, `?id=eq.${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['itens_orcamento'] });
       toast.success('Item excluído com sucesso!');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast.error('Erro ao excluir item: ' + error.message);
     }
   });

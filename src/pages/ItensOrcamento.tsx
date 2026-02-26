@@ -180,25 +180,15 @@ export default function ItensOrcamento() {
     }
 
     try {
-      const mutation = selectedItem
-        ? updateItem.mutateAsync({ id: selectedItem, ...formData })
-        : createItem.mutateAsync(formData);
-
-      await Promise.race([
-        mutation,
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('TIMEOUT')), 15000)
-        ),
-      ]);
+      if (selectedItem) {
+        await updateItem.mutateAsync({ id: selectedItem, ...formData });
+      } else {
+        await createItem.mutateAsync(formData);
+      }
       setDialogOpen(false);
     } catch (error: any) {
       console.error('Erro ao salvar item:', error);
-      const msg = error?.message || '';
-      if (msg === 'TIMEOUT' || msg.includes('LockManager') || msg.includes('auth-token') || msg.includes('timed out')) {
-        toast.error('Falha na autenticação. Faça logout e login novamente.');
-      } else {
-        toast.error('Erro ao salvar item: ' + (msg || 'Tente novamente.'));
-      }
+      toast.error('Erro ao salvar item: ' + (error?.message || 'Tente novamente.'));
     }
   };
 
