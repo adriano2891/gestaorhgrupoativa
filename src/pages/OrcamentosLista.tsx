@@ -125,7 +125,7 @@ export default function OrcamentosLista() {
           </div>
           <Button 
             onClick={() => navigate('/orcamentos/novo')}
-            className="bg-[#006fee] hover:bg-[#0058c4] text-white shadow-lg"
+            className="bg-[#3EE0CF] hover:bg-[#35c9ba] text-black shadow-lg"
           >
             <Plus className="w-4 h-4 mr-2" />
             Novo Orçamento
@@ -192,7 +192,7 @@ export default function OrcamentosLista() {
                       )}
                     >
                       <td className="px-3 sm:px-6 py-3 sm:py-4">
-                        <span className="font-mono text-xs sm:text-sm font-medium text-[#006fee]">
+                        <span className="font-mono text-xs sm:text-sm font-medium text-[#3EE0CF]">
                           {quote.publicId}
                         </span>
                         {quote.version > 1 && (

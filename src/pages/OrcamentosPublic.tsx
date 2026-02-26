@@ -215,7 +215,7 @@ export default function OrcamentosPublic() {
             </div>
             <div className="flex justify-between text-xl font-bold pt-2 border-t">
               <span>Total</span>
-              <span className="text-[#006fee]">{formatCurrency(quote.financials.total)}</span>
+              <span className="text-[#3EE0CF]">{formatCurrency(quote.financials.total)}</span>
             </div>
           </div>
         </GlassPanel>
@@ -287,11 +287,11 @@ export default function OrcamentosPublic() {
                   ) : (
                     <div
                       onClick={() => fileInputRef.current?.click()}
-                      className="border-2 border-dashed border-zinc-300 rounded-lg p-8 text-center cursor-pointer hover:border-[#006fee] hover:bg-zinc-50 transition-colors"
+                      className="border-2 border-dashed border-zinc-300 rounded-lg p-8 text-center cursor-pointer hover:border-[#3EE0CF] hover:bg-zinc-50 transition-colors"
                     >
                       {isValidating ? (
                         <div className="text-zinc-500">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#006fee] mx-auto mb-2" />
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3EE0CF] mx-auto mb-2" />
                           <p>Processando...</p>
                         </div>
                       ) : (
@@ -319,7 +319,7 @@ export default function OrcamentosPublic() {
 
                 <Button
                   onClick={handleSign}
-                  className="w-full bg-[#006fee] hover:bg-[#0058c4] text-white py-6 text-lg"
+                  className="w-full bg-[#3EE0CF] hover:bg-[#35c9ba] text-black py-6 text-lg"
                 >
                   <CheckCircle className="w-5 h-5 mr-2" />
                   Assinar e Aprovar Orçamento
