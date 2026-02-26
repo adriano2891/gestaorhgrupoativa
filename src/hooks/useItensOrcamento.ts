@@ -54,17 +54,23 @@ export function useItensOrcamento() {
       const { data, error } = await supabase
         .from('itens_orcamento')
         .insert(item)
-        .select()
-        .single();
+        .select();
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw new Error(error.message);
+      }
+      if (!data || data.length === 0) {
+        throw new Error('Não foi possível criar o item. Verifique se você está autenticado.');
+      }
+      return data[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['itens_orcamento'] });
       toast.success('Item criado com sucesso!');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      console.error('Mutation error:', error);
       toast.error('Erro ao criar item: ' + error.message);
     }
   });
@@ -75,17 +81,23 @@ export function useItensOrcamento() {
         .from('itens_orcamento')
         .update(item)
         .eq('id', id)
-        .select()
-        .single();
+        .select();
       
-      if (error) throw error;
-      return data;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw new Error(error.message);
+      }
+      if (!data || data.length === 0) {
+        throw new Error('Não foi possível atualizar o item.');
+      }
+      return data[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['itens_orcamento'] });
       toast.success('Item atualizado com sucesso!');
     },
-    onError: (error) => {
+    onError: (error: Error) => {
+      console.error('Mutation error:', error);
       toast.error('Erro ao atualizar item: ' + error.message);
     }
   });
