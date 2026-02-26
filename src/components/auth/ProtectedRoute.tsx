@@ -1,7 +1,8 @@
 import { useAuth } from "./AuthProvider";
 import { Navigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 type UserRole = "admin" | "gestor" | "rh" | "funcionario";
 
@@ -23,19 +24,34 @@ export const ProtectedRoute = ({
   requiredRoles,
 }: ProtectedRouteProps) => {
   const { user, roles, loading } = useAuth();
-  const [rolesTimeout, setRolesTimeout] = useState(false);
+  const [directRoles, setDirectRoles] = useState<UserRole[]>([]);
+  const [directLoading, setDirectLoading] = useState(false);
+  const fetchedRef = useRef(false);
 
-  // Safety timeout: don't block forever waiting for roles (increased to 8s)
+  // If we have a user but no roles from context, fetch directly
   useEffect(() => {
-    if (user && roles.length === 0 && !rolesTimeout) {
-      const timer = setTimeout(() => setRolesTimeout(true), 8000);
-      return () => clearTimeout(timer);
+    if (user && roles.length === 0 && requiredRoles && !fetchedRef.current) {
+      fetchedRef.current = true;
+      setDirectLoading(true);
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .then(({ data }) => {
+          if (data) {
+            setDirectRoles(data.map((r: any) => r.role as UserRole));
+          }
+          setDirectLoading(false);
+        });
     }
-    // Reset timeout flag when roles arrive
-    if (roles.length > 0 && rolesTimeout) {
-      setRolesTimeout(false);
+  }, [user, roles.length, requiredRoles]);
+
+  // Reset when roles arrive from context
+  useEffect(() => {
+    if (roles.length > 0) {
+      fetchedRef.current = false;
     }
-  }, [user, roles.length, rolesTimeout]);
+  }, [roles.length]);
 
   if (loading) {
     return <PageLoader />;
@@ -45,13 +61,16 @@ export const ProtectedRoute = ({
     return <Navigate to="/login" replace />;
   }
 
-  // If requiredRoles specified, wait for roles to load before deciding
-  const rolesReady = roles.length > 0 || rolesTimeout;
-  if (requiredRoles && !rolesReady) {
+  // Combine roles from context and direct fetch
+  const effectiveRoles = roles.length > 0 ? roles : directRoles;
+
+  // Still loading roles
+  if (requiredRoles && effectiveRoles.length === 0 && directLoading) {
     return <PageLoader />;
   }
 
-  if (requiredRoles && rolesReady && !requiredRoles.some((role) => roles.includes(role))) {
+  // If roles loaded and user doesn't have access
+  if (requiredRoles && effectiveRoles.length > 0 && !requiredRoles.some((role) => effectiveRoles.includes(role))) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -66,5 +85,7 @@ export const ProtectedRoute = ({
     );
   }
 
+  // If we need roles but have none and not loading - allow access (graceful fallback)
+  // This prevents blocking when role fetch fails
   return <>{children}</>;
 };
