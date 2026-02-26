@@ -92,7 +92,7 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
                   )}
                 >
                   <item.icon className="w-5 h-5" />
-                  <span className="font-medium">{item.label}</span>
+                  <span className="font-bold">{item.label}</span>
                 </button>
               );
             })}
