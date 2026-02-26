@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { usePortalAuth } from "./PortalAuthProvider";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Clock } from "lucide-react";
 import { BotoesPonto } from "./BotoesPonto";
@@ -19,8 +19,9 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
   const { profile } = usePortalAuth();
   const [registroHoje, setRegistroHoje] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  const loadRegistroHoje = async () => {
+  const loadRegistroHoje = useCallback(async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id || profile?.id;
@@ -31,14 +32,14 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
 
       const hoje = new Date().toISOString().split('T')[0];
       
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("registros_ponto")
         .select("*")
         .eq("user_id", userId)
         .eq("data", hoje)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error("Erro ao carregar registro:", error);
       }
 
@@ -48,11 +49,16 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [profile?.id]);
 
   useEffect(() => {
     loadRegistroHoje();
-  }, [profile?.id]);
+  }, [loadRegistroHoje]);
+
+  const handleRegistroAtualizado = useCallback(() => {
+    loadRegistroHoje();
+    setRefreshKey(prev => prev + 1); // triggers HistoricoPonto refresh
+  }, [loadRegistroHoje]);
 
   const handleBack = () => {
     if (onBack) {
@@ -101,7 +107,7 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
           {/* Botões de Marcação */}
           <BotoesPonto 
             registroHoje={registroHoje} 
-            onRegistroAtualizado={loadRegistroHoje}
+            onRegistroAtualizado={handleRegistroAtualizado}
           />
 
           {/* Tabela do Dia */}
@@ -111,7 +117,7 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
           />
 
           {/* Histórico dos Últimos 5 Dias */}
-          <HistoricoPonto />
+          <HistoricoPonto key={refreshKey} />
         </div>
       </main>
     </PortalBackground>

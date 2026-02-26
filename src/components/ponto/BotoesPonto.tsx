@@ -35,21 +35,21 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
 
       // Validações CLT na entrada
       if (campo === "entrada") {
-        const { data: profileData } = await (supabase as any)
+        const { data: profileData } = await supabase
           .from("profiles")
           .select("escala_trabalho, turno")
           .eq("id", userId)
-          .single();
+          .maybeSingle();
 
         // Buscar último registro com saída para validações de descanso
-        const { data: ultimoRegistro } = await (supabase as any)
+        const { data: ultimoRegistro } = await supabase
           .from("registros_ponto")
           .select("saida, data")
           .eq("user_id", userId)
           .not("saida", "is", null)
           .order("data", { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (ultimoRegistro?.saida) {
           const ultimaSaida = new Date(ultimoRegistro.saida);
@@ -57,7 +57,6 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
           const horasDescanso = (agora2.getTime() - ultimaSaida.getTime()) / (1000 * 60 * 60);
 
           if (profileData?.escala_trabalho === "12x36") {
-            // Escala 12x36: descanso mínimo de 36h (CLT art. 59-A)
             if (horasDescanso < 36) {
               const horasRestantes = (36 - horasDescanso).toFixed(1);
               toast.error("Descanso mínimo não atingido", {
@@ -67,7 +66,6 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
               return;
             }
           } else {
-            // Escala padrão: intervalo interjornada mínimo de 11h (CLT art. 66)
             if (horasDescanso < 11) {
               const horasRestantes = (11 - horasDescanso).toFixed(1);
               toast.error("Intervalo interjornada insuficiente", {
@@ -128,28 +126,26 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
       // Detectar se é dia de folga para escala 12x36
       let isRegistroFolga = false;
       if (campo === "entrada") {
-        const { data: profileData2 } = await (supabase as any)
+        const { data: profileData2 } = await supabase
           .from("profiles")
           .select("escala_trabalho")
           .eq("id", userId)
-          .single();
+          .maybeSingle();
 
         if (profileData2?.escala_trabalho === "12x36") {
-          // Buscar último registro de trabalho (com entrada) para determinar padrão
-          const { data: ultimoTrabalho } = await (supabase as any)
+          const { data: ultimoTrabalho } = await supabase
             .from("registros_ponto")
             .select("data")
             .eq("user_id", userId)
             .not("entrada", "is", null)
             .order("data", { ascending: false })
             .limit(1)
-            .single();
+            .maybeSingle();
 
           if (ultimoTrabalho?.data) {
             const ultimaData = new Date(ultimoTrabalho.data + "T12:00:00");
             const hojeDate = new Date(hoje + "T12:00:00");
             const diffDias = Math.round((hojeDate.getTime() - ultimaData.getTime()) / (1000 * 60 * 60 * 24));
-            // Na escala 12x36, trabalha-se dia sim, dia não. Se diferença é ímpar = dia de trabalho, par = folga
             if (diffDias > 0 && diffDias % 2 === 0) {
               isRegistroFolga = true;
               toast.warning("Registro em dia de folga (12x36)", {
@@ -162,21 +158,39 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
       }
 
       if (!registroHoje) {
-        const { error } = await (supabase as any)
+        // Verificar se já existe registro para hoje (evitar duplicação)
+        const { data: existente } = await supabase
           .from("registros_ponto")
-          .insert({
-            user_id: userId,
-            data: hoje,
-            [campo]: agora,
-            registro_folga: isRegistroFolga,
-            status_validacao: isRegistroFolga ? "pendente" : "validado",
-          });
+          .select("id")
+          .eq("user_id", userId)
+          .eq("data", hoje)
+          .maybeSingle();
 
-        if (error) throw error;
+        if (existente) {
+          // Registro já existe, atualizar ao invés de inserir
+          const { error } = await supabase
+            .from("registros_ponto")
+            .update({ [campo]: agora } as any)
+            .eq("id", existente.id);
+
+          if (error) throw error;
+        } else {
+          const { error } = await supabase
+            .from("registros_ponto")
+            .insert({
+              user_id: userId,
+              data: hoje,
+              [campo]: agora,
+              registro_folga: isRegistroFolga,
+              status_validacao: isRegistroFolga ? "pendente" : "validado",
+            } as any);
+
+          if (error) throw error;
+        }
       } else {
-        const { error } = await (supabase as any)
+        const { error } = await supabase
           .from("registros_ponto")
-          .update({ [campo]: agora })
+          .update({ [campo]: agora } as any)
           .eq("id", registroHoje.id);
 
         if (error) throw error;
@@ -189,6 +203,8 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
         })}`,
       });
 
+      // Small delay to ensure DB trigger calculations complete before refetching
+      await new Promise(resolve => setTimeout(resolve, 300));
       onRegistroAtualizado();
     } catch (error: any) {
       console.error("Erro ao registrar ponto:", error);
