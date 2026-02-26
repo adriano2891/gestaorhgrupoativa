@@ -15,13 +15,23 @@ export function useFornecedores() {
   return useQuery({
     queryKey: ['fornecedores'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('fornecedores')
-        .select('*')
-        .order('razao_social');
-      if (error) throw error;
-      return data as Fornecedor[];
+      try {
+        const { data, error } = await supabase
+          .from('fornecedores')
+          .select('*')
+          .order('razao_social');
+        if (error) {
+          console.error('Erro ao buscar fornecedores:', error.message);
+          return [] as Fornecedor[];
+        }
+        return (data ?? []) as Fornecedor[];
+      } catch (err) {
+        console.error('Erro inesperado ao buscar fornecedores:', err);
+        return [] as Fornecedor[];
+      }
     },
+    retry: 2,
+    staleTime: 2 * 60 * 1000,
   });
 }
 
