@@ -25,11 +25,15 @@ export const ProtectedRoute = ({
   const { user, roles, loading } = useAuth();
   const [rolesTimeout, setRolesTimeout] = useState(false);
 
-  // Safety timeout: don't block forever waiting for roles
+  // Safety timeout: don't block forever waiting for roles (increased to 8s)
   useEffect(() => {
     if (user && roles.length === 0 && !rolesTimeout) {
-      const timer = setTimeout(() => setRolesTimeout(true), 3000);
+      const timer = setTimeout(() => setRolesTimeout(true), 8000);
       return () => clearTimeout(timer);
+    }
+    // Reset timeout flag when roles arrive
+    if (roles.length > 0 && rolesTimeout) {
+      setRolesTimeout(false);
     }
   }, [user, roles.length, rolesTimeout]);
 
