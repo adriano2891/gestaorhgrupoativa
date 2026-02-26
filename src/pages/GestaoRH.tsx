@@ -22,6 +22,7 @@ import iconFormularios from "@/assets/icon-rh-formularios.png";
 import iconCursos from "@/assets/icon-rh-cursos.png";
 import iconFerias from "@/assets/icon-rh-ferias.png";
 import iconSuporte from "@/assets/icon-rh-suporte.png";
+import iconDocumentos from "@/assets/icon-rh-documentos.png";
 
 interface ModuleItem {
   title: string;
@@ -77,6 +78,7 @@ const GestaoRH = () => {
     { title: "Cursos", description: "Treinamentos e capacitação", iconSrc: iconCursos, path: "/cursos", scaleIcon: true },
     { title: "Controle de Férias", description: "Férias e licenças", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
     { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.8]", badgeKey: "/suporte-funcionarios" },
+    { title: "Documentos", description: "Gestão de documentos", iconSrc: iconDocumentos, path: "/documentacoes", scaleIcon: true },
   ];
 
   if (isSuperAdmin) {
@@ -110,6 +112,7 @@ const GestaoRH = () => {
     '/cursos': () => import("./CursosAdmin"),
     '/controle-ferias': () => import("./ControleFerias"),
     '/suporte-funcionarios': () => import("./SuporteFuncionarios"),
+    '/documentacoes': () => import("./Documentacoes"),
     '/admins': () => import("./GerenciarAdmins"),
   }), []);
 
