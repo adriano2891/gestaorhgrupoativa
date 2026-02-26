@@ -27,7 +27,7 @@ export const useAdmins = () => {
       if (rolesError) throw rolesError;
 
       if (!userRoles || userRoles.length === 0) {
-        return [];
+        return [] as Admin[];
       }
 
       // Agrupar roles por user_id
@@ -51,13 +51,15 @@ export const useAdmins = () => {
       if (profilesError) throw profilesError;
 
       // Combinar perfis com seus roles
-      const admins = profiles.map((profile) => ({
+      const admins = (profiles || []).map((profile) => ({
         ...profile,
         roles: rolesByUser[profile.id] || [],
       }));
 
       return admins as Admin[];
     },
+    staleTime: 1000 * 60 * 2,
+    retry: 2,
   });
 };
 

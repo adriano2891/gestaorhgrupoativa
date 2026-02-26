@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const GerenciarAdmins = () => {
-  const { data: admins = [], isLoading, refetch, isFetching } = useAdmins();
+  const { data: admins = [], isLoading, refetch, isFetching, error } = useAdmins();
   const deleteAdmin = useDeleteAdmin();
   const { roles } = useAuth();
   const isSuperAdmin = roles.includes("admin");
@@ -165,6 +165,14 @@ const GerenciarAdmins = () => {
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-8 gap-2">
+              <p className="text-sm text-destructive">Erro ao carregar administradores</p>
+              <Button variant="outline" size="sm" onClick={() => refetch()}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Tentar novamente
+              </Button>
             </div>
           ) : (
             <Table>
