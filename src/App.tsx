@@ -8,6 +8,7 @@ import { AuthProvider } from "./components/auth/AuthProvider";
 import { QuotesProvider } from "./contexts/QuotesContext";
 import SplashScreen from "./components/SplashScreen";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
+import { ScrollToTop } from "./components/ScrollToTop";
 import { Skeleton } from "@/components/ui/skeleton";
 
 // Eagerly loaded (critical path)
@@ -51,7 +52,16 @@ const PortalCursoPlayerLazy = lazy(() => import("./components/ponto/PortalCursoP
 const Layout = lazy(() => import("./components/Layout").then(m => ({ default: m.Layout })));
 const GlobalFooter = lazy(() => import("./components/GlobalFooter").then(m => ({ default: m.GlobalFooter })));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 2, // 2 minutes - avoid refetching on every navigation
+      gcTime: 1000 * 60 * 5, // 5 minutes garbage collection
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const PageLoader = () => (
   <div className="space-y-4 p-8">
@@ -87,6 +97,7 @@ const App = () => {
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <AuthProvider>
           <QuotesProvider>
             <div className="min-h-screen flex flex-col">
