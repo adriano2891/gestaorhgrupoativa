@@ -137,11 +137,12 @@ const FolhaPonto = () => {
   };
 
   useEffect(() => {
-    if (!loadingFuncionarios) {
+    if (!loadingFuncionarios && employees.length >= 0) {
       loadMonthRecords();
       loadRegistrosFolga();
     }
-  }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, funcionarios, loadingFuncionarios]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, loadingFuncionarios, employees.length]);
 
   // Realtime: re-fetch stats when registros_ponto changes
   useEffect(() => {
@@ -162,7 +163,8 @@ const FolhaPonto = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, funcionarios, loadingFuncionarios]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, loadingFuncionarios]);
 
   const loadMonthRecords = async () => {
     setLoading(true);
