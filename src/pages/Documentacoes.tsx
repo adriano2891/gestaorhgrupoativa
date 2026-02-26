@@ -164,25 +164,28 @@ const Documentacoes = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-            <div className="flex items-center gap-3 sm:gap-4">
-              <BackButton to="/dashboard" />
+      <header className="sticky top-0 z-50 bg-[#3EE0CF] shadow-md">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-0 sm:h-16 gap-2 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <BackButton to="/dashboard" variant="light" className="text-black hover:bg-black/10" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex items-center justify-center flex-shrink-0">
+                <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              </div>
               <div className="min-w-0">
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">Documentações</h1>
-                <p className="text-xs sm:text-sm text-muted-foreground">Gestão centralizada de documentos</p>
+                <h1 className="text-sm sm:text-lg font-bold text-black truncate">Documentações</h1>
+                <p className="text-[10px] sm:text-xs text-black/70 truncate">Gestão centralizada de documentos</p>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowCategoriaDialog(true)} className="text-xs sm:text-sm">
-                <FolderOpen className="h-4 w-4 sm:mr-2" />
+            <div className="flex items-center gap-1 sm:gap-2">
+              <Button variant="ghost" size="sm" onClick={() => setShowCategoriaDialog(true)} className="h-8 px-2 sm:px-3 text-xs sm:text-sm text-black hover:bg-black/10">
+                <FolderOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Nova Categoria</span>
               </Button>
-              <Button onClick={() => setShowUploadDialog(true)} className="text-xs sm:text-sm">
-                <Upload className="h-4 w-4 sm:mr-2" />
+              <Button size="sm" onClick={() => setShowUploadDialog(true)} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-black hover:bg-black/90 text-white">
+                <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Upload</span>
               </Button>
             </div>
@@ -190,7 +193,7 @@ const Documentacoes = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Filters */}
         <div className="flex flex-col gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
@@ -506,7 +509,7 @@ const Documentacoes = () => {
             )}
           </TabsContent>
         </Tabs>
-      </div>
+      </main>
 
       {/* Dialogs */}
       <UploadDocumentoDialog 
