@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useClientesOrcamentos, ClienteOrcamentoInput } from '@/hooks/useClientesOrcamentos';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const ESTADOS_BRASIL = [
@@ -122,17 +121,7 @@ export default function OrcamentosClienteForm() {
     setIsSubmitting(true);
 
     try {
-      // Check auth session before attempting save
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !sessionData?.session) {
-        toast.error('Sessão expirada. Faça login novamente para continuar.');
-        setIsSubmitting(false);
-        navigate('/login');
-        return;
-      }
-
-      // Clean empty strings to null for optional fields
+      // Clean empty strings to undefined for optional fields
       const cleanedData: ClienteOrcamentoInput = {
         nome_condominio: formData.nome_condominio.trim(),
         nome_sindico: formData.nome_sindico.trim(),
@@ -149,7 +138,13 @@ export default function OrcamentosClienteForm() {
         observacoes: formData.observacoes || undefined,
       };
 
-      const savedClient = await addCliente.mutateAsync(cleanedData);
+      // Use Promise.race with timeout to prevent infinite hang
+      const savedClient = await Promise.race([
+        addCliente.mutateAsync(cleanedData),
+        new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('TIMEOUT')), 12000)
+        ),
+      ]);
       
       if (savedClient?.id) {
         navigate('/orcamentos/novo', { state: { selectedClientId: savedClient.id } });
@@ -159,9 +154,8 @@ export default function OrcamentosClienteForm() {
     } catch (error: any) {
       console.error('Erro ao salvar cliente:', error);
       const msg = error?.message || '';
-      if (msg.includes('LockManager') || msg.includes('auth-token') || msg.includes('timed out')) {
-        toast.error('Sessão expirada. Faça login novamente.');
-        navigate('/login');
+      if (msg === 'TIMEOUT' || msg.includes('LockManager') || msg.includes('auth-token') || msg.includes('timed out')) {
+        toast.error('Falha na autenticação. Faça logout e login novamente.');
       } else {
         toast.error('Erro ao salvar cliente: ' + (msg || 'Tente novamente'));
       }
