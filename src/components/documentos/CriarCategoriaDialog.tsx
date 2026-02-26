@@ -21,7 +21,7 @@ import type { DocumentoCategoria } from "@/types/documentos";
 const formSchema = z.object({
   nome: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   descricao: z.string().optional(),
-  cor: z.string().default("#3B82F6"),
+  cor: z.string().optional().default("#3B82F6"),
   categoria_pai_id: z.string().optional(),
 });
 
@@ -48,7 +48,7 @@ export const CriarCategoriaDialog = ({ open, onOpenChange, categorias }: CriarCa
   const createCategoria = useCreateCategoria();
 
   const form = useForm<FormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       nome: "",
       descricao: "",

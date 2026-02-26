@@ -57,9 +57,7 @@ const adminSchema = z.object({
     .or(z.literal("")),
   departamento: z.string().optional(),
   cargo: z.string().optional(),
-  role: z.enum(["admin", "gestor", "rh"], {
-    required_error: "Selecione uma função",
-  }),
+  role: z.string().min(1, "Selecione uma função") as unknown as z.ZodType<"admin" | "gestor" | "rh">,
 });
 
 type AdminFormData = z.infer<typeof adminSchema>;
@@ -77,7 +75,7 @@ export const AdminDialog = ({ open, onOpenChange, admin }: AdminDialogProps) => 
   const [selectedModulos, setSelectedModulos] = useState<string[]>([]);
 
   const form = useForm<AdminFormData>({
-    resolver: zodResolver(adminSchema),
+    resolver: zodResolver(adminSchema) as any,
     defaultValues: {
       nome: admin?.nome || "",
       usuario: admin?.usuario || "",
