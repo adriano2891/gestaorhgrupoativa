@@ -33,7 +33,7 @@ const allModules: ModuleItem[] = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { signOut, roles, loading } = useAuth();
+  const { signOut, roles, loading, user } = useAuth();
   const isMobile = useIsMobile();
 
   // Redirecionar funcionários para o portal
@@ -43,8 +43,8 @@ const Dashboard = () => {
     }
   }, [roles, navigate]);
 
-  // Show loading while roles are being fetched
-  if (loading) {
+  // Show loading while roles are being fetched (covers re-login where roles are still empty)
+  if (loading || (user && roles.length === 0)) {
     return (
       <div 
         className="min-h-screen flex items-center justify-center"
