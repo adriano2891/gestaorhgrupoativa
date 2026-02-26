@@ -67,10 +67,14 @@ export function useClientesOrcamentos() {
 
   const addCliente = useMutation({
     mutationFn: async (cliente: ClienteOrcamentoInput) => {
+      console.log('Starting insert mutation for client:', cliente.nome_condominio);
+      
       const { data, error } = await supabase
         .from('clientes_orcamentos')
         .insert([cliente])
         .select();
+
+      console.log('Supabase response - data:', data, 'error:', error);
 
       if (error) {
         console.error('Supabase insert error:', error);
@@ -89,7 +93,6 @@ export function useClientesOrcamentos() {
     },
     onError: (error: Error) => {
       console.error('Mutation error:', error);
-      toast.error(`Erro ao cadastrar cliente: ${error.message}`);
     },
   });
 
