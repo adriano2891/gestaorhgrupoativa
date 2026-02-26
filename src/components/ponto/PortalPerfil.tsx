@@ -106,10 +106,12 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
   };
 
   const handleSave = async () => {
+    const userId = user?.id;
+    if (!userId) {
+      toast.error("Sessão expirada. Faça login novamente.");
+      return;
+    }
     setSaving(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    const userId = session?.user?.id || user?.id;
-    if (!userId) { setSaving(false); return; }
     try {
       const { error } = await supabase
         .from("profiles")
@@ -122,7 +124,6 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
         .eq("id", userId);
 
       if (error) throw error;
-
       toast.success("Dados atualizados com sucesso!");
     } catch (error: any) {
       console.error("Erro ao salvar perfil:", error);
