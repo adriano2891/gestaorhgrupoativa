@@ -70,17 +70,25 @@ export function useClientesOrcamentos() {
       const { data, error } = await supabase
         .from('clientes_orcamentos')
         .insert([cliente])
-        .select()
-        .single();
+        .select();
 
-      if (error) throw error;
-      return data as ClienteOrcamento;
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw new Error(error.message);
+      }
+      
+      if (!data || data.length === 0) {
+        throw new Error('Não foi possível salvar o cliente. Verifique se você está autenticado.');
+      }
+      
+      return data[0] as ClienteOrcamento;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clientes-orcamentos'] });
       toast.success('Cliente cadastrado com sucesso!');
     },
     onError: (error: Error) => {
+      console.error('Mutation error:', error);
       toast.error(`Erro ao cadastrar cliente: ${error.message}`);
     },
   });
