@@ -239,37 +239,42 @@ const Funcionarios = () => {
   // Função para buscar funcionários do banco de dados
   const fetchEmployees = async () => {
     try {
-      // First get admin user IDs to exclude them
-      const { data: adminRoles } = await supabase
+      // Step 1: Get all roles
+      const { data: allRoles, error: rolesError } = await supabase
         .from("user_roles")
-        .select("user_id")
-        .in("role", ["admin", "gestor", "rh"]);
-      
-      const adminUserIds = (adminRoles || []).map(r => r.user_id);
+        .select("user_id, role");
 
-      let query = supabase
-        .from("profiles")
-        .select(`
-          id,
-          nome,
-          email,
-          telefone,
-          cargo,
-          departamento,
-          salario,
-          status,
-          created_at,
-          data_admissao,
-          foto_url,
-          user_roles!inner(role)
-        `)
-        .eq("user_roles.role", "funcionario");
-      
-      if (adminUserIds.length > 0) {
-        query = query.not("id", "in", `(${adminUserIds.join(",")})`);
+      if (rolesError) {
+        console.error("Erro ao buscar roles:", rolesError);
+        toast({
+          title: "Erro ao carregar funcionários",
+          description: "Não foi possível carregar a lista de funcionários.",
+          variant: "destructive",
+        });
+        return;
       }
 
-      const { data: profilesData, error } = await query as { data: any[] | null; error: any };
+      const employeeIds = new Set<string>();
+      const adminIds = new Set<string>();
+      (allRoles || []).forEach(r => {
+        if (r.role === 'funcionario') employeeIds.add(r.user_id);
+        if (['admin', 'gestor', 'rh'].includes(r.role as string)) adminIds.add(r.user_id);
+      });
+
+      const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
+      if (targetIds.length === 0) {
+        setEmployees([]);
+        setEmployeeSalaries({});
+        return;
+      }
+
+      // Step 2: Fetch profiles
+      const { data: profilesData, error } = await supabase
+        .from("profiles")
+        .select("id, nome, email, telefone, cargo, departamento, salario, status, created_at, data_admissao, foto_url")
+        .in("id", targetIds)
+        .not("status", "in", '("demitido","pediu_demissao")')
+        .order("nome", { ascending: true });
 
       if (error) {
         console.error("Erro ao buscar funcionários:", error);
@@ -282,29 +287,24 @@ const Funcionarios = () => {
       }
 
       // Transformar dados do banco para o formato usado na interface
-      const formattedEmployees = profilesData.map((profile: any) => ({
+      const formattedEmployees = (profilesData || []).map((profile: any) => ({
         id: profile.id,
         name: profile.nome,
         email: profile.email,
         phone: profile.telefone || "Não informado",
         position: profile.cargo || "Não informado",
         department: profile.departamento || "Não informado",
-        status: (profile.status || "ativo") as "ativo" | "afastado" | "demitido" | "em_ferias" | "pediu_demissao",
+        status: (profile.status || "ativo") as EmployeeStatus,
         admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
         foto_url: profile.foto_url || undefined,
       }));
 
       setEmployees(formattedEmployees);
 
-      // Atualizar salários imediatamente
       const salaries: Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }> = {};
-      
-      for (const profile of profilesData) {
-        salaries[profile.id] = {
-          salario: profile.salario,
-        };
+      for (const profile of (profilesData || [])) {
+        salaries[profile.id] = { salario: profile.salario };
       }
-
       setEmployeeSalaries(salaries);
     } catch (error) {
       console.error("Erro ao buscar funcionários:", error);
