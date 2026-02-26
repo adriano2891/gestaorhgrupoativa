@@ -54,10 +54,11 @@ import { GlobalFooter } from "./components/GlobalFooter";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes - prevents refetch on every navigation
+      staleTime: 1000 * 30, // 30s - balances freshness and performance
       gcTime: 1000 * 60 * 10, // 10 minutes garbage collection
-      refetchOnWindowFocus: false,
-      retry: 1,
+      refetchOnWindowFocus: true,
+      retry: 2,
+      retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
     },
   },
 });
