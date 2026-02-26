@@ -157,34 +157,39 @@ export default function FornecedorForm() {
 
   if (isEditing && (loadingFornecedor || loadingEndereco)) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="text-slate-500">Carregando...</div>
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-black">Carregando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-4 md:p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <BackButton to="/fornecedores" />
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
-              {isEditing ? 'Editar Fornecedor' : 'Novo Fornecedor'}
-            </h1>
-            <p className="text-slate-500 text-sm">
-              {isEditing ? 'Atualize as informações do fornecedor' : 'Preencha os dados do novo fornecedor'}
-            </p>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="sticky top-0 z-50 bg-[#3EE0CF] shadow-md">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3 h-16">
+            <BackButton to="/fornecedores" variant="light" className="text-black hover:bg-black/10" />
+            <div>
+              <h1 className="text-lg font-bold text-black">
+                {isEditing ? 'Editar Fornecedor' : 'Novo Fornecedor'}
+              </h1>
+              <p className="text-black/70 text-xs">
+                {isEditing ? 'Atualize as informações do fornecedor' : 'Preencha os dados do novo fornecedor'}
+              </p>
+            </div>
           </div>
         </div>
+      </header>
+
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Dados Básicos */}
-            <Card className="bg-white/80 backdrop-blur">
-              <CardHeader>
-                <CardTitle className="text-lg">Dados Básicos</CardTitle>
+            <Card className="border border-black/10">
+              <CardHeader className="bg-[#3EE0CF]/10 border-b border-black/5">
+                <CardTitle className="text-lg text-black">Dados Básicos</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -286,9 +291,9 @@ export default function FornecedorForm() {
             </Card>
 
             {/* Contato */}
-            <Card className="bg-white/80 backdrop-blur">
-              <CardHeader>
-                <CardTitle className="text-lg">Contato</CardTitle>
+            <Card className="border border-black/10">
+              <CardHeader className="bg-[#3EE0CF]/10 border-b border-black/5">
+                <CardTitle className="text-lg text-black">Contato</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -321,9 +326,9 @@ export default function FornecedorForm() {
             </Card>
 
             {/* Endereço */}
-            <Card className="bg-white/80 backdrop-blur">
-              <CardHeader>
-                <CardTitle className="text-lg">Endereço</CardTitle>
+            <Card className="border border-black/10">
+              <CardHeader className="bg-[#3EE0CF]/10 border-b border-black/5">
+                <CardTitle className="text-lg text-black">Endereço</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
@@ -425,9 +430,9 @@ export default function FornecedorForm() {
             </Card>
 
             {/* Informações Comerciais */}
-            <Card className="bg-white/80 backdrop-blur">
-              <CardHeader>
-                <CardTitle className="text-lg">Informações Comerciais</CardTitle>
+            <Card className="border border-black/10">
+              <CardHeader className="bg-[#3EE0CF]/10 border-b border-black/5">
+                <CardTitle className="text-lg text-black">Informações Comerciais</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -486,7 +491,7 @@ export default function FornecedorForm() {
               <Button
                 type="submit"
                 disabled={createFornecedor.isPending || updateFornecedor.isPending}
-                className="gap-2"
+                className="gap-2 bg-black hover:bg-black/90 text-white"
               >
                 <Save className="h-4 w-4" />
                 {isEditing ? 'Salvar Alterações' : 'Cadastrar Fornecedor'}
