@@ -73,41 +73,59 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
   const { data: periodos, isLoading } = useQuery({
     queryKey: ["periodos-aquisitivos-portal", user?.id],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id || user?.id;
-      if (!userId) throw new Error("User ID is required");
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id || user?.id;
+        if (!userId) return [];
 
-      const { data, error } = await supabase
-        .from("periodos_aquisitivos")
-        .select("*")
-        .eq("user_id", userId)
-        .order("data_inicio", { ascending: false });
+        const { data, error } = await supabase
+          .from("periodos_aquisitivos")
+          .select("*")
+          .eq("user_id", userId)
+          .order("data_inicio", { ascending: false });
 
-      if (error) throw error;
-      return data;
+        if (error) {
+          console.error("Erro ao buscar períodos aquisitivos:", error);
+          return [];
+        }
+        return data || [];
+      } catch (e) {
+        console.error("Erro inesperado em períodos aquisitivos:", e);
+        return [];
+      }
     },
     enabled: !!user?.id,
-    refetchOnWindowFocus: true,
+    retry: 2,
+    staleTime: 1000 * 30,
   });
 
   const { data: solicitacoes, isLoading: loadingSolicitacoes } = useQuery({
     queryKey: ["solicitacoes-ferias-portal", user?.id],
     queryFn: async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id || user?.id;
-      if (!userId) throw new Error("User ID is required");
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id || user?.id;
+        if (!userId) return [];
 
-      const { data, error } = await supabase
-        .from("solicitacoes_ferias")
-        .select("*")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+        const { data, error } = await supabase
+          .from("solicitacoes_ferias")
+          .select("*")
+          .eq("user_id", userId)
+          .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      return data;
+        if (error) {
+          console.error("Erro ao buscar solicitações de férias:", error);
+          return [];
+        }
+        return data || [];
+      } catch (e) {
+        console.error("Erro inesperado em solicitações de férias:", e);
+        return [];
+      }
     },
     enabled: !!user?.id,
-    refetchOnWindowFocus: true,
+    retry: 2,
+    staleTime: 1000 * 30,
   });
 
   // Calcular dados baseado na data de admissão e períodos aquisitivos (CLT)
