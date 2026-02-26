@@ -59,9 +59,10 @@ export const useTodosChamados = () => {
   return useQuery({
     queryKey: ["todos-chamados"],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
+      // Fetch chamados without join first (most reliable)
+      const { data: chamados, error } = await supabase
         .from("chamados_suporte")
-        .select("*, profiles:user_id(nome, departamento, cargo, status)")
+        .select("*")
         .order("created_at", { ascending: false });
       
       if (error) {
@@ -69,15 +70,37 @@ export const useTodosChamados = () => {
         throw error;
       }
 
-      // Filtrar funcionários demitidos no client-side
-      const filtered = (data || []).filter((c: any) => {
-        const profileStatus = c.profiles?.status;
-        return profileStatus !== 'demitido' && profileStatus !== 'pediu_demissao';
-      });
+      if (!chamados || chamados.length === 0) return [] as ChamadoSuporte[];
 
-      return filtered as ChamadoSuporte[];
+      // Fetch profiles separately
+      try {
+        const uniqueUserIds = [...new Set(chamados.map(c => c.user_id))] as string[];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, nome, departamento, cargo, status")
+          .in("id", uniqueUserIds);
+
+        const profileMap = new Map((profiles || []).map(p => [p.id, p]));
+
+        const withProfiles = chamados.map(c => ({
+          ...c,
+          profiles: profileMap.get(c.user_id) || null,
+        }));
+
+        // Filtrar funcionários demitidos no client-side
+        const filtered = withProfiles.filter((c: any) => {
+          const profileStatus = c.profiles?.status;
+          return profileStatus !== 'demitido' && profileStatus !== 'pediu_demissao';
+        });
+
+        return filtered as ChamadoSuporte[];
+      } catch (e) {
+        console.warn("Failed to fetch profiles for chamados:", e);
+        return chamados as ChamadoSuporte[];
+      }
     },
     retry: 2,
+    staleTime: 1000 * 60 * 2,
   });
 };
 
