@@ -82,9 +82,10 @@ const Dashboard = () => {
     );
   }
 
-  // Filter modules based on user roles
+  // Filter modules based on user roles (if roles loaded); show all if timeout
   const modules = allModules.filter((m) => {
     if (!m.allowedRoles) return true;
+    if (rolesTimeout && roles.length === 0) return true; // show all if roles failed to load
     return m.allowedRoles.some((r) => roles.includes(r as any));
   });
 
