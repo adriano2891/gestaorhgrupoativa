@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useClientesOrcamentos, ClienteOrcamentoInput } from '@/hooks/useClientesOrcamentos';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 const ESTADOS_BRASIL = [
@@ -119,14 +120,18 @@ export default function OrcamentosClienteForm() {
     if (!validateForm()) return;
 
     setIsSubmitting(true);
-    
-    // Safety timeout to prevent infinite loading
-    const timeout = setTimeout(() => {
-      setIsSubmitting(false);
-      toast.error('Tempo esgotado ao salvar. Verifique sua conexão e tente novamente.');
-    }, 15000);
 
     try {
+      // Check auth session before attempting save
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !sessionData?.session) {
+        toast.error('Sessão expirada. Faça login novamente para continuar.');
+        setIsSubmitting(false);
+        navigate('/login');
+        return;
+      }
+
       // Clean empty strings to null for optional fields
       const cleanedData: ClienteOrcamentoInput = {
         nome_condominio: formData.nome_condominio.trim(),
@@ -144,10 +149,7 @@ export default function OrcamentosClienteForm() {
         observacoes: formData.observacoes || undefined,
       };
 
-      console.log('Saving client data:', cleanedData);
       const savedClient = await addCliente.mutateAsync(cleanedData);
-      clearTimeout(timeout);
-      console.log('Client saved successfully:', savedClient);
       
       if (savedClient?.id) {
         navigate('/orcamentos/novo', { state: { selectedClientId: savedClient.id } });
@@ -155,9 +157,14 @@ export default function OrcamentosClienteForm() {
         toast.error('Cliente salvo mas ID não retornado. Tente novamente.');
       }
     } catch (error: any) {
-      clearTimeout(timeout);
       console.error('Erro ao salvar cliente:', error);
-      toast.error('Erro ao salvar cliente: ' + (error?.message || 'Tente novamente'));
+      const msg = error?.message || '';
+      if (msg.includes('LockManager') || msg.includes('auth-token') || msg.includes('timed out')) {
+        toast.error('Sessão expirada. Faça login novamente.');
+        navigate('/login');
+      } else {
+        toast.error('Erro ao salvar cliente: ' + (msg || 'Tente novamente'));
+      }
     } finally {
       setIsSubmitting(false);
     }
