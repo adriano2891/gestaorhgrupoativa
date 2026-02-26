@@ -44,21 +44,27 @@ const Comunicados = () => {
   const [selectedComunicado, setSelectedComunicado] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: comunicados, isLoading, error } = useQuery({
+  const { data: comunicados, isLoading, error, refetch } = useQuery({
     queryKey: ["comunicados-admin"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("comunicados")
-        .select("*")
-        .order("created_at", { ascending: false });
+      try {
+        const { data, error } = await supabase
+          .from("comunicados")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Erro ao buscar comunicados:", error);
-        throw error;
+        if (error) {
+          console.error("Erro ao buscar comunicados:", error);
+          throw error;
+        }
+        return (data || []) as Comunicado[];
+      } catch (err) {
+        console.error("Erro inesperado ao buscar comunicados:", err);
+        return [] as Comunicado[];
       }
-      return data as Comunicado[];
     },
     retry: 2,
+    staleTime: 1000 * 30,
   });
 
   const deleteMutation = useMutation({
@@ -171,7 +177,7 @@ const Comunicados = () => {
                 Erro ao carregar comunicados
               </p>
               <p className="text-sm text-muted-foreground mb-4">{(error as Error).message}</p>
-              <Button variant="outline" onClick={() => queryClient.invalidateQueries({ queryKey: ["comunicados-admin"] })}>
+              <Button variant="outline" onClick={() => refetch()}>
                 Tentar novamente
               </Button>
             </div>
