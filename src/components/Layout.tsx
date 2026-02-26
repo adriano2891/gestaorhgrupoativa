@@ -1,7 +1,7 @@
 import { Building2, Moon, Sun, LogOut, Menu, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useAuth } from "./auth/AuthProvider";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import loginBackground from "@/assets/login-background.png";
@@ -32,6 +32,26 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
     if (!item.allowedRoles) return true;
     return item.allowedRoles.some((r) => roles.includes(r as any));
   });
+
+  // Prefetch module chunks on hover for instant navigation
+  const prefetchMap: Record<string, () => void> = useMemo(() => ({
+    '/': () => import("@/pages/Dashboard"),
+    '/funcionarios': () => import("@/pages/Funcionarios"),
+    '/banco-talentos': () => import("@/pages/BancoTalentos"),
+    '/relatorios': () => import("@/pages/Relatorios"),
+    '/folha-ponto': () => import("@/pages/FolhaPonto"),
+    '/holerites': () => import("@/pages/Holerites"),
+    '/comunicados': () => import("@/pages/Comunicados"),
+    '/formularios-rh': () => import("@/pages/FormulariosRH"),
+    '/cursos': () => import("@/pages/CursosAdmin"),
+    '/suporte-funcionarios': () => import("@/pages/SuporteFuncionarios"),
+    '/admins': () => import("@/pages/GerenciarAdmins"),
+    '/controle-ferias': () => import("@/pages/ControleFerias"),
+  }), []);
+
+  const handlePrefetch = useCallback((path: string) => {
+    prefetchMap[path]?.();
+  }, [prefetchMap]);
 
   const toggleTheme = () => {
     setIsDark(!isDark);
@@ -101,6 +121,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                           <Link
                             key={item.path}
                             to={item.path}
+                            onMouseEnter={() => handlePrefetch(item.path)}
                             onClick={() => setMobileMenuOpen(false)}
                             className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors touch-target ${
                               isActive
@@ -140,6 +161,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 <Link
                   key={item.path}
                   to={item.path}
+                  onMouseEnter={() => handlePrefetch(item.path)}
                   className={`flex items-center gap-1 lg:gap-1.5 px-1.5 lg:px-3 py-3 lg:py-4 text-xs lg:text-sm font-medium transition-all whitespace-nowrap border-b-2 ${
                     isActive
                       ? "text-primary-foreground border-primary-foreground"
