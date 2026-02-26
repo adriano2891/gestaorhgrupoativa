@@ -38,6 +38,48 @@ export interface ClienteOrcamentoInput {
   observacoes?: string;
 }
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+function getAccessToken(): string {
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || SUPABASE_URL?.match(/\/\/([^.]+)/)?.[1] || '';
+  const storageKey = `sb-${projectId}-auth-token`;
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed?.access_token || SUPABASE_KEY;
+    }
+  } catch {}
+  return SUPABASE_KEY;
+}
+
+async function restCall(method: string, body?: any, query?: string) {
+  const token = getAccessToken();
+  const url = `${SUPABASE_URL}/rest/v1/clientes_orcamentos${query || ''}`;
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${token}`,
+    'apikey': SUPABASE_KEY,
+    'Content-Type': 'application/json',
+  };
+  if (method === 'POST') headers['Prefer'] = 'return=representation';
+  if (method === 'PATCH') headers['Prefer'] = 'return=representation';
+
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || `HTTP ${res.status}`);
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
 export function useClientesOrcamentos() {
   const queryClient = useQueryClient();
 
@@ -68,24 +110,13 @@ export function useClientesOrcamentos() {
   const addCliente = useMutation({
     mutationFn: async (cliente: ClienteOrcamentoInput) => {
       console.log('Starting insert mutation for client:', cliente.nome_condominio);
-      
-      const { data, error } = await supabase
-        .from('clientes_orcamentos')
-        .insert([cliente])
-        .select();
-
-      console.log('Supabase response - data:', data, 'error:', error);
-
-      if (error) {
-        console.error('Supabase insert error:', error);
-        throw new Error(error.message);
+      const data = await restCall('POST', cliente);
+      if (!data || (Array.isArray(data) && data.length === 0)) {
+        throw new Error('Não foi possível salvar o cliente.');
       }
-      
-      if (!data || data.length === 0) {
-        throw new Error('Não foi possível salvar o cliente. Verifique se você está autenticado.');
-      }
-      
-      return data[0] as ClienteOrcamento;
+      const saved = Array.isArray(data) ? data[0] : data;
+      console.log('Client saved:', saved);
+      return saved as ClienteOrcamento;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clientes-orcamentos'] });
@@ -98,15 +129,9 @@ export function useClientesOrcamentos() {
 
   const updateCliente = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<ClienteOrcamento> & { id: string }) => {
-      const { data, error } = await supabase
-        .from('clientes_orcamentos')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as ClienteOrcamento;
+      const data = await restCall('PATCH', updates, `?id=eq.${id}`);
+      const saved = Array.isArray(data) ? data[0] : data;
+      return saved as ClienteOrcamento;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clientes-orcamentos'] });
@@ -119,12 +144,7 @@ export function useClientesOrcamentos() {
 
   const deleteCliente = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('clientes_orcamentos')
-        .update({ ativo: false })
-        .eq('id', id);
-
-      if (error) throw error;
+      await restCall('PATCH', { ativo: false }, `?id=eq.${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clientes-orcamentos'] });
