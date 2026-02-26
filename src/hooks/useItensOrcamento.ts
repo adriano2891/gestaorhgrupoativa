@@ -29,14 +29,24 @@ export function useItensOrcamento() {
   const { data: itens = [], isLoading, error } = useQuery({
     queryKey: ['itens_orcamento'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('itens_orcamento')
-        .select('*')
-        .order('nome');
-      
-      if (error) throw error;
-      return data as ItemOrcamento[];
-    }
+      try {
+        const { data, error } = await supabase
+          .from('itens_orcamento')
+          .select('*')
+          .order('nome');
+        
+        if (error) {
+          console.error('Erro ao buscar itens:', error.message);
+          return [] as ItemOrcamento[];
+        }
+        return (data ?? []) as ItemOrcamento[];
+      } catch (err) {
+        console.error('Erro inesperado ao buscar itens:', err);
+        return [] as ItemOrcamento[];
+      }
+    },
+    retry: 2,
+    staleTime: 2 * 60 * 1000,
   });
 
   const createItem = useMutation({
