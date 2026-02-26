@@ -153,7 +153,7 @@ const Dashboard = () => {
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-24 sm:w-32 h-auto"
+            className="w-40 sm:w-32 h-auto"
           />
         </div>
 
@@ -224,7 +224,7 @@ const Dashboard = () => {
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-32 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg opacity-90"
+            className="w-44 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg opacity-90"
           />
         </div>
 
