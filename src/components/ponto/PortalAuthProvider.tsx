@@ -40,16 +40,12 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
     try {
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, nome, email, cpf, telefone, departamento, cargo, data_nascimento, foto_url, deve_trocar_senha, data_admissao, created_at")
         .eq("id", userId)
         .maybeSingle();
 
-      if (profileError) {
+      if (profileError || !profileData) {
         console.error("Erro ao carregar perfil:", profileError);
-        return null;
-      }
-      if (!profileData) {
-        console.error("Perfil não encontrado para:", userId);
         return null;
       }
 
@@ -66,13 +62,13 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     let isMounted = true;
 
-    // Safety timeout - never stay loading more than 8 seconds
+    // Safety timeout - never stay loading more than 3 seconds
     const safetyTimeout = setTimeout(() => {
       if (isMounted && loading) {
         console.warn("Portal: safety timeout reached, releasing loading state");
         setLoading(false);
       }
-    }, 8000);
+    }, 3000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!isMounted) return;
