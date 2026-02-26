@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -35,6 +35,20 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { signOut, roles, loading, user } = useAuth();
   const isMobile = useIsMobile();
+
+  // Prefetch module chunks on hover for instant navigation
+  const prefetchMap: Record<string, () => void> = useMemo(() => ({
+    '/gestao-rh': () => import("./GestaoRH"),
+    '/gestao-clientes': () => import("./GestaoClientes"),
+    '/fornecedores': () => import("./Fornecedores"),
+    '/orcamentos': () => import("./OrcamentosDashboard"),
+    '/inventario': () => import("./InventarioEquipamentos"),
+    '/documentacoes': () => import("./Documentacoes"),
+  }), []);
+
+  const handlePrefetch = useCallback((path?: string) => {
+    if (path) prefetchMap[path]?.();
+  }, [prefetchMap]);
 
   // Redirecionar funcionários para o portal
   useEffect(() => {
@@ -151,6 +165,7 @@ const Dashboard = () => {
                 key={module.id}
                 className={`flex flex-col items-center ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer active:scale-95'} transition-all duration-200`}
                 onClick={() => !module.disabled && module.route && navigate(module.route)}
+                onMouseEnter={() => handlePrefetch(module.route)}
               >
                 <div 
                   className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
@@ -228,6 +243,7 @@ const Dashboard = () => {
                   transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
                 }}
                 onClick={() => !module.disabled && module.route && navigate(module.route)}
+                onMouseEnter={() => handlePrefetch(module.route)}
               >
                 <div className="flex flex-col items-center">
                   <div 
@@ -263,6 +279,7 @@ const Dashboard = () => {
                   transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
                 }}
                 onClick={() => !module.disabled && module.route && navigate(module.route)}
+                onMouseEnter={() => handlePrefetch(module.route)}
               >
                 <div className="flex flex-col items-center">
                   <div 
@@ -298,6 +315,7 @@ const Dashboard = () => {
                   transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
                 }}
                 onClick={() => !module.disabled && module.route && navigate(module.route)}
+                onMouseEnter={() => handlePrefetch(module.route)}
               >
                 <div className="flex flex-col items-center">
                   <div 
@@ -333,6 +351,7 @@ const Dashboard = () => {
                   transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
                 }}
                 onClick={() => !module.disabled && module.route && navigate(module.route)}
+                onMouseEnter={() => handlePrefetch(module.route)}
               >
                 <div className="flex flex-col items-center">
                   <div 
