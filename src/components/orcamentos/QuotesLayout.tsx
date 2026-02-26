@@ -1,5 +1,6 @@
 import { ReactNode, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { BackButton } from '@/components/ui/back-button';
 import { 
   FileText, 
   PlusCircle, 
@@ -101,13 +102,6 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
 
         <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-black/10">
           <button
-            onClick={() => navigate('/dashboard')}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-black hover:bg-black/10 transition-all mb-2"
-          >
-            <ChevronLeft className="w-5 h-5" />
-            <span className="font-medium">Voltar ao Dashboard</span>
-          </button>
-          <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-black hover:bg-black/10 transition-all"
           >
@@ -120,6 +114,9 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
       {/* Main Content */}
       <main className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
         <div className="p-6">
+          <div className="mb-4">
+            <BackButton to="/dashboard" label="Voltar ao Dashboard" variant="light" />
+          </div>
           {children}
         </div>
       </main>
