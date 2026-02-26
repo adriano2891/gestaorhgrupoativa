@@ -25,16 +25,17 @@ const SectionLoader = () => (
   </div>
 );
 
+const RealtimeSubscriptions = () => {
+  useHoleritesRealtime();
+  useComunicadosRealtime();
+  useFeriasRealtime();
+  return null;
+};
+
 const PortalContent = () => {
   const { user, profile, loading } = usePortalAuth();
   const [currentSection, setCurrentSection] = useState<string>("dashboard");
   const [senhaAlterada, setSenhaAlterada] = useState(false);
-
-  // Habilitar atualizações em tempo real apenas quando logado
-  const isLoggedIn = !!user;
-  useHoleritesRealtime();
-  useComunicadosRealtime();
-  useFeriasRealtime();
 
   if (loading) {
     return (
@@ -73,7 +74,12 @@ const PortalContent = () => {
 
   // Dashboard loads eagerly, everything else lazy
   if (currentSection === "dashboard") {
-    return <PortalDashboard onNavigate={handleNavigate} />;
+    return (
+      <>
+        <RealtimeSubscriptions />
+        <PortalDashboard onNavigate={handleNavigate} />
+      </>
+    );
   }
 
   const sectionMap: Record<string, JSX.Element> = {
@@ -89,6 +95,7 @@ const PortalContent = () => {
 
   return (
     <Suspense fallback={<SectionLoader />}>
+      <RealtimeSubscriptions />
       {sectionMap[currentSection] || <PortalDashboard onNavigate={handleNavigate} />}
     </Suspense>
   );

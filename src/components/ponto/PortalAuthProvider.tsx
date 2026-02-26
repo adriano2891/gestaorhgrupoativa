@@ -34,6 +34,7 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
   const [loading, setLoading] = useState(true);
   const lastLoadedUserId = useRef<string | null>(null);
   const isSigningOut = useRef(false);
+  const isSigningIn = useRef(false);
   const queryClient = useQueryClient();
 
   const loadProfile = useCallback(async (userId: string): Promise<Profile | null> => {
@@ -62,7 +63,6 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     let isMounted = true;
 
-    // Safety timeout - never stay loading more than 3 seconds
     const safetyTimeout = setTimeout(() => {
       if (isMounted && loading) {
         console.warn("Portal: safety timeout reached, releasing loading state");
@@ -89,9 +89,10 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
         }
         if (isMounted) setLoading(false);
       } else if (event === 'SIGNED_IN' && session?.user) {
-        if (isSigningOut.current) return;
-        // Only reload if it's a different user or profile hasn't been loaded
-        if (lastLoadedUserId.current !== session.user.id || !profile) {
+        // Skip if signing out or if signInWithCPF already handled this
+        if (isSigningOut.current || isSigningIn.current) return;
+        
+        if (lastLoadedUserId.current !== session.user.id) {
           const loadedProfile = await loadProfile(session.user.id);
           if (isMounted) {
             if (loadedProfile) {
@@ -127,77 +128,73 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
       clearTimeout(safetyTimeout);
       subscription.unsubscribe();
     };
-  }, [loadProfile]); // removed profile from deps to avoid re-subscription
+  }, [loadProfile]);
 
   const signInWithCPF = async (cpf: string, password: string) => {
-    // Reset signing out flag in case it got stuck
     isSigningOut.current = false;
+    isSigningIn.current = true;
     
-    const cpfNumeros = cpf.replace(/\D/g, "");
+    try {
+      const cpfNumeros = cpf.replace(/\D/g, "");
 
-    const { data: profileData, error: profileError } = await supabase
-      .rpc("get_email_by_cpf", { cpf_input: cpfNumeros });
+      const { data: profileData, error: profileError } = await supabase
+        .rpc("get_email_by_cpf", { cpf_input: cpfNumeros });
 
-    if (profileError) {
-      console.error("Erro ao buscar CPF:", profileError);
-      throw new Error("Erro ao buscar CPF no sistema");
-    }
-
-    if (!profileData || profileData.length === 0) {
-      throw new Error("CPF não encontrado");
-    }
-
-    const userEmail = profileData[0].email;
-
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: userEmail,
-      password,
-    });
-
-    if (error) {
-      if (error.message.includes("Invalid login credentials")) {
-        throw new Error("Senha incorreta");
+      if (profileError) {
+        console.error("Erro ao buscar CPF:", profileError);
+        throw new Error("Erro ao buscar CPF no sistema");
       }
-      throw error;
-    }
 
-    // Load profile eagerly with timeout to prevent hanging
-    if (data.user) {
-      try {
+      if (!profileData || profileData.length === 0) {
+        throw new Error("CPF não encontrado no sistema. Verifique o CPF digitado.");
+      }
+
+      const userEmail = profileData[0].email;
+
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password,
+      });
+
+      if (error) {
+        if (error.message.includes("Invalid login credentials")) {
+          throw new Error("Senha incorreta. Verifique sua senha e tente novamente.");
+        }
+        if (error.message.includes("Email not confirmed")) {
+          throw new Error("Email não confirmado. Entre em contato com o RH.");
+        }
+        throw new Error(error.message);
+      }
+
+      if (data.user) {
         const loadedProfile = await Promise.race([
           loadProfile(data.user.id),
           new Promise<null>((_, reject) => setTimeout(() => reject(new Error('profile_timeout')), 5000))
-        ]);
-        if (loadedProfile) {
-          setUser(data.user);
-          setProfile(loadedProfile);
-          lastLoadedUserId.current = data.user.id;
-        } else {
-          // Set user even without profile so UI progresses
-          setUser(data.user);
-        }
-      } catch (err) {
-        console.warn("Profile load timeout, proceeding with user:", err);
+        ]).catch(() => null);
+        
         setUser(data.user);
+        setProfile(loadedProfile);
+        lastLoadedUserId.current = data.user.id;
+        setLoading(false);
       }
-      setLoading(false);
+    } finally {
+      // Release the signing in flag after a short delay to skip the SIGNED_IN event
+      setTimeout(() => {
+        isSigningIn.current = false;
+      }, 1000);
     }
   };
 
   const signOut = async () => {
     isSigningOut.current = true;
     
-    // Clear state immediately for responsive UI
     setUser(null);
     setProfile(null);
     lastLoadedUserId.current = null;
     setLoading(false);
     localStorage.removeItem('portal_session');
     
-    // Remove ALL realtime channels to prevent stale subscriptions
     supabase.removeAllChannels();
-    
-    // Clear React Query cache and cancel in-flight queries
     queryClient.cancelQueries();
     queryClient.clear();
     
