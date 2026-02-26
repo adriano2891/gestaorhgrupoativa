@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -9,6 +10,7 @@ import { PortalBackground } from "./PortalBackground";
 import { PortalNotificacoesBell } from "./PortalNotificacoesBell";
 import { usePortalBadges } from "@/hooks/usePortalBadges";
 import { usePortalTheme } from "@/hooks/usePortalTheme";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PortalDashboardProps {
   onNavigate: (section: string) => void;
@@ -18,6 +20,21 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
   const { profile, signOut } = usePortalAuth();
   const { badges, markSectionViewed } = usePortalBadges();
   const { isDark, toggle: toggleTheme } = usePortalTheme();
+  const [signedFotoUrl, setSignedFotoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadSignedPhoto = async () => {
+      if (!profile?.foto_url) return;
+      try {
+        const pathMatch = (profile.foto_url as string).match(/fotos-funcionarios\/(.+?)(\?|$)/);
+        if (pathMatch) {
+          const { data } = await supabase.storage.from('fotos-funcionarios').createSignedUrl(pathMatch[1], 3600);
+          if (data?.signedUrl) setSignedFotoUrl(data.signedUrl);
+        }
+      } catch (e) { /* ignore */ }
+    };
+    loadSignedPhoto();
+  }, [profile?.foto_url]);
 
   const getInitials = (name: string) => {
     return name
@@ -119,8 +136,11 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Avatar className="h-14 w-14 border-2 border-primary shadow-md">
-                {profile?.foto_url && <AvatarImage src={profile.foto_url} alt={`Foto de ${profile?.nome || "Funcionário"}`} />}
+              <Avatar 
+                className="h-14 w-14 border-2 border-primary shadow-md cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all"
+                onClick={() => onNavigate("perfil")}
+              >
+                {(signedFotoUrl || profile?.foto_url) && <AvatarImage src={signedFotoUrl || (profile?.foto_url as string)} alt={`Foto de ${profile?.nome || "Funcionário"}`} />}
                 <AvatarFallback className="bg-primary text-primary-foreground text-lg">
                   {profile?.nome ? getInitials(profile.nome) : "FN"}
                 </AvatarFallback>
