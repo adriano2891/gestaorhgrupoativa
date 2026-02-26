@@ -6,7 +6,7 @@ interface SplashScreenProps {
   minDuration?: number;
 }
 
-const SplashScreen = ({ onComplete, minDuration = 2500 }: SplashScreenProps) => {
+const SplashScreen = ({ onComplete, minDuration = 800 }: SplashScreenProps) => {
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ const SplashScreen = ({ onComplete, minDuration = 2500 }: SplashScreenProps) => 
 
     const completeTimer = setTimeout(() => {
       onComplete();
-    }, minDuration + 600);
+    }, minDuration + 200);
 
     return () => {
       clearTimeout(exitTimer);
