@@ -36,33 +36,39 @@ export const useHolerites = (userId?: string) => {
         return data as Holerite[];
       }
 
-      // Admin: buscar apenas holerites de funcionários ativos cadastrados
-      // First get active employee IDs (holerites FK points to auth.users, not profiles)
-      const { data: activeEmployees } = await supabase
-        .from("profiles")
-        .select("id, user_roles!inner(role)")
-        .eq("user_roles.role", "funcionario")
-        .not("status", "in", '("demitido","pediu_demissao")');
+      // Admin: fetch all holerites, filter active employees separately
+      try {
+        const { data: allHolerites, error } = await supabase
+          .from("holerites")
+          .select("*")
+          .order("ano", { ascending: false })
+          .order("mes", { ascending: false });
 
-      const activeIds = activeEmployees?.map(e => e.id) || [];
+        if (error) {
+          console.error("Erro ao buscar holerites:", error);
+          throw error;
+        }
 
-      if (activeIds.length === 0) {
+        if (!allHolerites || allHolerites.length === 0) return [] as Holerite[];
+
+        // Filter by active employees
+        const uniqueUserIds = [...new Set(allHolerites.map(h => h.user_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, status")
+          .in("id", uniqueUserIds);
+
+        const activeIds = new Set(
+          (profiles || [])
+            .filter(p => p.status !== 'demitido' && p.status !== 'pediu_demissao')
+            .map(p => p.id)
+        );
+
+        return allHolerites.filter(h => activeIds.has(h.user_id)) as Holerite[];
+      } catch (e) {
+        console.error("Erro inesperado em useHolerites:", e);
         return [] as Holerite[];
       }
-
-      const { data, error } = await supabase
-        .from("holerites")
-        .select("*")
-        .in("user_id", activeIds)
-        .order("ano", { ascending: false })
-        .order("mes", { ascending: false });
-
-      if (error) {
-        console.error("Erro ao buscar holerites:", error);
-        throw error;
-      }
-      
-      return data as Holerite[];
     },
     enabled: true,
   });
