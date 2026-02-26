@@ -36,29 +36,45 @@ export const useCursos = (status?: 'rascunho' | 'publicado' | 'arquivado') => {
     queryKey: ["cursos", status],
     staleTime: 1000 * 30,
     refetchOnWindowFocus: true,
+    retry: 2,
     queryFn: async () => {
-      try {
-        const query = supabase
-          .from("cursos")
-          .select(`
-            *,
-            categoria:categorias_curso(*)
-          `)
-          .order("created_at", { ascending: false });
+      // Fetch cursos without join first for reliability
+      const query = supabase
+        .from("cursos")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-        const { data, error } = status 
-          ? await query.eq("status", status)
-          : await query;
-          
-        if (error) {
-          console.error("Erro ao carregar cursos:", error);
-          return [] as Curso[];
-        }
-        return data as Curso[];
-      } catch (error) {
-        console.error("Erro inesperado em useCursos:", error);
-        return [] as Curso[];
+      const { data, error } = status 
+        ? await query.eq("status", status)
+        : await query;
+        
+      if (error) {
+        console.error("Erro ao carregar cursos:", error);
+        throw error;
       }
+
+      if (!data || data.length === 0) return [] as Curso[];
+
+      // Fetch categories separately
+      try {
+        const catIds = [...new Set(data.map(c => c.categoria_id).filter(Boolean))] as string[];
+        if (catIds.length > 0) {
+          const { data: categorias } = await supabase
+            .from("categorias_curso")
+            .select("*")
+            .in("id", catIds);
+          
+          const catMap = new Map((categorias || []).map(c => [c.id, c]));
+          return data.map(curso => ({
+            ...curso,
+            categoria: curso.categoria_id ? catMap.get(curso.categoria_id) || null : null,
+          })) as Curso[];
+        }
+      } catch (e) {
+        console.warn("Failed to fetch categories:", e);
+      }
+
+      return data as Curso[];
     },
   });
 };
@@ -608,31 +624,36 @@ export const useTrilhas = () => {
 export const useCursosStats = () => {
   return useQuery({
     queryKey: ["cursos-stats"],
+    retry: 2,
+    staleTime: 1000 * 30,
     queryFn: async () => {
-      const [
-        { count: totalCursos },
-        { count: cursosPublicados },
-        { data: todasMatriculas },
-      ] = await Promise.all([
-        supabase.from("cursos").select("*", { count: "exact", head: true }),
-        supabase.from("cursos").select("*", { count: "exact", head: true }).eq("status", "publicado"),
-        supabase.from("matriculas").select("id, progresso, status"),
-      ]);
+      try {
+        const [cursosRes, pubRes, matRes] = await Promise.all([
+          supabase.from("cursos").select("*", { count: "exact", head: true }),
+          supabase.from("cursos").select("*", { count: "exact", head: true }).eq("status", "publicado"),
+          supabase.from("matriculas").select("id, progresso, status"),
+        ]);
 
-      const totalMatriculas = todasMatriculas?.length || 0;
-      
-      // Apenas matrículas com 100% de progresso são consideradas concluídas
-      const matriculasConcluidas = todasMatriculas?.filter(
-        m => Number(m.progresso) === 100 && m.status === "concluido"
-      ).length || 0;
+        const totalCursos = cursosRes.count || 0;
+        const cursosPublicados = pubRes.count || 0;
+        const todasMatriculas = matRes.data || [];
+        const totalMatriculas = todasMatriculas.length;
+        
+        const matriculasConcluidas = todasMatriculas.filter(
+          m => Number(m.progresso) === 100 && m.status === "concluido"
+        ).length;
 
-      return {
-        totalCursos: totalCursos || 0,
-        cursosPublicados: cursosPublicados || 0,
-        totalMatriculas,
-        matriculasConcluidas,
-        taxaConclusao: totalMatriculas ? Math.round(matriculasConcluidas / totalMatriculas * 100) : 0,
-      };
+        return {
+          totalCursos,
+          cursosPublicados,
+          totalMatriculas,
+          matriculasConcluidas,
+          taxaConclusao: totalMatriculas ? Math.round(matriculasConcluidas / totalMatriculas * 100) : 0,
+        };
+      } catch (e) {
+        console.error("Erro ao carregar stats:", e);
+        return { totalCursos: 0, cursosPublicados: 0, totalMatriculas: 0, matriculasConcluidas: 0, taxaConclusao: 0 };
+      }
     },
   });
 };
