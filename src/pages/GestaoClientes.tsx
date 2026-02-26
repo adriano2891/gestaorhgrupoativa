@@ -148,15 +148,6 @@ const GestaoClientes = () => {
                 <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Novo</span>
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setFormOpen(true)}
-                className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-black hover:bg-black/90 text-white"
-              >
-                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Novo</span>
-              </Button>
             </div>
           </div>
         </div>
