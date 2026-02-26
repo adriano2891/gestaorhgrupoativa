@@ -98,20 +98,26 @@ const BancoTalentos = () => {
 
   const fetchCandidates = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      setLoading(true);
+      const { data, error } = await supabase
         .from('candidates')
         .select('*')
         .order('applied_date', { ascending: false });
 
-      if (error) throw error;
-      setCandidates((data as Candidate[]) || []);
+      if (error) {
+        console.error('Erro ao buscar candidatos:', error);
+        toast({
+          title: "Erro",
+          description: "Não foi possível carregar os candidatos.",
+          variant: "destructive",
+        });
+        setCandidates([]);
+      } else {
+        setCandidates((data as unknown as Candidate[]) || []);
+      }
     } catch (error) {
-      console.error('Erro ao buscar candidatos:', error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível carregar os candidatos.",
-        variant: "destructive",
-      });
+      console.error('Erro inesperado ao buscar candidatos:', error);
+      setCandidates([]);
     } finally {
       setLoading(false);
     }
@@ -204,7 +210,7 @@ const BancoTalentos = () => {
         .filter(skill => skill.length > 0);
 
       // Inserir candidato no banco
-      const { error: insertError } = await (supabase as any)
+      const { error: insertError } = await supabase
         .from('candidates')
         .insert({
           ...newCandidate,
@@ -410,7 +416,7 @@ const BancoTalentos = () => {
     if (!deletingCandidateId) return;
 
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('candidates')
         .delete()
         .eq('id', deletingCandidateId);
