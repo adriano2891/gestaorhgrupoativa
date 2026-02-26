@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useCallback } from "react";
+import { useEffect, useMemo, useCallback, useState } from "react";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -57,8 +57,18 @@ const Dashboard = () => {
     }
   }, [roles, navigate]);
 
-  // Show loading while roles are being fetched (covers re-login where roles are still empty)
-  if (loading || (user && roles.length === 0)) {
+  // Safety timeout: don't stay on loading forever if roles fail to load
+  const [rolesTimeout, setRolesTimeout] = useState(false);
+  useEffect(() => {
+    if (user && roles.length === 0) {
+      const timer = setTimeout(() => setRolesTimeout(true), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [user, roles.length]);
+
+  // Show loading while roles are being fetched, but not forever
+  const isWaitingForRoles = user && roles.length === 0 && !rolesTimeout;
+  if (loading || isWaitingForRoles) {
     return (
       <div 
         className="min-h-screen flex items-center justify-center"
