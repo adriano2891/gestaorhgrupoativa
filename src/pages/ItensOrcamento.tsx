@@ -101,9 +101,9 @@ export default function ItensOrcamento() {
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('A imagem deve ter no máximo 5MB.');
+    // Validate file size (max 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      toast.error('A imagem deve ter no máximo 50MB.');
       return;
     }
 
@@ -392,7 +392,7 @@ export default function ItensOrcamento() {
                       {uploading ? 'Enviando...' : 'Selecionar Imagem'}
                     </Button>
                     <p className="text-xs text-zinc-500 mt-2">
-                      Formatos: JPG, PNG, GIF. Máximo 5MB.
+                      Formatos: JPG, PNG, GIF. Máximo 50MB.
                     </p>
                   </div>
                 </div>
