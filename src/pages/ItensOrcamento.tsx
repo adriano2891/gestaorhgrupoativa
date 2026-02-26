@@ -145,13 +145,21 @@ export default function ItensOrcamento() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (selectedItem) {
-      await updateItem.mutateAsync({ id: selectedItem, ...formData });
-    } else {
-      await createItem.mutateAsync(formData);
+    if (!formData.nome.trim()) {
+      toast.error('O nome do item é obrigatório.');
+      return;
     }
-    
-    setDialogOpen(false);
+
+    try {
+      if (selectedItem) {
+        await updateItem.mutateAsync({ id: selectedItem, ...formData });
+      } else {
+        await createItem.mutateAsync(formData);
+      }
+      setDialogOpen(false);
+    } catch (error: any) {
+      console.error('Erro ao salvar item:', error);
+    }
   };
 
   const handleDelete = async () => {
