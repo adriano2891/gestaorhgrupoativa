@@ -74,8 +74,7 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
     queryKey: ["periodos-aquisitivos-portal", user?.id],
     queryFn: async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id || user?.id;
+        const userId = user?.id;
         if (!userId) return [];
 
         const { data, error } = await supabase
@@ -103,8 +102,7 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
     queryKey: ["solicitacoes-ferias-portal", user?.id],
     queryFn: async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id || user?.id;
+        const userId = user?.id;
         if (!userId) return [];
 
         const { data, error } = await supabase
