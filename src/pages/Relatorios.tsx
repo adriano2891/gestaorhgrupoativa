@@ -1066,7 +1066,7 @@ const Relatorios = () => {
               description: "Quantidade de exames realizados por área",
               dataName: "Exames",
               insight: "Exames periódicos são obrigatórios e devem ser realizados anualmente.",
-              data: funcionariosPorDept?.slice(0, 6).map(d => ({
+              data: funcDeptList?.slice(0, 6).map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: d.funcionarios as number,
               })) || [],
