@@ -134,20 +134,28 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
     isSigningOut.current = false;
     isSigningIn.current = true;
     
-    const timeoutController = new AbortController();
-    const globalTimeout = setTimeout(() => timeoutController.abort(), 15000);
-    
     try {
       const cpfNumeros = cpf.replace(/\D/g, "");
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      const rpcPromise = supabase.rpc("get_email_by_cpf", { cpf_input: cpfNumeros });
-      const rpcTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Tempo limite excedido ao buscar CPF")), 8000));
-      const { data: profileData, error: profileError } = await Promise.race([rpcPromise, rpcTimeout]) as any;
+      // Use direct REST call to avoid Navigator LockManager issues
+      const rpcRes = await fetch(`${supabaseUrl}/rest/v1/rpc/get_email_by_cpf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': anonKey,
+          'Authorization': `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify({ cpf_input: cpfNumeros }),
+      });
 
-      if (profileError) {
-        console.error("Erro ao buscar CPF:", profileError);
+      if (!rpcRes.ok) {
+        console.error("Erro ao buscar CPF:", rpcRes.status, await rpcRes.text());
         throw new Error("Erro ao buscar CPF no sistema");
       }
+
+      const profileData = await rpcRes.json();
 
       if (!profileData || profileData.length === 0) {
         throw new Error("CPF não encontrado no sistema. Verifique o CPF digitado.");
@@ -155,36 +163,53 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
 
       const userEmail = profileData[0].email;
 
-      const authPromise = supabase.auth.signInWithPassword({
-        email: userEmail,
-        password,
+      // Use direct REST call for auth too
+      const authRes = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': anonKey,
+        },
+        body: JSON.stringify({ email: userEmail, password }),
       });
-      const authTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error("Tempo limite excedido na autenticação")), 8000));
-      const { data, error } = await Promise.race([authPromise, authTimeout]) as any;
 
-      if (error) {
-        if (error.message.includes("Invalid login credentials")) {
+      const authData = await authRes.json();
+
+      if (!authRes.ok) {
+        const msg = authData?.error_description || authData?.msg || authData?.error || '';
+        if (msg.includes("Invalid login credentials")) {
           throw new Error("Senha incorreta. Verifique sua senha e tente novamente.");
         }
-        if (error.message.includes("Email not confirmed")) {
+        if (msg.includes("Email not confirmed")) {
           throw new Error("Email não confirmado. Entre em contato com o RH.");
         }
-        throw new Error(error.message);
+        throw new Error(msg || "Erro na autenticação");
       }
 
-      if (data.user) {
+      // Set session manually from the auth response
+      const { error: setErr } = await supabase.auth.setSession({
+        access_token: authData.access_token,
+        refresh_token: authData.refresh_token,
+      });
+
+      if (setErr) {
+        console.error("Erro ao definir sessão:", setErr);
+        throw new Error("Erro ao estabelecer sessão");
+      }
+
+      const userId = authData.user?.id;
+      if (userId) {
         const loadedProfile = await Promise.race([
-          loadProfile(data.user.id),
+          loadProfile(userId),
           new Promise<null>((_, reject) => setTimeout(() => reject(new Error('profile_timeout')), 5000))
         ]).catch(() => null);
         
-        setUser(data.user);
+        setUser(authData.user);
         setProfile(loadedProfile);
-        lastLoadedUserId.current = data.user.id;
+        lastLoadedUserId.current = userId;
         setLoading(false);
       }
     } finally {
-      clearTimeout(globalTimeout);
       setTimeout(() => {
         isSigningIn.current = false;
       }, 1000);
