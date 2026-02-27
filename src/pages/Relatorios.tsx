@@ -351,7 +351,20 @@ const Relatorios = () => {
         }
       }
 
-      const data = generateReportDataDirect(selectedReport, filters, freshFuncionarios, freshFuncPorDept, freshRegistrosPonto, freshProfilesEscala, freshMetricas);
+      // Fetch holerites for custo-folha report
+      let freshHolerites: any[] = [];
+      if (selectedReport === 'custo-folha') {
+        try {
+          const mesFetch = filters.mes ? parseInt(filters.mes) : new Date().getMonth() + 1;
+          const anoFetch = filters.ano ? parseInt(filters.ano) : new Date().getFullYear();
+          freshHolerites = await fetchDirectREST("holerites", `select=*&mes=eq.${mesFetch}&ano=eq.${anoFetch}`);
+        } catch (e) {
+          console.error("Error fetching holerites via REST:", e);
+          freshHolerites = [];
+        }
+      }
+
+      const data = generateReportDataDirect(selectedReport, filters, freshFuncionarios, freshFuncPorDept, freshRegistrosPonto, freshProfilesEscala, freshMetricas, freshHolerites);
       setReportData(data);
       if (selectedReport) {
         await logReportGeneration(selectedReport, filters);
@@ -366,13 +379,14 @@ const Relatorios = () => {
     }
   };
 
-  const generateReportDataDirect = (reportType: string | null, filters: any, funcData?: any[], funcPorDeptData?: any[], pontosData?: any[], profilesEscalaData?: any[], metricasData?: any[]) => {
+  const generateReportDataDirect = (reportType: string | null, filters: any, funcData?: any[], funcPorDeptData?: any[], pontosData?: any[], profilesEscalaData?: any[], metricasData?: any[], holeriteData?: any[]) => {
     // Use passed data or fall back to hook data
     const funcList = funcData || funcionarios;
     const funcDeptList = funcPorDeptData || funcionariosPorDept;
     const pontosList = pontosData || registrosPonto;
     const profilesList = profilesEscalaData || profilesComEscala;
     const metricasList = metricasData || metricas;
+    const holeritesList = holeriteData || [];
     const baseData = {
       reportType,
       filters,
@@ -1104,12 +1118,64 @@ const Relatorios = () => {
         let totalPagamentos = 0, totalHE = 0, totalAdicNoturno = 0, totalDSR = 0;
         let totalVT = 0, totalVR = 0, totalSaude = 0, totalOdonto = 0, totalFaltas = 0;
 
+        // Indexar holerites por user_id para busca rápida
+        const holeritesPorUser: Record<string, any> = {};
+        (holeritesList || []).forEach((h: any) => {
+          holeritesPorUser[h.user_id] = h;
+        });
+
         funcFolha.forEach(f => {
           const salarioBruto = f.salario || 0;
           if (salarioBruto === 0) return;
           
           totalPagamentos++;
           const registrosPontoFunc = pontosPorUser[f.id] || [];
+          const holeriteReal = holeritesPorUser[f.id];
+
+          // Se existe holerite real anexado, usar dados reais
+          if (holeriteReal) {
+            const brutoReal = holeriteReal.salario_bruto || 0;
+            const descontosReal = holeriteReal.descontos || 0;
+            const liquidoReal = holeriteReal.salario_liquido || 0;
+            const encargos = calcularEncargosPatronais(brutoReal);
+
+            totalFolhaBruta += brutoReal;
+            totalDescontos += descontosReal;
+            totalFolhaLiquida += liquidoReal;
+            totalEncargosPatronais += encargos.total;
+            totalFGTS += calcularFGTS(brutoReal);
+            // Estimativas de INSS/IRRF a partir do bruto real para gráficos
+            const inssEst = calcularINSS(brutoReal);
+            const irrfEst = Math.max(0, calcularIRRF(brutoReal, inssEst));
+            totalINSS += inssEst;
+            totalIRRF += irrfEst;
+
+            const fmt = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
+            detalhamentoFolha.push({
+              nome: f.nome,
+              departamento: f.departamento || "N/I",
+              cargo: f.cargo || "N/I",
+              salarioBase: fmt(brutoReal),
+              horasExtras: "Holerite",
+              adicNoturno: "Holerite",
+              dsrReflexo: "Holerite",
+              totalProventos: fmt(brutoReal),
+              inss: fmt(inssEst),
+              irrf: fmt(irrfEst),
+              vt: "Holerite",
+              planoSaude: "Holerite",
+              planoOdonto: "Holerite",
+              faltas: "Holerite",
+              totalDescontos: fmt(descontosReal),
+              fgts: fmt(calcularFGTS(brutoReal)),
+              salarioLiquido: fmt(liquidoReal),
+              encargosPatronais: fmt(encargos.total),
+              fonte: "📄 Holerite Real",
+            });
+            return;
+          }
+          
+          // --- Sem holerite: calcular automaticamente ---
           
           // --- Horas Extras ---
           let heHoras = 0;
@@ -1117,7 +1183,6 @@ const Relatorios = () => {
             heHoras += parseIntervalHours(r.horas_extras);
           });
           const valorHoraNormal = salarioBruto / 220; // CLT: 220h mensais
-          // HE útil = 50%, HE DSR/feriado = 100%
           let valorHE = 0;
           registrosPontoFunc.forEach(r => {
             const heH = parseIntervalHours(r.horas_extras);
@@ -1134,12 +1199,11 @@ const Relatorios = () => {
           });
           const valorAdicNoturno = horasNoturnas * valorHoraNormal * 0.20;
 
-          // --- DSR sobre HE (reflexo: HE_semana / dias_uteis_semana * DSRs) ---
-          // Simplificado: valorHE / dias_uteis * domingos_feriados
-          const domingosMes = Math.ceil(30 / 7); // ~4-5
+          // --- DSR sobre HE ---
+          const domingosMes = Math.ceil(30 / 7);
           const valorDSR = DIAS_UTEIS_MES > 0 ? (valorHE / DIAS_UTEIS_MES) * domingosMes : 0;
 
-          // --- Faltas/Atrasos (descontos) ---
+          // --- Faltas/Atrasos ---
           let diasFalta = 0;
           registrosPontoFunc.forEach(r => {
             if (!r.entrada && !r.registro_folga) diasFalta++;
@@ -1205,6 +1269,7 @@ const Relatorios = () => {
             fgts: fmt(fgts),
             salarioLiquido: fmt(salarioLiquido),
             encargosPatronais: fmt(encargos.total),
+            fonte: "🔢 Calculado",
           });
         });
 
