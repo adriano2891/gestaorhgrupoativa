@@ -2,6 +2,68 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+const getAccessToken = (): string | null => {
+  try {
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || SUPABASE_URL?.match(/\/\/([^.]+)/)?.[1];
+    const raw = localStorage.getItem(`sb-${projectId}-auth-token`);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed?.access_token || null;
+    }
+  } catch {}
+  return null;
+};
+
+const restGet = async (path: string) => {
+  const token = getAccessToken();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token || SUPABASE_KEY}`,
+      'Accept': 'application/json',
+    },
+  });
+  if (!res.ok) throw new Error(`REST ${res.status}`);
+  return res.json();
+};
+
+const restPatch = async (path: string, body: any) => {
+  const token = getAccessToken();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: 'PATCH',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token || SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`REST PATCH ${res.status}`);
+  return res.json();
+};
+
+const restPost = async (path: string, body: any) => {
+  const token = getAccessToken();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token || SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new Error(`REST POST ${res.status}`);
+  return res.json();
+};
+
 export interface PeriodoAquisitivo {
   id: string;
   user_id: string;
@@ -49,57 +111,41 @@ export const useSolicitacoesFerias = (filters?: {
     queryKey: ["solicitacoes-ferias", filters],
     queryFn: async () => {
       try {
-        let query = supabase
-          .from("solicitacoes_ferias")
-          .select(`
-            *,
-            profiles!user_id (
-              nome,
-              cargo,
-              departamento,
-              status
-            )
-          `)
-          .order("created_at", { ascending: false });
+        let path = 'solicitacoes_ferias?select=*&order=created_at.desc';
+        if (filters?.status) path += `&status=eq.${filters.status}`;
+        if (filters?.dataInicio) path += `&data_inicio=gte.${filters.dataInicio}`;
+        if (filters?.dataFim) path += `&data_fim=lte.${filters.dataFim}`;
+        if (filters?.apenasNovas) path += `&visualizada_admin=eq.false`;
 
-        if (filters?.status) {
-          query = query.eq("status", filters.status);
-        }
+        const solicitacoes: any[] = await restGet(path);
+        if (!solicitacoes || solicitacoes.length === 0) return [] as SolicitacaoFerias[];
 
-        if (filters?.dataInicio) {
-          query = query.gte("data_inicio", filters.dataInicio);
-        }
+        // Fetch profiles separately
+        const userIds = [...new Set(solicitacoes.map(s => s.user_id))];
+        const profilesPath = `profiles?select=id,nome,cargo,departamento,status&id=in.(${userIds.join(',')})`;
+        const profiles: any[] = await restGet(profilesPath);
+        const profileMap = new Map(profiles.map(p => [p.id, p]));
 
-        if (filters?.dataFim) {
-          query = query.lte("data_fim", filters.dataFim);
-        }
-
-        if (filters?.apenasNovas) {
-          query = query.eq("visualizada_admin", false);
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-          console.error("Erro ao buscar solicitações de férias:", error);
-          return [] as SolicitacaoFerias[];
-        }
-
-        // Filtrar funcionários ativos e por departamento no client-side
-        let filteredData = (data as SolicitacaoFerias[]).filter((s) => {
-          const profileStatus = (s.profiles as any)?.status;
-          return profileStatus !== 'demitido' && profileStatus !== 'pediu_demissao';
+        // Map and filter
+        let result = solicitacoes.map(s => ({
+          ...s,
+          profiles: profileMap.get(s.user_id) ? {
+            nome: profileMap.get(s.user_id).nome,
+            cargo: profileMap.get(s.user_id).cargo,
+            departamento: profileMap.get(s.user_id).departamento,
+          } : undefined,
+        })).filter(s => {
+          const prof = profileMap.get(s.user_id);
+          return prof?.status !== 'demitido' && prof?.status !== 'pediu_demissao';
         });
-        
+
         if (filters?.departamento) {
-          filteredData = filteredData.filter(
-            (s) => s.profiles?.departamento === filters.departamento
-          );
+          result = result.filter(s => s.profiles?.departamento === filters.departamento);
         }
 
-        return filteredData;
+        return result as SolicitacaoFerias[];
       } catch (error) {
-        console.error("Erro inesperado em useSolicitacoesFerias:", error);
+        console.error("Erro em useSolicitacoesFerias:", error);
         return [] as SolicitacaoFerias[];
       }
     },
@@ -111,50 +157,37 @@ export const useMetricasFerias = () => {
     queryKey: ["metricas-ferias"],
     queryFn: async () => {
       try {
-        const { data: solicitacoes, error } = await supabase
-          .from("solicitacoes_ferias")
-          .select(`
-            status, data_inicio, data_fim,
-            profiles!user_id(status)
-          `);
+        const solicitacoes: any[] = await restGet('solicitacoes_ferias?select=status,data_inicio,data_fim,user_id');
 
-        if (error) {
-          console.error("Erro ao buscar solicitações de férias:", error);
-          return { pendentes: 0, emAndamento: 0, proximas: 0, saldoMedio: 0 };
+        // Get profiles to filter active employees
+        const userIds = [...new Set(solicitacoes.map(s => s.user_id))];
+        let profiles: any[] = [];
+        if (userIds.length > 0) {
+          profiles = await restGet(`profiles?select=id,status&id=in.(${userIds.join(',')})`);
         }
+        const profileMap = new Map(profiles.map(p => [p.id, p]));
 
-        // Filtrar apenas funcionários ativos no client-side
-        const ativas = (solicitacoes || []).filter((s: any) => {
-          const profileStatus = s.profiles?.status;
-          return profileStatus !== 'demitido' && profileStatus !== 'pediu_demissao';
+        const ativas = solicitacoes.filter(s => {
+          const prof = profileMap.get(s.user_id);
+          return prof?.status !== 'demitido' && prof?.status !== 'pediu_demissao';
         });
 
         const hoje = new Date().toISOString().split('T')[0];
-        
-        const pendentes = ativas.filter((s: any) => s.status === "pendente").length;
-        
-        const emAndamento = ativas.filter(
-          (s: any) => s.status === "em_andamento" || 
+        const pendentes = ativas.filter(s => s.status === "pendente").length;
+        const emAndamento = ativas.filter(s =>
+          s.status === "em_andamento" ||
           (s.status === "aprovado" && s.data_inicio <= hoje && s.data_fim >= hoje)
         ).length;
-        
-        const proximas = ativas.filter(
-          (s: any) => s.status === "aprovado" && s.data_inicio > hoje
-        ).length;
+        const proximas = ativas.filter(s => s.status === "aprovado" && s.data_inicio > hoje).length;
 
-        const { data: periodos } = await supabase
-          .from("periodos_aquisitivos")
-          .select(`dias_disponiveis`);
-
+        const periodos: any[] = await restGet('periodos_aquisitivos?select=dias_disponiveis');
         const saldoMedio = periodos?.length
-          ? Math.round(
-              periodos.reduce((acc, p) => acc + (p.dias_disponiveis || 0), 0) / periodos.length
-            )
+          ? Math.round(periodos.reduce((acc, p) => acc + (p.dias_disponiveis || 0), 0) / periodos.length)
           : 0;
 
         return { pendentes, emAndamento, proximas, saldoMedio };
       } catch (error) {
-        console.error("Erro inesperado em useMetricasFerias:", error);
+        console.error("Erro em useMetricasFerias:", error);
         return { pendentes: 0, emAndamento: 0, proximas: 0, saldoMedio: 0 };
       }
     },
@@ -166,55 +199,35 @@ export const useAtualizarSolicitacao = () => {
 
   return useMutation({
     mutationFn: async ({
-      id,
-      status,
-      observacao,
-      motivo_reprovacao,
-    }: {
-      id: string;
-      status: string;
-      observacao?: string;
-      motivo_reprovacao?: string;
-    }) => {
-      const updateData: any = {
-        status,
-        observacao,
-      };
+      id, status, observacao, motivo_reprovacao,
+    }: { id: string; status: string; observacao?: string; motivo_reprovacao?: string; }) => {
+      const updateData: any = { status, observacao };
 
       if (status === "aprovado") {
         updateData.data_aprovacao = new Date().toISOString();
-        const { data: { user } } = await supabase.auth.getUser();
-        updateData.aprovado_por = user?.id;
+        const token = getAccessToken();
+        if (token) {
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            updateData.aprovado_por = payload.sub;
+          } catch {}
+        }
       }
 
       if (status === "reprovado" && motivo_reprovacao) {
         updateData.motivo_reprovacao = motivo_reprovacao;
       }
 
-      const { data, error } = await supabase
-        .from("solicitacoes_ferias")
-        .update(updateData)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const data = await restPatch(`solicitacoes_ferias?id=eq.${id}`, updateData);
+      return data[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
       queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
-      toast({
-        title: "Sucesso",
-        description: "Solicitação atualizada com sucesso",
-      });
+      toast({ title: "Sucesso", description: "Solicitação atualizada com sucesso" });
     },
     onError: (error) => {
-      toast({
-        title: "Erro",
-        description: "Erro ao atualizar solicitação: " + error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Erro ao atualizar solicitação: " + error.message, variant: "destructive" });
     },
   });
 };
@@ -224,29 +237,17 @@ export const useNotificarFuncionario = () => {
 
   return useMutation({
     mutationFn: async (solicitacaoId: string) => {
-      const { data, error } = await supabase
-        .from("solicitacoes_ferias")
-        .update({ notificado_em: new Date().toISOString() })
-        .eq("id", solicitacaoId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const data = await restPatch(`solicitacoes_ferias?id=eq.${solicitacaoId}`, {
+        notificado_em: new Date().toISOString(),
+      });
+      return data[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
-      toast({
-        title: "Notificação enviada",
-        description: "Funcionário notificado com sucesso",
-      });
+      toast({ title: "Notificação enviada", description: "Funcionário notificado com sucesso" });
     },
     onError: (error) => {
-      toast({
-        title: "Erro",
-        description: "Erro ao enviar notificação: " + error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Erro ao enviar notificação: " + error.message, variant: "destructive" });
     },
   });
 };
@@ -256,15 +257,10 @@ export const useMarcarComoVisualizada = () => {
 
   return useMutation({
     mutationFn: async (solicitacaoId: string) => {
-      const { data, error } = await supabase
-        .from("solicitacoes_ferias")
-        .update({ visualizada_admin: true })
-        .eq("id", solicitacaoId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const data = await restPatch(`solicitacoes_ferias?id=eq.${solicitacaoId}`, {
+        visualizada_admin: true,
+      });
+      return data[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
@@ -278,85 +274,64 @@ export const useCriarSolicitacaoFerias = () => {
 
   return useMutation({
     mutationFn: async ({
-      periodo_aquisitivo_id,
-      data_inicio,
-      data_fim,
-      dias_solicitados,
-      tipo = 'ferias',
-      observacao,
+      periodo_aquisitivo_id, data_inicio, data_fim, dias_solicitados,
+      tipo = 'ferias', observacao,
     }: {
-      periodo_aquisitivo_id: string;
-      data_inicio: string;
-      data_fim: string;
-      dias_solicitados: number;
-      tipo?: 'ferias' | 'ferias_coletivas' | 'abono_pecuniario';
+      periodo_aquisitivo_id: string; data_inicio: string; data_fim: string;
+      dias_solicitados: number; tipo?: 'ferias' | 'ferias_coletivas' | 'abono_pecuniario';
       observacao?: string;
     }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) throw new Error("Usuário não autenticado");
+      const token = getAccessToken();
+      let userId: string | null = null;
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          userId = payload.sub;
+        } catch {}
+      }
+      if (!userId) throw new Error("Usuário não autenticado");
 
-      const { data, error } = await supabase
-        .from("solicitacoes_ferias")
-        .insert({
-          user_id: user.id,
-          periodo_aquisitivo_id,
-          data_inicio,
-          data_fim,
-          dias_solicitados,
-          tipo,
-          observacao,
-          status: 'pendente',
-        })
-        .select()
-        .single();
+      const data = await restPost('solicitacoes_ferias', {
+        user_id: userId,
+        periodo_aquisitivo_id,
+        data_inicio,
+        data_fim,
+        dias_solicitados,
+        tipo,
+        observacao,
+        status: 'pendente',
+      });
 
-      if (error) throw error;
-
-      // Criar chamado automático no módulo Suporte ao Funcionário
+      // Criar chamado automático
       const tipoLabel = tipo === 'ferias' ? 'Férias' : tipo === 'ferias_coletivas' ? 'Férias Coletivas' : 'Abono Pecuniário';
       const assuntoChamado = `Solicitação de ${tipoLabel} - ${data_inicio} a ${data_fim}`;
       const mensagemChamado = `Solicitação automática de ${tipoLabel}.\n\nPeríodo: ${data_inicio} a ${data_fim}\nDias solicitados: ${dias_solicitados}${observacao ? `\nObservação: ${observacao}` : ''}`;
 
       try {
-        const { data: chamado } = await (supabase as any)
-          .from("chamados_suporte")
-          .insert({ user_id: user.id, categoria: "ferias", assunto: assuntoChamado })
-          .select()
-          .single();
-
+        const chamados = await restPost('chamados_suporte', {
+          user_id: userId, categoria: "ferias", assunto: assuntoChamado,
+        });
+        const chamado = Array.isArray(chamados) ? chamados[0] : chamados;
         if (chamado) {
-          await (supabase as any)
-            .from("mensagens_chamado")
-            .insert({
-              chamado_id: chamado.id,
-              remetente_id: user.id,
-              conteudo: mensagemChamado,
-            });
+          await restPost('mensagens_chamado', {
+            chamado_id: chamado.id, remetente_id: userId, conteudo: mensagemChamado,
+          });
         }
       } catch (e) {
-        // Não bloquear a solicitação de férias se o chamado falhar
         console.error("Erro ao criar chamado de suporte para férias:", e);
       }
 
-      return data;
+      return Array.isArray(data) ? data[0] : data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
       queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias-portal"] });
       queryClient.invalidateQueries({ queryKey: ["periodos-aquisitivos-portal"] });
       queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
-      toast({
-        title: "Solicitação enviada",
-        description: "Sua solicitação de férias foi enviada para aprovação",
-      });
+      toast({ title: "Solicitação enviada", description: "Sua solicitação de férias foi enviada para aprovação" });
     },
     onError: (error) => {
-      toast({
-        title: "Erro",
-        description: "Erro ao solicitar férias: " + error.message,
-        variant: "destructive",
-      });
+      toast({ title: "Erro", description: "Erro ao solicitar férias: " + error.message, variant: "destructive" });
     },
   });
 };
