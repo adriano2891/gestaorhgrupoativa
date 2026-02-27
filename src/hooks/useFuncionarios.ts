@@ -43,11 +43,16 @@ export const useFuncionarios = () => {
         .from("profiles")
         .select("*")
         .in("id", targetIds)
-        .not("status", "in", '("demitido","pediu_demissao")')
         .order("nome", { ascending: true });
 
       if (error) throw error;
-      return data as Funcionario[];
+      
+      // Filter inactive statuses client-side for reliability
+      const activeData = (data || []).filter((p: any) => {
+        const status = (p.status || "ativo").toLowerCase();
+        return status !== "demitido" && status !== "pediu_demissao";
+      });
+      return activeData as Funcionario[];
     },
     retry: 2,
     staleTime: 1000 * 30,
