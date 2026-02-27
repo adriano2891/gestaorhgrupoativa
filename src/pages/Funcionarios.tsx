@@ -605,30 +605,32 @@ const Funcionarios = () => {
   const confirmDelete = async () => {
     if (deletingEmployeeId) {
       try {
-        const { data, error } = await supabase.functions.invoke('delete-employee-user', {
-          body: { user_id: deletingEmployeeId },
-        });
+        const token = getAccessToken();
+        if (!token) throw new Error('Sessão expirada — faça login novamente.');
 
-        if (error) {
-          const status = (error as any)?.context?.status;
-          const body = (error as any)?.context?.body;
-          const backendMsg = typeof body === 'string'
-            ? (() => {
-                try {
-                  return JSON.parse(body)?.error;
-                } catch {
-                  return undefined;
-                }
-              })()
-            : body?.error;
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-employee-user`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            },
+            body: JSON.stringify({ user_id: deletingEmployeeId }),
+          }
+        );
 
-          if (status === 401) throw new Error('Sessão expirada — faça login novamente para excluir funcionários.');
-          if (status === 403) throw new Error('Sem permissão para excluir funcionários (necessário admin ou RH).');
-          throw new Error(backendMsg || error.message);
+        const data = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          if (res.status === 401) throw new Error('Sessão expirada — faça login novamente para excluir funcionários.');
+          if (res.status === 403) throw new Error('Sem permissão para excluir funcionários (necessário admin ou RH).');
+          throw new Error(data?.error || 'Erro ao excluir funcionário');
         }
 
-        if (!(data as any)?.success) {
-          throw new Error((data as any)?.error || 'Não foi possível excluir o funcionário.');
+        if (!data?.success) {
+          throw new Error(data?.error || 'Não foi possível excluir o funcionário.');
         }
         
         toast({
