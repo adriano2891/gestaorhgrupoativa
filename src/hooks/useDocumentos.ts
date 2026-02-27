@@ -3,6 +3,41 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import type { Documento, DocumentoCategoria, DocumentoVersao, DocumentoComentario, DocumentoTipo } from "@/types/documentos";
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+function getAccessToken(): string {
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || SUPABASE_URL?.match(/\/\/([^.]+)/)?.[1] || '';
+  const storageKey = `sb-${projectId}-auth-token`;
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed?.access_token || SUPABASE_KEY;
+    }
+  } catch {}
+  return SUPABASE_KEY;
+}
+
+async function restGet(table: string, query?: string) {
+  const token = getAccessToken();
+  const url = `${SUPABASE_URL}/rest/v1/${table}${query || ''}`;
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'apikey': SUPABASE_KEY,
+      'Accept': 'application/json',
+    },
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || `HTTP ${res.status}`);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
 // Helper para detectar tipo do arquivo
 const getDocumentoTipo = (mimeType: string): DocumentoTipo => {
   if (mimeType === 'application/pdf') return 'pdf';
@@ -20,13 +55,13 @@ export const useDocumentosCategorias = () => {
   return useQuery({
     queryKey: ["documentos-categorias"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("documentos_categorias")
-        .select("*")
-        .order("ordem");
-
-      if (error) throw error;
-      return data as DocumentoCategoria[];
+      try {
+        const data = await restGet('documentos_categorias', '?select=*&order=ordem');
+        return (data ?? []) as DocumentoCategoria[];
+      } catch (e) {
+        console.error('Erro ao buscar categorias:', e);
+        return [] as DocumentoCategoria[];
+      }
     },
   });
 };
@@ -41,31 +76,26 @@ export const useDocumentos = (filters?: {
   return useQuery({
     queryKey: ["documentos", filters],
     queryFn: async () => {
-      let query = supabase
-        .from("documentos")
-        .select(`
-          *,
-          categoria:documentos_categorias(id, nome, cor),
-          profiles:criado_por(nome)
-        `)
-        .order("created_at", { ascending: false });
+      try {
+        // Build query params
+        let params = '?select=*,categoria:documentos_categorias(id,nome,cor)&order=created_at.desc';
+        
+        if (filters?.categoriaId) {
+          params += `&categoria_id=eq.${filters.categoriaId}`;
+        }
+        if (filters?.tipo) {
+          params += `&tipo=eq.${filters.tipo}`;
+        }
+        if (filters?.search) {
+          params += `&or=(titulo.ilike.*${filters.search}*,descricao.ilike.*${filters.search}*)`;
+        }
 
-      if (filters?.categoriaId) {
-        query = query.eq("categoria_id", filters.categoriaId);
+        const data = await restGet('documentos', params);
+        return (data ?? []) as Documento[];
+      } catch (e) {
+        console.error('Erro ao buscar documentos:', e);
+        return [] as Documento[];
       }
-
-      if (filters?.search) {
-        query = query.or(`titulo.ilike.%${filters.search}%,descricao.ilike.%${filters.search}%`);
-      }
-
-      if (filters?.tipo) {
-        query = query.eq("tipo", filters.tipo);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-      return data as unknown as Documento[];
     },
   });
 };
@@ -75,16 +105,20 @@ export const useMeusFavoritos = () => {
   return useQuery({
     queryKey: ["meus-favoritos"],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return [];
+      try {
+        const token = getAccessToken();
+        // Decode JWT to get user id
+        if (token === SUPABASE_KEY) return [];
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const userId = payload.sub;
+        if (!userId) return [];
 
-      const { data, error } = await supabase
-        .from("documentos_favoritos")
-        .select("documento_id")
-        .eq("user_id", user.id);
-
-      if (error) throw error;
-      return data.map(f => f.documento_id);
+        const data = await restGet('documentos_favoritos', `?select=documento_id&user_id=eq.${userId}`);
+        return (data ?? []).map((f: any) => f.documento_id) as string[];
+      } catch (e) {
+        console.error('Erro ao buscar favoritos:', e);
+        return [] as string[];
+      }
     },
   });
 };
@@ -95,19 +129,13 @@ export const useDocumentoDetails = (id: string | undefined) => {
     queryKey: ["documento", id],
     queryFn: async () => {
       if (!id) return null;
-      
-      const { data, error } = await supabase
-        .from("documentos")
-        .select(`
-          *,
-          categoria:documentos_categorias(id, nome, cor),
-          profiles:criado_por(nome)
-        `)
-        .eq("id", id)
-        .maybeSingle();
-
-      if (error) throw error;
-      return data as unknown as Documento | null;
+      try {
+        const data = await restGet('documentos', `?select=*,categoria:documentos_categorias(id,nome,cor)&id=eq.${id}`);
+        return (data && data.length > 0 ? data[0] : null) as Documento | null;
+      } catch (e) {
+        console.error('Erro ao buscar documento:', e);
+        return null;
+      }
     },
     enabled: !!id,
   });
@@ -119,15 +147,13 @@ export const useDocumentoVersoes = (documentoId: string | undefined) => {
     queryKey: ["documento-versoes", documentoId],
     queryFn: async () => {
       if (!documentoId) return [];
-      
-      const { data, error } = await supabase
-        .from("documentos_versoes")
-        .select(`*, profiles:criado_por(nome)`)
-        .eq("documento_id", documentoId)
-        .order("versao", { ascending: false });
-
-      if (error) throw error;
-      return data as DocumentoVersao[];
+      try {
+        const data = await restGet('documentos_versoes', `?select=*&documento_id=eq.${documentoId}&order=versao.desc`);
+        return (data ?? []) as DocumentoVersao[];
+      } catch (e) {
+        console.error('Erro ao buscar versões:', e);
+        return [] as DocumentoVersao[];
+      }
     },
     enabled: !!documentoId,
   });
@@ -139,15 +165,13 @@ export const useDocumentoComentarios = (documentoId: string | undefined) => {
     queryKey: ["documento-comentarios", documentoId],
     queryFn: async () => {
       if (!documentoId) return [];
-      
-      const { data, error } = await supabase
-        .from("documentos_comentarios")
-        .select(`*, profiles:user_id(nome)`)
-        .eq("documento_id", documentoId)
-        .order("created_at", { ascending: true });
-
-      if (error) throw error;
-      return data as DocumentoComentario[];
+      try {
+        const data = await restGet('documentos_comentarios', `?select=*&documento_id=eq.${documentoId}&order=created_at.asc`);
+        return (data ?? []) as DocumentoComentario[];
+      } catch (e) {
+        console.error('Erro ao buscar comentários:', e);
+        return [] as DocumentoComentario[];
+      }
     },
     enabled: !!documentoId,
   });
@@ -175,28 +199,24 @@ export const useUploadDocumento = () => {
     }) => {
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Verificar se usuário está autenticado
       if (!user) {
         throw new Error("Você precisa estar autenticado para fazer upload de documentos");
       }
 
       const fileName = `${Date.now()}_${file.name}`;
       
-      // Upload file
       const { error: uploadError } = await supabase.storage
         .from("documentos")
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: signedData, error: signedError } = await supabase.storage
         .from("documentos")
         .createSignedUrl(fileName, 3600);
       if (signedError) throw signedError;
       const publicUrl = signedData.signedUrl;
 
-      // Create document record
       const { data, error } = await supabase
         .from("documentos")
         .insert({
@@ -217,7 +237,6 @@ export const useUploadDocumento = () => {
 
       if (error) throw error;
 
-      // Create first version
       const { error: versionError } = await supabase.from("documentos_versoes").insert({
         documento_id: data.id,
         versao: 1,
@@ -230,7 +249,6 @@ export const useUploadDocumento = () => {
 
       if (versionError) {
         console.error("Erro ao criar versão:", versionError);
-        // Não falhar o upload por causa da versão, o documento principal foi criado
       }
 
       return data;
@@ -393,7 +411,6 @@ export const useUploadVersao = () => {
       const { data: { user } } = await supabase.auth.getUser();
       const fileName = `${Date.now()}_${file.name}`;
       
-      // Get current version
       const { data: doc } = await supabase
         .from("documentos")
         .select("versao_atual")
@@ -402,21 +419,18 @@ export const useUploadVersao = () => {
 
       const novaVersao = (doc?.versao_atual || 0) + 1;
       
-      // Upload file
       const { error: uploadError } = await supabase.storage
         .from("documentos")
         .upload(fileName, file);
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: signedData, error: signedError } = await supabase.storage
         .from("documentos")
         .createSignedUrl(fileName, 3600);
       if (signedError) throw signedError;
       const publicUrl = signedData.signedUrl;
 
-      // Create version record
       await supabase.from("documentos_versoes").insert({
         documento_id: documentoId,
         versao: novaVersao,
@@ -427,7 +441,6 @@ export const useUploadVersao = () => {
         criado_por: user?.id,
       });
 
-      // Update document
       await supabase.from("documentos").update({
         versao_atual: novaVersao,
         arquivo_url: publicUrl,
