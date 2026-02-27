@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { 
   LogIn, 
   Coffee, 
@@ -21,7 +31,7 @@ interface BotoesPontoProps {
 export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoProps) => {
   const { profile } = usePortalAuth();
   const [loading, setLoading] = useState<string | null>(null);
-
+  const [confirmAction, setConfirmAction] = useState<{ campo: string; label: string } | null>(null);
   const registrarPonto = async (campo: string, label: string) => {
     setLoading(campo);
     try {
@@ -304,7 +314,7 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
                 variant={botao.variant}
                 className="h-auto py-4 px-3 flex flex-col gap-2"
                 disabled={botao.disabled || loading === botao.campo}
-                onClick={() => registrarPonto(botao.campo, botao.label)}
+                onClick={() => setConfirmAction({ campo: botao.campo, label: botao.label })}
               >
                 <Icon className="h-6 w-6" />
                 <span className="text-xs text-center leading-tight">
@@ -315,6 +325,33 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
           })}
         </div>
       </CardContent>
+
+      <AlertDialog open={!!confirmAction} onOpenChange={(open) => !open && setConfirmAction(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar registro de ponto</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja registrar <strong>{confirmAction?.label}</strong> às{" "}
+              <strong>{new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</strong>?
+              <br />
+              Esta ação não poderá ser desfeita pelo funcionário.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmAction) {
+                  registrarPonto(confirmAction.campo, confirmAction.label);
+                  setConfirmAction(null);
+                }
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 };
