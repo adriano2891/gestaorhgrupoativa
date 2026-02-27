@@ -2494,6 +2494,7 @@ export type Database = {
           saida_almoco: string | null
           saida_pausa_1: string | null
           saida_pausa_2: string | null
+          status_admin: string | null
           status_validacao: string
           tipo_dia: string | null
           total_horas: unknown
@@ -2521,6 +2522,7 @@ export type Database = {
           saida_almoco?: string | null
           saida_pausa_1?: string | null
           saida_pausa_2?: string | null
+          status_admin?: string | null
           status_validacao?: string
           tipo_dia?: string | null
           total_horas?: unknown
@@ -2548,6 +2550,7 @@ export type Database = {
           saida_almoco?: string | null
           saida_pausa_1?: string | null
           saida_pausa_2?: string | null
+          status_admin?: string | null
           status_validacao?: string
           tipo_dia?: string | null
           total_horas?: unknown
