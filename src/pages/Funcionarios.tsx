@@ -197,6 +197,7 @@ const Funcionarios = () => {
     numero_pis: "",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newPhotoFile, setNewPhotoFile] = useState<File | null>(null);
   const [newPhotoPreview, setNewPhotoPreview] = useState<string | null>(null);
   const [editPhotoFile, setEditPhotoFile] = useState<File | null>(null);
@@ -760,6 +761,8 @@ const Funcionarios = () => {
   };
 
   const handleSaveNewEmployee = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       // Validate input - only validate the fields in the schema
       const dataToValidate = {
@@ -910,9 +913,15 @@ const Funcionarios = () => {
         setValidationErrors(errors);
         toast({
           title: "Erro de validação",
-          description: "Por favor, corrija os erros no formulário.",
+          description: "Por favor, corrija os campos destacados em vermelho.",
           variant: "destructive",
         });
+        // Scroll to first error field
+        const firstErrorField = Object.keys(errors)[0];
+        if (firstErrorField) {
+          const el = document.getElementById(`new-${firstErrorField}`);
+          el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       } else {
         toast({
           title: "Erro ao adicionar funcionário",
@@ -920,6 +929,8 @@ const Funcionarios = () => {
           variant: "destructive",
         });
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1747,7 +1758,9 @@ const Funcionarios = () => {
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="h-9">
               Cancelar
             </Button>
-            <Button onClick={handleSaveNewEmployee} className="h-9">Adicionar Funcionário</Button>
+            <Button onClick={handleSaveNewEmployee} disabled={isSubmitting} className="h-9">
+              {isSubmitting ? "Salvando..." : "Adicionar Funcionário"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
