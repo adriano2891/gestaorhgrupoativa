@@ -921,7 +921,22 @@ const Funcionarios = () => {
       if (newPhotoFile && newUserId) {
         const fotoUrl = await uploadPhoto(newPhotoFile, newUserId);
         if (fotoUrl) {
-          await supabase.from("profiles").update({ foto_url: fotoUrl } as any).eq("id", newUserId);
+          const tkn = getAccessToken();
+          if (tkn) {
+            await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${newUserId}`,
+              {
+                method: 'PATCH',
+                headers: {
+                  'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                  'Authorization': `Bearer ${tkn}`,
+                  'Content-Type': 'application/json',
+                  'Prefer': 'return=minimal',
+                },
+                body: JSON.stringify({ foto_url: fotoUrl }),
+              }
+            );
+          }
         }
       }
       
