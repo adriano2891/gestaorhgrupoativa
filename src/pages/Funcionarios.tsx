@@ -613,25 +613,35 @@ const Funcionarios = () => {
     setEditPhotoPreview(employee.foto_url || null);
     setIsEditDialogOpen(true);
     
-    // Buscar dados completos do banco (não bloqueia a abertura do dialog)
     try {
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("cpf, salario, endereco, escala_trabalho, turno")
-        .eq("id", employeeId)
-        .maybeSingle();
-      
-      if (profileData) {
-        setEditCpf(profileData.cpf || "");
-        setEditEndereco((profileData as any).endereco || "");
-        setEditEscala((profileData as any).escala_trabalho || "8h");
-        setEditTurno((profileData as any).turno || "diurno");
-        if (profileData.salario) {
-          const salarioFormatado = parseFloat(profileData.salario.toString()).toLocaleString('pt-BR', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-          });
-          setEditSalary(salarioFormatado);
+      const token = getAccessToken();
+      if (token) {
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=cpf,salario,endereco,escala_trabalho,turno&id=eq.${employeeId}&limit=1`,
+          {
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+        if (res.ok) {
+          const rows = await res.json();
+          const profileData = rows?.[0];
+          if (profileData) {
+            setEditCpf(profileData.cpf || "");
+            setEditEndereco(profileData.endereco || "");
+            setEditEscala(profileData.escala_trabalho || "8h");
+            setEditTurno(profileData.turno || "diurno");
+            if (profileData.salario) {
+              const salarioFormatado = parseFloat(profileData.salario.toString()).toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              });
+              setEditSalary(salarioFormatado);
+            }
+          }
         }
       }
     } catch (error) {
