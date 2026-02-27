@@ -761,6 +761,8 @@ const Funcionarios = () => {
   };
 
   const handleSaveNewEmployee = async () => {
+    if (isSubmitting) return;
+    setIsSubmitting(true);
     try {
       // Validate input - only validate the fields in the schema
       const dataToValidate = {
