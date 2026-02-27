@@ -330,28 +330,12 @@ const Funcionarios = () => {
   useEffect(() => {
     let cancelled = false;
     
-    const loadWithAuth = async () => {
-      // Aguarda sessão estar pronta
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        // Espera um pouco e tenta novamente caso a sessão ainda esteja carregando
-        await new Promise(r => setTimeout(r, 1500));
-        const { data: { session: retrySession } } = await supabase.auth.getSession();
-        if (!retrySession) {
-          console.warn("Sem sessão autenticada para carregar funcionários");
-          return;
-        }
-      }
-      if (!cancelled) {
-        await fetchEmployees();
-      }
-    };
-    
-    loadWithAuth();
+    // Chama imediatamente sem bloquear
+    fetchEmployees();
 
-    // Também escuta mudanças de auth para recarregar
+    // Também recarrega quando auth mudar (login/refresh)
     const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session && !cancelled) {
+      if (session) {
         fetchEmployees();
       }
     });
@@ -363,10 +347,15 @@ const Funcionarios = () => {
       })
       .subscribe();
 
+    // Retry após 2s caso a primeira chamada tenha falhado por sessão não pronta
+    const retryTimeout = setTimeout(() => {
+      fetchEmployees();
+    }, 2000);
+
     return () => { 
-      cancelled = true;
       authSub.unsubscribe();
-      supabase.removeChannel(channel); 
+      supabase.removeChannel(channel);
+      clearTimeout(retryTimeout);
     };
   }, [toast]);
 
