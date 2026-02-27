@@ -354,7 +354,7 @@ export default function OrcamentosBuilder() {
                 </div>
 
                 <div>
-                  <Label htmlFor="observations">Observações</Label>
+                  <Label htmlFor="observations" className="text-zinc-800">Observações</Label>
                   <Textarea
                     id="observations"
                     value={observations}
