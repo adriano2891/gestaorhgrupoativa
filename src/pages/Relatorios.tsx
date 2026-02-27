@@ -815,13 +815,13 @@ const Relatorios = () => {
                 { tipo: "Turnover", valor: taxaTurnover },
               ],
             },
-            ...(funcionariosPorDept ? [{
+            ...(funcDeptList ? [{
               type: "bar",
               title: "Funcionários por Departamento",
               description: "Distribuição atual de colaboradores por área",
               dataName: "Funcionários",
               insight: "Departamentos menores podem ter maior impacto no turnover geral.",
-              data: funcionariosPorDept.map(d => ({
+              data: funcDeptList.map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: d.funcionarios,
               })),
