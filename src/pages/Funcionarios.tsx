@@ -294,14 +294,29 @@ const Funcionarios = () => {
   // Resolve foto_url storage path to a signed URL
   const resolveFotoUrl = async (fotoUrl: string | null | undefined): Promise<string | undefined> => {
     if (!fotoUrl) return undefined;
-    // If it's already a full URL (http), return as-is
     if (fotoUrl.startsWith('http')) return fotoUrl;
-    // If it's a storage path like "fotos-funcionarios/userId/foto.jpg"
     const match = fotoUrl.match(/^fotos-funcionarios\/(.+)$/);
     if (match) {
       try {
-        const { data } = await supabase.storage.from('fotos-funcionarios').createSignedUrl(match[1], 3600);
-        return data?.signedUrl || undefined;
+        const token = getAccessToken();
+        if (!token) return undefined;
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/sign/fotos-funcionarios/${match[1]}`,
+          {
+            method: 'POST',
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ expiresIn: 3600 }),
+          }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.signedURL) return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1${data.signedURL}`;
+        }
+        return undefined;
       } catch { return undefined; }
     }
     return undefined;
