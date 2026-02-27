@@ -106,14 +106,16 @@ function getUserIdFromToken(): string | null {
   } catch { return null; }
 }
 
-async function sanitizeStorageFileName(name: string): Promise<string> {
-  return name
+function sanitizeStorageFileName(name: string): string {
+  const sanitized = name
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-zA-Z0-9._-]/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '')
     .toLowerCase() || 'arquivo';
+  console.log('[Documentos] Sanitize:', name, '->', sanitized);
+  return sanitized;
 }
 
 async function storageUpload(bucket: string, fileName: string, file: File) {
@@ -307,8 +309,9 @@ export const useUploadDocumento = () => {
       const userId = getUserIdFromToken();
       if (!userId) throw new Error("Você precisa estar autenticado para fazer upload de documentos");
 
-      const sanitizedName = await sanitizeStorageFileName(file.name);
+      const sanitizedName = sanitizeStorageFileName(file.name);
       const fileName = `${Date.now()}_${sanitizedName}`;
+      console.log('[Documentos] Upload fileName:', fileName);
       await storageUpload('documentos', fileName, file);
       const publicUrl = await storageSignedUrl('documentos', fileName);
 
@@ -460,8 +463,9 @@ export const useUploadVersao = () => {
   return useMutation({
     mutationFn: async ({ documentoId, file, alteracoes }: { documentoId: string; file: File; alteracoes?: string }) => {
       const userId = getUserIdFromToken();
-      const sanitizedName = await sanitizeStorageFileName(file.name);
+      const sanitizedName = sanitizeStorageFileName(file.name);
       const fileName = `${Date.now()}_${sanitizedName}`;
+      console.log('[Documentos] Upload versão fileName:', fileName);
 
       const docData = await restGet('documentos', `?select=versao_atual&id=eq.${documentoId}`);
       const novaVersao = ((docData[0]?.versao_atual) || 0) + 1;
