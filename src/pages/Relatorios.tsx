@@ -345,20 +345,20 @@ const Relatorios = () => {
         if (!funcList || funcList.length === 0) return baseData;
         
         // Agrupa funcionários por departamento
-        const deptStats = funcionariosPorDept?.reduce((acc: any, d: any) => {
+        const deptStats = funcDeptList?.reduce((acc: any, d: any) => {
           acc[d.departamento] = d.funcionarios;
           return acc;
         }, {}) || {};
 
         // Calcula estatísticas de salário
-        const salarios = funcionarios.filter(f => f.salario).map(f => f.salario || 0);
+        const salarios = funcList.filter(f => f.salario).map(f => f.salario || 0);
         const avgSalario = salarios.length > 0 ? salarios.reduce((a, b) => a + b, 0) / salarios.length : 0;
         const maxSalario = salarios.length > 0 ? Math.max(...salarios) : 0;
         const minSalario = salarios.length > 0 ? Math.min(...salarios) : 0;
 
         // Agrupa por cargo
         const cargoCount: Record<string, number> = {};
-        funcionarios.forEach(f => {
+        funcList.forEach(f => {
           const cargo = f.cargo || "Não informado";
           cargoCount[cargo] = (cargoCount[cargo] || 0) + 1;
         });
@@ -366,12 +366,12 @@ const Relatorios = () => {
         return {
           ...baseData,
           summary: {
-            "Total Funcionários": funcionarios.length,
-            "Departamentos": new Set(funcionarios.map(f => f.departamento || "Sem Departamento")).size,
-            "Cargos Diferentes": new Set(funcionarios.map(f => f.cargo || "Sem Cargo")).size,
+            "Total Funcionários": funcList.length,
+            "Departamentos": new Set(funcList.map(f => f.departamento || "Sem Departamento")).size,
+            "Cargos Diferentes": new Set(funcList.map(f => f.cargo || "Sem Cargo")).size,
             "Salário Médio": `R$ ${avgSalario.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
           },
-          details: funcionarios.map(f => ({
+          details: funcList.map(f => ({
             nome: f.nome,
             email: f.email,
             telefone: f.telefone || "Não informado",
@@ -379,16 +379,16 @@ const Relatorios = () => {
             departamento: f.departamento || "Não informado",
             cpf: f.cpf || "Não informado",
             salario: f.salario ? `R$ ${f.salario.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "Não informado",
-            admissao: format(new Date(f.created_at), "dd/MM/yyyy"),
+            admissao: f.created_at ? format(new Date(f.created_at), "dd/MM/yyyy") : "N/I",
           })),
           charts: [
-            ...(funcionariosPorDept ? [{
+            ...(funcDeptList ? [{
               type: "bar",
               title: "Distribuição de Funcionários por Departamento",
               description: "Quantidade de colaboradores em cada departamento da empresa",
               dataName: "Funcionários",
-              insight: `O departamento com mais funcionários possui ${Math.max(...funcionariosPorDept.map(d => d.funcionarios as number))} colaboradores.`,
-              data: funcionariosPorDept.map(d => ({
+              insight: `O departamento com mais funcionários possui ${Math.max(...funcDeptList.map(d => d.funcionarios as number))} colaboradores.`,
+              data: funcDeptList.map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: d.funcionarios,
               })),
@@ -404,7 +404,6 @@ const Relatorios = () => {
             },
           ],
         };
-
       case "pontos": {
         const profileMap = new Map((profilesComEscala || []).map(p => [p.id, p]));
         const pontoRaw = registrosPonto || [];
