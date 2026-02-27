@@ -1,12 +1,23 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, CheckCircle, Info, XCircle, Shield, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { SuperAdminAuthDialog } from "./SuperAdminAuthDialog";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+const getAccessToken = (): string | null => {
+  try {
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'rzcjwfxmogfsmfbwtwfc';
+    const raw = localStorage.getItem(`sb-${projectId}-auth-token`);
+    if (!raw) return null;
+    return JSON.parse(raw)?.access_token || null;
+  } catch { return null; }
+};
 
 interface Ocorrencia {
   id: string;
@@ -38,32 +49,38 @@ export const OcorrenciasPontoCard = ({ mes, ano }: OcorrenciasPontoCardProps) =>
   const [saving, setSaving] = useState(false);
   const [showResolved, setShowResolved] = useState(false);
 
-  const loadOcorrencias = async () => {
-    setLoading(true);
+  const loadOcorrencias = useCallback(async () => {
     try {
+      const token = getAccessToken();
+      if (!token) { setLoading(false); setOcorrencias([]); return; }
+
       const startDate = `${ano}-${mes}-01`;
       const daysInMonth = new Date(parseInt(ano), parseInt(mes), 0).getDate();
       const endDate = `${ano}-${mes}-${daysInMonth}`;
 
-      const { data, error } = await (supabase as any)
-        .from("ocorrencias_ponto")
-        .select("*, profiles:user_id(nome)")
-        .gte("data", startDate)
-        .lte("data", endDate)
-        .order("created_at", { ascending: false });
+      const url = `${SUPABASE_URL}/rest/v1/ocorrencias_ponto?select=*,profiles:user_id(nome)&data=gte.${startDate}&data=lte.${endDate}&order=created_at.desc`;
+      const res = await fetch(url, {
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${token}`,
+        },
+      });
 
-      if (error) throw error;
+      if (!res.ok) throw new Error(`REST ${res.status}`);
+      const data = await res.json();
       setOcorrencias(data || []);
     } catch (error) {
       console.error("Erro ao carregar ocorrências:", error);
+      setOcorrencias([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, [mes, ano]);
 
   useEffect(() => {
+    setLoading(true);
     loadOcorrencias();
-  }, [mes, ano]);
+  }, [loadOcorrencias]);
 
   const handleResolver = (id: string) => {
     setResolvingId(id);
@@ -79,17 +96,29 @@ export const OcorrenciasPontoCard = ({ mes, ano }: OcorrenciasPontoCardProps) =>
     }
     setSaving(true);
     try {
-      const { error } = await (supabase as any)
-        .from("ocorrencias_ponto")
-        .update({
-          resolvido: true,
-          resolvido_por: authorizedAdmin.id,
-          resolvido_em: new Date().toISOString(),
-          justificativa_resolucao: justificativa.trim(),
-        })
-        .eq("id", resolvingId);
+      const token = getAccessToken();
+      if (!token) throw new Error("Sessão expirada");
 
-      if (error) throw error;
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/ocorrencias_ponto?id=eq.${resolvingId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({
+            resolvido: true,
+            resolvido_por: authorizedAdmin.id,
+            resolvido_em: new Date().toISOString(),
+            justificativa_resolucao: justificativa.trim(),
+          }),
+        }
+      );
+
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
       toast.success("Ocorrência resolvida");
       setResolvingId(null);
       setJustificativa("");
