@@ -259,13 +259,10 @@ const Funcionarios = () => {
 
       if (rolesError) {
         console.error("Erro ao buscar roles:", rolesError);
-        toast({
-          title: "Erro ao carregar funcionários",
-          description: "Não foi possível carregar a lista de funcionários.",
-          variant: "destructive",
-        });
         return;
       }
+
+      console.log("Roles encontrados:", allRoles?.length || 0);
 
       const employeeIds = new Set<string>();
       const adminIds = new Set<string>();
@@ -329,9 +326,35 @@ const Funcionarios = () => {
     }
   };
 
-  // Carregar funcionários ao montar o componente
+  // Carregar funcionários ao montar o componente (aguarda sessão auth)
   useEffect(() => {
-    fetchEmployees();
+    let cancelled = false;
+    
+    const loadWithAuth = async () => {
+      // Aguarda sessão estar pronta
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // Espera um pouco e tenta novamente caso a sessão ainda esteja carregando
+        await new Promise(r => setTimeout(r, 1500));
+        const { data: { session: retrySession } } = await supabase.auth.getSession();
+        if (!retrySession) {
+          console.warn("Sem sessão autenticada para carregar funcionários");
+          return;
+        }
+      }
+      if (!cancelled) {
+        await fetchEmployees();
+      }
+    };
+    
+    loadWithAuth();
+
+    // Também escuta mudanças de auth para recarregar
+    const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session && !cancelled) {
+        fetchEmployees();
+      }
+    });
 
     const channel = supabase
       .channel('profiles-changes')
@@ -340,7 +363,11 @@ const Funcionarios = () => {
       })
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    return () => { 
+      cancelled = true;
+      authSub.unsubscribe();
+      supabase.removeChannel(channel); 
+    };
   }, [toast]);
 
   // Fetch available escalas and turnos
