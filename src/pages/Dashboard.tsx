@@ -223,12 +223,22 @@ const Dashboard = () => {
         
         {/* Logo Central - Absolutamente centralizada */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-          <img 
-            src={logoAtiva} 
-            alt="Logo Grupo Ativa" 
-            className="w-44 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg"
-            style={{ animation: 'dash-logo-shimmer 5s ease-in-out infinite' }}
-          />
+          <div className="relative overflow-hidden">
+            <img 
+              src={logoAtiva} 
+              alt="Logo Grupo Ativa" 
+              className="w-44 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg opacity-90"
+            />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)',
+                width: '60%',
+                animation: 'dash-logo-sweep 4s ease-in-out infinite',
+              }}
+            />
+          </div>
+        </div>
         </div>
 
         {/* Módulos em círculo - XL screens */}
