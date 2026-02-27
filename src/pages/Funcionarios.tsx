@@ -880,8 +880,10 @@ const Funcionarios = () => {
             turno: newTurno,
             dependentes: dependentesPayload,
           }),
+          signal: controller.signal,
         }
       );
+      clearTimeout(timeoutId);
 
       if (createRes.status === 401) throw new Error('Você precisa estar logado para cadastrar funcionários.');
       if (createRes.status === 403) throw new Error('Sem permissão para cadastrar funcionários.');
