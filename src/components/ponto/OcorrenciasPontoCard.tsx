@@ -58,19 +58,47 @@ export const OcorrenciasPontoCard = ({ mes, ano }: OcorrenciasPontoCardProps) =>
       const daysInMonth = new Date(parseInt(ano), parseInt(mes), 0).getDate();
       const endDate = `${ano}-${mes}-${daysInMonth}`;
 
-      const url = `${SUPABASE_URL}/rest/v1/ocorrencias_ponto?select=*,profiles:user_id(nome)&data=gte.${startDate}&data=lte.${endDate}&order=created_at.desc`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 8000);
+
+      const url = `${SUPABASE_URL}/rest/v1/ocorrencias_ponto?select=*&data=gte.${startDate}&data=lte.${endDate}&order=created_at.desc`;
       const res = await fetch(url, {
         headers: {
           'apikey': SUPABASE_KEY,
           'Authorization': `Bearer ${token}`,
         },
+        signal: controller.signal,
       });
+      clearTimeout(timeout);
 
       if (!res.ok) throw new Error(`REST ${res.status}`);
       const data = await res.json();
+
+      // Fetch profile names separately
+      if (data && data.length > 0) {
+        const userIds = [...new Set(data.map((d: any) => d.user_id))];
+        const idsParam = userIds.map(id => `"${id}"`).join(',');
+        try {
+          const pRes = await fetch(
+            `${SUPABASE_URL}/rest/v1/profiles?select=id,nome&id=in.(${idsParam})`,
+            { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${token}` } }
+          );
+          if (pRes.ok) {
+            const profiles = await pRes.json();
+            const profileMap: Record<string, string> = {};
+            profiles.forEach((p: any) => { profileMap[p.id] = p.nome; });
+            data.forEach((d: any) => { d.profiles = { nome: profileMap[d.user_id] || 'Funcionário' }; });
+          }
+        } catch { /* ignore profile fetch errors */ }
+      }
+
       setOcorrencias(data || []);
-    } catch (error) {
-      console.error("Erro ao carregar ocorrências:", error);
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        console.warn("Timeout ao carregar ocorrências");
+      } else {
+        console.error("Erro ao carregar ocorrências:", error);
+      }
       setOcorrencias([]);
     } finally {
       setLoading(false);
