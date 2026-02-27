@@ -846,10 +846,17 @@ const Funcionarios = () => {
         }))
         .filter((dep) => dep.nome.trim().length > 0 && dep.tipo_dependencia);
 
-      const { data: createData, error: createError } = await supabase.functions.invoke(
-        'create-employee-user',
+      const token = getAccessToken();
+      const createRes = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-employee-user`,
         {
-          body: {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({
             email: newEmployee.email,
             password: newEmployee.password,
             nome: newEmployee.name,
@@ -867,19 +874,17 @@ const Funcionarios = () => {
             escala_trabalho: newEscala,
             turno: newTurno,
             dependentes: dependentesPayload,
-          },
+          }),
         }
       );
 
-      if (createError) {
-        const status = (createError as any)?.context?.status;
-        if (status === 401) throw new Error('Você precisa estar logado para cadastrar funcionários.');
-        if (status === 403) throw new Error('Sem permissão para cadastrar funcionários.');
-        throw new Error(createError.message);
-      }
+      if (createRes.status === 401) throw new Error('Você precisa estar logado para cadastrar funcionários.');
+      if (createRes.status === 403) throw new Error('Sem permissão para cadastrar funcionários.');
 
-      if (!(createData as any)?.success) {
-        throw new Error((createData as any)?.error || 'Falha ao criar funcionário');
+      const createData = await createRes.json();
+
+      if (!createRes.ok || !createData?.success) {
+        throw new Error(createData?.error || 'Falha ao criar funcionário');
       }
 
       // Upload photo if selected
