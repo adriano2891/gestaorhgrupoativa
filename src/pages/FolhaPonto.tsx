@@ -105,25 +105,43 @@ const FolhaPonto = () => {
   const [registrosFolga, setRegistrosFolga] = useState<any[]>([]);
   const [countFolga, setCountFolga] = useState(0);
 
+  const getAccessToken = (): string | null => {
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'rzcjwfxmogfsmfbwtwfc';
+      const storageKey = `sb-${projectId}-auth-token`;
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return null;
+      return JSON.parse(raw)?.access_token || null;
+    } catch { return null; }
+  };
+
   // Extrair lista de funcionários e departamentos dos dados sincronizados
   const employees = funcionarios || [];
   const departamentos = [...new Set(employees.map(e => e.departamento).filter(Boolean))] as string[];
 
   const loadRegistrosFolga = async () => {
     try {
-      const { data, error } = await (supabase as any)
-        .from("registros_ponto")
-        .select("*, profiles:user_id(nome)")
-        .eq("registro_folga", true)
-        .eq("status_validacao", "pendente")
-        .order("data", { ascending: false });
+      const token = getAccessToken();
+      if (!token) { setRegistrosFolga([]); setCountFolga(0); return; }
 
-      if (error) throw error;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?select=id,user_id,data,entrada,saida,total_horas&registro_folga=eq.true&status_validacao=eq.pendente&order=data.desc`,
+        {
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+      if (!res.ok) throw new Error(`REST ${res.status}`);
+      const data = await res.json();
 
+      // Map employee names from the already-loaded funcionarios
+      const empMap = new Map((employees || []).map((e: any) => [e.id, e.nome]));
       const mapped = (data || []).map((r: any) => ({
         id: r.id,
         user_id: r.user_id,
-        employee_name: r.profiles?.nome || "Desconhecido",
+        employee_name: empMap.get(r.user_id) || "Desconhecido",
         data: r.data,
         entrada: r.entrada,
         saida: r.saida,
@@ -173,19 +191,23 @@ const FolhaPonto = () => {
       const daysInMonth = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0).getDate();
       const endDate = `${selectedYear}-${selectedMonth}-${daysInMonth}`;
 
-      let query = (supabase as any)
-        .from("registros_ponto")
-        .select("*, profiles!inner(nome, departamento, escala_trabalho, turno)")
-        .gte("data", startDate)
-        .lte("data", endDate);
+      const token = getAccessToken();
+      if (!token) { setMonthRecords([]); setLoading(false); return; }
+
+      let url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?select=*&data=gte.${startDate}&data=lte.${endDate}&order=data.asc`;
 
       if (selectedEmployee !== "todos") {
-        query = query.eq("user_id", selectedEmployee);
+        url += `&user_id=eq.${selectedEmployee}`;
       }
 
-      const { data: registros, error } = await query;
-
-      if (error) throw error;
+      const res = await fetch(url, {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`REST ${res.status}`);
+      const registros = await res.json();
 
       // Agrupar por funcionário
       const employeeMap = new Map<string, EmployeeMonthRecord>();
@@ -237,13 +259,6 @@ const FolhaPonto = () => {
       registros?.forEach((reg: any) => {
         const empRecord = employeeMap.get(reg.user_id);
         if (empRecord) {
-          // Atualizar escala/turno do perfil se disponível nos registros
-          if (reg.profiles?.escala_trabalho) {
-            empRecord.escala_trabalho = reg.profiles.escala_trabalho;
-          }
-          if (reg.profiles?.turno) {
-            empRecord.turno = reg.profiles.turno;
-          }
           const day = new Date(reg.data).getDate();
           const dayIndex = day - 1;
 
@@ -560,14 +575,24 @@ const FolhaPonto = () => {
         });
         setMonthRecords(updatedRecords);
       } else if (editingCell.field === 'horas_extras') {
-        // Atualizar horas extras no banco
-        const { error } = await supabase
-          .from("registros_ponto")
-          .update({ horas_extras: editValue })
-          .eq("user_id", editingCell.empId)
-          .eq("data", date);
+        // Atualizar horas extras no banco via REST
+        const token = getAccessToken();
+        if (!token) throw new Error('Sessão expirada');
         
-        if (error) throw error;
+        const updateRes = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?user_id=eq.${editingCell.empId}&data=eq.${date}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal',
+            },
+            body: JSON.stringify({ horas_extras: editValue }),
+          }
+        );
+        if (!updateRes.ok) throw new Error(`Erro ${updateRes.status}`);
         
         // Atualizar localmente e recalcular totais
         const updatedRecords = monthRecords.map(r => {
@@ -603,18 +628,31 @@ const FolhaPonto = () => {
       // Log the edit with admin authorization
       if (authorizedAdmin) {
         try {
-          await (supabase as any)
-            .from("logs_edicao_ponto")
-            .insert({
-              employee_id: editingCell.empId,
-              employee_name: record.employee_name,
-              campo_editado: editingCell.field === 'status' ? 'Status' : 'Horas Extras',
-              valor_anterior: editingCell.field === 'status' ? dayData.status : (dayData.horas_extras || '0h 0min'),
-              valor_novo: editValue,
-              data_registro: date,
-              autorizado_por: authorizedAdmin.id,
-              autorizado_por_nome: authorizedAdmin.name,
-            });
+          const token = getAccessToken();
+          if (token) {
+            await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/logs_edicao_ponto`,
+              {
+                method: 'POST',
+                headers: {
+                  'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                  'Prefer': 'return=minimal',
+                },
+                body: JSON.stringify({
+                  employee_id: editingCell.empId,
+                  employee_name: record.employee_name,
+                  campo_editado: editingCell.field === 'status' ? 'Status' : 'Horas Extras',
+                  valor_anterior: editingCell.field === 'status' ? dayData.status : (dayData.horas_extras || '0h 0min'),
+                  valor_novo: editValue,
+                  data_registro: date,
+                  autorizado_por: authorizedAdmin.id,
+                  autorizado_por_nome: authorizedAdmin.name,
+                }),
+              }
+            );
+          }
         } catch (logError) {
           console.error("Erro ao registrar log de edição:", logError);
         }
