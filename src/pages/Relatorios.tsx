@@ -1085,7 +1085,7 @@ const Relatorios = () => {
             "Taxa de Retenção": `${metricaClima?.taxa_retencao?.toFixed(1) || 0}%`,
             "Índice de Engajamento": `${((metricaClima?.satisfacao_interna || 0) * 10).toFixed(0)}%`,
           },
-          details: funcionariosPorDept?.map(d => ({
+          details: funcDeptList?.map(d => ({
             departamento: d.departamento,
             funcionarios: d.funcionarios,
             satisfacaoEstimada: (Math.random() * 2 + 7).toFixed(1),
