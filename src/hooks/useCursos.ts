@@ -13,22 +13,38 @@ import type {
   TrilhaAprendizado
 } from "@/types/cursos";
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+const getAccessToken = (): string | null => {
+  try {
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'rzcjwfxmogfsmfbwtwfc';
+    const storageKey = `sb-${projectId}-auth-token`;
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) return null;
+    return JSON.parse(raw)?.access_token || null;
+  } catch { return null; }
+};
+
+const restGet = async (path: string) => {
+  const token = getAccessToken();
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${token || SUPABASE_KEY}`,
+    },
+  });
+  if (!res.ok) throw new Error(`REST ${res.status}`);
+  return res.json();
+};
+
 // Categorias
 export const useCategoriasCurso = () => {
   return useQuery({
     queryKey: ["categorias-curso"],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from("categorias_curso")
-          .select("*")
-          .eq("ativo", true)
-          .order("ordem", { ascending: true });
-
-        if (error) {
-          console.error("Erro ao carregar categorias:", error);
-          return [] as CategoriaCurso[];
-        }
+        const data: CategoriaCurso[] = await restGet('categorias_curso?select=*&ativo=eq.true&order=ordem.asc');
         return (data || []) as CategoriaCurso[];
       } catch (e) {
         console.error("Erro inesperado em categorias:", e);
@@ -49,42 +65,29 @@ export const useCursos = (status?: 'rascunho' | 'publicado' | 'arquivado') => {
     retry: 2,
     queryFn: async () => {
       try {
-        const query = supabase
-          .from("cursos")
-          .select("*")
-          .order("created_at", { ascending: false });
+        let path = 'cursos?select=*&order=created_at.desc';
+        if (status) path += `&status=eq.${status}`;
 
-        const { data, error } = status 
-          ? await query.eq("status", status)
-          : await query;
-          
-        if (error) {
-          console.error("Erro ao carregar cursos:", error);
-          return [] as Curso[];
+        const data: Curso[] = await restGet(path);
+        if (!data || data.length === 0) return [] as Curso[];
+
+        // Fetch categories separately
+        try {
+          const catIds = [...new Set(data.map(c => c.categoria_id).filter(Boolean))] as string[];
+          if (catIds.length > 0) {
+            const idsParam = catIds.map(id => `"${id}"`).join(',');
+            const categorias: CategoriaCurso[] = await restGet(`categorias_curso?select=*&id=in.(${idsParam})`);
+            const catMap = new Map((categorias || []).map(c => [c.id, c]));
+            return data.map(curso => ({
+              ...curso,
+              categoria: curso.categoria_id ? catMap.get(curso.categoria_id) || null : null,
+            })) as Curso[];
+          }
+        } catch (catError) {
+          console.warn("Failed to fetch categories:", catError);
         }
 
-      if (!data || data.length === 0) return [] as Curso[];
-
-      // Fetch categories separately
-      try {
-        const catIds = [...new Set(data.map(c => c.categoria_id).filter(Boolean))] as string[];
-        if (catIds.length > 0) {
-          const { data: categorias } = await supabase
-            .from("categorias_curso")
-            .select("*")
-            .in("id", catIds);
-          
-          const catMap = new Map((categorias || []).map(c => [c.id, c]));
-          return data.map(curso => ({
-            ...curso,
-            categoria: curso.categoria_id ? catMap.get(curso.categoria_id) || null : null,
-          })) as Curso[];
-        }
-      } catch (catError) {
-        console.warn("Failed to fetch categories:", catError);
-      }
-
-      return data as Curso[];
+        return data as Curso[];
       } catch (e) {
         console.error("Erro inesperado em cursos:", e);
         return [] as Curso[];
