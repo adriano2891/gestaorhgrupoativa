@@ -1239,8 +1239,8 @@ const Funcionarios = () => {
                   <Input
                     id="cpf"
                     value={editCpf}
-                    disabled
-                    className="bg-muted cursor-not-allowed h-9"
+                    readOnly
+                    className="bg-muted cursor-not-allowed h-9 text-foreground opacity-100"
                   />
                 </div>
               </div>
