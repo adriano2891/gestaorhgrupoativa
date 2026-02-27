@@ -697,7 +697,7 @@ const Relatorios = () => {
           { nome: "Plano de Saúde", valor: "Unimed", status: "Ativo" },
           { nome: "Plano Odontológico", valor: "Odontoprev", status: "Ativo" },
         ];
-        const totalFuncionariosBen = funcionarios?.length || 0;
+        const totalFuncionariosBen = funcList?.length || 0;
 
         // Gera detalhes por funcionário com seus benefícios
         const detailsBeneficios: any[] = [];
