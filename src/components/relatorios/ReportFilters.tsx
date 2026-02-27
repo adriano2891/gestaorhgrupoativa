@@ -123,7 +123,55 @@ export const ReportFilters = ({ reportType, filters, onFilterChange, onGenerate,
     </>
   );
 
+  const custoFolhaFilters = (
+    <>
+      <div className="space-y-2">
+        <Label>Mês</Label>
+        <Select value={filters.mes} onValueChange={(v) => handleChange("mes", v)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione o mês" />
+          </SelectTrigger>
+          <SelectContent>
+            {meses.map((m) => (
+              <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label>Ano</Label>
+        <Select value={filters.ano} onValueChange={(v) => handleChange("ano", v)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione o ano" />
+          </SelectTrigger>
+          <SelectContent>
+            {anos.map((a) => (
+              <SelectItem key={a} value={String(a)}>{a}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label>Departamento</Label>
+        <Select value={filters.departamento} onValueChange={(v) => handleChange("departamento", v)}>
+          <SelectTrigger>
+            <SelectValue placeholder="Todos" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos</SelectItem>
+            <SelectItem value="ti">TI</SelectItem>
+            <SelectItem value="rh">RH</SelectItem>
+            <SelectItem value="financeiro">Financeiro</SelectItem>
+            <SelectItem value="comercial">Comercial</SelectItem>
+            <SelectItem value="operacional">Operacional</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </>
+  );
+
   const getFiltersForReport = () => {
+    if (isCustoFolhaReport) return custoFolhaFilters;
     if (isPontoReport) return pontoFilters;
 
     switch (reportType) {
