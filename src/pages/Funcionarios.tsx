@@ -326,10 +326,8 @@ const Funcionarios = () => {
     }
   };
 
-  // Carregar funcionários ao montar o componente (aguarda sessão auth)
+  // Carregar funcionários ao montar o componente
   useEffect(() => {
-    let cancelled = false;
-    
     // Chama imediatamente sem bloquear
     fetchEmployees();
 
