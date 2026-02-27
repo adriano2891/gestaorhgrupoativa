@@ -341,12 +341,14 @@ const GestaoRH = () => {
         
         {/* Logo Central */}
         <div className={`absolute inset-0 flex items-center justify-center pointer-events-none z-0 ${isAnimating ? 'rh-animate-logo' : 'opacity-90'}`}>
-          <img 
-            src={logoCenterRH} 
-            alt="Logo Grupo Ativa" 
-            className="w-40 md:w-56 lg:w-72 xl:w-80 2xl:w-96 h-auto"
-            style={!isAnimating ? { opacity: 0.9 } : {}}
-          />
+          <div className="rh-logo-sweep rounded-2xl">
+            <img 
+              src={logoCenterRH} 
+              alt="Logo Grupo Ativa" 
+              className="w-40 md:w-56 lg:w-72 xl:w-80 2xl:w-96 h-auto"
+              style={!isAnimating ? { opacity: 0.9 } : {}}
+            />
+          </div>
         </div>
 
         {/* Layout Circular - XL */}
