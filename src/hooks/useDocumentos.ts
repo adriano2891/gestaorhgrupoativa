@@ -450,7 +450,8 @@ export const useUploadVersao = () => {
   return useMutation({
     mutationFn: async ({ documentoId, file, alteracoes }: { documentoId: string; file: File; alteracoes?: string }) => {
       const userId = getUserIdFromToken();
-      const fileName = `${Date.now()}_${file.name}`;
+      const sanitizedName = file.name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '_');
+      const fileName = `${Date.now()}_${sanitizedName}`;
 
       const docData = await restGet('documentos', `?select=versao_atual&id=eq.${documentoId}`);
       const novaVersao = ((docData[0]?.versao_atual) || 0) + 1;
