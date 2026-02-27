@@ -186,16 +186,18 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
         throw new Error(msg || "Erro na autenticação");
       }
 
-      // Set session manually from the auth response
-      const { error: setErr } = await supabase.auth.setSession({
+      // Store session directly in localStorage to avoid LockManager
+      const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID || supabaseUrl.match(/\/\/([^.]+)/)?.[1];
+      const storageKey = `sb-${projectRef}-auth-token`;
+      const sessionData = {
         access_token: authData.access_token,
         refresh_token: authData.refresh_token,
-      });
-
-      if (setErr) {
-        console.error("Erro ao definir sessão:", setErr);
-        throw new Error("Erro ao estabelecer sessão");
-      }
+        token_type: 'bearer',
+        expires_in: authData.expires_in,
+        expires_at: authData.expires_at || Math.floor(Date.now() / 1000) + (authData.expires_in || 3600),
+        user: authData.user,
+      };
+      localStorage.setItem(storageKey, JSON.stringify(sessionData));
 
       const userId = authData.user?.id;
       if (userId) {
