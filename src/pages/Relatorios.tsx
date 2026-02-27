@@ -1049,14 +1049,14 @@ const Relatorios = () => {
 
         // Encargos patronais
         const calcularEncargosPatronais = (salarioBruto: number) => {
-          const inssPatronal = salarioBruto * 0.20; // 20%
-          const rat = salarioBruto * 0.02; // RAT médio 2%
-          const terceiros = salarioBruto * 0.058; // Sistema S, INCRA, Sal-Educação ~5.8%
-          const fgtsPatronal = salarioBruto * 0.08; // FGTS
+          const inssPatronal = salarioBruto * 0.20;
+          const rat = salarioBruto * 0.02;
+          const terceiros = salarioBruto * 0.058;
+          const fgtsPatronal = salarioBruto * 0.08;
           return { inssPatronal, rat, terceiros, fgtsPatronal, total: inssPatronal + rat + terceiros + fgtsPatronal };
         };
 
-        // Filtra funcionários por departamento se necessário
+        // Filtra funcionários por departamento
         let funcFolha = funcList || [];
         if (filters.departamento && filters.departamento !== "todos") {
           funcFolha = funcFolha.filter(f => 
@@ -1064,93 +1064,203 @@ const Relatorios = () => {
           );
         }
 
+        // Buscar registros de ponto do mês/ano selecionado para cálculos de HE, noturno, faltas
+        const mesSelecionado = filters.mes ? parseInt(filters.mes) : new Date().getMonth() + 1;
+        const anoSelecionado = filters.ano ? parseInt(filters.ano) : new Date().getFullYear();
+        
+        // Filtrar registros de ponto do período
+        const pontosMes = (pontosList || []).filter(r => {
+          if (!r.data) return false;
+          const d = new Date(r.data);
+          return (d.getMonth() + 1) === mesSelecionado && d.getFullYear() === anoSelecionado;
+        });
+
+        // Agrupar ponto por user_id
+        const pontosPorUser: Record<string, any[]> = {};
+        pontosMes.forEach(r => {
+          if (!pontosPorUser[r.user_id]) pontosPorUser[r.user_id] = [];
+          pontosPorUser[r.user_id].push(r);
+        });
+
+        // Helper: parse interval string to hours
+        const parseIntervalHours = (v: any): number => {
+          if (!v) return 0;
+          const s = String(v);
+          const m = s.match(/(\d+):(\d+)/);
+          return m ? parseInt(m[1]) + parseInt(m[2]) / 60 : 0;
+        };
+
+        // Valores padrão de benefícios (configuráveis)
+        const VT_DESCONTO_PERC = 0.06; // 6% do salário base
+        const VR_VALOR_DIA = 30.00; // R$ por dia útil
+        const PLANO_SAUDE_VALOR = 250.00; // Coparticipação mensal
+        const PLANO_ODONTO_VALOR = 35.00; // Mensal
+        const DIAS_UTEIS_MES = 22;
+
         // Gerar detalhamento por funcionário
         const detalhamentoFolha: any[] = [];
-        let totalFolhaBruta = 0;
-        let totalDescontos = 0;
-        let totalFolhaLiquida = 0;
-        let totalEncargosPatronais = 0;
-        let totalINSS = 0;
-        let totalIRRF = 0;
-        let totalFGTS = 0;
-        let totalPagamentos = 0;
+        let totalFolhaBruta = 0, totalDescontos = 0, totalFolhaLiquida = 0;
+        let totalEncargosPatronais = 0, totalINSS = 0, totalIRRF = 0, totalFGTS = 0;
+        let totalPagamentos = 0, totalHE = 0, totalAdicNoturno = 0, totalDSR = 0;
+        let totalVT = 0, totalVR = 0, totalSaude = 0, totalOdonto = 0, totalFaltas = 0;
 
         funcFolha.forEach(f => {
           const salarioBruto = f.salario || 0;
           if (salarioBruto === 0) return;
           
           totalPagamentos++;
-          const inss = calcularINSS(salarioBruto);
-          const irrf = Math.max(0, calcularIRRF(salarioBruto, inss));
-          const fgts = calcularFGTS(salarioBruto);
-          const descontosFunc = inss + irrf;
-          const salarioLiquido = salarioBruto - descontosFunc;
-          const encargos = calcularEncargosPatronais(salarioBruto);
+          const registrosPontoFunc = pontosPorUser[f.id] || [];
+          
+          // --- Horas Extras ---
+          let heHoras = 0;
+          registrosPontoFunc.forEach(r => {
+            heHoras += parseIntervalHours(r.horas_extras);
+          });
+          const valorHoraNormal = salarioBruto / 220; // CLT: 220h mensais
+          // HE útil = 50%, HE DSR/feriado = 100%
+          let valorHE = 0;
+          registrosPontoFunc.forEach(r => {
+            const heH = parseIntervalHours(r.horas_extras);
+            if (heH > 0) {
+              const perc = r.percentual_he || 50;
+              valorHE += heH * valorHoraNormal * (1 + perc / 100);
+            }
+          });
 
-          totalFolhaBruta += salarioBruto;
-          totalDescontos += descontosFunc;
+          // --- Adicional Noturno (20% sobre hora noturna) ---
+          let horasNoturnas = 0;
+          registrosPontoFunc.forEach(r => {
+            horasNoturnas += parseIntervalHours(r.horas_noturnas);
+          });
+          const valorAdicNoturno = horasNoturnas * valorHoraNormal * 0.20;
+
+          // --- DSR sobre HE (reflexo: HE_semana / dias_uteis_semana * DSRs) ---
+          // Simplificado: valorHE / dias_uteis * domingos_feriados
+          const domingosMes = Math.ceil(30 / 7); // ~4-5
+          const valorDSR = DIAS_UTEIS_MES > 0 ? (valorHE / DIAS_UTEIS_MES) * domingosMes : 0;
+
+          // --- Faltas/Atrasos (descontos) ---
+          let diasFalta = 0;
+          registrosPontoFunc.forEach(r => {
+            if (!r.entrada && !r.registro_folga) diasFalta++;
+          });
+          const descontoFaltas = diasFalta * (salarioBruto / 30);
+
+          // --- Benefícios ---
+          const vtDesconto = salarioBruto * VT_DESCONTO_PERC;
+          const vrValor = VR_VALOR_DIA * DIAS_UTEIS_MES;
+          const saudeDesconto = PLANO_SAUDE_VALOR;
+          const odontoDesconto = PLANO_ODONTO_VALOR;
+
+          // --- Proventos totais ---
+          const totalProventos = salarioBruto + valorHE + valorAdicNoturno + valorDSR;
+          
+          // --- Descontos legais ---
+          const inss = calcularINSS(totalProventos);
+          const irrf = Math.max(0, calcularIRRF(totalProventos, inss));
+          const fgts = calcularFGTS(totalProventos);
+          
+          // --- Descontos totais ---
+          const descontosLegais = inss + irrf;
+          const descontosBeneficios = vtDesconto + saudeDesconto + odontoDesconto;
+          const descontosTotal = descontosLegais + descontosBeneficios + descontoFaltas;
+          
+          const salarioLiquido = totalProventos - descontosTotal;
+          const encargos = calcularEncargosPatronais(totalProventos);
+
+          totalFolhaBruta += totalProventos;
+          totalDescontos += descontosTotal;
           totalFolhaLiquida += salarioLiquido;
           totalEncargosPatronais += encargos.total;
           totalINSS += inss;
           totalIRRF += irrf;
           totalFGTS += fgts;
+          totalHE += valorHE;
+          totalAdicNoturno += valorAdicNoturno;
+          totalDSR += valorDSR;
+          totalVT += vtDesconto;
+          totalVR += vrValor;
+          totalSaude += saudeDesconto;
+          totalOdonto += odontoDesconto;
+          totalFaltas += descontoFaltas;
+
+          const fmt = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
           detalhamentoFolha.push({
             nome: f.nome,
-            departamento: f.departamento || "Não informado",
-            cargo: f.cargo || "Não informado",
-            salarioBruto: `R$ ${salarioBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            inss: `R$ ${inss.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            irrf: `R$ ${irrf.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            fgts: `R$ ${fgts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            totalDescontos: `R$ ${descontosFunc.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            salarioLiquido: `R$ ${salarioLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            encargosPatronais: `R$ ${encargos.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            departamento: f.departamento || "N/I",
+            cargo: f.cargo || "N/I",
+            salarioBase: fmt(salarioBruto),
+            horasExtras: fmt(valorHE),
+            adicNoturno: fmt(valorAdicNoturno),
+            dsrReflexo: fmt(valorDSR),
+            totalProventos: fmt(totalProventos),
+            inss: fmt(inss),
+            irrf: fmt(irrf),
+            vt: fmt(vtDesconto),
+            planoSaude: fmt(saudeDesconto),
+            planoOdonto: fmt(odontoDesconto),
+            faltas: fmt(descontoFaltas),
+            totalDescontos: fmt(descontosTotal),
+            fgts: fmt(fgts),
+            salarioLiquido: fmt(salarioLiquido),
+            encargosPatronais: fmt(encargos.total),
           });
         });
 
         const mesLabel = filters.mes ? ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"][parseInt(filters.mes)] : "Atual";
         const anoLabel = filters.ano || new Date().getFullYear();
         const custoTotalGeral = totalFolhaBruta + totalEncargosPatronais;
+        const fmt2 = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
         return {
           ...baseData,
           summary: {
             "Período": `${mesLabel}/${anoLabel}`,
             "Total Pagamentos": totalPagamentos,
-            "Folha Bruta": `R$ ${totalFolhaBruta.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Total INSS": `R$ ${totalINSS.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Total IRRF": `R$ ${totalIRRF.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Total FGTS": `R$ ${totalFGTS.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Total Descontos": `R$ ${totalDescontos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Folha Líquida": `R$ ${totalFolhaLiquida.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Encargos Patronais": `R$ ${totalEncargosPatronais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Custo Total (Bruta + Encargos)": `R$ ${custoTotalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            "Total Proventos": fmt2(totalFolhaBruta),
+            "Horas Extras": fmt2(totalHE),
+            "Adic. Noturno": fmt2(totalAdicNoturno),
+            "DSR Reflexo": fmt2(totalDSR),
+            "Total INSS": fmt2(totalINSS),
+            "Total IRRF": fmt2(totalIRRF),
+            "Total FGTS": fmt2(totalFGTS),
+            "VT (Desc.)": fmt2(totalVT),
+            "Plano Saúde": fmt2(totalSaude),
+            "Plano Odonto": fmt2(totalOdonto),
+            "Desc. Faltas": fmt2(totalFaltas),
+            "Total Descontos": fmt2(totalDescontos),
+            "Folha Líquida": fmt2(totalFolhaLiquida),
+            "Encargos Patronais": fmt2(totalEncargosPatronais),
+            "Custo Total": fmt2(custoTotalGeral),
           },
           details: detalhamentoFolha.length > 0 ? detalhamentoFolha : [{
             nome: "Nenhum funcionário com salário cadastrado",
-            departamento: "-", cargo: "-", salarioBruto: "-",
-            inss: "-", irrf: "-", fgts: "-", totalDescontos: "-",
+            departamento: "-", cargo: "-", salarioBase: "-",
+            horasExtras: "-", adicNoturno: "-", dsrReflexo: "-", totalProventos: "-",
+            inss: "-", irrf: "-", vt: "-", planoSaude: "-", planoOdonto: "-",
+            faltas: "-", totalDescontos: "-", fgts: "-",
             salarioLiquido: "-", encargosPatronais: "-",
           }],
           charts: [
             {
               type: "pie",
               title: "Composição do Custo Total de Folha",
-              description: "Distribuição entre salários líquidos, descontos legais e encargos patronais",
+              description: "Distribuição entre salários, descontos e encargos",
               data: [
                 { componente: "Salários Líquidos", valor: Math.round(totalFolhaLiquida) },
-                { componente: "INSS (Funcionário)", valor: Math.round(totalINSS) },
+                { componente: "INSS (Func.)", valor: Math.round(totalINSS) },
                 { componente: "IRRF", valor: Math.round(totalIRRF) },
+                { componente: "Benefícios (VT/Saúde/Odonto)", valor: Math.round(totalVT + totalSaude + totalOdonto) },
                 { componente: "Encargos Patronais", valor: Math.round(totalEncargosPatronais) },
               ].filter(d => d.valor > 0),
             },
             {
               type: "bar",
               title: "Custo por Departamento",
-              description: "Custo total da folha (bruto + encargos) por departamento",
+              description: "Custo total da folha (proventos + encargos) por departamento",
               dataName: "R$",
-              insight: `Custo médio por funcionário: R$ ${totalPagamentos > 0 ? (custoTotalGeral / totalPagamentos).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}. Base legal: CLT, Lei 8.212/91, Lei 8.036/90.`,
+              insight: `Custo médio por funcionário: ${totalPagamentos > 0 ? fmt2(custoTotalGeral / totalPagamentos) : 'R$ 0,00'}. Base: CLT, Lei 8.212/91, Lei 8.036/90.`,
               data: (() => {
                 const deptCusto: Record<string, number> = {};
                 funcFolha.forEach(f => {
@@ -1170,13 +1280,26 @@ const Relatorios = () => {
               title: "Detalhamento de Encargos Patronais",
               description: "INSS Patronal (20%), RAT (2%), Terceiros (5.8%), FGTS (8%)",
               dataName: "R$",
-              insight: "Encargos calculados conforme Lei 8.212/1991 e Lei 8.036/1990.",
+              insight: "Encargos conforme Lei 8.212/1991 e Lei 8.036/1990.",
               data: [
                 { departamento: "INSS Patronal", valor: Math.round(totalFolhaBruta * 0.20) },
                 { departamento: "RAT", valor: Math.round(totalFolhaBruta * 0.02) },
                 { departamento: "Terceiros", valor: Math.round(totalFolhaBruta * 0.058) },
                 { departamento: "FGTS", valor: Math.round(totalFolhaBruta * 0.08) },
               ],
+            },
+            {
+              type: "pie",
+              title: "Proventos vs Descontos",
+              description: "HE, Adicional Noturno, DSR e descontos de Faltas, VT, Saúde",
+              data: [
+                { componente: "Horas Extras", valor: Math.round(totalHE) },
+                { componente: "Adic. Noturno", valor: Math.round(totalAdicNoturno) },
+                { componente: "DSR Reflexo", valor: Math.round(totalDSR) },
+                { componente: "Desc. Faltas", valor: Math.round(totalFaltas) },
+                { componente: "VT", valor: Math.round(totalVT) },
+                { componente: "Saúde+Odonto", valor: Math.round(totalSaude + totalOdonto) },
+              ].filter(d => d.valor > 0),
             },
           ],
         };
