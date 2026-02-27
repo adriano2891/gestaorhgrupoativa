@@ -208,6 +208,15 @@ const FolhaPonto = () => {
       });
       if (!res.ok) throw new Error(`REST ${res.status}`);
       const registros = await res.json();
+
+      // Agrupar por funcionário
+      const employeeMap = new Map<string, EmployeeMonthRecord>();
+
+      // Obter lista de funcionários para o filtro
+      let employeeList = employees;
+      if (selectedEmployee !== "todos") {
+        employeeList = employees.filter(e => e.id === selectedEmployee);
+      }
       if (selectedDepartamento !== "todos") {
         employeeList = employeeList.filter(e => e.departamento === selectedDepartamento);
       }
