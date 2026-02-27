@@ -1121,7 +1121,7 @@ const FolhaPonto = () => {
                               )}
                             </TableCell>
                             <TableCell>
-                              {!editingCell && (
+                              {!(editingCell?.empId === record.employee_id && editingCell?.day === day.day) && (
                                 <div className="flex gap-1">
                                   <Button
                                     size="sm"
