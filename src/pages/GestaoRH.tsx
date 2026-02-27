@@ -11,6 +11,7 @@ import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { BackButton } from "@/components/ui/back-button";
 import logoAtiva from "@/assets/logo-ativa.png";
+import logoCenterRH from "@/assets/logo-gestao-rh-center.png";
 import iconFuncionarios from "@/assets/icon-rh-funcionarios.png";
 import iconTalentos from "@/assets/icon-rh-talentos.png";
 import iconRelatorios from "@/assets/icon-rh-relatorios.png";
