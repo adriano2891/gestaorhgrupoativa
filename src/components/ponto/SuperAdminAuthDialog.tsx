@@ -41,8 +41,6 @@ export const SuperAdminAuthDialog = ({
     }
 
     setLoading(true);
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 12000);
 
     try {
       // Authenticate via REST (does NOT affect current session)
@@ -53,7 +51,6 @@ export const SuperAdminAuthDialog = ({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
-        signal: controller.signal,
       });
 
       if (!authRes.ok) {
@@ -77,7 +74,6 @@ export const SuperAdminAuthDialog = ({
             'apikey': SUPABASE_KEY,
             'Authorization': `Bearer ${adminToken}`,
           },
-          signal: controller.signal,
         }
       );
 
@@ -89,36 +85,38 @@ export const SuperAdminAuthDialog = ({
       }
 
       // Get admin name via REST
-      const profileRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/profiles?select=nome&id=eq.${adminUserId}&limit=1`,
-        {
-          headers: {
-            'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${adminToken}`,
-          },
-          signal: controller.signal,
-        }
-      );
-
       let adminName = email;
-      if (profileRes.ok) {
-        const profiles = await profileRes.json();
-        if (profiles?.[0]?.nome) adminName = profiles[0].nome;
+      try {
+        const profileRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/profiles?select=nome&id=eq.${adminUserId}&limit=1`,
+          {
+            headers: {
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${adminToken}`,
+            },
+          }
+        );
+
+        if (profileRes.ok) {
+          const profiles = await profileRes.json();
+          if (profiles?.[0]?.nome) adminName = profiles[0].nome;
+        }
+      } catch {
+        // ignore profile fetch errors, use email as name
       }
 
       toast.success(`Autorizado por: ${adminName}`);
+      const savedAdminId = adminUserId;
+      const savedAdminName = adminName;
       setEmail("");
       setPassword("");
+      setLoading(false);
       onOpenChange(false);
-      onAuthorized(adminUserId, adminName);
+      // Call onAuthorized after state updates
+      setTimeout(() => onAuthorized(savedAdminId, savedAdminName), 50);
     } catch (error: any) {
-      if (error.name === 'AbortError') {
-        toast.error("Tempo esgotado. Tente novamente.");
-      } else {
-        toast.error(error.message || "Erro na autenticação");
-      }
-    } finally {
-      clearTimeout(timeout);
+      console.error("SuperAdmin auth error:", error);
+      toast.error(error.message || "Erro na autenticação");
       setLoading(false);
     }
   };
