@@ -126,12 +126,16 @@ export const useFuncionariosPorCargo = () => {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("cargo, id")
+        .select("cargo, id, status")
         .in("id", targetIds)
-        .not("status", "in", '("demitido","pediu_demissao")')
         .order("cargo", { ascending: true });
 
       if (error) throw error;
+
+      const activeData = (data || []).filter((p: any) => {
+        const status = (p.status || "ativo").toLowerCase();
+        return status !== "demitido" && status !== "pediu_demissao";
+      });
 
       const grouped = (data || []).reduce((acc: Record<string, number>, curr: any) => {
         const position = curr.cargo || "Sem Cargo";
