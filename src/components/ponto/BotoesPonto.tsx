@@ -31,7 +31,7 @@ interface BotoesPontoProps {
 export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoProps) => {
   const { profile } = usePortalAuth();
   const [loading, setLoading] = useState<string | null>(null);
-
+  const [confirmAction, setConfirmAction] = useState<{ campo: string; label: string } | null>(null);
   const registrarPonto = async (campo: string, label: string) => {
     setLoading(campo);
     try {
