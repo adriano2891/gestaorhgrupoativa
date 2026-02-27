@@ -379,13 +379,14 @@ const Relatorios = () => {
     }
   };
 
-  const generateReportDataDirect = (reportType: string | null, filters: any, funcData?: any[], funcPorDeptData?: any[], pontosData?: any[], profilesEscalaData?: any[], metricasData?: any[]) => {
+  const generateReportDataDirect = (reportType: string | null, filters: any, funcData?: any[], funcPorDeptData?: any[], pontosData?: any[], profilesEscalaData?: any[], metricasData?: any[], holeriteData?: any[]) => {
     // Use passed data or fall back to hook data
     const funcList = funcData || funcionarios;
     const funcDeptList = funcPorDeptData || funcionariosPorDept;
     const pontosList = pontosData || registrosPonto;
     const profilesList = profilesEscalaData || profilesComEscala;
     const metricasList = metricasData || metricas;
+    const holeritesList = holeriteData || [];
     const baseData = {
       reportType,
       filters,
