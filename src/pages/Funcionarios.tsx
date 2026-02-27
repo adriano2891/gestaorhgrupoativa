@@ -813,11 +813,15 @@ const Funcionarios = () => {
       
       // Atualizar lista de funcionários imediatamente
       await fetchEmployees();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
+    } catch (error: any) {
+      console.error("Erro ao adicionar funcionário:", error);
+      
+      // Handle Zod validation errors
+      const zodIssues = error?.issues || error?.errors;
+      if (zodIssues && Array.isArray(zodIssues)) {
         const errors: Record<string, string> = {};
-        (error.issues || (error as any).errors || []).forEach((err: any) => {
-          if (err.path[0]) {
+        zodIssues.forEach((err: any) => {
+          if (err.path?.[0]) {
             errors[err.path[0].toString()] = err.message;
           }
         });
@@ -828,10 +832,9 @@ const Funcionarios = () => {
           variant: "destructive",
         });
       } else {
-        console.error("Erro ao adicionar funcionário:", error);
         toast({
           title: "Erro ao adicionar funcionário",
-          description: error instanceof Error ? error.message : "Ocorreu um erro inesperado",
+          description: error?.message || "Ocorreu um erro inesperado",
           variant: "destructive",
         });
       }
