@@ -283,43 +283,61 @@ const Relatorios = () => {
       let freshRegistrosPonto = registrosPonto;
       let freshProfilesEscala = profilesComEscala;
 
-      if (!freshFuncionarios || freshFuncionarios.length === 0) {
-        const roles = await fetchDirectREST("user_roles", "select=user_id,role");
-        const employeeIds = new Set<string>();
-        const adminIds = new Set<string>();
-        (roles || []).forEach((r: any) => {
-          if (r.role === 'funcionario') employeeIds.add(r.user_id);
-          if (['admin', 'gestor', 'rh'].includes(r.role)) adminIds.add(r.user_id);
-        });
-        const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
-        
-        if (targetIds.length > 0) {
-          const idFilter = targetIds.map(id => `"${id}"`).join(",");
-          const profiles = await fetchDirectREST("profiles", `select=*&id=in.(${idFilter})&order=nome.asc`);
-          freshFuncionarios = (profiles || []).filter((p: any) => {
-            const status = (p.status || "ativo").toLowerCase();
-            return status !== "demitido" && status !== "pediu_demissao";
+      // Always fetch fresh data via REST for reliability
+      if (!freshFuncionarios || freshFuncionarios.length === 0 || selectedReport === 'funcionarios') {
+        try {
+          const roles = await fetchDirectREST("user_roles", "select=user_id,role");
+          const employeeIds = new Set<string>();
+          const adminIds = new Set<string>();
+          (roles || []).forEach((r: any) => {
+            if (r.role === 'funcionario') employeeIds.add(r.user_id);
+            if (['admin', 'gestor', 'rh'].includes(r.role)) adminIds.add(r.user_id);
           });
+          const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
+          
+          if (targetIds.length > 0) {
+            const idFilter = targetIds.map(id => `"${id}"`).join(",");
+            const profiles = await fetchDirectREST("profiles", `select=*&id=in.(${idFilter})&order=nome.asc`);
+            freshFuncionarios = (profiles || []).filter((p: any) => {
+              const status = (p.status || "ativo").toLowerCase();
+              return status !== "demitido" && status !== "pediu_demissao" && status !== "pediu demissão";
+            });
 
-          // Build dept grouping
-          const grouped: Record<string, number> = {};
-          freshFuncionarios.forEach((f: any) => {
-            const dept = f.departamento || "Sem Departamento";
-            grouped[dept] = (grouped[dept] || 0) + 1;
-          });
-          freshFuncPorDept = Object.entries(grouped).map(([departamento, count]) => ({
-            departamento,
-            funcionarios: count,
-          }));
+            // Build dept grouping
+            const grouped: Record<string, number> = {};
+            freshFuncionarios.forEach((f: any) => {
+              const dept = f.departamento || "Sem Departamento";
+              grouped[dept] = (grouped[dept] || 0) + 1;
+            });
+            freshFuncPorDept = Object.entries(grouped).map(([departamento, count]) => ({
+              departamento,
+              funcionarios: count,
+            }));
+          } else {
+            freshFuncionarios = [];
+            freshFuncPorDept = [];
+          }
+        } catch (e) {
+          console.error("Error fetching funcionarios via REST:", e);
         }
       }
 
       if (!freshProfilesEscala || freshProfilesEscala.length === 0) {
-        freshProfilesEscala = await fetchDirectREST("profiles", "select=id,nome,departamento,cargo,escala_trabalho,turno,status&status=neq.demitido&status=neq.pediu_demissao");
+        try {
+          freshProfilesEscala = await fetchDirectREST("profiles", "select=id,nome,departamento,cargo,escala_trabalho,turno,status&status=neq.demitido");
+        } catch (e) {
+          console.error("Error fetching profiles escala:", e);
+          freshProfilesEscala = [];
+        }
       }
 
       if (!freshRegistrosPonto || freshRegistrosPonto.length === 0) {
-        freshRegistrosPonto = await fetchDirectREST("registros_ponto", "select=*&order=data.desc&limit=1000");
+        try {
+          freshRegistrosPonto = await fetchDirectREST("registros_ponto", "select=*&order=data.desc&limit=1000");
+        } catch (e) {
+          console.error("Error fetching registros ponto:", e);
+          freshRegistrosPonto = [];
+        }
       }
 
       const data = generateReportDataDirect(selectedReport, filters, freshFuncionarios, freshFuncPorDept, freshRegistrosPonto, freshProfilesEscala);
