@@ -79,12 +79,16 @@ export const useFuncionariosPorDepartamento = () => {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("departamento, id")
+        .select("departamento, id, status")
         .in("id", targetIds)
-        .not("status", "in", '("demitido","pediu_demissao")')
         .order("departamento", { ascending: true });
 
       if (error) throw error;
+
+      const activeData = (data || []).filter((p: any) => {
+        const status = (p.status || "ativo").toLowerCase();
+        return status !== "demitido" && status !== "pediu_demissao";
+      });
 
       const grouped = (data || []).reduce((acc: Record<string, number>, curr: any) => {
         const dept = curr.departamento || "Sem Departamento";
