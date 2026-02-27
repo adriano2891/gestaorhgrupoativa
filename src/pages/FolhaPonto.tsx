@@ -191,28 +191,23 @@ const FolhaPonto = () => {
       const daysInMonth = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0).getDate();
       const endDate = `${selectedYear}-${selectedMonth}-${daysInMonth}`;
 
-      let query = (supabase as any)
-        .from("registros_ponto")
-        .select("*, profiles!inner(nome, departamento, escala_trabalho, turno)")
-        .gte("data", startDate)
-        .lte("data", endDate);
+      const token = getAccessToken();
+      if (!token) { setMonthRecords([]); setLoading(false); return; }
+
+      let url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?select=*&data=gte.${startDate}&data=lte.${endDate}&order=data.asc`;
 
       if (selectedEmployee !== "todos") {
-        query = query.eq("user_id", selectedEmployee);
+        url += `&user_id=eq.${selectedEmployee}`;
       }
 
-      const { data: registros, error } = await query;
-
-      if (error) throw error;
-
-      // Agrupar por funcionário
-      const employeeMap = new Map<string, EmployeeMonthRecord>();
-
-      // Obter lista de funcionários para o filtro
-      let employeeList = employees;
-      if (selectedEmployee !== "todos") {
-        employeeList = employees.filter(e => e.id === selectedEmployee);
-      }
+      const res = await fetch(url, {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`REST ${res.status}`);
+      const registros = await res.json();
       if (selectedDepartamento !== "todos") {
         employeeList = employeeList.filter(e => e.departamento === selectedDepartamento);
       }
