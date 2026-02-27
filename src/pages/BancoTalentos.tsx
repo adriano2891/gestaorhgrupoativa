@@ -96,27 +96,43 @@ const BancoTalentos = () => {
     fetchCandidates();
   }, []);
 
+  const getAccessToken = (): string | null => {
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'rzcjwfxmogfsmfbwtwfc';
+      const storageKey = `sb-${projectId}-auth-token`;
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return null;
+      return JSON.parse(raw)?.access_token || null;
+    } catch { return null; }
+  };
+
   const fetchCandidates = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('candidates')
-        .select('*')
-        .order('applied_date', { ascending: false });
-
-      if (error) {
-        console.error('Erro ao buscar candidatos:', error);
-        toast({
-          title: "Erro",
-          description: "Não foi possível carregar os candidatos.",
-          variant: "destructive",
-        });
+      const token = getAccessToken();
+      if (!token) {
         setCandidates([]);
-      } else {
-        setCandidates((data as unknown as Candidate[]) || []);
+        return;
       }
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/candidates?select=*&order=applied_date.desc`,
+        {
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+      if (!res.ok) throw new Error(`REST ${res.status}`);
+      const data = await res.json();
+      setCandidates((data as Candidate[]) || []);
     } catch (error) {
-      console.error('Erro inesperado ao buscar candidatos:', error);
+      console.error('Erro ao buscar candidatos:', error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os candidatos.",
+        variant: "destructive",
+      });
       setCandidates([]);
     } finally {
       setLoading(false);
