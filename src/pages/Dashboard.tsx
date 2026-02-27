@@ -167,7 +167,7 @@ const Dashboard = () => {
               >
                 <div 
                   className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
-                  style={{ width: '90px', height: '90px' }}
+                  style={{ width: '110px', height: '110px' }}
                 >
                   <img 
                     src={module.icon} 
