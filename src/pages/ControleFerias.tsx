@@ -74,6 +74,9 @@ const ControleFerias = () => {
           {/* Métricas */}
           <MetricasFerias />
 
+          {/* Card CLT - Controle de Férias por Período Aquisitivo */}
+          <CardControleFeriasCLT />
+
           {/* Tabela */}
           <Card>
             <CardHeader>
