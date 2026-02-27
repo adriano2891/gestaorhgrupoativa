@@ -679,8 +679,22 @@ const Funcionarios = () => {
 
   const handleSaveNewEmployee = async () => {
     try {
-      // Validate input
-      employeeSchema.parse(newEmployee);
+      // Validate input - only validate the fields in the schema
+      const dataToValidate = {
+        name: newEmployee.name,
+        email: newEmployee.email,
+        phone: newEmployee.phone,
+        position: newEmployee.position,
+        department: newEmployee.department,
+        status: newEmployee.status,
+        cpf: newEmployee.cpf,
+        password: newEmployee.password,
+        salario: newEmployee.salario,
+        endereco: newEmployee.endereco,
+        rg: newEmployee.rg,
+        numero_pis: newEmployee.numero_pis,
+      };
+      employeeSchema.parse(dataToValidate);
       
       const cpfNumeros = newEmployee.cpf.replace(/\D/g, "");
       
