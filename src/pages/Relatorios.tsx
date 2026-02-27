@@ -1110,7 +1110,7 @@ const Relatorios = () => {
               description: "Nível de satisfação estimado por área",
               dataName: "Score",
               insight: "Scores acima de 7 indicam bom clima organizacional.",
-              data: funcionariosPorDept?.slice(0, 6).map(d => ({
+              data: funcDeptList?.slice(0, 6).map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: parseFloat((Math.random() * 2 + 7).toFixed(1)),
               })) || [],
