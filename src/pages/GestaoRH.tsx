@@ -324,7 +324,7 @@ const GestaoRH = () => {
         {/* Layout Circular - XL */}
         <div className="hidden xl:block relative" style={{ width: '700px', height: '500px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 260);
+            const { x, y } = getModulePosition(index, modules.length, 300);
             return (
               <div
                 key={module.path}
