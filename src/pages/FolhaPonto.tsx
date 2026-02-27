@@ -627,34 +627,40 @@ const FolhaPonto = () => {
       
       // Log the edit with admin authorization
       if (authorizedAdmin) {
-        try {
-          const token = getAccessToken();
-          if (token) {
-            await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/logs_edicao_ponto`,
-              {
-                method: 'POST',
-                headers: {
-                  'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                  'Prefer': 'return=minimal',
-                },
-                body: JSON.stringify({
-                  employee_id: editingCell.empId,
-                  employee_name: record.employee_name,
-                  campo_editado: editingCell.field === 'status' ? 'Status' : 'Horas Extras',
-                  valor_anterior: editingCell.field === 'status' ? dayData.status : (dayData.horas_extras || '0h 0min'),
-                  valor_novo: editValue,
-                  data_registro: date,
-                  autorizado_por: authorizedAdmin.id,
-                  autorizado_por_nome: authorizedAdmin.name,
-                }),
-              }
-            );
+        const token = getAccessToken();
+        if (token) {
+          const logBody = {
+            employee_id: editingCell.empId,
+            employee_name: record.employee_name,
+            campo_editado: editingCell.field === 'status' ? 'Status' : 'Horas Extras',
+            valor_anterior: editingCell.field === 'status' ? dayData.status : (dayData.horas_extras || '0h 0min'),
+            valor_novo: editValue,
+            data_registro: date,
+            autorizado_por: authorizedAdmin.id,
+            autorizado_por_nome: authorizedAdmin.name,
+          };
+          console.log("Inserindo log de edição:", logBody);
+          const logRes = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/logs_edicao_ponto`,
+            {
+              method: 'POST',
+              headers: {
+                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation',
+              },
+              body: JSON.stringify(logBody),
+            }
+          );
+          if (!logRes.ok) {
+            const errText = await logRes.text().catch(() => '');
+            console.error("Falha ao gravar log:", logRes.status, errText);
+            toast.error("Edição salva, mas falha ao registrar log");
+          } else {
+            const inserted = await logRes.json();
+            console.log("Log inserido com sucesso:", inserted);
           }
-        } catch (logError) {
-          console.error("Erro ao registrar log de edição:", logError);
         }
       }
 

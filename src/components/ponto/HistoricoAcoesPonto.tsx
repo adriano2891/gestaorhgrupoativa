@@ -70,7 +70,8 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
       return await res.json() || [];
     },
     retry: 2,
-    staleTime: 1000 * 30,
+    staleTime: 1000 * 5,
+    refetchInterval: 10000, // Polling fallback every 10s
   });
 
   const displayedLogs = expanded ? logs : logs?.slice(0, 5);
