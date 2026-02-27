@@ -8,6 +8,7 @@ import { Calendar, Download, FileText } from "lucide-react";
 import { MetricasFerias } from "@/components/ferias/MetricasFerias";
 import { FiltrosFerias } from "@/components/ferias/FiltrosFerias";
 import { TabelaFerias } from "@/components/ferias/TabelaFerias";
+import { CardControleFeriasCLT } from "@/components/ferias/CardControleFeriasCLT";
 import { useSolicitacoesFerias } from "@/hooks/useFerias";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -72,6 +73,9 @@ const ControleFerias = () => {
 
           {/* Métricas */}
           <MetricasFerias />
+
+          {/* Card CLT - Controle de Férias por Período Aquisitivo */}
+          <CardControleFeriasCLT />
 
           {/* Tabela */}
           <Card>
