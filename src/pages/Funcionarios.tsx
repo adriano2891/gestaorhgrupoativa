@@ -758,17 +758,31 @@ const Funcionarios = () => {
           throw new Error(errText || 'Erro ao atualizar perfil');
         }
 
-        // Se senha foi fornecida, atualizar no auth
+        // Se senha foi fornecida, atualizar via Edge Function (requer service_role)
         if (editPassword && editPassword.length >= 6) {
-          const { error: passwordError } = await supabase.auth.admin.updateUserById(
-            editingEmployee.id,
-            { password: editPassword }
+          const { data: sessionData } = await supabase.auth.getSession();
+          const token = sessionData?.session?.access_token;
+          
+          const response = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-employee-password`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                user_id: editingEmployee.id,
+                password: editPassword,
+              }),
+            }
           );
           
-          if (passwordError) {
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
             toast({
               title: "Atenção",
-              description: "Dados atualizados, mas não foi possível alterar a senha.",
+              description: errorData.error || "Dados atualizados, mas não foi possível alterar a senha.",
               variant: "destructive",
             });
           }
