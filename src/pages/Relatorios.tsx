@@ -872,7 +872,7 @@ const Relatorios = () => {
         };
 
       case "desempenho":
-        const metricaDesemp = metricas?.[0];
+        const metricaDesemp = metricasList?.[0];
         
         return {
           ...baseData,
