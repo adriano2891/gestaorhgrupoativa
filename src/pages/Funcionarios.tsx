@@ -856,6 +856,7 @@ const Funcionarios = () => {
   const handleSaveNewEmployee = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
+    console.log("handleSaveNewEmployee: Iniciando...");
     try {
       // Validate input - only validate the fields in the schema
       const dataToValidate = {
@@ -872,24 +873,28 @@ const Funcionarios = () => {
         rg: newEmployee.rg,
         numero_pis: newEmployee.numero_pis,
       };
+      console.log("handleSaveNewEmployee: Validando schema...");
       employeeSchema.parse(dataToValidate);
+      console.log("handleSaveNewEmployee: Schema OK");
       
       const cpfNumeros = newEmployee.cpf.replace(/\D/g, "");
       
       // Verificar se o email já existe (via REST para evitar LockManager)
+      console.log("handleSaveNewEmployee: Verificando email duplicado...");
       const existingEmailData = await restFetch('profiles', `?select=id&email=eq.${encodeURIComponent(newEmployee.email)}&limit=1`);
+      console.log("handleSaveNewEmployee: Email check result:", existingEmailData?.length || 0);
       if (existingEmailData && existingEmailData.length > 0) {
         throw new Error("E-mail já cadastrado no sistema");
       }
       
       // Verificar se o CPF já existe (via REST para evitar LockManager)
+      console.log("handleSaveNewEmployee: Verificando CPF duplicado...");
       const existingCpfData = await restFetch('profiles', `?select=id&cpf=eq.${encodeURIComponent(cpfNumeros)}&limit=1`);
+      console.log("handleSaveNewEmployee: CPF check result:", existingCpfData?.length || 0);
       if (existingCpfData && existingCpfData.length > 0) {
         throw new Error("CPF já cadastrado no sistema");
       }
       
-      // Importante: NÃO usar signUp direto aqui, pois isso troca a sessão (logando como o novo funcionário)
-      // Em vez disso, criamos via função de backend.
       const salarioNumero = newEmployee.salario
         ? (() => {
             const n = parseFloat(newEmployee.salario.replace(/\./g, "").replace(",", "."));
@@ -908,6 +913,7 @@ const Funcionarios = () => {
       const token = getAccessToken();
       if (!token) throw new Error('Sessão expirada — faça login novamente.');
       
+      console.log("handleSaveNewEmployee: Chamando edge function create-employee-user...");
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
       
@@ -943,11 +949,14 @@ const Funcionarios = () => {
         }
       );
       clearTimeout(timeoutId);
+      
+      console.log("handleSaveNewEmployee: Edge function respondeu:", createRes.status);
 
       if (createRes.status === 401) throw new Error('Você precisa estar logado para cadastrar funcionários.');
       if (createRes.status === 403) throw new Error('Sem permissão para cadastrar funcionários.');
 
       const createData = await createRes.json();
+      console.log("handleSaveNewEmployee: Response data:", JSON.stringify(createData));
 
       if (!createRes.ok || !createData?.success) {
         throw new Error(createData?.error || 'Falha ao criar funcionário');
