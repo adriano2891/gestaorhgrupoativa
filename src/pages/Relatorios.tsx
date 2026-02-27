@@ -372,7 +372,7 @@ const Relatorios = () => {
     const funcDeptList = funcPorDeptData || funcionariosPorDept;
     const pontosList = pontosData || registrosPonto;
     const profilesList = profilesEscalaData || profilesComEscala;
-
+    const metricasList = metricasData || metricas;
     const baseData = {
       reportType,
       filters,
