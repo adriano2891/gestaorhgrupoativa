@@ -39,6 +39,16 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
       supabase.removeChannel(channel);
     };
   }, [queryClient, selectedMonth, selectedYear]);
+  const getAccessToken = (): string | null => {
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'rzcjwfxmogfsmfbwtwfc';
+      const storageKey = `sb-${projectId}-auth-token`;
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return null;
+      return JSON.parse(raw)?.access_token || null;
+    } catch { return null; }
+  };
+
   const { data: logs, isLoading } = useQuery({
     queryKey: ["logs-edicao-ponto", selectedMonth, selectedYear],
     queryFn: async () => {
@@ -46,15 +56,18 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
       const daysInMonth = new Date(parseInt(selectedYear), parseInt(selectedMonth), 0).getDate();
       const endDate = `${selectedYear}-${selectedMonth}-${daysInMonth}`;
 
-      const { data, error } = await (supabase as any)
-        .from("logs_edicao_ponto")
-        .select("*")
-        .gte("data_registro", startDate)
-        .lte("data_registro", endDate)
-        .order("created_at", { ascending: false });
+      const token = getAccessToken();
+      if (!token) return [];
 
-      if (error) throw error;
-      return data || [];
+      const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/logs_edicao_ponto?select=*&data_registro=gte.${startDate}&data_registro=lte.${endDate}&order=created_at.desc`;
+      const res = await fetch(url, {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+      if (!res.ok) throw new Error(`REST ${res.status}`);
+      return await res.json() || [];
     },
     retry: 2,
     staleTime: 1000 * 30,
