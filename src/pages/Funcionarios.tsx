@@ -281,12 +281,11 @@ const Funcionarios = () => {
         return;
       }
 
-      // Step 2: Fetch profiles
+      // Step 2: Fetch profiles (without server-side status filter to avoid syntax issues)
       const { data: profilesData, error } = await supabase
         .from("profiles")
         .select("id, nome, email, telefone, cargo, departamento, salario, status, created_at, data_admissao, foto_url")
         .in("id", targetIds)
-        .not("status", "in", '("demitido","pediu_demissao")')
         .order("nome", { ascending: true });
 
       if (error) {
@@ -299,8 +298,14 @@ const Funcionarios = () => {
         return;
       }
 
+      // Filter out inactive statuses client-side for reliability
+      const activeProfiles = (profilesData || []).filter((profile: any) => {
+        const status = (profile.status || "ativo").toLowerCase();
+        return status !== "demitido" && status !== "pediu_demissao";
+      });
+
       // Transformar dados do banco para o formato usado na interface
-      const formattedEmployees = (profilesData || []).map((profile: any) => ({
+      const formattedEmployees = activeProfiles.map((profile: any) => ({
         id: profile.id,
         name: profile.nome,
         email: profile.email,

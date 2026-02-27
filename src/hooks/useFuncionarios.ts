@@ -43,11 +43,16 @@ export const useFuncionarios = () => {
         .from("profiles")
         .select("*")
         .in("id", targetIds)
-        .not("status", "in", '("demitido","pediu_demissao")')
         .order("nome", { ascending: true });
 
       if (error) throw error;
-      return data as Funcionario[];
+      
+      // Filter inactive statuses client-side for reliability
+      const activeData = (data || []).filter((p: any) => {
+        const status = (p.status || "ativo").toLowerCase();
+        return status !== "demitido" && status !== "pediu_demissao";
+      });
+      return activeData as Funcionario[];
     },
     retry: 2,
     staleTime: 1000 * 30,
@@ -74,14 +79,18 @@ export const useFuncionariosPorDepartamento = () => {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("departamento, id")
+        .select("departamento, id, status")
         .in("id", targetIds)
-        .not("status", "in", '("demitido","pediu_demissao")')
         .order("departamento", { ascending: true });
 
       if (error) throw error;
 
-      const grouped = (data || []).reduce((acc: Record<string, number>, curr: any) => {
+      const activeData = (data || []).filter((p: any) => {
+        const status = (p.status || "ativo").toLowerCase();
+        return status !== "demitido" && status !== "pediu_demissao";
+      });
+
+      const grouped = activeData.reduce((acc: Record<string, number>, curr: any) => {
         const dept = curr.departamento || "Sem Departamento";
         acc[dept] = (acc[dept] || 0) + 1;
         return acc;
@@ -117,14 +126,18 @@ export const useFuncionariosPorCargo = () => {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("cargo, id")
+        .select("cargo, id, status")
         .in("id", targetIds)
-        .not("status", "in", '("demitido","pediu_demissao")')
         .order("cargo", { ascending: true });
 
       if (error) throw error;
 
-      const grouped = (data || []).reduce((acc: Record<string, number>, curr: any) => {
+      const activeData = (data || []).filter((p: any) => {
+        const status = (p.status || "ativo").toLowerCase();
+        return status !== "demitido" && status !== "pediu_demissao";
+      });
+
+      const grouped = activeData.reduce((acc: Record<string, number>, curr: any) => {
         const position = curr.cargo || "Sem Cargo";
         acc[position] = (acc[position] || 0) + 1;
         return acc;
