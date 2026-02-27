@@ -289,73 +289,42 @@ export const useUploadDocumento = () => {
 
   return useMutation({
     mutationFn: async ({ 
-      file, 
-      titulo, 
-      descricao, 
-      categoriaId, 
-      tags,
-      publico 
+      file, titulo, descricao, categoriaId, tags, publico 
     }: { 
-      file: File; 
-      titulo: string; 
-      descricao?: string;
-      categoriaId?: string;
-      tags?: string[];
-      publico?: boolean;
+      file: File; titulo: string; descricao?: string;
+      categoriaId?: string; tags?: string[]; publico?: boolean;
     }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error("Você precisa estar autenticado para fazer upload de documentos");
-      }
+      const userId = getUserIdFromToken();
+      if (!userId) throw new Error("Você precisa estar autenticado para fazer upload de documentos");
 
       const fileName = `${Date.now()}_${file.name}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from("documentos")
-        .upload(fileName, file);
+      await storageUpload('documentos', fileName, file);
+      const publicUrl = await storageSignedUrl('documentos', fileName);
 
-      if (uploadError) throw uploadError;
-
-      const { data: signedData, error: signedError } = await supabase.storage
-        .from("documentos")
-        .createSignedUrl(fileName, 3600);
-      if (signedError) throw signedError;
-      const publicUrl = signedData.signedUrl;
-
-      const { data, error } = await supabase
-        .from("documentos")
-        .insert({
-          titulo,
-          descricao,
-          categoria_id: categoriaId || null,
-          tipo: getDocumentoTipo(file.type),
-          arquivo_url: publicUrl,
-          arquivo_nome: file.name,
-          arquivo_tamanho: file.size,
-          mime_type: file.type,
-          tags: tags || [],
-          criado_por: user.id,
-          publico: publico || false,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      const { error: versionError } = await supabase.from("documentos_versoes").insert({
-        documento_id: data.id,
-        versao: 1,
+      const rows = await restPost('documentos', {
+        titulo, descricao,
+        categoria_id: categoriaId || null,
+        tipo: getDocumentoTipo(file.type),
         arquivo_url: publicUrl,
         arquivo_nome: file.name,
         arquivo_tamanho: file.size,
-        alteracoes: "Versão inicial",
-        criado_por: user.id,
+        mime_type: file.type,
+        tags: tags || [],
+        criado_por: userId,
+        publico: publico || false,
       });
 
-      if (versionError) {
-        console.error("Erro ao criar versão:", versionError);
-      }
+      const data = rows[0];
+      if (!data) throw new Error("Falha ao salvar documento");
+
+      try {
+        await restPost('documentos_versoes', {
+          documento_id: data.id, versao: 1,
+          arquivo_url: publicUrl, arquivo_nome: file.name,
+          arquivo_tamanho: file.size, alteracoes: "Versão inicial",
+          criado_por: userId,
+        });
+      } catch (e) { console.error("Erro ao criar versão:", e); }
 
       return data;
     },
@@ -376,17 +345,9 @@ export const useUpdateDocumento = () => {
 
   return useMutation({
     mutationFn: async ({ id, ...data }: Partial<Documento> & { id: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data: updated, error } = await supabase
-        .from("documentos")
-        .update({ ...data, atualizado_por: user?.id })
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return updated;
+      const userId = getUserIdFromToken();
+      const rows = await restPatch('documentos', `?id=eq.${id}`, { ...data, atualizado_por: userId });
+      return rows[0];
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["documentos"] });
@@ -405,12 +366,7 @@ export const useDeleteDocumento = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("documentos")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      await restDelete('documentos', `?id=eq.${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documentos"] });
@@ -428,21 +384,13 @@ export const useToggleFavorito = () => {
 
   return useMutation({
     mutationFn: async ({ documentoId, isFavorito }: { documentoId: string; isFavorito: boolean }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      const userId = getUserIdFromToken();
+      if (!userId) throw new Error("Usuário não autenticado");
 
       if (isFavorito) {
-        const { error } = await supabase
-          .from("documentos_favoritos")
-          .delete()
-          .eq("documento_id", documentoId)
-          .eq("user_id", user.id);
-        if (error) throw error;
+        await restDelete('documentos_favoritos', `?documento_id=eq.${documentoId}&user_id=eq.${userId}`);
       } else {
-        const { error } = await supabase
-          .from("documentos_favoritos")
-          .insert({ documento_id: documentoId, user_id: user.id });
-        if (error) throw error;
+        await restPost('documentos_favoritos', { documento_id: documentoId, user_id: userId });
       }
     },
     onSuccess: () => {
@@ -457,21 +405,13 @@ export const useAddComentario = () => {
 
   return useMutation({
     mutationFn: async ({ documentoId, conteudo }: { documentoId: string; conteudo: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Usuário não autenticado");
+      const userId = getUserIdFromToken();
+      if (!userId) throw new Error("Usuário não autenticado");
 
-      const { data, error } = await supabase
-        .from("documentos_comentarios")
-        .insert({
-          documento_id: documentoId,
-          user_id: user.id,
-          conteudo,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const rows = await restPost('documentos_comentarios', {
+        documento_id: documentoId, user_id: userId, conteudo,
+      });
+      return rows[0];
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["documento-comentarios", variables.documentoId] });
@@ -489,14 +429,8 @@ export const useCreateCategoria = () => {
 
   return useMutation({
     mutationFn: async (data: { nome: string; descricao?: string; cor?: string; categoria_pai_id?: string }) => {
-      const { data: created, error } = await supabase
-        .from("documentos_categorias")
-        .insert(data)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return created;
+      const rows = await restPost('documentos_categorias', data);
+      return rows[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documentos-categorias"] });
@@ -514,46 +448,26 @@ export const useUploadVersao = () => {
 
   return useMutation({
     mutationFn: async ({ documentoId, file, alteracoes }: { documentoId: string; file: File; alteracoes?: string }) => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const userId = getUserIdFromToken();
       const fileName = `${Date.now()}_${file.name}`;
-      
-      const { data: doc } = await supabase
-        .from("documentos")
-        .select("versao_atual")
-        .eq("id", documentoId)
-        .single();
 
-      const novaVersao = (doc?.versao_atual || 0) + 1;
-      
-      const { error: uploadError } = await supabase.storage
-        .from("documentos")
-        .upload(fileName, file);
+      const docData = await restGet('documentos', `?select=versao_atual&id=eq.${documentoId}`);
+      const novaVersao = ((docData[0]?.versao_atual) || 0) + 1;
 
-      if (uploadError) throw uploadError;
+      await storageUpload('documentos', fileName, file);
+      const publicUrl = await storageSignedUrl('documentos', fileName);
 
-      const { data: signedData, error: signedError } = await supabase.storage
-        .from("documentos")
-        .createSignedUrl(fileName, 3600);
-      if (signedError) throw signedError;
-      const publicUrl = signedData.signedUrl;
-
-      await supabase.from("documentos_versoes").insert({
-        documento_id: documentoId,
-        versao: novaVersao,
-        arquivo_url: publicUrl,
-        arquivo_nome: file.name,
-        arquivo_tamanho: file.size,
-        alteracoes,
-        criado_por: user?.id,
+      await restPost('documentos_versoes', {
+        documento_id: documentoId, versao: novaVersao,
+        arquivo_url: publicUrl, arquivo_nome: file.name,
+        arquivo_tamanho: file.size, alteracoes, criado_por: userId,
       });
 
-      await supabase.from("documentos").update({
-        versao_atual: novaVersao,
-        arquivo_url: publicUrl,
-        arquivo_nome: file.name,
-        arquivo_tamanho: file.size,
-        atualizado_por: user?.id,
-      }).eq("id", documentoId);
+      await restPatch('documentos', `?id=eq.${documentoId}`, {
+        versao_atual: novaVersao, arquivo_url: publicUrl,
+        arquivo_nome: file.name, arquivo_tamanho: file.size,
+        atualizado_por: userId,
+      });
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["documentos"] });
