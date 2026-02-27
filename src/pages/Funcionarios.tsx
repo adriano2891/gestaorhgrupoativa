@@ -234,21 +234,32 @@ const Funcionarios = () => {
   const uploadPhoto = async (file: File, userId: string): Promise<string | null> => {
     const ext = file.name.split('.').pop();
     const filePath = `${userId}/foto.${ext}`;
-    
-    const { error: uploadError } = await supabase.storage
-      .from('fotos-funcionarios')
-      .upload(filePath, file, { upsert: true });
-    
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
+    const token = getAccessToken();
+    if (!token) return null;
+
+    try {
+      // Direct fetch upload to bypass SDK lock issues
+      const uploadUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/fotos-funcionarios/${filePath}`;
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'x-upsert': 'true',
+        },
+        body: file,
+      });
+
+      if (!uploadRes.ok) {
+        console.error('Upload error:', await uploadRes.text());
+        return null;
+      }
+
+      return `fotos-funcionarios/${filePath}`;
+    } catch (e) {
+      console.error('Upload error:', e);
       return null;
     }
-    
-    const { data: urlData } = supabase.storage
-      .from('fotos-funcionarios')
-      .getPublicUrl(filePath);
-    
-    return urlData.publicUrl;
   };
   // Helper: get access token from localStorage (bypasses Navigator Lock)
   const getAccessToken = (): string | null => {
@@ -283,14 +294,29 @@ const Funcionarios = () => {
   // Resolve foto_url storage path to a signed URL
   const resolveFotoUrl = async (fotoUrl: string | null | undefined): Promise<string | undefined> => {
     if (!fotoUrl) return undefined;
-    // If it's already a full URL (http), return as-is
     if (fotoUrl.startsWith('http')) return fotoUrl;
-    // If it's a storage path like "fotos-funcionarios/userId/foto.jpg"
     const match = fotoUrl.match(/^fotos-funcionarios\/(.+)$/);
     if (match) {
       try {
-        const { data } = await supabase.storage.from('fotos-funcionarios').createSignedUrl(match[1], 3600);
-        return data?.signedUrl || undefined;
+        const token = getAccessToken();
+        if (!token) return undefined;
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/sign/fotos-funcionarios/${match[1]}`,
+          {
+            method: 'POST',
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ expiresIn: 3600 }),
+          }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.signedURL) return `${import.meta.env.VITE_SUPABASE_URL}/storage/v1${data.signedURL}`;
+        }
+        return undefined;
       } catch { return undefined; }
     }
     return undefined;
@@ -693,22 +719,33 @@ const Funcionarios = () => {
           }
         }
 
-        // Atualizar dados no perfil
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update(updateData)
-          .eq("id", editingEmployee.id);
-
-        if (profileError) {
-          throw profileError;
-        }
-
-        // Upload photo if selected
+        // Upload photo first if selected, so we can include foto_url in the same update
         if (editPhotoFile) {
           const fotoUrl = await uploadPhoto(editPhotoFile, editingEmployee.id);
           if (fotoUrl) {
-            await supabase.from("profiles").update({ foto_url: fotoUrl } as any).eq("id", editingEmployee.id);
+            (updateData as any).foto_url = fotoUrl;
           }
+        }
+
+        // Atualizar dados no perfil via REST (bypass SDK lock)
+        const token = getAccessToken();
+        if (!token) throw new Error('Sessão expirada');
+        const patchRes = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${editingEmployee.id}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal',
+            },
+            body: JSON.stringify(updateData),
+          }
+        );
+        if (!patchRes.ok) {
+          const errText = await patchRes.text();
+          throw new Error(errText || 'Erro ao atualizar perfil');
         }
 
         // Se senha foi fornecida, atualizar no auth
@@ -899,7 +936,22 @@ const Funcionarios = () => {
       if (newPhotoFile && newUserId) {
         const fotoUrl = await uploadPhoto(newPhotoFile, newUserId);
         if (fotoUrl) {
-          await supabase.from("profiles").update({ foto_url: fotoUrl } as any).eq("id", newUserId);
+          const tkn = getAccessToken();
+          if (tkn) {
+            await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${newUserId}`,
+              {
+                method: 'PATCH',
+                headers: {
+                  'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                  'Authorization': `Bearer ${tkn}`,
+                  'Content-Type': 'application/json',
+                  'Prefer': 'return=minimal',
+                },
+                body: JSON.stringify({ foto_url: fotoUrl }),
+              }
+            );
+          }
         }
       }
       
