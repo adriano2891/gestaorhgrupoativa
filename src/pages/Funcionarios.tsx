@@ -1758,7 +1758,9 @@ const Funcionarios = () => {
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="h-9">
               Cancelar
             </Button>
-            <Button onClick={handleSaveNewEmployee} className="h-9">Adicionar Funcionário</Button>
+            <Button onClick={handleSaveNewEmployee} disabled={isSubmitting} className="h-9">
+              {isSubmitting ? "Salvando..." : "Adicionar Funcionário"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
