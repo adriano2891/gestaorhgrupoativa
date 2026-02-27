@@ -405,8 +405,8 @@ const Relatorios = () => {
           ],
         };
       case "pontos": {
-        const profileMap = new Map((profilesComEscala || []).map(p => [p.id, p]));
-        const pontoRaw = registrosPonto || [];
+        const profileMap = new Map((profilesList || []).map(p => [p.id, p]));
+        const pontoRaw = pontosList || [];
         const pontoData = filterRegistros(pontoRaw, filters);
 
         const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
