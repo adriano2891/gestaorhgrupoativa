@@ -748,7 +748,7 @@ const Relatorios = () => {
               description: "Quantidade de benefícios ativos por colaborador",
               dataName: "Benefícios",
               insight: `Cada funcionário possui ${beneficiosAtivos} benefício(s) ativo(s).`,
-              data: funcionarios?.slice(0, 10).map(f => ({
+              data: funcList?.slice(0, 10).map(f => ({
                 funcionario: f.nome.length > 15 ? f.nome.substring(0, 15) + "..." : f.nome,
                 valor: beneficiosAtivos,
               })) || [],
