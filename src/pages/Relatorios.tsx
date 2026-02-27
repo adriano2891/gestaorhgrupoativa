@@ -324,7 +324,13 @@ const Relatorios = () => {
     }
   };
 
-  const generateReportData = (reportType: string | null, filters: any) => {
+  const generateReportDataDirect = (reportType: string | null, filters: any, funcData?: any[], funcPorDeptData?: any[], pontosData?: any[], profilesEscalaData?: any[]) => {
+    // Use passed data or fall back to hook data
+    const funcList = funcData || funcionarios;
+    const funcDeptList = funcPorDeptData || funcionariosPorDept;
+    const pontosList = pontosData || registrosPonto;
+    const profilesList = profilesEscalaData || profilesComEscala;
+
     const baseData = {
       reportType,
       filters,
@@ -336,7 +342,7 @@ const Relatorios = () => {
 
     switch (reportType) {
       case "funcionarios":
-        if (!funcionarios) return baseData;
+        if (!funcList || funcList.length === 0) return baseData;
         
         // Agrupa funcionários por departamento
         const deptStats = funcionariosPorDept?.reduce((acc: any, d: any) => {
