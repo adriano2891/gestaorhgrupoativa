@@ -798,7 +798,7 @@ const Relatorios = () => {
             "Total de Funcionários": totalFunc,
             "Tempo Médio Contratação": `${metricaTurnover?.tempo_medio_contratacao || 0} dias`,
           },
-          details: funcionarios?.slice(0, 30).map(f => ({
+          details: funcList?.slice(0, 30).map(f => ({
             nome: f.nome,
             departamento: f.departamento || "Não informado",
             cargo: f.cargo || "Não informado",
