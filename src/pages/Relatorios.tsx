@@ -866,7 +866,7 @@ const Relatorios = () => {
               description: "Comparativo de desempenho entre departamentos",
               dataName: "Score",
               insight: "Scores baseados na combinação de eficiência e produtividade.",
-              data: funcionariosPorDept?.slice(0, 6).map(d => ({
+              data: funcDeptList?.slice(0, 6).map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: Math.floor(Math.random() * 30) + 70, // Simulado 70-100
               })) || [],
