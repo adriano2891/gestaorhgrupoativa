@@ -340,7 +340,18 @@ const Relatorios = () => {
         }
       }
 
-      const data = generateReportDataDirect(selectedReport, filters, freshFuncionarios, freshFuncPorDept, freshRegistrosPonto, freshProfilesEscala);
+      // Fetch metricas via REST for produtividade/desempenho/turnover/clima/saude reports
+      let freshMetricas = metricas;
+      if (!freshMetricas || freshMetricas.length === 0 || ['produtividade', 'desempenho', 'turnover', 'clima', 'saude-seguranca', 'custo-folha'].includes(selectedReport || '')) {
+        try {
+          freshMetricas = await fetchDirectREST("metricas", "select=*&order=periodo.desc&limit=1");
+        } catch (e) {
+          console.error("Error fetching metricas via REST:", e);
+          freshMetricas = [];
+        }
+      }
+
+      const data = generateReportDataDirect(selectedReport, filters, freshFuncionarios, freshFuncPorDept, freshRegistrosPonto, freshProfilesEscala, freshMetricas);
       setReportData(data);
       if (selectedReport) {
         await logReportGeneration(selectedReport, filters);
@@ -355,13 +366,13 @@ const Relatorios = () => {
     }
   };
 
-  const generateReportDataDirect = (reportType: string | null, filters: any, funcData?: any[], funcPorDeptData?: any[], pontosData?: any[], profilesEscalaData?: any[]) => {
+  const generateReportDataDirect = (reportType: string | null, filters: any, funcData?: any[], funcPorDeptData?: any[], pontosData?: any[], profilesEscalaData?: any[], metricasData?: any[]) => {
     // Use passed data or fall back to hook data
     const funcList = funcData || funcionarios;
     const funcDeptList = funcPorDeptData || funcionariosPorDept;
     const pontosList = pontosData || registrosPonto;
     const profilesList = profilesEscalaData || profilesComEscala;
-
+    const metricasList = metricasData || metricas;
     const baseData = {
       reportType,
       filters,
@@ -788,7 +799,7 @@ const Relatorios = () => {
         };
 
       case "produtividade":
-        const metricaProd = metricas?.[0];
+        const metricaProd = metricasList?.[0];
         if (!metricaProd) return baseData;
 
         return {
@@ -816,7 +827,7 @@ const Relatorios = () => {
         };
 
       case "turnover":
-        const metricaTurnover = metricas?.[0];
+        const metricaTurnover = metricasList?.[0];
         const totalFunc = funcList?.length || 0;
         const taxaRetencao = metricaTurnover?.taxa_retencao || 0;
         const taxaTurnover = 100 - taxaRetencao;
@@ -861,7 +872,7 @@ const Relatorios = () => {
         };
 
       case "desempenho":
-        const metricaDesemp = metricas?.[0];
+        const metricaDesemp = metricasList?.[0];
         
         return {
           ...baseData,
@@ -1003,7 +1014,7 @@ const Relatorios = () => {
         };
 
       case "custo-folha":
-        const metricaCusto = metricas?.[0];
+        const metricaCusto = metricasList?.[0];
         
         // Valores padrão caso não haja métricas
         const totalFolhaCusto = metricaCusto?.total_folha_pagamento || 50000;
@@ -1106,7 +1117,7 @@ const Relatorios = () => {
         };
 
       case "clima":
-        const metricaClima = metricas?.[0];
+        const metricaClima = metricasList?.[0];
         
         return {
           ...baseData,
