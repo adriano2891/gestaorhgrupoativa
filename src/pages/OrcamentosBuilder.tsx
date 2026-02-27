@@ -306,7 +306,7 @@ export default function OrcamentosBuilder() {
                 </div>
 
                 <div>
-                  <Label htmlFor="validity">Validade (dias)</Label>
+                  <Label htmlFor="validity" className="text-zinc-800">Validade (dias)</Label>
                   <Input
                     id="validity"
                     type="number"
