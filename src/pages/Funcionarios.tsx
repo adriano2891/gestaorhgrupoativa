@@ -163,8 +163,21 @@ const Funcionarios = () => {
   
   const [newEscala, setNewEscala] = useState("8h");
   const [newTurno, setNewTurno] = useState("diurno");
-  const [escalasDisponiveis, setEscalasDisponiveis] = useState<{nome: string; descricao: string}[]>([]);
-  const [turnosDisponiveis, setTurnosDisponiveis] = useState<{nome: string; descricao: string; escala_nome?: string}[]>([]);
+
+  const fallbackEscalas = [
+    { nome: "8h", descricao: "8h (CLT Padrão)" },
+    { nome: "6x1", descricao: "6x1 - 6 dias trabalhados, 1 folga" },
+    { nome: "5x2", descricao: "5x2 - 5 dias trabalhados, 2 folgas" },
+    { nome: "12x36", descricao: "12x36 - 12h trabalhadas, 36h de descanso" },
+  ];
+  const fallbackTurnos = [
+    { nome: "diurno", descricao: "Escala Intermediário (7h-17h)" },
+    { nome: "noturno", descricao: "Escala Noturno (19h-7h)" },
+    { nome: "diurno_7_19", descricao: "Escala Diurno (7h-19h)" },
+  ];
+
+  const [escalasDisponiveis, setEscalasDisponiveis] = useState<{nome: string; descricao: string}[]>(fallbackEscalas);
+  const [turnosDisponiveis, setTurnosDisponiveis] = useState<{nome: string; descricao: string; escala_nome?: string}[]>(fallbackTurnos);
 
   const [newEmployee, setNewEmployee] = useState({
     name: "",
@@ -328,31 +341,36 @@ const Funcionarios = () => {
   // Fetch available escalas and turnos
   useEffect(() => {
     const fetchEscalasTurnos = async () => {
-      const { data: escalas } = await supabase
-        .from("escalas_trabalho")
-        .select("nome, descricao")
-        .eq("ativo", true)
-        .order("nome");
-      if (escalas) setEscalasDisponiveis(escalas as any);
+      try {
+        const { data: escalas, error: escalasErr } = await supabase
+          .from("escalas_trabalho")
+          .select("nome, descricao")
+          .eq("ativo", true)
+          .order("nome");
+        if (escalasErr) console.error("Erro ao buscar escalas:", escalasErr);
+        if (escalas && escalas.length > 0) setEscalasDisponiveis(escalas as any);
 
-      const { data: turnos } = await (supabase as any)
-        .from("turnos_trabalho")
-        .select("nome, descricao, escala_id, escalas_trabalho(nome)")
-        .eq("ativo", true);
-      if (turnos) {
-        // Deduplicate turnos by nome+escala_nome
-        const seen = new Set<string>();
-        const deduped = (turnos as any[]).filter((t: any) => {
-          const key = `${t.nome}-${t.escalas_trabalho?.nome || ''}`;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
-        setTurnosDisponiveis(deduped.map((t: any) => ({
-          nome: t.nome,
-          descricao: t.descricao,
-          escala_nome: t.escalas_trabalho?.nome,
-        })));
+        const { data: turnos, error: turnosErr } = await (supabase as any)
+          .from("turnos_trabalho")
+          .select("nome, descricao, escala_id, escalas_trabalho(nome)")
+          .eq("ativo", true);
+        if (turnosErr) console.error("Erro ao buscar turnos:", turnosErr);
+        if (turnos && turnos.length > 0) {
+          const seen = new Set<string>();
+          const deduped = (turnos as any[]).filter((t: any) => {
+            const key = `${t.nome}-${t.escalas_trabalho?.nome || ''}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          setTurnosDisponiveis(deduped.map((t: any) => ({
+            nome: t.nome,
+            descricao: t.descricao,
+            escala_nome: t.escalas_trabalho?.nome,
+          })));
+        }
+      } catch (err) {
+        console.error("Erro ao buscar escalas/turnos:", err);
       }
     };
     fetchEscalasTurnos();
@@ -661,8 +679,22 @@ const Funcionarios = () => {
 
   const handleSaveNewEmployee = async () => {
     try {
-      // Validate input
-      employeeSchema.parse(newEmployee);
+      // Validate input - only validate the fields in the schema
+      const dataToValidate = {
+        name: newEmployee.name,
+        email: newEmployee.email,
+        phone: newEmployee.phone,
+        position: newEmployee.position,
+        department: newEmployee.department,
+        status: newEmployee.status,
+        cpf: newEmployee.cpf,
+        password: newEmployee.password,
+        salario: newEmployee.salario,
+        endereco: newEmployee.endereco,
+        rg: newEmployee.rg,
+        numero_pis: newEmployee.numero_pis,
+      };
+      employeeSchema.parse(dataToValidate);
       
       const cpfNumeros = newEmployee.cpf.replace(/\D/g, "");
       
@@ -781,11 +813,15 @@ const Funcionarios = () => {
       
       // Atualizar lista de funcionários imediatamente
       await fetchEmployees();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
+    } catch (error: any) {
+      console.error("Erro ao adicionar funcionário:", error);
+      
+      // Handle Zod validation errors
+      const zodIssues = error?.issues || error?.errors;
+      if (zodIssues && Array.isArray(zodIssues)) {
         const errors: Record<string, string> = {};
-        (error.issues || (error as any).errors || []).forEach((err: any) => {
-          if (err.path[0]) {
+        zodIssues.forEach((err: any) => {
+          if (err.path?.[0]) {
             errors[err.path[0].toString()] = err.message;
           }
         });
@@ -796,10 +832,9 @@ const Funcionarios = () => {
           variant: "destructive",
         });
       } else {
-        console.error("Erro ao adicionar funcionário:", error);
         toast({
           title: "Erro ao adicionar funcionário",
-          description: error instanceof Error ? error.message : "Ocorreu um erro inesperado",
+          description: error?.message || "Ocorreu um erro inesperado",
           variant: "destructive",
         });
       }
@@ -1175,7 +1210,7 @@ const Funcionarios = () => {
                   <Label htmlFor="escala" className="text-sm">Escala de Trabalho</Label>
                   <Select value={editEscala} onValueChange={(v) => { setEditEscala(v); setEditTurno("diurno"); }}>
                     <SelectTrigger className="h-9">
-                      <SelectValue />
+                      <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       {escalasDisponiveis.map((e) => (
@@ -1188,7 +1223,7 @@ const Funcionarios = () => {
                   <Label htmlFor="turno" className="text-sm">Turno</Label>
                   <Select value={editTurno} onValueChange={setEditTurno}>
                     <SelectTrigger className="h-9">
-                      <SelectValue />
+                      <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       {turnosDisponiveis
@@ -1407,7 +1442,7 @@ const Funcionarios = () => {
                 <Label htmlFor="new-escala" className="text-sm">Escala de Trabalho *</Label>
                 <Select value={newEscala} onValueChange={(v) => { setNewEscala(v); setNewTurno("diurno"); }}>
                   <SelectTrigger className="h-9">
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
                     {escalasDisponiveis.map((e) => (
@@ -1420,7 +1455,7 @@ const Funcionarios = () => {
                 <Label htmlFor="new-turno" className="text-sm">Turno *</Label>
                 <Select value={newTurno} onValueChange={setNewTurno}>
                   <SelectTrigger className="h-9">
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
                     {turnosDisponiveis
