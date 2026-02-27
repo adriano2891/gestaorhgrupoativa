@@ -106,9 +106,19 @@ function getUserIdFromToken(): string | null {
   } catch { return null; }
 }
 
+async function sanitizeStorageFileName(name: string): Promise<string> {
+  return name
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-zA-Z0-9._-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase() || 'arquivo';
+}
+
 async function storageUpload(bucket: string, fileName: string, file: File) {
   const token = getAccessToken();
-  const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${encodeURIComponent(fileName)}`;
+  const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${fileName}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
