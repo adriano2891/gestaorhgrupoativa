@@ -167,7 +167,7 @@ const Dashboard = () => {
               >
                 <div 
                   className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
-                  style={{ width: '110px', height: '110px' }}
+                  style={{ width: '70px', height: '70px' }}
                 >
                   <img 
                     src={module.icon} 
@@ -229,7 +229,7 @@ const Dashboard = () => {
         {/* Módulos em círculo - XL screens */}
         <div className="hidden xl:block relative" style={{ width: '700px', height: '500px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 300);
+            const { x, y } = getModulePosition(index, modules.length, 260);
             
             return (
               <div
@@ -246,7 +246,7 @@ const Dashboard = () => {
                 <div className="flex flex-col items-center">
                   <div 
                     className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-white/30"
-                    style={{ width: '170px', height: '170px' }}
+                    style={{ width: '112px', height: '112px' }}
                   >
                     <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                   </div>
@@ -265,7 +265,7 @@ const Dashboard = () => {
         {/* Módulos em círculo - LG screens */}
         <div className="hidden lg:block xl:hidden relative" style={{ width: '600px', height: '450px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 260);
+            const { x, y } = getModulePosition(index, modules.length, 220);
             
             return (
               <div
@@ -282,7 +282,7 @@ const Dashboard = () => {
                 <div className="flex flex-col items-center">
                   <div 
                     className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-3 ring-white/30"
-                    style={{ width: '150px', height: '150px' }}
+                    style={{ width: '96px', height: '96px' }}
                   >
                     <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                   </div>
@@ -301,7 +301,7 @@ const Dashboard = () => {
         {/* Módulos em círculo - MD screens */}
         <div className="hidden md:block lg:hidden relative" style={{ width: '500px', height: '400px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 220);
+            const { x, y } = getModulePosition(index, modules.length, 180);
             
             return (
               <div
@@ -318,7 +318,7 @@ const Dashboard = () => {
                 <div className="flex flex-col items-center">
                   <div 
                     className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
-                    style={{ width: '130px', height: '130px' }}
+                    style={{ width: '80px', height: '80px' }}
                   >
                     <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                   </div>
@@ -337,7 +337,7 @@ const Dashboard = () => {
         {/* Módulos em círculo - SM screens (tablet) */}
         <div className="hidden sm:block md:hidden relative" style={{ width: '380px', height: '340px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 180);
+            const { x, y } = getModulePosition(index, modules.length, 140);
             
             return (
               <div
@@ -354,7 +354,7 @@ const Dashboard = () => {
                 <div className="flex flex-col items-center">
                   <div 
                     className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
-                    style={{ width: '110px', height: '110px' }}
+                    style={{ width: '68px', height: '68px' }}
                   >
                     <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                   </div>
