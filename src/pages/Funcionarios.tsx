@@ -1207,7 +1207,7 @@ const Funcionarios = () => {
                   <Label htmlFor="escala" className="text-sm">Escala de Trabalho</Label>
                   <Select value={editEscala} onValueChange={(v) => { setEditEscala(v); setEditTurno("diurno"); }}>
                     <SelectTrigger className="h-9">
-                      <SelectValue />
+                      <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent>
                       {escalasDisponiveis.map((e) => (
