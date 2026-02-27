@@ -37,6 +37,113 @@ async function restGet(table: string, query?: string) {
   return text ? JSON.parse(text) : [];
 }
 
+async function restPost(table: string, body: any) {
+  const token = getAccessToken();
+  const url = `${SUPABASE_URL}/rest/v1/${table}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'apikey': SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || `HTTP ${res.status}`);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+async function restPatch(table: string, query: string, body: any) {
+  const token = getAccessToken();
+  const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'apikey': SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Prefer': 'return=representation',
+    },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || `HTTP ${res.status}`);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+async function restDelete(table: string, query: string) {
+  const token = getAccessToken();
+  const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'apikey': SUPABASE_KEY,
+    },
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || `HTTP ${res.status}`);
+  }
+}
+
+function getUserIdFromToken(): string | null {
+  const token = getAccessToken();
+  if (token === SUPABASE_KEY) return null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.sub || null;
+  } catch { return null; }
+}
+
+async function storageUpload(bucket: string, fileName: string, file: File) {
+  const token = getAccessToken();
+  const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${fileName}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'apikey': SUPABASE_KEY,
+    },
+    body: file,
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || `Upload failed: HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+async function storageSignedUrl(bucket: string, fileName: string) {
+  const token = getAccessToken();
+  const url = `${SUPABASE_URL}/storage/v1/object/sign/${bucket}/${fileName}`;
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'apikey': SUPABASE_KEY,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ expiresIn: 3600 }),
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err || `Signed URL failed: HTTP ${res.status}`);
+  }
+  const data = await res.json();
+  return `${SUPABASE_URL}/storage/v1${data.signedURL}`;
+}
+
 // Helper para detectar tipo do arquivo
 const getDocumentoTipo = (mimeType: string): DocumentoTipo => {
   if (mimeType === 'application/pdf') return 'pdf';
