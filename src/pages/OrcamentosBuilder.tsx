@@ -341,7 +341,7 @@ export default function OrcamentosBuilder() {
                 </div>
 
                 <div>
-                  <Label htmlFor="tax">Taxa de Impostos (%)</Label>
+                  <Label htmlFor="tax" className="text-zinc-800">Taxa de Impostos (%)</Label>
                   <Input
                     id="tax"
                     type="number"
