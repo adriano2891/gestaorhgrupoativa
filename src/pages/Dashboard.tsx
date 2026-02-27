@@ -239,7 +239,6 @@ const Dashboard = () => {
             />
           </div>
         </div>
-        </div>
 
         {/* Módulos em círculo - XL screens */}
         <div className="hidden xl:block relative" style={{ width: '700px', height: '500px' }}>
