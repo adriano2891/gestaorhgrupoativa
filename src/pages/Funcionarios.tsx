@@ -847,6 +847,11 @@ const Funcionarios = () => {
         .filter((dep) => dep.nome.trim().length > 0 && dep.tipo_dependencia);
 
       const token = getAccessToken();
+      if (!token) throw new Error('Sessão expirada — faça login novamente.');
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000);
+      
       const createRes = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-employee-user`,
         {
