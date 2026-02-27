@@ -102,49 +102,51 @@ const useFuncionariosFerias = () => {
   return useQuery({
     queryKey: ["funcionarios-ferias-clt"],
     queryFn: async () => {
-      // Get employee roles
-      const roles: { user_id: string; role: string }[] = await restGet('user_roles?select=user_id,role');
-      const employeeIds = new Set<string>();
-      const adminIds = new Set<string>();
-      (roles || []).forEach(r => {
-        if (r.role === 'funcionario') employeeIds.add(r.user_id);
-        if (['admin', 'gestor', 'rh'].includes(r.role)) adminIds.add(r.user_id);
-      });
-      const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
-      if (targetIds.length === 0) return [] as FuncionarioFerias[];
+      try {
+        // Get employee roles
+        const roles: { user_id: string; role: string }[] = await restGet('user_roles?select=user_id,role');
+        const employeeIds = new Set<string>();
+        const adminIds = new Set<string>();
+        (roles || []).forEach(r => {
+          if (r.role === 'funcionario') employeeIds.add(r.user_id);
+          if (['admin', 'gestor', 'rh'].includes(r.role)) adminIds.add(r.user_id);
+        });
+        const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
+        if (targetIds.length === 0) return [] as FuncionarioFerias[];
 
-      const idsParam = targetIds.map(id => `"${id}"`).join(',');
-      const profiles: any[] = await restGet(`profiles?select=id,nome,cargo,departamento,data_admissao,created_at,status&id=in.(${idsParam})&order=nome.asc`);
+        const idsParam = targetIds.map(id => `"${id}"`).join(',');
+        const profiles: any[] = await restGet(`profiles?select=id,nome,cargo,departamento,data_admissao,created_at,status&id=in.(${idsParam})&order=nome.asc`);
 
-      const activeProfiles = (profiles || []).filter((p: any) => {
-        const status = (p.status || 'ativo').toLowerCase();
-        return status !== 'demitido' && status !== 'pediu_demissao';
-      });
+        const activeProfiles = (profiles || []).filter((p: any) => {
+          const st = (p.status || 'ativo').toLowerCase();
+          return st !== 'demitido' && st !== 'pediu_demissao';
+        });
 
-      // Also check approved vacations to exclude employees who already took their vacation
-      const solicitacoes: any[] = await restGet('solicitacoes_ferias?select=user_id,status&status=in.(aprovado,em_andamento,concluido)');
-      const employeesWithVacation = new Set((solicitacoes || []).map(s => s.user_id));
+        return activeProfiles.map((p: any) => {
+          const dataAdmissao = p.data_admissao || (p.created_at ? p.created_at.split('T')[0] : null);
+          if (!dataAdmissao) return null;
 
-      return activeProfiles.map((p: any) => {
-        const dataAdmissao = p.data_admissao || (p.created_at ? p.created_at.split('T')[0] : null);
-        if (!dataAdmissao) return null;
+          const { fimAquisitivo, fimConcessivo, status, diasParaVencer } = calcularStatusFerias(dataAdmissao);
 
-        const { fimAquisitivo, fimConcessivo, status, diasParaVencer } = calcularStatusFerias(dataAdmissao);
-
-        return {
-          id: p.id,
-          nome: p.nome,
-          cargo: p.cargo,
-          departamento: p.departamento,
-          data_admissao: dataAdmissao,
-          fim_periodo_aquisitivo: fimAquisitivo.toISOString().split('T')[0],
-          fim_periodo_concessivo: fimConcessivo.toISOString().split('T')[0],
-          status,
-          dias_para_vencer: diasParaVencer,
-        } as FuncionarioFerias;
-      }).filter(Boolean) as FuncionarioFerias[];
+          return {
+            id: p.id,
+            nome: p.nome,
+            cargo: p.cargo,
+            departamento: p.departamento,
+            data_admissao: dataAdmissao,
+            fim_periodo_aquisitivo: fimAquisitivo.toISOString().split('T')[0],
+            fim_periodo_concessivo: fimConcessivo.toISOString().split('T')[0],
+            status,
+            dias_para_vencer: diasParaVencer,
+          } as FuncionarioFerias;
+        }).filter(Boolean) as FuncionarioFerias[];
+      } catch (error) {
+        console.error("Erro ao buscar funcionários para controle CLT:", error);
+        return [] as FuncionarioFerias[];
+      }
     },
     staleTime: 1000 * 60 * 5,
+    retry: 1,
   });
 };
 
