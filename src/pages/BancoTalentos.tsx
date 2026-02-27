@@ -200,53 +200,10 @@ const BancoTalentos = () => {
   const handleSaveNewCandidate = async () => {
     try {
       // Validar dados
-      candidateSchema.parse(newCandidate);
-
-      let resumeUrl = null;
-
-      // Upload do currículo se fornecido
-      if (resumeFile) {
-        const fileExt = resumeFile.name.split('.').pop();
-        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-        
-        const { error: uploadError } = await supabase.storage
-          .from('resumes')
-          .upload(fileName, resumeFile);
-
-        if (uploadError) throw uploadError;
-
-        // Salvar apenas o path do arquivo, não URL assinada (que expira)
-        resumeUrl = fileName;
-      }
-
-      // Processar habilidades
-      const skills = skillsInput
-        .split(',')
-        .map(skill => skill.trim())
-        .filter(skill => skill.length > 0);
-
-      // Inserir candidato no banco
-      const { error: insertError } = await supabase
-        .from('candidates')
-        .insert({
-          ...newCandidate,
-          skills,
-          resume_url: resumeUrl,
-        });
-
-      if (insertError) throw insertError;
-
-      toast({
-        title: "Candidato adicionado",
-        description: "O candidato foi cadastrado com sucesso.",
-      });
-
-      setIsAddDialogOpen(false);
-      fetchCandidates();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
+      const result = candidateSchema.safeParse(newCandidate);
+      if (!result.success) {
         const errors: Record<string, string> = {};
-        (error as any).issues?.forEach((err: any) => {
+        result.error.issues?.forEach((err: any) => {
           if (err.path[0]) {
             errors[err.path[0].toString()] = err.message;
           }
@@ -257,15 +214,87 @@ const BancoTalentos = () => {
           description: "Por favor, corrija os erros no formulário.",
           variant: "destructive",
         });
-      } else {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        console.error('Erro ao adicionar candidato:', errorMsg, error);
-        toast({
-          title: "Erro",
-          description: `Não foi possível adicionar o candidato: ${errorMsg}`,
-          variant: "destructive",
-        });
+        return;
       }
+
+      const token = getAccessToken();
+      if (!token) {
+        toast({ title: "Erro", description: "Sessão expirada. Faça login novamente.", variant: "destructive" });
+        return;
+      }
+
+      let resumeUrl = null;
+
+      // Upload do currículo se fornecido
+      if (resumeFile) {
+        const fileExt = resumeFile.name.split('.').pop();
+        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+        
+        const uploadRes = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/resumes/${fileName}`,
+          {
+            method: 'POST',
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${token}`,
+            },
+            body: resumeFile,
+          }
+        );
+
+        if (!uploadRes.ok) {
+          const errData = await uploadRes.json().catch(() => ({}));
+          throw new Error(errData.message || 'Erro ao fazer upload do currículo');
+        }
+
+        resumeUrl = fileName;
+      }
+
+      // Processar habilidades
+      const skills = skillsInput
+        .split(',')
+        .map(skill => skill.trim())
+        .filter(skill => skill.length > 0);
+
+      // Inserir candidato via REST API
+      const insertRes = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/candidates`,
+        {
+          method: 'POST',
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({
+            ...newCandidate,
+            skills,
+            resume_url: resumeUrl,
+          }),
+        }
+      );
+
+      if (!insertRes.ok) {
+        const errData = await insertRes.json().catch(() => ({}));
+        throw new Error(errData.message || `Erro ${insertRes.status}`);
+      }
+
+      toast({
+        title: "Candidato adicionado",
+        description: "O candidato foi cadastrado com sucesso.",
+      });
+
+      setIsAddDialogOpen(false);
+      fetchCandidates();
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      console.error('Erro ao adicionar candidato:', errorMsg, error);
+      toast({
+        title: "Erro",
+        description: `Não foi possível adicionar o candidato: ${errorMsg}`,
+        variant: "destructive",
+      });
     }
   };
 
