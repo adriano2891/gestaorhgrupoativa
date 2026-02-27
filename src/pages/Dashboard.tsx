@@ -167,7 +167,7 @@ const Dashboard = () => {
               >
                 <div 
                   className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
-                  style={{ width: '70px', height: '70px' }}
+                  style={{ width: '90px', height: '90px' }}
                 >
                   <img 
                     src={module.icon} 
@@ -246,7 +246,7 @@ const Dashboard = () => {
                 <div className="flex flex-col items-center">
                   <div 
                     className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-white/30"
-                    style={{ width: '112px', height: '112px' }}
+                    style={{ width: '140px', height: '140px' }}
                   >
                     <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                   </div>
@@ -282,7 +282,7 @@ const Dashboard = () => {
                 <div className="flex flex-col items-center">
                   <div 
                     className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-3 ring-white/30"
-                    style={{ width: '96px', height: '96px' }}
+                    style={{ width: '120px', height: '120px' }}
                   >
                     <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                   </div>
@@ -318,7 +318,7 @@ const Dashboard = () => {
                 <div className="flex flex-col items-center">
                   <div 
                     className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
-                    style={{ width: '80px', height: '80px' }}
+                    style={{ width: '100px', height: '100px' }}
                   >
                     <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                   </div>
@@ -354,7 +354,7 @@ const Dashboard = () => {
                 <div className="flex flex-col items-center">
                   <div 
                     className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
-                    style={{ width: '68px', height: '68px' }}
+                    style={{ width: '85px', height: '85px' }}
                   >
                     <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
                   </div>
