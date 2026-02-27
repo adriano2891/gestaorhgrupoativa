@@ -163,8 +163,21 @@ const Funcionarios = () => {
   
   const [newEscala, setNewEscala] = useState("8h");
   const [newTurno, setNewTurno] = useState("diurno");
-  const [escalasDisponiveis, setEscalasDisponiveis] = useState<{nome: string; descricao: string}[]>([]);
-  const [turnosDisponiveis, setTurnosDisponiveis] = useState<{nome: string; descricao: string; escala_nome?: string}[]>([]);
+
+  const fallbackEscalas = [
+    { nome: "8h", descricao: "8h (CLT Padrão)" },
+    { nome: "6x1", descricao: "6x1 - 6 dias trabalhados, 1 folga" },
+    { nome: "5x2", descricao: "5x2 - 5 dias trabalhados, 2 folgas" },
+    { nome: "12x36", descricao: "12x36 - 12h trabalhadas, 36h de descanso" },
+  ];
+  const fallbackTurnos = [
+    { nome: "diurno", descricao: "Escala Intermediário (7h-17h)" },
+    { nome: "noturno", descricao: "Escala Noturno (19h-7h)" },
+    { nome: "diurno_7_19", descricao: "Escala Diurno (7h-19h)" },
+  ];
+
+  const [escalasDisponiveis, setEscalasDisponiveis] = useState<{nome: string; descricao: string}[]>(fallbackEscalas);
+  const [turnosDisponiveis, setTurnosDisponiveis] = useState<{nome: string; descricao: string; escala_nome?: string}[]>(fallbackTurnos);
 
   const [newEmployee, setNewEmployee] = useState({
     name: "",
