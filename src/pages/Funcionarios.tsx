@@ -234,21 +234,32 @@ const Funcionarios = () => {
   const uploadPhoto = async (file: File, userId: string): Promise<string | null> => {
     const ext = file.name.split('.').pop();
     const filePath = `${userId}/foto.${ext}`;
-    
-    const { error: uploadError } = await supabase.storage
-      .from('fotos-funcionarios')
-      .upload(filePath, file, { upsert: true });
-    
-    if (uploadError) {
-      console.error('Upload error:', uploadError);
+    const token = getAccessToken();
+    if (!token) return null;
+
+    try {
+      // Direct fetch upload to bypass SDK lock issues
+      const uploadUrl = `${import.meta.env.VITE_SUPABASE_URL}/storage/v1/object/fotos-funcionarios/${filePath}`;
+      const uploadRes = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'x-upsert': 'true',
+        },
+        body: file,
+      });
+
+      if (!uploadRes.ok) {
+        console.error('Upload error:', await uploadRes.text());
+        return null;
+      }
+
+      return `fotos-funcionarios/${filePath}`;
+    } catch (e) {
+      console.error('Upload error:', e);
       return null;
     }
-    
-    const { data: urlData } = supabase.storage
-      .from('fotos-funcionarios')
-      .getPublicUrl(filePath);
-    
-    return urlData.publicUrl;
   };
   // Helper: get access token from localStorage (bypasses Navigator Lock)
   const getAccessToken = (): string | null => {
