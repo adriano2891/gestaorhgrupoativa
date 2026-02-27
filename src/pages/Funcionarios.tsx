@@ -280,6 +280,22 @@ const Funcionarios = () => {
     return res.json();
   };
 
+  // Resolve foto_url storage path to a signed URL
+  const resolveFotoUrl = async (fotoUrl: string | null | undefined): Promise<string | undefined> => {
+    if (!fotoUrl) return undefined;
+    // If it's already a full URL (http), return as-is
+    if (fotoUrl.startsWith('http')) return fotoUrl;
+    // If it's a storage path like "fotos-funcionarios/userId/foto.jpg"
+    const match = fotoUrl.match(/^fotos-funcionarios\/(.+)$/);
+    if (match) {
+      try {
+        const { data } = await supabase.storage.from('fotos-funcionarios').createSignedUrl(match[1], 3600);
+        return data?.signedUrl || undefined;
+      } catch { return undefined; }
+    }
+    return undefined;
+  };
+
   // Função para buscar funcionários do banco de dados via REST API
   const fetchEmployees = async () => {
     try {
@@ -332,7 +348,7 @@ const Funcionarios = () => {
           return status !== "demitido" && status !== "pediu_demissao";
         });
 
-        const formattedEmployees = activeProfiles.map((profile: any) => ({
+        const formattedEmployees = await Promise.all(activeProfiles.map(async (profile: any) => ({
           id: profile.id,
           name: profile.nome,
           email: profile.email,
@@ -341,8 +357,8 @@ const Funcionarios = () => {
           department: profile.departamento || "Não informado",
           status: (profile.status || "ativo") as EmployeeStatus,
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
-          foto_url: profile.foto_url || undefined,
-        }));
+          foto_url: await resolveFotoUrl(profile.foto_url),
+        })));
 
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
         setEmployees(formattedEmployees);
@@ -365,7 +381,7 @@ const Funcionarios = () => {
           return status !== "demitido" && status !== "pediu_demissao";
         });
 
-        const formatted = activeProfiles.map((profile: any) => ({
+        const formatted = await Promise.all(activeProfiles.map(async (profile: any) => ({
           id: profile.id,
           name: profile.nome,
           email: profile.email,
@@ -374,8 +390,8 @@ const Funcionarios = () => {
           department: profile.departamento || "Não informado",
           status: (profile.status || "ativo") as EmployeeStatus,
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
-          foto_url: profile.foto_url || undefined,
-        }));
+          foto_url: await resolveFotoUrl(profile.foto_url),
+        })));
 
         console.log("fetchEmployees: Fallback retornou", formatted.length, "funcionários");
         setEmployees(formatted);
