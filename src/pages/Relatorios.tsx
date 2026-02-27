@@ -236,11 +236,91 @@ const Relatorios = () => {
     setFilters(newFilters);
   };
 
+  // Direct REST helper to bypass SDK LockManager issues
+  const getAccessToken = () => {
+    const projectId = import.meta.env.VITE_SUPABASE_URL?.split("//")[1]?.split(".")[0] || "";
+    const stored = localStorage.getItem(`sb-${projectId}-auth-token`);
+    if (stored) {
+      try { return JSON.parse(stored).access_token; } catch { return ""; }
+    }
+    return "";
+  };
+
+  const fetchDirectREST = async (table: string, query: string = "") => {
+    const token = getAccessToken();
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${table}?${query}`,
+      {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    if (!res.ok) throw new Error(`REST fetch failed: ${res.status}`);
+    return res.json();
+  };
+
   const handleGenerateReport = async () => {
-    const data = generateReportData(selectedReport, filters);
-    setReportData(data);
-    if (selectedReport) {
-      await logReportGeneration(selectedReport, filters);
+    try {
+      // Fetch fresh data directly via REST to avoid SDK LockManager hangs
+      let freshFuncionarios = funcionarios;
+      let freshFuncPorDept = funcionariosPorDept;
+      let freshRegistrosPonto = registrosPonto;
+      let freshProfilesEscala = profilesComEscala;
+
+      if (!freshFuncionarios || freshFuncionarios.length === 0) {
+        const roles = await fetchDirectREST("user_roles", "select=user_id,role");
+        const employeeIds = new Set<string>();
+        const adminIds = new Set<string>();
+        (roles || []).forEach((r: any) => {
+          if (r.role === 'funcionario') employeeIds.add(r.user_id);
+          if (['admin', 'gestor', 'rh'].includes(r.role)) adminIds.add(r.user_id);
+        });
+        const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
+        
+        if (targetIds.length > 0) {
+          const idFilter = targetIds.map(id => `"${id}"`).join(",");
+          const profiles = await fetchDirectREST("profiles", `select=*&id=in.(${idFilter})&order=nome.asc`);
+          freshFuncionarios = (profiles || []).filter((p: any) => {
+            const status = (p.status || "ativo").toLowerCase();
+            return status !== "demitido" && status !== "pediu_demissao";
+          });
+
+          // Build dept grouping
+          const grouped: Record<string, number> = {};
+          freshFuncionarios.forEach((f: any) => {
+            const dept = f.departamento || "Sem Departamento";
+            grouped[dept] = (grouped[dept] || 0) + 1;
+          });
+          freshFuncPorDept = Object.entries(grouped).map(([departamento, count]) => ({
+            departamento,
+            funcionarios: count,
+          }));
+        }
+      }
+
+      if (!freshProfilesEscala || freshProfilesEscala.length === 0) {
+        freshProfilesEscala = await fetchDirectREST("profiles", "select=id,nome,departamento,cargo,escala_trabalho,turno,status&status=neq.demitido&status=neq.pediu_demissao");
+      }
+
+      if (!freshRegistrosPonto || freshRegistrosPonto.length === 0) {
+        freshRegistrosPonto = await fetchDirectREST("registros_ponto", "select=*&order=data.desc&limit=1000");
+      }
+
+      const data = generateReportDataDirect(selectedReport, filters, freshFuncionarios, freshFuncPorDept, freshRegistrosPonto, freshProfilesEscala);
+      setReportData(data);
+      if (selectedReport) {
+        await logReportGeneration(selectedReport, filters);
+      }
+    } catch (err) {
+      console.error("Error generating report:", err);
+      toast({
+        title: "Erro ao gerar relatório",
+        description: "Tente novamente em alguns segundos.",
+        variant: "destructive",
+      });
     }
   };
 
