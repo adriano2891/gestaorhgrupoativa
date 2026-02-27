@@ -1020,7 +1020,7 @@ const Relatorios = () => {
               description: "Estimativa de custo de folha por área",
               dataName: "R$",
               insight: "Valores baseados na quantidade de funcionários e salário médio.",
-              data: funcionariosPorDept?.slice(0, 6).map(d => ({
+              data: funcDeptList?.slice(0, 6).map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: (d.funcionarios as number) * custoMedioCusto,
               })) || [
