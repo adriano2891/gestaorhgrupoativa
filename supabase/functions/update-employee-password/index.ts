@@ -24,21 +24,21 @@ serve(async (req) => {
       });
     }
 
-    // Verify caller identity
+    // Verify caller identity using getUser instead of getClaims
     const callerClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await callerClient.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims?.sub) {
+    const { data: userData, error: userError } = await callerClient.auth.getUser();
+    if (userError || !userData?.user?.id) {
+      console.error("Erro ao verificar usuário:", userError);
       return new Response(JSON.stringify({ error: "Token inválido" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const callerId = claimsData.claims.sub;
+    const callerId = userData.user.id;
 
     // Check if caller has admin/rh/gestor role
     const adminClient = createClient(supabaseUrl, serviceRoleKey);
@@ -76,6 +76,12 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Set deve_trocar_senha = true so employee must change on next login
+    await adminClient
+      .from("profiles")
+      .update({ deve_trocar_senha: true })
+      .eq("id", user_id);
 
     console.log(`Senha atualizada com sucesso para user_id: ${user_id} por admin: ${callerId}`);
 
