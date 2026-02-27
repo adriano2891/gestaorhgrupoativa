@@ -280,7 +280,7 @@ export default function OrcamentosBuilder() {
               
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="client">Cliente *</Label>
+                  <Label htmlFor="client" className="text-zinc-800">Cliente *</Label>
                   <div className="flex gap-2 mt-1">
                     <Select value={clientId} onValueChange={setClientId}>
                       <SelectTrigger className="bg-white flex-1">
@@ -306,7 +306,7 @@ export default function OrcamentosBuilder() {
                 </div>
 
                 <div>
-                  <Label htmlFor="validity">Validade (dias)</Label>
+                  <Label htmlFor="validity" className="text-zinc-800">Validade (dias)</Label>
                   <Input
                     id="validity"
                     type="number"
@@ -318,7 +318,7 @@ export default function OrcamentosBuilder() {
                 </div>
 
                 <div>
-                  <Label htmlFor="status">Status</Label>
+                  <Label htmlFor="status" className="text-zinc-800">Status</Label>
                   <Select 
                     value={requiresApproval ? 'aprovacao_interna' : status} 
                     onValueChange={(v) => setStatus(v as QuoteStatus)}
@@ -341,7 +341,7 @@ export default function OrcamentosBuilder() {
                 </div>
 
                 <div>
-                  <Label htmlFor="tax">Taxa de Impostos (%)</Label>
+                  <Label htmlFor="tax" className="text-zinc-800">Taxa de Impostos (%)</Label>
                   <Input
                     id="tax"
                     type="number"
@@ -354,7 +354,7 @@ export default function OrcamentosBuilder() {
                 </div>
 
                 <div>
-                  <Label htmlFor="observations">Observações</Label>
+                  <Label htmlFor="observations" className="text-zinc-800">Observações</Label>
                   <Textarea
                     id="observations"
                     value={observations}
