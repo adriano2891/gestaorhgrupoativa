@@ -575,8 +575,8 @@ const Relatorios = () => {
       }
 
       case "faltas-atrasos": {
-        const profileMapFA = new Map((profilesComEscala || []).map(p => [p.id, p]));
-        const faltasRaw = registrosPonto || [];
+        const profileMapFA = new Map((profilesList || []).map(p => [p.id, p]));
+        const faltasRaw = pontosList || [];
         const faltasData = filterRegistros(faltasRaw, filters);
 
         // Detect based on turno schedule
