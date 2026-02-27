@@ -259,7 +259,8 @@ const FolhaPonto = () => {
       registros?.forEach((reg: any) => {
         const empRecord = employeeMap.get(reg.user_id);
         if (empRecord) {
-          const day = new Date(reg.data).getDate();
+          // Parse date string directly to avoid UTC timezone shift
+          const day = parseInt(reg.data.split('-')[2], 10);
           const dayIndex = day - 1;
 
           const formatTime = (timestamp: string | null) => {
@@ -1120,7 +1121,7 @@ const FolhaPonto = () => {
                               )}
                             </TableCell>
                             <TableCell>
-                              {!editingCell && (
+                              {!(editingCell?.empId === record.employee_id && editingCell?.day === day.day) && (
                                 <div className="flex gap-1">
                                   <Button
                                     size="sm"
