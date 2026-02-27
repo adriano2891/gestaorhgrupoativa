@@ -483,8 +483,8 @@ const Relatorios = () => {
       }
 
       case "absenteismo": {
-        const profileMapAbs = new Map((profilesComEscala || []).map(p => [p.id, p]));
-        const absRaw = registrosPonto || [];
+        const profileMapAbs = new Map((profilesList || []).map(p => [p.id, p]));
+        const absRaw = pontosList || [];
         const absData = filterRegistros(absRaw, filters);
 
         // Group by employee
