@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.generate-hrflow-form]
 verify_jwt = false
+
+[functions.delete-employee-user]
+verify_jwt = false
+
+[functions.create-employee-user]
+verify_jwt = false
