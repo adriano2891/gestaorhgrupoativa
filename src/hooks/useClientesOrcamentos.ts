@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface ClienteOrcamento {
@@ -87,19 +86,10 @@ export function useClientesOrcamentos() {
     queryKey: ['clientes-orcamentos'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('clientes_orcamentos')
-          .select('*')
-          .eq('ativo', true)
-          .order('nome_condominio', { ascending: true });
-
-        if (error) {
-          console.error('Erro ao buscar clientes:', error.message);
-          return [] as ClienteOrcamento[];
-        }
+        const data = await restCall('GET', undefined, '?ativo=eq.true&order=nome_condominio.asc');
         return (data ?? []) as ClienteOrcamento[];
       } catch (err) {
-        console.error('Erro inesperado ao buscar clientes:', err);
+        console.error('Erro ao buscar clientes:', err);
         return [] as ClienteOrcamento[];
       }
     },
