@@ -461,12 +461,24 @@ const BancoTalentos = () => {
     if (!deletingCandidateId) return;
 
     try {
-      const { error } = await supabase
-        .from('candidates')
-        .delete()
-        .eq('id', deletingCandidateId);
+      const token = getAccessToken();
+      if (!token) {
+        toast({ title: "Erro", description: "Sessão expirada.", variant: "destructive" });
+        return;
+      }
 
-      if (error) throw error;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/candidates?id=eq.${deletingCandidateId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
 
       toast({
         title: "Candidato excluído",
