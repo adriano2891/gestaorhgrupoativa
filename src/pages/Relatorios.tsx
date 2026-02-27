@@ -990,7 +990,7 @@ const Relatorios = () => {
             "Benefícios": `R$ ${totalBeneficiosCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
             "Custo Médio/Funcionário": `R$ ${custoMedioCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
           },
-          details: funcionarios?.slice(0, 30).map(f => ({
+          details: funcList?.slice(0, 30).map(f => ({
             nome: f.nome,
             departamento: f.departamento || "Não informado",
             cargo: f.cargo || "Não informado",
