@@ -45,7 +45,7 @@ const ControleFerias = () => {
     <div className="min-h-screen bg-gradient-to-br from-secondary via-background to-secondary/50">
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-8">
-          <BackButton to="/gestao-rh" variant="default" />
+          <BackButton to="/gestao-rh" variant="light" />
           
           {/* Cabeçalho */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
