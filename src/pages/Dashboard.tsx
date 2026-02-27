@@ -229,7 +229,7 @@ const Dashboard = () => {
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
             className="w-44 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg"
-            style={{ animation: 'dash-logo-pulse 4s ease-in-out infinite' }}
+            style={{ animation: 'dash-logo-shimmer 5s ease-in-out infinite' }}
           />
         </div>
 
