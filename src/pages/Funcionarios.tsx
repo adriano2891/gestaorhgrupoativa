@@ -252,17 +252,58 @@ const Funcionarios = () => {
   // Função para buscar funcionários do banco de dados
   const fetchEmployees = async () => {
     try {
+      // Verify we have a valid session first
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError || !session) {
+        console.warn("fetchEmployees: Sem sessão autenticada, abortando.", sessionError?.message);
+        return;
+      }
+
+      console.log("fetchEmployees: Sessão válida para", session.user.email);
+
       // Step 1: Get all roles
       const { data: allRoles, error: rolesError } = await supabase
         .from("user_roles")
         .select("user_id, role");
 
       if (rolesError) {
-        console.error("Erro ao buscar roles:", rolesError);
+        console.error("fetchEmployees: Erro ao buscar roles:", rolesError.message, rolesError.code, rolesError.details);
+        // Fallback: try to fetch all profiles directly (RLS will filter)
+        console.log("fetchEmployees: Tentando fallback direto em profiles...");
+        const { data: fallbackProfiles, error: fallbackError } = await supabase
+          .from("profiles")
+          .select("id, nome, email, telefone, cargo, departamento, salario, status, created_at, data_admissao, foto_url")
+          .order("nome", { ascending: true });
+        
+        if (fallbackError) {
+          console.error("fetchEmployees: Fallback também falhou:", fallbackError.message);
+          return;
+        }
+        
+        const activeProfiles = (fallbackProfiles || []).filter((p: any) => {
+          const status = (p.status || "ativo").toLowerCase();
+          return status !== "demitido" && status !== "pediu_demissao";
+        });
+        
+        const formatted = activeProfiles.map((profile: any) => ({
+          id: profile.id,
+          name: profile.nome,
+          email: profile.email,
+          phone: profile.telefone || "Não informado",
+          position: profile.cargo || "Não informado",
+          department: profile.departamento || "Não informado",
+          status: (profile.status || "ativo") as EmployeeStatus,
+          admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
+          foto_url: profile.foto_url || undefined,
+        }));
+        
+        console.log("fetchEmployees: Fallback retornou", formatted.length, "funcionários");
+        setEmployees(formatted);
         return;
       }
 
-      console.log("Roles encontrados:", allRoles?.length || 0);
+      console.log("fetchEmployees: Roles encontrados:", allRoles?.length || 0, allRoles);
 
       const employeeIds = new Set<string>();
       const adminIds = new Set<string>();
@@ -272,13 +313,16 @@ const Funcionarios = () => {
       });
 
       const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
+      console.log("fetchEmployees: employeeIds:", employeeIds.size, "adminIds:", adminIds.size, "targetIds:", targetIds.length);
+      
       if (targetIds.length === 0) {
+        console.warn("fetchEmployees: Nenhum ID de funcionário encontrado após filtro");
         setEmployees([]);
         setEmployeeSalaries({});
         return;
       }
 
-      // Step 2: Fetch profiles (without server-side status filter to avoid syntax issues)
+      // Step 2: Fetch profiles
       const { data: profilesData, error } = await supabase
         .from("profiles")
         .select("id, nome, email, telefone, cargo, departamento, salario, status, created_at, data_admissao, foto_url")
@@ -286,7 +330,7 @@ const Funcionarios = () => {
         .order("nome", { ascending: true });
 
       if (error) {
-        console.error("Erro ao buscar funcionários:", error);
+        console.error("fetchEmployees: Erro ao buscar profiles:", error.message, error.code);
         toast({
           title: "Erro ao carregar funcionários",
           description: "Não foi possível carregar a lista de funcionários.",
@@ -294,6 +338,8 @@ const Funcionarios = () => {
         });
         return;
       }
+
+      console.log("fetchEmployees: Profiles retornados:", profilesData?.length || 0);
 
       // Filter out inactive statuses client-side for reliability
       const activeProfiles = (profilesData || []).filter((profile: any) => {
@@ -314,6 +360,7 @@ const Funcionarios = () => {
         foto_url: profile.foto_url || undefined,
       }));
 
+      console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
       setEmployees(formattedEmployees);
 
       const salaries: Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }> = {};
@@ -322,18 +369,30 @@ const Funcionarios = () => {
       }
       setEmployeeSalaries(salaries);
     } catch (error) {
-      console.error("Erro ao buscar funcionários:", error);
+      console.error("fetchEmployees: Exceção inesperada:", error);
     }
   };
 
   // Carregar funcionários ao montar o componente
   useEffect(() => {
-    // Chama imediatamente sem bloquear
-    fetchEmployees();
+    let mounted = true;
 
-    // Também recarrega quando auth mudar (login/refresh)
+    const loadData = async () => {
+      // Wait for session to be available
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && mounted) {
+        await fetchEmployees();
+      } else {
+        console.log("fetchEmployees: Aguardando sessão...");
+      }
+    };
+
+    loadData();
+
+    // Also reload when auth changes (login/refresh)
     const { data: { subscription: authSub } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
+      if (session && mounted) {
+        console.log("fetchEmployees: Auth state changed, recarregando...", _event);
         fetchEmployees();
       }
     });
@@ -341,16 +400,20 @@ const Funcionarios = () => {
     const channel = supabase
       .channel('profiles-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-        fetchEmployees();
+        if (mounted) fetchEmployees();
       })
       .subscribe();
 
-    // Retry após 2s caso a primeira chamada tenha falhado por sessão não pronta
+    // Retry after 3s as safety net
     const retryTimeout = setTimeout(() => {
-      fetchEmployees();
-    }, 2000);
+      if (mounted && employees.length === 0) {
+        console.log("fetchEmployees: Retry de segurança após 3s");
+        fetchEmployees();
+      }
+    }, 3000);
 
     return () => { 
+      mounted = false;
       authSub.unsubscribe();
       supabase.removeChannel(channel);
       clearTimeout(retryTimeout);
