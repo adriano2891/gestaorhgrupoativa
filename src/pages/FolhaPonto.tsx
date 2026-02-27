@@ -575,14 +575,24 @@ const FolhaPonto = () => {
         });
         setMonthRecords(updatedRecords);
       } else if (editingCell.field === 'horas_extras') {
-        // Atualizar horas extras no banco
-        const { error } = await supabase
-          .from("registros_ponto")
-          .update({ horas_extras: editValue })
-          .eq("user_id", editingCell.empId)
-          .eq("data", date);
+        // Atualizar horas extras no banco via REST
+        const token = getAccessToken();
+        if (!token) throw new Error('Sessão expirada');
         
-        if (error) throw error;
+        const updateRes = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?user_id=eq.${editingCell.empId}&data=eq.${date}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal',
+            },
+            body: JSON.stringify({ horas_extras: editValue }),
+          }
+        );
+        if (!updateRes.ok) throw new Error(`Erro ${updateRes.status}`);
         
         // Atualizar localmente e recalcular totais
         const updatedRecords = monthRecords.map(r => {
@@ -618,18 +628,31 @@ const FolhaPonto = () => {
       // Log the edit with admin authorization
       if (authorizedAdmin) {
         try {
-          await (supabase as any)
-            .from("logs_edicao_ponto")
-            .insert({
-              employee_id: editingCell.empId,
-              employee_name: record.employee_name,
-              campo_editado: editingCell.field === 'status' ? 'Status' : 'Horas Extras',
-              valor_anterior: editingCell.field === 'status' ? dayData.status : (dayData.horas_extras || '0h 0min'),
-              valor_novo: editValue,
-              data_registro: date,
-              autorizado_por: authorizedAdmin.id,
-              autorizado_por_nome: authorizedAdmin.name,
-            });
+          const token = getAccessToken();
+          if (token) {
+            await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/logs_edicao_ponto`,
+              {
+                method: 'POST',
+                headers: {
+                  'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                  'Prefer': 'return=minimal',
+                },
+                body: JSON.stringify({
+                  employee_id: editingCell.empId,
+                  employee_name: record.employee_name,
+                  campo_editado: editingCell.field === 'status' ? 'Status' : 'Horas Extras',
+                  valor_anterior: editingCell.field === 'status' ? dayData.status : (dayData.horas_extras || '0h 0min'),
+                  valor_novo: editValue,
+                  data_registro: date,
+                  autorizado_por: authorizedAdmin.id,
+                  autorizado_por_nome: authorizedAdmin.name,
+                }),
+              }
+            );
+          }
         } catch (logError) {
           console.error("Erro ao registrar log de edição:", logError);
         }
