@@ -90,7 +90,7 @@ export const useFuncionariosPorDepartamento = () => {
         return status !== "demitido" && status !== "pediu_demissao";
       });
 
-      const grouped = (data || []).reduce((acc: Record<string, number>, curr: any) => {
+      const grouped = activeData.reduce((acc: Record<string, number>, curr: any) => {
         const dept = curr.departamento || "Sem Departamento";
         acc[dept] = (acc[dept] || 0) + 1;
         return acc;
