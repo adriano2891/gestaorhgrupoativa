@@ -1014,7 +1014,7 @@ const Relatorios = () => {
         };
 
       case "custo-folha":
-        const metricaCusto = metricas?.[0];
+        const metricaCusto = metricasList?.[0];
         
         // Valores padrão caso não haja métricas
         const totalFolhaCusto = metricaCusto?.total_folha_pagamento || 50000;
