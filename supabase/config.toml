@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.create-employee-user]
 verify_jwt = false
+
+[functions.update-employee-password]
+verify_jwt = false
