@@ -760,8 +760,15 @@ const Funcionarios = () => {
 
         // Se senha foi fornecida, atualizar via Edge Function (requer service_role)
         if (editPassword && editPassword.length >= 6) {
-          const { data: sessionData } = await supabase.auth.getSession();
-          const token = sessionData?.session?.access_token;
+          // Extrair token do localStorage para evitar LockManager
+          const storageKey = Object.keys(localStorage).find(k => k.startsWith('sb-') && k.endsWith('-auth-token'));
+          let token = '';
+          if (storageKey) {
+            try {
+              const parsed = JSON.parse(localStorage.getItem(storageKey) || '{}');
+              token = parsed?.access_token || '';
+            } catch {}
+          }
           
           const response = await fetch(
             `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/update-employee-password`,
@@ -770,6 +777,7 @@ const Funcionarios = () => {
               headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`,
+                "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
               },
               body: JSON.stringify({
                 user_id: editingEmployee.id,
