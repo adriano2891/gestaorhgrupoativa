@@ -786,7 +786,7 @@ const Relatorios = () => {
 
       case "turnover":
         const metricaTurnover = metricas?.[0];
-        const totalFunc = funcionarios?.length || 0;
+        const totalFunc = funcList?.length || 0;
         const taxaRetencao = metricaTurnover?.taxa_retencao || 0;
         const taxaTurnover = 100 - taxaRetencao;
         
