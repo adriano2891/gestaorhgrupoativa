@@ -301,7 +301,7 @@ const Dashboard = () => {
         {/* Módulos em círculo - MD screens */}
         <div className="hidden md:block lg:hidden relative" style={{ width: '500px', height: '400px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 180);
+            const { x, y } = getModulePosition(index, modules.length, 220);
             
             return (
               <div
