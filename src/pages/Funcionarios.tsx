@@ -341,31 +341,36 @@ const Funcionarios = () => {
   // Fetch available escalas and turnos
   useEffect(() => {
     const fetchEscalasTurnos = async () => {
-      const { data: escalas } = await supabase
-        .from("escalas_trabalho")
-        .select("nome, descricao")
-        .eq("ativo", true)
-        .order("nome");
-      if (escalas) setEscalasDisponiveis(escalas as any);
+      try {
+        const { data: escalas, error: escalasErr } = await supabase
+          .from("escalas_trabalho")
+          .select("nome, descricao")
+          .eq("ativo", true)
+          .order("nome");
+        if (escalasErr) console.error("Erro ao buscar escalas:", escalasErr);
+        if (escalas && escalas.length > 0) setEscalasDisponiveis(escalas as any);
 
-      const { data: turnos } = await (supabase as any)
-        .from("turnos_trabalho")
-        .select("nome, descricao, escala_id, escalas_trabalho(nome)")
-        .eq("ativo", true);
-      if (turnos) {
-        // Deduplicate turnos by nome+escala_nome
-        const seen = new Set<string>();
-        const deduped = (turnos as any[]).filter((t: any) => {
-          const key = `${t.nome}-${t.escalas_trabalho?.nome || ''}`;
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
-        setTurnosDisponiveis(deduped.map((t: any) => ({
-          nome: t.nome,
-          descricao: t.descricao,
-          escala_nome: t.escalas_trabalho?.nome,
-        })));
+        const { data: turnos, error: turnosErr } = await (supabase as any)
+          .from("turnos_trabalho")
+          .select("nome, descricao, escala_id, escalas_trabalho(nome)")
+          .eq("ativo", true);
+        if (turnosErr) console.error("Erro ao buscar turnos:", turnosErr);
+        if (turnos && turnos.length > 0) {
+          const seen = new Set<string>();
+          const deduped = (turnos as any[]).filter((t: any) => {
+            const key = `${t.nome}-${t.escalas_trabalho?.nome || ''}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+          setTurnosDisponiveis(deduped.map((t: any) => ({
+            nome: t.nome,
+            descricao: t.descricao,
+            escala_nome: t.escalas_trabalho?.nome,
+          })));
+        }
+      } catch (err) {
+        console.error("Erro ao buscar escalas/turnos:", err);
       }
     };
     fetchEscalasTurnos();
