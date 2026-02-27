@@ -348,7 +348,7 @@ const Funcionarios = () => {
           return status !== "demitido" && status !== "pediu_demissao";
         });
 
-        const formattedEmployees = activeProfiles.map((profile: any) => ({
+        const formattedEmployees = await Promise.all(activeProfiles.map(async (profile: any) => ({
           id: profile.id,
           name: profile.nome,
           email: profile.email,
@@ -357,8 +357,8 @@ const Funcionarios = () => {
           department: profile.departamento || "Não informado",
           status: (profile.status || "ativo") as EmployeeStatus,
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
-          foto_url: profile.foto_url || undefined,
-        }));
+          foto_url: await resolveFotoUrl(profile.foto_url),
+        })));
 
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
         setEmployees(formattedEmployees);
