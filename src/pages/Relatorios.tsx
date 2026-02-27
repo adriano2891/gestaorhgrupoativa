@@ -701,7 +701,7 @@ const Relatorios = () => {
 
         // Gera detalhes por funcionário com seus benefícios
         const detailsBeneficios: any[] = [];
-        funcionarios?.forEach(f => {
+        funcList?.forEach(f => {
           beneficiosLista.forEach(b => {
             detailsBeneficios.push({
               funcionario: f.nome,
