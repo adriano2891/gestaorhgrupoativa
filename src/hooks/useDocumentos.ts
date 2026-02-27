@@ -106,14 +106,16 @@ function getUserIdFromToken(): string | null {
   } catch { return null; }
 }
 
-async function sanitizeStorageFileName(name: string): Promise<string> {
-  return name
+function sanitizeStorageFileName(name: string): string {
+  const sanitized = name
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-zA-Z0-9._-]/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-+|-+$/g, '')
     .toLowerCase() || 'arquivo';
+  console.log('[Documentos] Sanitize:', name, '->', sanitized);
+  return sanitized;
 }
 
 async function storageUpload(bucket: string, fileName: string, file: File) {
