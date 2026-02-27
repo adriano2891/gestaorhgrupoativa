@@ -101,6 +101,10 @@ const Dashboard = () => {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-8px); }
     }
+    @keyframes dash-logo-pulse {
+      0%, 100% { filter: brightness(1) drop-shadow(0 0 0px rgba(255,255,255,0)); }
+      50% { filter: brightness(1.12) drop-shadow(0 0 18px rgba(255,255,255,0.45)); }
+    }
     .module-icon-container {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -222,7 +226,8 @@ const Dashboard = () => {
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-44 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg opacity-90"
+            className="w-44 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg"
+            style={{ animation: 'dash-logo-pulse 4s ease-in-out infinite' }}
           />
         </div>
 
