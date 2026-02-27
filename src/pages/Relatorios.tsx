@@ -351,7 +351,20 @@ const Relatorios = () => {
         }
       }
 
-      const data = generateReportDataDirect(selectedReport, filters, freshFuncionarios, freshFuncPorDept, freshRegistrosPonto, freshProfilesEscala, freshMetricas);
+      // Fetch holerites for custo-folha report
+      let freshHolerites: any[] = [];
+      if (selectedReport === 'custo-folha') {
+        try {
+          const mesFetch = filters.mes ? parseInt(filters.mes) : new Date().getMonth() + 1;
+          const anoFetch = filters.ano ? parseInt(filters.ano) : new Date().getFullYear();
+          freshHolerites = await fetchDirectREST("holerites", `select=*&mes=eq.${mesFetch}&ano=eq.${anoFetch}`);
+        } catch (e) {
+          console.error("Error fetching holerites via REST:", e);
+          freshHolerites = [];
+        }
+      }
+
+      const data = generateReportDataDirect(selectedReport, filters, freshFuncionarios, freshFuncPorDept, freshRegistrosPonto, freshProfilesEscala, freshMetricas, freshHolerites);
       setReportData(data);
       if (selectedReport) {
         await logReportGeneration(selectedReport, filters);
