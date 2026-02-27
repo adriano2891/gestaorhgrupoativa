@@ -121,19 +121,27 @@ const FolhaPonto = () => {
 
   const loadRegistrosFolga = async () => {
     try {
-      const { data, error } = await (supabase as any)
-        .from("registros_ponto")
-        .select("*, profiles:user_id(nome)")
-        .eq("registro_folga", true)
-        .eq("status_validacao", "pendente")
-        .order("data", { ascending: false });
+      const token = getAccessToken();
+      if (!token) { setRegistrosFolga([]); setCountFolga(0); return; }
 
-      if (error) throw error;
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?select=id,user_id,data,entrada,saida,total_horas&registro_folga=eq.true&status_validacao=eq.pendente&order=data.desc`,
+        {
+          headers: {
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+      if (!res.ok) throw new Error(`REST ${res.status}`);
+      const data = await res.json();
 
+      // Map employee names from the already-loaded funcionarios
+      const empMap = new Map((employees || []).map((e: any) => [e.id, e.nome]));
       const mapped = (data || []).map((r: any) => ({
         id: r.id,
         user_id: r.user_id,
-        employee_name: r.profiles?.nome || "Desconhecido",
+        employee_name: empMap.get(r.user_id) || "Desconhecido",
         data: r.data,
         entrada: r.entrada,
         saida: r.saida,
