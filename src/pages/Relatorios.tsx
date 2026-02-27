@@ -840,7 +840,7 @@ const Relatorios = () => {
             "Satisfação Gestor": `${metricaDesemp?.satisfacao_gestor?.toFixed(1) || 0}/10`,
             "Taxa de Presença": `${metricaDesemp?.taxa_presenca?.toFixed(1) || 0}%`,
           },
-          details: funcionarios?.slice(0, 30).map(f => ({
+          details: funcList?.slice(0, 30).map(f => ({
             nome: f.nome,
             departamento: f.departamento || "Não informado",
             cargo: f.cargo || "Não informado",
