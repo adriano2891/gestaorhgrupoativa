@@ -280,7 +280,7 @@ export default function OrcamentosBuilder() {
               
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="client">Cliente *</Label>
+                  <Label htmlFor="client" className="text-zinc-800">Cliente *</Label>
                   <div className="flex gap-2 mt-1">
                     <Select value={clientId} onValueChange={setClientId}>
                       <SelectTrigger className="bg-white flex-1">
