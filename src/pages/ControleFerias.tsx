@@ -12,7 +12,7 @@ import { useSolicitacoesFerias } from "@/hooks/useFerias";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const ControleFerias = () => {
-  useFeriasRealtime();
+  // useFeriasRealtime(); // Disabled - causes LockManager hang
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [departamentoFilter, setDepartamentoFilter] = useState("todos");
