@@ -337,7 +337,7 @@ const Dashboard = () => {
         {/* Módulos em círculo - SM screens (tablet) */}
         <div className="hidden sm:block md:hidden relative" style={{ width: '380px', height: '340px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 140);
+            const { x, y } = getModulePosition(index, modules.length, 180);
             
             return (
               <div
