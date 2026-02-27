@@ -704,22 +704,33 @@ const Funcionarios = () => {
           }
         }
 
-        // Atualizar dados no perfil
-        const { error: profileError } = await supabase
-          .from("profiles")
-          .update(updateData)
-          .eq("id", editingEmployee.id);
-
-        if (profileError) {
-          throw profileError;
-        }
-
-        // Upload photo if selected
+        // Upload photo first if selected, so we can include foto_url in the same update
         if (editPhotoFile) {
           const fotoUrl = await uploadPhoto(editPhotoFile, editingEmployee.id);
           if (fotoUrl) {
-            await supabase.from("profiles").update({ foto_url: fotoUrl } as any).eq("id", editingEmployee.id);
+            (updateData as any).foto_url = fotoUrl;
           }
+        }
+
+        // Atualizar dados no perfil via REST (bypass SDK lock)
+        const token = getAccessToken();
+        if (!token) throw new Error('Sessão expirada');
+        const patchRes = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=eq.${editingEmployee.id}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=minimal',
+            },
+            body: JSON.stringify(updateData),
+          }
+        );
+        if (!patchRes.ok) {
+          const errText = await patchRes.text();
+          throw new Error(errText || 'Erro ao atualizar perfil');
         }
 
         // Se senha foi fornecida, atualizar no auth
