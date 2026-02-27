@@ -1452,7 +1452,7 @@ const Funcionarios = () => {
                 <Label htmlFor="new-turno" className="text-sm">Turno *</Label>
                 <Select value={newTurno} onValueChange={setNewTurno}>
                   <SelectTrigger className="h-9">
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
                     {turnosDisponiveis
