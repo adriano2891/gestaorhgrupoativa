@@ -101,10 +101,6 @@ const Dashboard = () => {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-8px); }
     }
-    @keyframes dash-logo-sweep {
-      0% { transform: translateX(-200%) skewX(-15deg); }
-      100% { transform: translateX(200%) skewX(-15deg); }
-    }
     .module-icon-container {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -223,21 +219,11 @@ const Dashboard = () => {
         
         {/* Logo Central - Absolutamente centralizada */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-          <div className="relative overflow-hidden">
-            <img 
-              src={logoAtiva} 
-              alt="Logo Grupo Ativa" 
-              className="w-44 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg opacity-90"
-            />
-            <div
-              className="absolute inset-0"
-              style={{
-                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%)',
-                width: '60%',
-                animation: 'dash-logo-sweep 4s ease-in-out infinite',
-              }}
-            />
-          </div>
+          <img 
+            src={logoAtiva} 
+            alt="Logo Grupo Ativa" 
+            className="w-44 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg opacity-90"
+          />
         </div>
 
         {/* Módulos em círculo - XL screens */}

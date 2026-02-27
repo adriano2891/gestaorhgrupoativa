@@ -159,10 +159,6 @@ const GestaoRH = () => {
       0% { transform: translateX(-100%) rotate(25deg); }
       100% { transform: translateX(200%) rotate(25deg); }
     }
-    @keyframes logo-shine {
-      0% { transform: translateX(-150%); }
-      100% { transform: translateX(150%); }
-    }
     .rh-animate-header { animation: rh-fade-in 0.4s ease-out forwards; }
     .rh-animate-title { animation: rh-fade-in 0.5s ease-out 0.1s forwards; opacity: 0; }
     .rh-animate-logo { animation: rh-logo-scale 0.6s ease-out 0.2s forwards; opacity: 0; }
@@ -317,21 +313,12 @@ const GestaoRH = () => {
         
         {/* Logo Central */}
         <div className={`absolute inset-0 flex items-center justify-center pointer-events-none z-0 ${isAnimating ? 'rh-animate-logo' : 'opacity-90'}`}>
-          <div className="relative overflow-hidden">
-            <img 
-              src={logoCenterRH} 
-              alt="Logo Grupo Ativa" 
-              className="w-40 md:w-56 lg:w-72 xl:w-80 2xl:w-96 h-auto"
-              style={!isAnimating ? { opacity: 0.9 } : {}}
-            />
-            <div
-              className="absolute inset-0"
-              style={{
-                background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.45) 45%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.45) 55%, transparent 60%)',
-                animation: 'logo-shine 3.5s ease-in-out infinite',
-              }}
-            />
-          </div>
+          <img 
+            src={logoCenterRH} 
+            alt="Logo Grupo Ativa" 
+            className="w-40 md:w-56 lg:w-72 xl:w-80 2xl:w-96 h-auto"
+            style={!isAnimating ? { opacity: 0.9 } : {}}
+          />
         </div>
 
         {/* Layout Circular - XL */}
