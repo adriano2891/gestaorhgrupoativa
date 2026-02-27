@@ -427,7 +427,7 @@ const GestaoRH = () => {
               >
                 <div className="relative">
                   {renderBadge(module)}
-                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-16 h-16 sm:w-20 sm:h-20 ring-2 ring-white/30">
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-24 h-24 sm:w-28 sm:h-28 ring-2 ring-white/30">
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
