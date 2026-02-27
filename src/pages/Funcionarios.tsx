@@ -913,9 +913,15 @@ const Funcionarios = () => {
         setValidationErrors(errors);
         toast({
           title: "Erro de validação",
-          description: "Por favor, corrija os erros no formulário.",
+          description: "Por favor, corrija os campos destacados em vermelho.",
           variant: "destructive",
         });
+        // Scroll to first error field
+        const firstErrorField = Object.keys(errors)[0];
+        if (firstErrorField) {
+          const el = document.getElementById(`new-${firstErrorField}`);
+          el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
       } else {
         toast({
           title: "Erro ao adicionar funcionário",
@@ -923,6 +929,8 @@ const Funcionarios = () => {
           variant: "destructive",
         });
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
