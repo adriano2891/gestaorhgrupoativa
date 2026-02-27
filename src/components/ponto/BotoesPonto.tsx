@@ -32,11 +32,24 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
   const { profile } = usePortalAuth();
   const [loading, setLoading] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ campo: string; label: string } | null>(null);
+  const getAccessToken = (): string | null => {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+      const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID || supabaseUrl.match(/\/\/([^.]+)/)?.[1];
+      const storageKey = `sb-${projectRef}-auth-token`;
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        return parsed.access_token || null;
+      }
+    } catch {}
+    return null;
+  };
+
   const registrarPonto = async (campo: string, label: string) => {
     setLoading(campo);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id || profile?.id;
+      const userId = profile?.id;
       if (!userId) {
         toast.error("Sessão expirada. Faça login novamente.");
         setLoading(null);
