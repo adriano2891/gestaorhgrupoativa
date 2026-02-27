@@ -203,6 +203,34 @@ const GestaoRH = () => {
     .rh-icon-ring:hover {
       box-shadow: 0 0 35px rgba(255,255,255,0.6), 0 0 50px rgba(62,224,207,0.4), 0 10px 35px rgba(0,0,0,0.2);
     }
+    @keyframes rh-logo-light-sweep {
+      0% { left: -60%; }
+      100% { left: 120%; }
+    }
+    .rh-logo-sweep {
+      position: relative;
+      overflow: hidden;
+    }
+    .rh-logo-sweep::after {
+      content: '';
+      position: absolute;
+      top: -20%;
+      left: -60%;
+      width: 40%;
+      height: 140%;
+      background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255,255,255,0.08) 20%,
+        rgba(255,255,255,0.35) 50%,
+        rgba(255,255,255,0.08) 80%,
+        transparent 100%
+      );
+      transform: skewX(-18deg);
+      animation: rh-logo-light-sweep 3.5s ease-in-out infinite;
+      pointer-events: none;
+      z-index: 1;
+    }
   `;
 
   // Mobile/Tablet layout
@@ -313,12 +341,14 @@ const GestaoRH = () => {
         
         {/* Logo Central */}
         <div className={`absolute inset-0 flex items-center justify-center pointer-events-none z-0 ${isAnimating ? 'rh-animate-logo' : 'opacity-90'}`}>
-          <img 
-            src={logoCenterRH} 
-            alt="Logo Grupo Ativa" 
-            className="w-40 md:w-56 lg:w-72 xl:w-80 2xl:w-96 h-auto"
-            style={!isAnimating ? { opacity: 0.9 } : {}}
-          />
+          <div className="rh-logo-sweep rounded-2xl">
+            <img 
+              src={logoCenterRH} 
+              alt="Logo Grupo Ativa" 
+              className="w-40 md:w-56 lg:w-72 xl:w-80 2xl:w-96 h-auto"
+              style={!isAnimating ? { opacity: 0.9 } : {}}
+            />
+          </div>
         </div>
 
         {/* Layout Circular - XL */}
