@@ -11,8 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Shield, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 interface SuperAdminAuthDialogProps {
   open: boolean;
@@ -39,64 +41,84 @@ export const SuperAdminAuthDialog = ({
     }
 
     setLoading(true);
-    try {
-      // Save current session
-      const { data: currentSession } = await supabase.auth.getSession();
-      const currentToken = currentSession?.session?.refresh_token;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
 
-      // Try to sign in as the super admin
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+    try {
+      // Authenticate via REST (does NOT affect current session)
+      const authRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+        signal: controller.signal,
       });
 
-      if (authError) {
-        throw new Error("Credenciais inválidas");
+      if (!authRes.ok) {
+        const errBody = await authRes.json().catch(() => ({}));
+        throw new Error(errBody.error_description || errBody.msg || "Credenciais inválidas");
       }
 
-      if (!authData.user) {
+      const authData = await authRes.json();
+      const adminToken = authData.access_token;
+      const adminUserId = authData.user?.id;
+
+      if (!adminUserId || !adminToken) {
         throw new Error("Usuário não encontrado");
       }
 
-      // Check if the user has admin role
-      const { data: roleData, error: roleError } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", authData.user.id)
-        .eq("role", "admin")
-        .maybeSingle();
-
-      if (roleError || !roleData) {
-        // Restore original session
-        if (currentToken) {
-          await supabase.auth.refreshSession({ refresh_token: currentToken });
+      // Check admin role via REST using the admin's own token
+      const roleRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/user_roles?select=role&user_id=eq.${adminUserId}&role=eq.admin&limit=1`,
+        {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${adminToken}`,
+          },
+          signal: controller.signal,
         }
+      );
+
+      if (!roleRes.ok) throw new Error("Erro ao verificar permissões");
+      const roles = await roleRes.json();
+
+      if (!roles || roles.length === 0) {
         throw new Error("Usuário não possui permissão de Super Administrador");
       }
 
-      // Get admin name
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("nome")
-        .eq("id", authData.user.id)
-        .maybeSingle();
+      // Get admin name via REST
+      const profileRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/profiles?select=nome&id=eq.${adminUserId}&limit=1`,
+        {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${adminToken}`,
+          },
+          signal: controller.signal,
+        }
+      );
 
-      const adminName = profileData?.nome || email;
-      const adminId = authData.user.id;
-
-      // Restore original session
-      if (currentToken) {
-        await supabase.auth.refreshSession({ refresh_token: currentToken });
+      let adminName = email;
+      if (profileRes.ok) {
+        const profiles = await profileRes.json();
+        if (profiles?.[0]?.nome) adminName = profiles[0].nome;
       }
 
       toast.success(`Autorizado por: ${adminName}`);
       setEmail("");
       setPassword("");
       onOpenChange(false);
-      onAuthorized(adminId, adminName);
+      onAuthorized(adminUserId, adminName);
     } catch (error: any) {
-      toast.error(error.message || "Erro na autenticação");
+      if (error.name === 'AbortError') {
+        toast.error("Tempo esgotado. Tente novamente.");
+      } else {
+        toast.error(error.message || "Erro na autenticação");
+      }
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   };
