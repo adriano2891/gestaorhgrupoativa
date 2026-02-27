@@ -265,7 +265,7 @@ const Dashboard = () => {
         {/* Módulos em círculo - LG screens */}
         <div className="hidden lg:block xl:hidden relative" style={{ width: '600px', height: '450px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 220);
+            const { x, y } = getModulePosition(index, modules.length, 260);
             
             return (
               <div
