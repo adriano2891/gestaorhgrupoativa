@@ -735,6 +735,8 @@ const FolhaPonto = () => {
       setEditingCell(null);
       setEditValue("");
       setAuthorizedAdmin(null);
+      // Recarregar dados do banco para garantir consistência
+      loadMonthRecords();
     } catch (error) {
       console.error("Erro ao salvar edição:", error);
       toast.error("Erro ao salvar alteração");
