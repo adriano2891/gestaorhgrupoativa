@@ -101,6 +101,10 @@ const Dashboard = () => {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(-8px); }
     }
+    @keyframes dash-logo-pulse {
+      0%, 100% { filter: brightness(1) drop-shadow(0 0 0px rgba(255,255,255,0)); }
+      50% { filter: brightness(1.12) drop-shadow(0 0 18px rgba(255,255,255,0.45)); }
+    }
     .module-icon-container {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
