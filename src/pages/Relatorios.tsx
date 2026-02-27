@@ -1043,7 +1043,7 @@ const Relatorios = () => {
             "Taxa de Incidentes": "0.5%",
             "Colaboradores Monitorados": totalFuncionariosSS,
           },
-          details: funcionarios?.slice(0, 20).map(f => ({
+          details: funcList?.slice(0, 20).map(f => ({
             nome: f.nome,
             departamento: f.departamento || "Não informado",
             cargo: f.cargo || "Não informado",
