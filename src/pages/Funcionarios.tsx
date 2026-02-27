@@ -259,13 +259,10 @@ const Funcionarios = () => {
 
       if (rolesError) {
         console.error("Erro ao buscar roles:", rolesError);
-        toast({
-          title: "Erro ao carregar funcionários",
-          description: "Não foi possível carregar a lista de funcionários.",
-          variant: "destructive",
-        });
         return;
       }
+
+      console.log("Roles encontrados:", allRoles?.length || 0);
 
       const employeeIds = new Set<string>();
       const adminIds = new Set<string>();
