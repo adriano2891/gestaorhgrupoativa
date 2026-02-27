@@ -298,6 +298,9 @@ const FolhaPonto = () => {
           }
           // Se não tem entrada, permanece "ausente" — admin valida manualmente
 
+          // Use admin-overridden status if available
+          const finalStatus = reg.status_admin ? (reg.status_admin as DayRecord["status"]) : autoStatus;
+
           empRecord.days[dayIndex] = {
             day,
             entrada: formatTime(reg.entrada),
@@ -308,7 +311,7 @@ const FolhaPonto = () => {
             horas_extras: formatInterval(reg.horas_extras),
             horas_noturnas: formatInterval(reg.horas_noturnas),
             adicional_noturno: formatInterval(reg.adicional_noturno),
-            status: autoStatus,
+            status: finalStatus,
             registro_folga: reg.registro_folga,
             status_validacao: reg.status_validacao,
             tipo_dia: reg.tipo_dia,
