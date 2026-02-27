@@ -44,19 +44,32 @@ const Comunicados = () => {
   const [selectedComunicado, setSelectedComunicado] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+  const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+  const getAccessToken = (): string | null => {
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'rzcjwfxmogfsmfbwtwfc';
+      const storageKey = `sb-${projectId}-auth-token`;
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return null;
+      return JSON.parse(raw)?.access_token || null;
+    } catch { return null; }
+  };
+
   const { data: comunicados, isLoading, error, refetch } = useQuery({
     queryKey: ["comunicados-admin"],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from("comunicados")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (error) {
-          console.error("Erro ao buscar comunicados:", error);
-          throw error;
-        }
+        const token = getAccessToken();
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/comunicados?select=*&order=created_at.desc`, {
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${token || SUPABASE_KEY}`,
+          },
+        });
+        if (!res.ok) throw new Error(`REST ${res.status}`);
+        const data = await res.json();
         return (data || []) as Comunicado[];
       } catch (err) {
         console.error("Erro inesperado ao buscar comunicados:", err);
