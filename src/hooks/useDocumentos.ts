@@ -309,8 +309,9 @@ export const useUploadDocumento = () => {
       const userId = getUserIdFromToken();
       if (!userId) throw new Error("Você precisa estar autenticado para fazer upload de documentos");
 
-      const sanitizedName = await sanitizeStorageFileName(file.name);
+      const sanitizedName = sanitizeStorageFileName(file.name);
       const fileName = `${Date.now()}_${sanitizedName}`;
+      console.log('[Documentos] Upload fileName:', fileName);
       await storageUpload('documentos', fileName, file);
       const publicUrl = await storageSignedUrl('documentos', fileName);
 
