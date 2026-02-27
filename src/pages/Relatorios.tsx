@@ -236,15 +236,101 @@ const Relatorios = () => {
     setFilters(newFilters);
   };
 
+  // Direct REST helper to bypass SDK LockManager issues
+  const getAccessToken = () => {
+    const projectId = import.meta.env.VITE_SUPABASE_URL?.split("//")[1]?.split(".")[0] || "";
+    const stored = localStorage.getItem(`sb-${projectId}-auth-token`);
+    if (stored) {
+      try { return JSON.parse(stored).access_token; } catch { return ""; }
+    }
+    return "";
+  };
+
+  const fetchDirectREST = async (table: string, query: string = "") => {
+    const token = getAccessToken();
+    const res = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${table}?${query}`,
+      {
+        headers: {
+          'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    if (!res.ok) throw new Error(`REST fetch failed: ${res.status}`);
+    return res.json();
+  };
+
   const handleGenerateReport = async () => {
-    const data = generateReportData(selectedReport, filters);
-    setReportData(data);
-    if (selectedReport) {
-      await logReportGeneration(selectedReport, filters);
+    try {
+      // Fetch fresh data directly via REST to avoid SDK LockManager hangs
+      let freshFuncionarios = funcionarios;
+      let freshFuncPorDept = funcionariosPorDept;
+      let freshRegistrosPonto = registrosPonto;
+      let freshProfilesEscala = profilesComEscala;
+
+      if (!freshFuncionarios || freshFuncionarios.length === 0) {
+        const roles = await fetchDirectREST("user_roles", "select=user_id,role");
+        const employeeIds = new Set<string>();
+        const adminIds = new Set<string>();
+        (roles || []).forEach((r: any) => {
+          if (r.role === 'funcionario') employeeIds.add(r.user_id);
+          if (['admin', 'gestor', 'rh'].includes(r.role)) adminIds.add(r.user_id);
+        });
+        const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
+        
+        if (targetIds.length > 0) {
+          const idFilter = targetIds.map(id => `"${id}"`).join(",");
+          const profiles = await fetchDirectREST("profiles", `select=*&id=in.(${idFilter})&order=nome.asc`);
+          freshFuncionarios = (profiles || []).filter((p: any) => {
+            const status = (p.status || "ativo").toLowerCase();
+            return status !== "demitido" && status !== "pediu_demissao";
+          });
+
+          // Build dept grouping
+          const grouped: Record<string, number> = {};
+          freshFuncionarios.forEach((f: any) => {
+            const dept = f.departamento || "Sem Departamento";
+            grouped[dept] = (grouped[dept] || 0) + 1;
+          });
+          freshFuncPorDept = Object.entries(grouped).map(([departamento, count]) => ({
+            departamento,
+            funcionarios: count,
+          }));
+        }
+      }
+
+      if (!freshProfilesEscala || freshProfilesEscala.length === 0) {
+        freshProfilesEscala = await fetchDirectREST("profiles", "select=id,nome,departamento,cargo,escala_trabalho,turno,status&status=neq.demitido&status=neq.pediu_demissao");
+      }
+
+      if (!freshRegistrosPonto || freshRegistrosPonto.length === 0) {
+        freshRegistrosPonto = await fetchDirectREST("registros_ponto", "select=*&order=data.desc&limit=1000");
+      }
+
+      const data = generateReportDataDirect(selectedReport, filters, freshFuncionarios, freshFuncPorDept, freshRegistrosPonto, freshProfilesEscala);
+      setReportData(data);
+      if (selectedReport) {
+        await logReportGeneration(selectedReport, filters);
+      }
+    } catch (err) {
+      console.error("Error generating report:", err);
+      toast({
+        title: "Erro ao gerar relatório",
+        description: "Tente novamente em alguns segundos.",
+        variant: "destructive",
+      });
     }
   };
 
-  const generateReportData = (reportType: string | null, filters: any) => {
+  const generateReportDataDirect = (reportType: string | null, filters: any, funcData?: any[], funcPorDeptData?: any[], pontosData?: any[], profilesEscalaData?: any[]) => {
+    // Use passed data or fall back to hook data
+    const funcList = funcData || funcionarios;
+    const funcDeptList = funcPorDeptData || funcionariosPorDept;
+    const pontosList = pontosData || registrosPonto;
+    const profilesList = profilesEscalaData || profilesComEscala;
+
     const baseData = {
       reportType,
       filters,
@@ -256,23 +342,23 @@ const Relatorios = () => {
 
     switch (reportType) {
       case "funcionarios":
-        if (!funcionarios) return baseData;
+        if (!funcList || funcList.length === 0) return baseData;
         
         // Agrupa funcionários por departamento
-        const deptStats = funcionariosPorDept?.reduce((acc: any, d: any) => {
+        const deptStats = funcDeptList?.reduce((acc: any, d: any) => {
           acc[d.departamento] = d.funcionarios;
           return acc;
         }, {}) || {};
 
         // Calcula estatísticas de salário
-        const salarios = funcionarios.filter(f => f.salario).map(f => f.salario || 0);
+        const salarios = funcList.filter(f => f.salario).map(f => f.salario || 0);
         const avgSalario = salarios.length > 0 ? salarios.reduce((a, b) => a + b, 0) / salarios.length : 0;
         const maxSalario = salarios.length > 0 ? Math.max(...salarios) : 0;
         const minSalario = salarios.length > 0 ? Math.min(...salarios) : 0;
 
         // Agrupa por cargo
         const cargoCount: Record<string, number> = {};
-        funcionarios.forEach(f => {
+        funcList.forEach(f => {
           const cargo = f.cargo || "Não informado";
           cargoCount[cargo] = (cargoCount[cargo] || 0) + 1;
         });
@@ -280,12 +366,12 @@ const Relatorios = () => {
         return {
           ...baseData,
           summary: {
-            "Total Funcionários": funcionarios.length,
-            "Departamentos": new Set(funcionarios.map(f => f.departamento || "Sem Departamento")).size,
-            "Cargos Diferentes": new Set(funcionarios.map(f => f.cargo || "Sem Cargo")).size,
+            "Total Funcionários": funcList.length,
+            "Departamentos": new Set(funcList.map(f => f.departamento || "Sem Departamento")).size,
+            "Cargos Diferentes": new Set(funcList.map(f => f.cargo || "Sem Cargo")).size,
             "Salário Médio": `R$ ${avgSalario.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
           },
-          details: funcionarios.map(f => ({
+          details: funcList.map(f => ({
             nome: f.nome,
             email: f.email,
             telefone: f.telefone || "Não informado",
@@ -293,16 +379,16 @@ const Relatorios = () => {
             departamento: f.departamento || "Não informado",
             cpf: f.cpf || "Não informado",
             salario: f.salario ? `R$ ${f.salario.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "Não informado",
-            admissao: format(new Date(f.created_at), "dd/MM/yyyy"),
+            admissao: f.created_at ? format(new Date(f.created_at), "dd/MM/yyyy") : "N/I",
           })),
           charts: [
-            ...(funcionariosPorDept ? [{
+            ...(funcDeptList ? [{
               type: "bar",
               title: "Distribuição de Funcionários por Departamento",
               description: "Quantidade de colaboradores em cada departamento da empresa",
               dataName: "Funcionários",
-              insight: `O departamento com mais funcionários possui ${Math.max(...funcionariosPorDept.map(d => d.funcionarios as number))} colaboradores.`,
-              data: funcionariosPorDept.map(d => ({
+              insight: `O departamento com mais funcionários possui ${Math.max(...funcDeptList.map(d => d.funcionarios as number))} colaboradores.`,
+              data: funcDeptList.map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: d.funcionarios,
               })),
@@ -318,10 +404,9 @@ const Relatorios = () => {
             },
           ],
         };
-
       case "pontos": {
-        const profileMap = new Map((profilesComEscala || []).map(p => [p.id, p]));
-        const pontoRaw = registrosPonto || [];
+        const profileMap = new Map((profilesList || []).map(p => [p.id, p]));
+        const pontoRaw = pontosList || [];
         const pontoData = filterRegistros(pontoRaw, filters);
 
         const diasSemana = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -398,8 +483,8 @@ const Relatorios = () => {
       }
 
       case "absenteismo": {
-        const profileMapAbs = new Map((profilesComEscala || []).map(p => [p.id, p]));
-        const absRaw = registrosPonto || [];
+        const profileMapAbs = new Map((profilesList || []).map(p => [p.id, p]));
+        const absRaw = pontosList || [];
         const absData = filterRegistros(absRaw, filters);
 
         // Group by employee
@@ -490,8 +575,8 @@ const Relatorios = () => {
       }
 
       case "faltas-atrasos": {
-        const profileMapFA = new Map((profilesComEscala || []).map(p => [p.id, p]));
-        const faltasRaw = registrosPonto || [];
+        const profileMapFA = new Map((profilesList || []).map(p => [p.id, p]));
+        const faltasRaw = pontosList || [];
         const faltasData = filterRegistros(faltasRaw, filters);
 
         // Detect based on turno schedule
@@ -612,11 +697,11 @@ const Relatorios = () => {
           { nome: "Plano de Saúde", valor: "Unimed", status: "Ativo" },
           { nome: "Plano Odontológico", valor: "Odontoprev", status: "Ativo" },
         ];
-        const totalFuncionariosBen = funcionarios?.length || 0;
+        const totalFuncionariosBen = funcList?.length || 0;
 
         // Gera detalhes por funcionário com seus benefícios
         const detailsBeneficios: any[] = [];
-        funcionarios?.forEach(f => {
+        funcList?.forEach(f => {
           beneficiosLista.forEach(b => {
             detailsBeneficios.push({
               funcionario: f.nome,
@@ -663,7 +748,7 @@ const Relatorios = () => {
               description: "Quantidade de benefícios ativos por colaborador",
               dataName: "Benefícios",
               insight: `Cada funcionário possui ${beneficiosAtivos} benefício(s) ativo(s).`,
-              data: funcionarios?.slice(0, 10).map(f => ({
+              data: funcList?.slice(0, 10).map(f => ({
                 funcionario: f.nome.length > 15 ? f.nome.substring(0, 15) + "..." : f.nome,
                 valor: beneficiosAtivos,
               })) || [],
@@ -701,7 +786,7 @@ const Relatorios = () => {
 
       case "turnover":
         const metricaTurnover = metricas?.[0];
-        const totalFunc = funcionarios?.length || 0;
+        const totalFunc = funcList?.length || 0;
         const taxaRetencao = metricaTurnover?.taxa_retencao || 0;
         const taxaTurnover = 100 - taxaRetencao;
         
@@ -713,7 +798,7 @@ const Relatorios = () => {
             "Total de Funcionários": totalFunc,
             "Tempo Médio Contratação": `${metricaTurnover?.tempo_medio_contratacao || 0} dias`,
           },
-          details: funcionarios?.slice(0, 30).map(f => ({
+          details: funcList?.slice(0, 30).map(f => ({
             nome: f.nome,
             departamento: f.departamento || "Não informado",
             cargo: f.cargo || "Não informado",
@@ -730,13 +815,13 @@ const Relatorios = () => {
                 { tipo: "Turnover", valor: taxaTurnover },
               ],
             },
-            ...(funcionariosPorDept ? [{
+            ...(funcDeptList ? [{
               type: "bar",
               title: "Funcionários por Departamento",
               description: "Distribuição atual de colaboradores por área",
               dataName: "Funcionários",
               insight: "Departamentos menores podem ter maior impacto no turnover geral.",
-              data: funcionariosPorDept.map(d => ({
+              data: funcDeptList.map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: d.funcionarios,
               })),
@@ -755,7 +840,7 @@ const Relatorios = () => {
             "Satisfação Gestor": `${metricaDesemp?.satisfacao_gestor?.toFixed(1) || 0}/10`,
             "Taxa de Presença": `${metricaDesemp?.taxa_presenca?.toFixed(1) || 0}%`,
           },
-          details: funcionarios?.slice(0, 30).map(f => ({
+          details: funcList?.slice(0, 30).map(f => ({
             nome: f.nome,
             departamento: f.departamento || "Não informado",
             cargo: f.cargo || "Não informado",
@@ -781,7 +866,7 @@ const Relatorios = () => {
               description: "Comparativo de desempenho entre departamentos",
               dataName: "Score",
               insight: "Scores baseados na combinação de eficiência e produtividade.",
-              data: funcionariosPorDept?.slice(0, 6).map(d => ({
+              data: funcDeptList?.slice(0, 6).map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: Math.floor(Math.random() * 30) + 70, // Simulado 70-100
               })) || [],
@@ -905,7 +990,7 @@ const Relatorios = () => {
             "Benefícios": `R$ ${totalBeneficiosCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
             "Custo Médio/Funcionário": `R$ ${custoMedioCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
           },
-          details: funcionarios?.slice(0, 30).map(f => ({
+          details: funcList?.slice(0, 30).map(f => ({
             nome: f.nome,
             departamento: f.departamento || "Não informado",
             cargo: f.cargo || "Não informado",
@@ -935,7 +1020,7 @@ const Relatorios = () => {
               description: "Estimativa de custo de folha por área",
               dataName: "R$",
               insight: "Valores baseados na quantidade de funcionários e salário médio.",
-              data: funcionariosPorDept?.slice(0, 6).map(d => ({
+              data: funcDeptList?.slice(0, 6).map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: (d.funcionarios as number) * custoMedioCusto,
               })) || [
@@ -948,7 +1033,7 @@ const Relatorios = () => {
         };
 
       case "saude-seguranca":
-        const totalFuncionariosSS = funcionarios?.length || 0;
+        const totalFuncionariosSS = funcList?.length || 0;
         
         return {
           ...baseData,
@@ -958,7 +1043,7 @@ const Relatorios = () => {
             "Taxa de Incidentes": "0.5%",
             "Colaboradores Monitorados": totalFuncionariosSS,
           },
-          details: funcionarios?.slice(0, 20).map(f => ({
+          details: funcList?.slice(0, 20).map(f => ({
             nome: f.nome,
             departamento: f.departamento || "Não informado",
             cargo: f.cargo || "Não informado",
@@ -981,7 +1066,7 @@ const Relatorios = () => {
               description: "Quantidade de exames realizados por área",
               dataName: "Exames",
               insight: "Exames periódicos são obrigatórios e devem ser realizados anualmente.",
-              data: funcionariosPorDept?.slice(0, 6).map(d => ({
+              data: funcDeptList?.slice(0, 6).map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: d.funcionarios as number,
               })) || [],
@@ -1000,7 +1085,7 @@ const Relatorios = () => {
             "Taxa de Retenção": `${metricaClima?.taxa_retencao?.toFixed(1) || 0}%`,
             "Índice de Engajamento": `${((metricaClima?.satisfacao_interna || 0) * 10).toFixed(0)}%`,
           },
-          details: funcionariosPorDept?.map(d => ({
+          details: funcDeptList?.map(d => ({
             departamento: d.departamento,
             funcionarios: d.funcionarios,
             satisfacaoEstimada: (Math.random() * 2 + 7).toFixed(1),
@@ -1025,7 +1110,7 @@ const Relatorios = () => {
               description: "Nível de satisfação estimado por área",
               dataName: "Score",
               insight: "Scores acima de 7 indicam bom clima organizacional.",
-              data: funcionariosPorDept?.slice(0, 6).map(d => ({
+              data: funcDeptList?.slice(0, 6).map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: parseFloat((Math.random() * 2 + 7).toFixed(1)),
               })) || [],
