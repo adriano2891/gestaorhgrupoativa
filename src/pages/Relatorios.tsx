@@ -284,7 +284,7 @@ const Relatorios = () => {
       let freshProfilesEscala = profilesComEscala;
 
       // Always fetch fresh data via REST for reliability
-      if (!freshFuncionarios || freshFuncionarios.length === 0 || selectedReport === 'funcionarios') {
+      if (!freshFuncionarios || freshFuncionarios.length === 0 || ['funcionarios', 'beneficios', 'turnover', 'desempenho'].includes(selectedReport || '')) {
         try {
           const roles = await fetchDirectREST("user_roles", "select=user_id,role");
           const employeeIds = new Set<string>();
