@@ -1439,7 +1439,7 @@ const Funcionarios = () => {
                 <Label htmlFor="new-escala" className="text-sm">Escala de Trabalho *</Label>
                 <Select value={newEscala} onValueChange={(v) => { setNewEscala(v); setNewTurno("diurno"); }}>
                   <SelectTrigger className="h-9">
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
                     {escalasDisponiveis.map((e) => (
