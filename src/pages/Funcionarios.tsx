@@ -876,25 +876,15 @@ const Funcionarios = () => {
       
       const cpfNumeros = newEmployee.cpf.replace(/\D/g, "");
       
-      // Verificar se o email já existe
-      const { data: existingEmail } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("email", newEmployee.email)
-        .maybeSingle();
-
-      if (existingEmail) {
+      // Verificar se o email já existe (via REST para evitar LockManager)
+      const existingEmailData = await restFetch('profiles', `?select=id&email=eq.${encodeURIComponent(newEmployee.email)}&limit=1`);
+      if (existingEmailData && existingEmailData.length > 0) {
         throw new Error("E-mail já cadastrado no sistema");
       }
       
-      // Verificar se o CPF já existe
-      const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("cpf", cpfNumeros)
-        .maybeSingle();
-
-      if (existingProfile) {
+      // Verificar se o CPF já existe (via REST para evitar LockManager)
+      const existingCpfData = await restFetch('profiles', `?select=id&cpf=eq.${encodeURIComponent(cpfNumeros)}&limit=1`);
+      if (existingCpfData && existingCpfData.length > 0) {
         throw new Error("CPF já cadastrado no sistema");
       }
       
