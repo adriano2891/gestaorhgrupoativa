@@ -259,13 +259,6 @@ const FolhaPonto = () => {
       registros?.forEach((reg: any) => {
         const empRecord = employeeMap.get(reg.user_id);
         if (empRecord) {
-          // Atualizar escala/turno do perfil se disponível nos registros
-          if (reg.profiles?.escala_trabalho) {
-            empRecord.escala_trabalho = reg.profiles.escala_trabalho;
-          }
-          if (reg.profiles?.turno) {
-            empRecord.turno = reg.profiles.turno;
-          }
           const day = new Date(reg.data).getDate();
           const dayIndex = day - 1;
 
