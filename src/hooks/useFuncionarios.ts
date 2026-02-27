@@ -137,7 +137,7 @@ export const useFuncionariosPorCargo = () => {
         return status !== "demitido" && status !== "pediu_demissao";
       });
 
-      const grouped = (data || []).reduce((acc: Record<string, number>, curr: any) => {
+      const grouped = activeData.reduce((acc: Record<string, number>, curr: any) => {
         const position = curr.cargo || "Sem Cargo";
         acc[position] = (acc[position] || 0) + 1;
         return acc;
