@@ -799,7 +799,7 @@ const Relatorios = () => {
         };
 
       case "produtividade":
-        const metricaProd = metricas?.[0];
+        const metricaProd = metricasList?.[0];
         if (!metricaProd) return baseData;
 
         return {
