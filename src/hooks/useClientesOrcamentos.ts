@@ -60,10 +60,12 @@ async function restCall(method: string, body?: any, query?: string) {
     'Authorization': `Bearer ${token}`,
     'apikey': SUPABASE_KEY,
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   };
   if (method === 'POST') headers['Prefer'] = 'return=representation';
   if (method === 'PATCH') headers['Prefer'] = 'return=representation';
 
+  console.log('[restCall] Fetching:', method, url);
   const res = await fetch(url, {
     method,
     headers,
@@ -72,10 +74,12 @@ async function restCall(method: string, body?: any, query?: string) {
 
   if (!res.ok) {
     const err = await res.text();
+    console.error('[restCall] Error:', res.status, err);
     throw new Error(err || `HTTP ${res.status}`);
   }
 
   const text = await res.text();
+  console.log('[restCall] Response length:', text.length);
   return text ? JSON.parse(text) : null;
 }
 
@@ -86,7 +90,8 @@ export function useClientesOrcamentos() {
     queryKey: ['clientes-orcamentos'],
     queryFn: async () => {
       try {
-        const data = await restCall('GET', undefined, '?ativo=eq.true&order=nome_condominio.asc');
+        const data = await restCall('GET', undefined, '?select=*&ativo=eq.true&order=nome_condominio.asc');
+        console.log('[useClientesOrcamentos] Fetched clients:', data?.length ?? 0);
         return (data ?? []) as ClienteOrcamento[];
       } catch (err) {
         console.error('Erro ao buscar clientes:', err);
