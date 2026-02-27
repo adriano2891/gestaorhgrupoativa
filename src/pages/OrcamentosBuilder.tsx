@@ -318,7 +318,7 @@ export default function OrcamentosBuilder() {
                 </div>
 
                 <div>
-                  <Label htmlFor="status">Status</Label>
+                  <Label htmlFor="status" className="text-zinc-800">Status</Label>
                   <Select 
                     value={requiresApproval ? 'aprovacao_interna' : status} 
                     onValueChange={(v) => setStatus(v as QuoteStatus)}
