@@ -580,12 +580,21 @@ const FolhaPonto = () => {
                 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
-                'Prefer': 'return=minimal',
+                'Prefer': 'return=representation',
               },
               body: JSON.stringify({ status_admin: editValue }),
             }
           );
-          if (!updateRes.ok) throw new Error(`Erro ${updateRes.status}`);
+          if (!updateRes.ok) {
+            const errText = await updateRes.text().catch(() => '');
+            console.error('PATCH failed:', updateRes.status, errText);
+            throw new Error(`Erro ao atualizar: ${updateRes.status}`);
+          }
+          const updatedRows = await updateRes.json();
+          if (!updatedRows || updatedRows.length === 0) {
+            throw new Error('Nenhum registro foi atualizado. Verifique permissões.');
+          }
+          console.log('Status atualizado no banco:', updatedRows[0]?.status_admin);
         } else {
           // Insert new record with status_admin
           const insertRes = await fetch(
@@ -596,12 +605,18 @@ const FolhaPonto = () => {
                 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
-                'Prefer': 'return=minimal',
+                'Prefer': 'return=representation',
               },
               body: JSON.stringify({ user_id: editingCell.empId, data: date, status_admin: editValue }),
             }
           );
-          if (!insertRes.ok) throw new Error(`Erro ${insertRes.status}`);
+          if (!insertRes.ok) {
+            const errText = await insertRes.text().catch(() => '');
+            console.error('POST failed:', insertRes.status, errText);
+            throw new Error(`Erro ao inserir: ${insertRes.status}`);
+          }
+          const insertedRows = await insertRes.json();
+          console.log('Registro inserido no banco:', insertedRows[0]?.status_admin);
         }
 
         // Atualizar localmente
