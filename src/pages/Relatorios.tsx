@@ -340,7 +340,18 @@ const Relatorios = () => {
         }
       }
 
-      const data = generateReportDataDirect(selectedReport, filters, freshFuncionarios, freshFuncPorDept, freshRegistrosPonto, freshProfilesEscala);
+      // Fetch metricas via REST for produtividade/desempenho/turnover/clima/saude reports
+      let freshMetricas = metricas;
+      if (!freshMetricas || freshMetricas.length === 0 || ['produtividade', 'desempenho', 'turnover', 'clima', 'saude-seguranca', 'custo-folha'].includes(selectedReport || '')) {
+        try {
+          freshMetricas = await fetchDirectREST("metricas", "select=*&order=periodo.desc&limit=1");
+        } catch (e) {
+          console.error("Error fetching metricas via REST:", e);
+          freshMetricas = [];
+        }
+      }
+
+      const data = generateReportDataDirect(selectedReport, filters, freshFuncionarios, freshFuncPorDept, freshRegistrosPonto, freshProfilesEscala, freshMetricas);
       setReportData(data);
       if (selectedReport) {
         await logReportGeneration(selectedReport, filters);
