@@ -551,7 +551,57 @@ const FolhaPonto = () => {
       const date = `${selectedYear}-${selectedMonth}-${editingCell.day.toString().padStart(2, '0')}`;
       
       if (editingCell.field === 'status') {
-        // Atualizar status localmente e recalcular totais
+        // Persistir status_admin no banco via REST (upsert)
+        const token = getAccessToken();
+        if (!token) throw new Error('Sessão expirada');
+
+        // Check if a record exists for this day
+        const checkRes = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?user_id=eq.${editingCell.empId}&data=eq.${date}&select=id`,
+          {
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${token}`,
+            },
+          }
+        );
+        const existing = await checkRes.json();
+
+        if (existing && existing.length > 0) {
+          // Update existing record
+          const updateRes = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?id=eq.${existing[0].id}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal',
+              },
+              body: JSON.stringify({ status_admin: editValue }),
+            }
+          );
+          if (!updateRes.ok) throw new Error(`Erro ${updateRes.status}`);
+        } else {
+          // Insert new record with status_admin
+          const insertRes = await fetch(
+            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto`,
+            {
+              method: 'POST',
+              headers: {
+                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal',
+              },
+              body: JSON.stringify({ user_id: editingCell.empId, data: date, status_admin: editValue }),
+            }
+          );
+          if (!insertRes.ok) throw new Error(`Erro ${insertRes.status}`);
+        }
+
+        // Atualizar localmente
         const updatedRecords = monthRecords.map(r => {
           if (r.employee_id === editingCell.empId) {
             const newDays = [...r.days];
@@ -560,7 +610,6 @@ const FolhaPonto = () => {
               status: editValue as any
             };
             
-            // Recalcular totais
             const total_faltas = newDays.filter(d => d.status === "ausente" || d.status === "falta" || d.status === "atestado").length;
             const completos = newDays.filter(d => d.status === "completo").length;
             
