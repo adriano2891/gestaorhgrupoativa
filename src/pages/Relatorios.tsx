@@ -1013,66 +1013,174 @@ const Relatorios = () => {
           ],
         };
 
-      case "custo-folha":
-        const metricaCusto = metricasList?.[0];
-        
-        // Valores padrão caso não haja métricas
-        const totalFolhaCusto = metricaCusto?.total_folha_pagamento || 50000;
-        const totalEncargosCusto = metricaCusto?.total_encargos || 17500;
-        const totalBeneficiosCusto = metricaCusto?.custo_beneficios || 15000;
-        const custoMedioCusto = metricaCusto?.custo_medio_funcionario || 5000;
-        const custoTotal = totalFolhaCusto + totalEncargosCusto + totalBeneficiosCusto;
-        
-        return {
-          ...baseData,
-          summary: {
-            "Custo Total Folha": `R$ ${custoTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Salários": `R$ ${totalFolhaCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Encargos": `R$ ${totalEncargosCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Benefícios": `R$ ${totalBeneficiosCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            "Custo Médio/Funcionário": `R$ ${custoMedioCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-          },
-          details: funcList?.slice(0, 30).map(f => ({
+      case "custo-folha": {
+        // ===== TABELAS LEGAIS BRASILEIRAS (2025) =====
+        // INSS Progressivo (Lei 8.212/1991)
+        const faixasINSS = [
+          { limite: 1518.00, aliquota: 0.075 },
+          { limite: 2793.88, aliquota: 0.09 },
+          { limite: 4190.83, aliquota: 0.12 },
+          { limite: 8157.41, aliquota: 0.14 },
+        ];
+        const calcularINSS = (salarioBruto: number): number => {
+          let inss = 0;
+          let anterior = 0;
+          for (const faixa of faixasINSS) {
+            if (salarioBruto <= anterior) break;
+            const base = Math.min(salarioBruto, faixa.limite) - anterior;
+            inss += base * faixa.aliquota;
+            anterior = faixa.limite;
+          }
+          return inss;
+        };
+
+        // IRRF Progressivo (Receita Federal 2025)
+        const calcularIRRF = (salarioBruto: number, inss: number): number => {
+          const baseCalculo = salarioBruto - inss;
+          if (baseCalculo <= 2259.20) return 0;
+          if (baseCalculo <= 2826.65) return baseCalculo * 0.075 - 169.44;
+          if (baseCalculo <= 3751.05) return baseCalculo * 0.15 - 381.44;
+          if (baseCalculo <= 4664.68) return baseCalculo * 0.225 - 662.77;
+          return baseCalculo * 0.275 - 896.00;
+        };
+
+        // FGTS: 8% sobre salário bruto (Lei 8.036/1990)
+        const calcularFGTS = (salarioBruto: number): number => salarioBruto * 0.08;
+
+        // Encargos patronais
+        const calcularEncargosPatronais = (salarioBruto: number) => {
+          const inssPatronal = salarioBruto * 0.20; // 20%
+          const rat = salarioBruto * 0.02; // RAT médio 2%
+          const terceiros = salarioBruto * 0.058; // Sistema S, INCRA, Sal-Educação ~5.8%
+          const fgtsPatronal = salarioBruto * 0.08; // FGTS
+          return { inssPatronal, rat, terceiros, fgtsPatronal, total: inssPatronal + rat + terceiros + fgtsPatronal };
+        };
+
+        // Filtra funcionários por departamento se necessário
+        let funcFolha = funcList || [];
+        if (filters.departamento && filters.departamento !== "todos") {
+          funcFolha = funcFolha.filter(f => 
+            f.departamento?.toLowerCase() === filters.departamento.toLowerCase()
+          );
+        }
+
+        // Gerar detalhamento por funcionário
+        const detalhamentoFolha: any[] = [];
+        let totalFolhaBruta = 0;
+        let totalDescontos = 0;
+        let totalFolhaLiquida = 0;
+        let totalEncargosPatronais = 0;
+        let totalINSS = 0;
+        let totalIRRF = 0;
+        let totalFGTS = 0;
+        let totalPagamentos = 0;
+
+        funcFolha.forEach(f => {
+          const salarioBruto = f.salario || 0;
+          if (salarioBruto === 0) return;
+          
+          totalPagamentos++;
+          const inss = calcularINSS(salarioBruto);
+          const irrf = Math.max(0, calcularIRRF(salarioBruto, inss));
+          const fgts = calcularFGTS(salarioBruto);
+          const descontosFunc = inss + irrf;
+          const salarioLiquido = salarioBruto - descontosFunc;
+          const encargos = calcularEncargosPatronais(salarioBruto);
+
+          totalFolhaBruta += salarioBruto;
+          totalDescontos += descontosFunc;
+          totalFolhaLiquida += salarioLiquido;
+          totalEncargosPatronais += encargos.total;
+          totalINSS += inss;
+          totalIRRF += irrf;
+          totalFGTS += fgts;
+
+          detalhamentoFolha.push({
             nome: f.nome,
             departamento: f.departamento || "Não informado",
             cargo: f.cargo || "Não informado",
-            salario: f.salario ? `R$ ${f.salario.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : "Não informado",
-            encargosEstimados: f.salario ? `R$ ${(f.salario * 0.35).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` : "-",
-          })) || [{
-            nome: "Dados estimados",
-            departamento: "-",
-            cargo: "-",
-            salario: `R$ ${custoMedioCusto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
-            encargosEstimados: `R$ ${(custoMedioCusto * 0.35).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            salarioBruto: `R$ ${salarioBruto.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            inss: `R$ ${inss.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            irrf: `R$ ${irrf.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            fgts: `R$ ${fgts.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            totalDescontos: `R$ ${descontosFunc.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            salarioLiquido: `R$ ${salarioLiquido.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            encargosPatronais: `R$ ${encargos.total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+          });
+        });
+
+        const mesLabel = filters.mes ? ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"][parseInt(filters.mes)] : "Atual";
+        const anoLabel = filters.ano || new Date().getFullYear();
+        const custoTotalGeral = totalFolhaBruta + totalEncargosPatronais;
+
+        return {
+          ...baseData,
+          summary: {
+            "Período": `${mesLabel}/${anoLabel}`,
+            "Total Pagamentos": totalPagamentos,
+            "Folha Bruta": `R$ ${totalFolhaBruta.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            "Total INSS": `R$ ${totalINSS.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            "Total IRRF": `R$ ${totalIRRF.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            "Total FGTS": `R$ ${totalFGTS.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            "Total Descontos": `R$ ${totalDescontos.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            "Folha Líquida": `R$ ${totalFolhaLiquida.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            "Encargos Patronais": `R$ ${totalEncargosPatronais.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            "Custo Total (Bruta + Encargos)": `R$ ${custoTotalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+          },
+          details: detalhamentoFolha.length > 0 ? detalhamentoFolha : [{
+            nome: "Nenhum funcionário com salário cadastrado",
+            departamento: "-", cargo: "-", salarioBruto: "-",
+            inss: "-", irrf: "-", fgts: "-", totalDescontos: "-",
+            salarioLiquido: "-", encargosPatronais: "-",
           }],
           charts: [
             {
               type: "pie",
-              title: "Composição do Custo de Folha",
-              description: "Distribuição entre salários, encargos e benefícios",
+              title: "Composição do Custo Total de Folha",
+              description: "Distribuição entre salários líquidos, descontos legais e encargos patronais",
               data: [
-                { componente: "Salários", valor: totalFolhaCusto },
-                { componente: "Encargos", valor: totalEncargosCusto },
-                { componente: "Benefícios", valor: totalBeneficiosCusto },
-              ],
+                { componente: "Salários Líquidos", valor: Math.round(totalFolhaLiquida) },
+                { componente: "INSS (Funcionário)", valor: Math.round(totalINSS) },
+                { componente: "IRRF", valor: Math.round(totalIRRF) },
+                { componente: "Encargos Patronais", valor: Math.round(totalEncargosPatronais) },
+              ].filter(d => d.valor > 0),
             },
             {
               type: "bar",
               title: "Custo por Departamento",
-              description: "Estimativa de custo de folha por área",
+              description: "Custo total da folha (bruto + encargos) por departamento",
               dataName: "R$",
-              insight: "Valores baseados na quantidade de funcionários e salário médio.",
-              data: funcDeptList?.slice(0, 6).map(d => ({
-                departamento: d.departamento || "Sem Dept.",
-                valor: (d.funcionarios as number) * custoMedioCusto,
-              })) || [
-                { departamento: "Administrativo", valor: custoMedioCusto * 5 },
-                { departamento: "Operacional", valor: custoMedioCusto * 8 },
-                { departamento: "Comercial", valor: custoMedioCusto * 4 },
+              insight: `Custo médio por funcionário: R$ ${totalPagamentos > 0 ? (custoTotalGeral / totalPagamentos).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) : '0,00'}. Base legal: CLT, Lei 8.212/91, Lei 8.036/90.`,
+              data: (() => {
+                const deptCusto: Record<string, number> = {};
+                funcFolha.forEach(f => {
+                  if (!f.salario) return;
+                  const dept = f.departamento || "Sem Dept.";
+                  const enc = calcularEncargosPatronais(f.salario);
+                  deptCusto[dept] = (deptCusto[dept] || 0) + f.salario + enc.total;
+                });
+                return Object.entries(deptCusto).map(([dept, valor]) => ({
+                  departamento: dept.length > 15 ? dept.substring(0, 15) + "..." : dept,
+                  valor: Math.round(valor),
+                }));
+              })(),
+            },
+            {
+              type: "bar",
+              title: "Detalhamento de Encargos Patronais",
+              description: "INSS Patronal (20%), RAT (2%), Terceiros (5.8%), FGTS (8%)",
+              dataName: "R$",
+              insight: "Encargos calculados conforme Lei 8.212/1991 e Lei 8.036/1990.",
+              data: [
+                { departamento: "INSS Patronal", valor: Math.round(totalFolhaBruta * 0.20) },
+                { departamento: "RAT", valor: Math.round(totalFolhaBruta * 0.02) },
+                { departamento: "Terceiros", valor: Math.round(totalFolhaBruta * 0.058) },
+                { departamento: "FGTS", valor: Math.round(totalFolhaBruta * 0.08) },
               ],
             },
           ],
         };
+      }
 
       case "saude-seguranca":
         const totalFuncionariosSS = funcList?.length || 0;
