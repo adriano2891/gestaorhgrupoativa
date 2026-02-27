@@ -159,6 +159,10 @@ const GestaoRH = () => {
       0% { transform: translateX(-100%) rotate(25deg); }
       100% { transform: translateX(200%) rotate(25deg); }
     }
+    @keyframes logo-shine {
+      0% { transform: translateX(-150%); }
+      100% { transform: translateX(150%); }
+    }
     .rh-animate-header { animation: rh-fade-in 0.4s ease-out forwards; }
     .rh-animate-title { animation: rh-fade-in 0.5s ease-out 0.1s forwards; opacity: 0; }
     .rh-animate-logo { animation: rh-logo-scale 0.6s ease-out 0.2s forwards; opacity: 0; }
