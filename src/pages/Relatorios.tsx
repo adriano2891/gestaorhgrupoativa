@@ -1117,7 +1117,7 @@ const Relatorios = () => {
         };
 
       case "clima":
-        const metricaClima = metricas?.[0];
+        const metricaClima = metricasList?.[0];
         
         return {
           ...baseData,
