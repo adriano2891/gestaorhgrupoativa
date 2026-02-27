@@ -105,6 +105,16 @@ const FolhaPonto = () => {
   const [registrosFolga, setRegistrosFolga] = useState<any[]>([]);
   const [countFolga, setCountFolga] = useState(0);
 
+  const getAccessToken = (): string | null => {
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'rzcjwfxmogfsmfbwtwfc';
+      const storageKey = `sb-${projectId}-auth-token`;
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return null;
+      return JSON.parse(raw)?.access_token || null;
+    } catch { return null; }
+  };
+
   // Extrair lista de funcionários e departamentos dos dados sincronizados
   const employees = funcionarios || [];
   const departamentos = [...new Set(employees.map(e => e.departamento).filter(Boolean))] as string[];
