@@ -8,6 +8,7 @@ import { TabelaPontoDia } from "./TabelaPontoDia";
 import { HistoricoPonto } from "./HistoricoPonto";
 import { RelogioTurno } from "./RelogioTurno";
 import { CronometroPausa } from "./CronometroPausa";
+import { FolhasPontoCard } from "./FolhasPontoCard";
 import { PortalBackground } from "./PortalBackground";
 
 const getRestHeaders = () => {
