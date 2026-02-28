@@ -413,6 +413,102 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Salvar Alterações
                 </Button>
+
+                <Separator className="my-6" />
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Lock className="h-5 w-5 text-primary" />
+                    Alterar Senha
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    A nova senha será aplicada imediatamente e será obrigatória no próximo login.
+                  </p>
+
+                  <div>
+                    <Label htmlFor="senhaAtual">Senha Atual</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="senhaAtual"
+                        type={showSenhaAtual ? "text" : "password"}
+                        placeholder="Digite sua senha atual"
+                        value={senhaAtual}
+                        onChange={(e) => setSenhaAtual(e.target.value)}
+                        className="pl-10 pr-10"
+                      />
+                      <button type="button" onClick={() => setShowSenhaAtual(!showSenhaAtual)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        {showSenhaAtual ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="novaSenhaPerf">Nova Senha</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="novaSenhaPerf"
+                        type={showNovaSenha ? "text" : "password"}
+                        placeholder="Digite a nova senha"
+                        value={novaSenha}
+                        onChange={(e) => setNovaSenha(e.target.value)}
+                        className="pl-10 pr-10"
+                      />
+                      <button type="button" onClick={() => setShowNovaSenha(!showNovaSenha)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        {showNovaSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="confirmarSenhaPerf">Confirmar Nova Senha</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="confirmarSenhaPerf"
+                        type={showConfirmar ? "text" : "password"}
+                        placeholder="Confirme a nova senha"
+                        value={confirmarSenha}
+                        onChange={(e) => setConfirmarSenha(e.target.value)}
+                        className="pl-10 pr-10"
+                      />
+                      <button type="button" onClick={() => setShowConfirmar(!showConfirmar)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        {showConfirmar ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {confirmarSenha.length > 0 && !passwordsMatch && (
+                      <p className="text-xs text-destructive mt-1">As senhas não coincidem</p>
+                    )}
+                  </div>
+
+                  {novaSenha.length > 0 && (
+                    <div className="bg-muted/50 rounded-lg p-3 space-y-1.5">
+                      <p className="text-xs font-medium mb-2">Requisitos da senha:</p>
+                      {[
+                        { met: passwordValidation.minLength, label: "Mínimo de 8 caracteres" },
+                        { met: passwordValidation.hasUppercase, label: "Letra maiúscula" },
+                        { met: passwordValidation.hasLowercase, label: "Letra minúscula" },
+                        { met: passwordValidation.hasNumber, label: "Um número" },
+                        { met: passwordValidation.hasSpecial, label: "Caractere especial" },
+                      ].map((req) => (
+                        <div key={req.label} className="flex items-center gap-2 text-sm">
+                          {req.met ? <Check className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-muted-foreground" />}
+                          <span className={req.met ? "text-green-600" : "text-muted-foreground"}>{req.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-full"
+                    onClick={handleChangePassword}
+                    disabled={savingPassword || !allPasswordValid || !passwordsMatch || !senhaAtual}
+                  >
+                    {savingPassword && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Alterar Senha
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
