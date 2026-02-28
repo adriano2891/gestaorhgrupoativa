@@ -64,7 +64,7 @@ const CAMPO_LABELS: Record<string, string> = {
 };
 
 export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
-  const { profile, user } = usePortalAuth();
+  const { profile, user, refreshProfile } = usePortalAuth();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
