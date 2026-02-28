@@ -1133,6 +1133,11 @@ const Funcionarios = () => {
                         </Avatar>
                         <div className="min-w-0">
                           <div className="font-medium text-xs sm:text-sm truncate max-w-[100px] sm:max-w-[150px]">{employee.name}</div>
+                          {employeeUpdates[employee.id] && (
+                            <span className="text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full font-medium">
+                              ✏️ Atualizado pelo funcionário
+                            </span>
+                          )}
                         </div>
                       </div>
                     </TableCell>
