@@ -3,21 +3,18 @@ import { Play, Pause, SkipForward, SkipBack, Radio, Volume2, VolumeX } from "luc
 import { Button } from "./ui/button";
 
 const STATIONS = [
-  { name: "Jovem Pan", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/JOVEMPAN_FMAAC.aac" },
-  { name: "Band FM 96.1", url: "https://evpp.mm.uol.com.br:8443/band_rj/aac" },
-  { name: "Mix FM 106.3", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/MIXFMSP_FMAAC.aac" },
-  { name: "Antena 1 94.7", url: "https://antena1.crossradio.com.br/stream/1;" },
-  { name: "Nativa FM 95.3", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/NATIVAFM_FMAAC.aac" },
-  { name: "Alpha FM 101.7", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/ALPHAFM_FMAAC.aac" },
-  { name: "89 FM Rock", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/89FM_FMAAC.aac" },
-  { name: "CBN SP 90.5", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/CBN_SPAAC.aac" },
-  { name: "BandNews 96.9", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/BANDNEWSFM_SPAAC.aac" },
-  { name: "Transamérica", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/TRANSISTAAC.aac" },
-  { name: "Tupi FM 96.5", url: "https://stream.zeno.fm/yn65fsaurfhvv" },
-  { name: "Kiss FM 92.5", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/KISSFM_FMAAC.aac" },
-  { name: "Nova Brasil 89.7", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/NOVABRASILFM_FMAAC.aac" },
-  { name: "Metropolitana 98.5", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/METROFM_FMAAC.aac" },
-  { name: "Mundo Livre FM", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/MUNDOLIVRE_FMAAC.aac" },
+  { name: "Jovem Pan", url: "https://stream.zeno.fm/yn65fsaurfhvv" },
+  { name: "Band FM", url: "https://stream.zeno.fm/4s2hcbps2g8uv" },
+  { name: "Mix FM", url: "https://stream.zeno.fm/ra15gdam3fquv" },
+  { name: "Antena 1", url: "https://stream.zeno.fm/0r0xa792kwzuv" },
+  { name: "MPB FM", url: "https://stream.zeno.fm/phr7ygs9x18uv" },
+  { name: "89 Rock", url: "https://stream.zeno.fm/dmk2psk1f2zuv" },
+  { name: "CBN", url: "https://stream.zeno.fm/s53r7mn00phvv" },
+  { name: "Nativa FM", url: "https://stream.zeno.fm/xm73hcm30phvv" },
+  { name: "Alpha FM", url: "https://stream.zeno.fm/mhk6ksm30phvv" },
+  { name: "Kiss FM", url: "https://stream.zeno.fm/r6m6ksm30phvv" },
+  { name: "Transamérica", url: "https://stream.zeno.fm/mf8k6nk0f2zuv" },
+  { name: "Nova Brasil", url: "https://stream.zeno.fm/ze622sq1f2zuv" },
 ];
 
 export const RadioPlayer = () => {
