@@ -202,14 +202,24 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                       <Pie
                         data={chart.data}
                         cx="50%"
-                        cy="45%"
+                        cy="50%"
                         labelLine={false}
-                        outerRadius={80}
-                        innerRadius={40}
+                        outerRadius={70}
+                        innerRadius={35}
                         fill="#8884d8"
                         dataKey="valor"
                         nameKey={Object.keys(chart.data[0])[0]}
-                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                        label={({ cx, cy, midAngle, outerRadius, percent }) => {
+                          const RADIAN = Math.PI / 180;
+                          const radius = outerRadius + 18;
+                          const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                          const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                          return (
+                            <text x={x} y={y} fill="hsl(var(--foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={12} fontFamily="Arial, Helvetica, sans-serif">
+                              {`${(percent * 100).toFixed(0)}%`}
+                            </text>
+                          );
+                        }}
                       >
                         {chart.data.map((entry: any, i: number) => (
                           <Cell key={`cell-${i}`} fill={PIE_COLORS[i % PIE_COLORS.length]} />
@@ -217,7 +227,7 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                       </Pie>
                       <Tooltip content={<CustomTooltip />} />
                       <Legend 
-                        wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
+                        wrapperStyle={{ fontSize: '12px', paddingTop: '4px' }}
                         formatter={(value) => <span className="text-xs sm:text-sm text-foreground">{value}</span>}
                       />
                     </PieChart>
