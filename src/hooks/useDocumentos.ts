@@ -118,9 +118,17 @@ function sanitizeStorageFileName(name: string): string {
   return sanitized;
 }
 
+function encodeStoragePath(path: string): string {
+  return path
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
 async function storageUpload(bucket: string, fileName: string, file: File) {
   const token = getAccessToken();
-  const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${fileName}`;
+  const encodedPath = encodeStoragePath(fileName);
+  const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${encodedPath}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -138,7 +146,8 @@ async function storageUpload(bucket: string, fileName: string, file: File) {
 
 async function storageSignedUrl(bucket: string, fileName: string) {
   const token = getAccessToken();
-  const url = `${SUPABASE_URL}/storage/v1/object/sign/${bucket}/${fileName}`;
+  const encodedPath = encodeStoragePath(fileName);
+  const url = `${SUPABASE_URL}/storage/v1/object/sign/${bucket}/${encodedPath}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -154,6 +163,53 @@ async function storageSignedUrl(bucket: string, fileName: string) {
   }
   const data = await res.json();
   return `${SUPABASE_URL}/storage/v1${data.signedURL}`;
+}
+
+function extractDocumentoStoragePath(arquivoUrl: string): string | null {
+  if (!arquivoUrl) return null;
+
+  const cleanUrl = arquivoUrl.trim();
+  if (!cleanUrl) return null;
+
+  try {
+    const parsed = new URL(cleanUrl);
+    const signPrefix = '/storage/v1/object/sign/documentos/';
+    const objectPrefix = '/storage/v1/object/documentos/';
+
+    if (parsed.pathname.includes(signPrefix)) {
+      const path = parsed.pathname.split(signPrefix)[1];
+      return path ? decodeURIComponent(path) : null;
+    }
+
+    if (parsed.pathname.includes(objectPrefix)) {
+      const path = parsed.pathname.split(objectPrefix)[1];
+      return path ? decodeURIComponent(path) : null;
+    }
+  } catch {
+    // fallback below
+  }
+
+  const withoutQuery = cleanUrl.split('?')[0].replace(/^\/+/, '');
+
+  if (withoutQuery.startsWith('documentos/')) {
+    return decodeURIComponent(withoutQuery.replace(/^documentos\//, ''));
+  }
+
+  if (!withoutQuery.includes('://')) {
+    return decodeURIComponent(withoutQuery);
+  }
+
+  return null;
+}
+
+export async function getDocumentoAccessUrl(arquivoUrl: string): Promise<string> {
+  const path = extractDocumentoStoragePath(arquivoUrl);
+
+  if (!path) {
+    return arquivoUrl;
+  }
+
+  return storageSignedUrl('documentos', path);
 }
 
 // Helper para detectar tipo do arquivo
@@ -311,15 +367,15 @@ export const useUploadDocumento = () => {
 
       const sanitizedName = sanitizeStorageFileName(file.name);
       const fileName = `${Date.now()}_${sanitizedName}`;
+      const storagePath = fileName;
       console.log('[Documentos] Upload fileName:', fileName);
-      await storageUpload('documentos', fileName, file);
-      const publicUrl = await storageSignedUrl('documentos', fileName);
+      await storageUpload('documentos', storagePath, file);
 
       const rows = await restPost('documentos', {
         titulo, descricao,
         categoria_id: categoriaId || null,
         tipo: getDocumentoTipo(file.type),
-        arquivo_url: publicUrl,
+        arquivo_url: storagePath,
         arquivo_nome: file.name,
         arquivo_tamanho: file.size,
         mime_type: file.type,
@@ -334,7 +390,7 @@ export const useUploadDocumento = () => {
       try {
         await restPost('documentos_versoes', {
           documento_id: data.id, versao: 1,
-          arquivo_url: publicUrl, arquivo_nome: file.name,
+          arquivo_url: storagePath, arquivo_nome: file.name,
           arquivo_tamanho: file.size, alteracoes: "Versão inicial",
           criado_por: userId,
         });
@@ -470,17 +526,17 @@ export const useUploadVersao = () => {
       const docData = await restGet('documentos', `?select=versao_atual&id=eq.${documentoId}`);
       const novaVersao = ((docData[0]?.versao_atual) || 0) + 1;
 
-      await storageUpload('documentos', fileName, file);
-      const publicUrl = await storageSignedUrl('documentos', fileName);
+      const storagePath = fileName;
+      await storageUpload('documentos', storagePath, file);
 
       await restPost('documentos_versoes', {
         documento_id: documentoId, versao: novaVersao,
-        arquivo_url: publicUrl, arquivo_nome: file.name,
+        arquivo_url: storagePath, arquivo_nome: file.name,
         arquivo_tamanho: file.size, alteracoes, criado_por: userId,
       });
 
       await restPatch('documentos', `?id=eq.${documentoId}`, {
-        versao_atual: novaVersao, arquivo_url: publicUrl,
+        versao_atual: novaVersao, arquivo_url: storagePath,
         arquivo_nome: file.name, arquivo_tamanho: file.size,
         atualizado_por: userId,
       });

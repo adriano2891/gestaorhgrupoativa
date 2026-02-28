@@ -53,6 +53,7 @@ export const CriarCategoriaDialog = ({ open, onOpenChange, categorias }: CriarCa
       nome: "",
       descricao: "",
       cor: "#3B82F6",
+      categoria_pai_id: undefined,
     },
   });
 
@@ -143,13 +144,17 @@ export const CriarCategoriaDialog = ({ open, onOpenChange, categorias }: CriarCa
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Categoria Pai (opcional)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
+                    <Select
+                      onValueChange={(value) => field.onChange(value === "none" ? undefined : value)}
+                      value={field.value ?? "none"}
+                    >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Nenhuma (categoria raiz)" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="none">Nenhuma (categoria raiz)</SelectItem>
                         {categorias.map((cat) => (
                           <SelectItem key={cat.id} value={cat.id}>
                             <span className="flex items-center gap-2">

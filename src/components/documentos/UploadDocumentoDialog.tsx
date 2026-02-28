@@ -50,7 +50,7 @@ export const UploadDocumentoDialog = ({ open, onOpenChange, categorias }: Upload
     defaultValues: {
       titulo: "",
       descricao: "",
-      categoria_id: "",
+      categoria_id: undefined,
       publico: false,
     },
   });
@@ -228,13 +228,17 @@ export const UploadDocumentoDialog = ({ open, onOpenChange, categorias }: Upload
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Categoria</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === "none" ? undefined : value)}
+                    value={field.value ?? "none"}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione uma categoria" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="none">Sem categoria</SelectItem>
                       {categorias.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>
                           <span className="flex items-center gap-2">

@@ -17,9 +17,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { useDocumentoComentarios, useDocumentoVersoes, useAddComentario, useUploadVersao } from "@/hooks/useDocumentos";
+import { useDocumentoComentarios, useDocumentoVersoes, useAddComentario, useUploadVersao, getDocumentoAccessUrl } from "@/hooks/useDocumentos";
 import { TIPO_LABELS, type Documento } from "@/types/documentos";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 interface DocumentoDetalhesDialogProps {
   documento: Documento;
@@ -73,6 +74,23 @@ export const DocumentoDetalhesDialog = ({
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   };
 
+  const openDocumento = async (arquivoUrl: string, errorTitle: string) => {
+    const newTab = window.open('', '_blank', 'noopener,noreferrer');
+
+    try {
+      const signedUrl = await getDocumentoAccessUrl(arquivoUrl);
+      if (newTab) {
+        newTab.location.href = signedUrl;
+      } else {
+        window.open(signedUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      if (newTab) newTab.close();
+      const message = error instanceof Error ? error.message : "Não foi possível abrir o arquivo";
+      toast({ title: errorTitle, description: message, variant: "destructive" });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-h-[85vh] flex flex-col">
@@ -109,7 +127,7 @@ export const DocumentoDetalhesDialog = ({
                   isFavorito ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground"
                 )} />
               </Button>
-              <Button variant="outline" onClick={() => window.open(documento.arquivo_url, '_blank')}>
+              <Button variant="outline" onClick={() => openDocumento(documento.arquivo_url, 'Erro ao baixar documento')}>
                 <Download className="h-4 w-4 mr-2" />
                 Download
               </Button>
@@ -244,7 +262,7 @@ export const DocumentoDetalhesDialog = ({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => window.open(versao.arquivo_url, '_blank')}
+                              onClick={() => openDocumento(versao.arquivo_url, 'Erro ao baixar versão')}
                             >
                               <Download className="h-4 w-4" />
                             </Button>

@@ -30,7 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDocumentos, useDocumentosCategorias, useMeusFavoritos, useDeleteDocumento, useToggleFavorito } from "@/hooks/useDocumentos";
+import { useDocumentos, useDocumentosCategorias, useMeusFavoritos, useDeleteDocumento, useToggleFavorito, getDocumentoAccessUrl } from "@/hooks/useDocumentos";
 import { UploadDocumentoDialog } from "@/components/documentos/UploadDocumentoDialog";
 import { CriarCategoriaDialog } from "@/components/documentos/CriarCategoriaDialog";
 import { DocumentoDetalhesDialog } from "@/components/documentos/DocumentoDetalhesDialog";
@@ -139,21 +139,40 @@ const Documentacoes = () => {
     });
   };
 
-  const handleDownload = (doc: Documento) => {
-    // Força download criando um link com atributo download
-    const link = document.createElement('a');
-    link.href = doc.arquivo_url;
-    link.download = doc.arquivo_nome;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast({ title: "Download iniciado", description: doc.arquivo_nome });
+  const handleDownload = async (doc: Documento) => {
+    try {
+      const url = await getDocumentoAccessUrl(doc.arquivo_url);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = doc.arquivo_nome;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      toast({ title: "Download iniciado", description: doc.arquivo_nome });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Não foi possível baixar o documento";
+      toast({ title: "Erro ao baixar documento", description: message, variant: "destructive" });
+    }
   };
 
-  const handlePreview = (doc: Documento) => {
-    // Abre o arquivo em nova aba para visualização (sem download)
-    window.open(doc.arquivo_url, '_blank', 'noopener,noreferrer');
+  const handlePreview = async (doc: Documento) => {
+    const newTab = window.open('', '_blank', 'noopener,noreferrer');
+
+    try {
+      const url = await getDocumentoAccessUrl(doc.arquivo_url);
+      if (newTab) {
+        newTab.location.href = url;
+      } else {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      if (newTab) newTab.close();
+      const message = error instanceof Error ? error.message : "Não foi possível abrir o documento";
+      toast({ title: "Erro ao abrir documento", description: message, variant: "destructive" });
+    }
   };
 
   const formatFileSize = (bytes: number | null) => {
