@@ -1642,6 +1642,36 @@ export type Database = {
         }
         Relationships: []
       }
+      log_alteracoes_perfil: {
+        Row: {
+          campo: string
+          created_at: string
+          id: string
+          origem: string
+          user_id: string
+          valor_anterior: string | null
+          valor_novo: string | null
+        }
+        Insert: {
+          campo: string
+          created_at?: string
+          id?: string
+          origem?: string
+          user_id: string
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Update: {
+          campo?: string
+          created_at?: string
+          id?: string
+          origem?: string
+          user_id?: string
+          valor_anterior?: string | null
+          valor_novo?: string | null
+        }
+        Relationships: []
+      }
       logs_acesso_curso: {
         Row: {
           acao: string

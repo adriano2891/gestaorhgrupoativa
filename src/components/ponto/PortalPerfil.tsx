@@ -64,7 +64,7 @@ const CAMPO_LABELS: Record<string, string> = {
 };
 
 export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
-  const { profile, user } = usePortalAuth();
+  const { profile, user, refreshProfile } = usePortalAuth();
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [telefone, setTelefone] = useState("");
@@ -82,7 +82,7 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
       const origNome = profile.nome || "";
       const origEmail = profile.email || "";
       const origTelefone = profile.telefone || "";
-      const origEndereco = (profile as any).endereco || "";
+      const origEndereco = profile.endereco || "";
 
       setNome(origNome);
       setEmail(origEmail);
@@ -216,6 +216,9 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
 
       // Update original values to current
       setOriginalValues({ ...currentValues });
+
+      // Refresh profile in context so data persists across navigation
+      await refreshProfile();
 
       toast.success("Dados atualizados com sucesso!");
     } catch (error: any) {

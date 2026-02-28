@@ -16,6 +16,9 @@ interface Profile {
   deve_trocar_senha: boolean;
   data_admissao: string | null;
   created_at: string | null;
+  endereco: string | null;
+  perfil_updated_at: string | null;
+  perfil_updated_by: string | null;
 }
 
 interface PortalAuthContextType {
@@ -24,6 +27,7 @@ interface PortalAuthContextType {
   loading: boolean;
   signInWithCPF: (cpf: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const PortalAuthContext = createContext<PortalAuthContextType | undefined>(undefined);
@@ -54,7 +58,7 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
       if (!token) token = anonKey;
 
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=id,nome,email,cpf,telefone,departamento,cargo,data_nascimento,foto_url,deve_trocar_senha,data_admissao,created_at&limit=1`,
+        `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=id,nome,email,cpf,telefone,departamento,cargo,data_nascimento,foto_url,deve_trocar_senha,data_admissao,created_at,endereco,perfil_updated_at,perfil_updated_by&limit=1`,
         {
           headers: {
             'apikey': anonKey,
@@ -263,9 +267,16 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
     }, 800);
   };
 
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      const updated = await loadProfile(user.id);
+      if (updated) setProfile(updated);
+    }
+  }, [user, loadProfile]);
+
   return (
     <PortalAuthContext.Provider
-      value={{ user, profile, loading, signInWithCPF, signOut }}
+      value={{ user, profile, loading, signInWithCPF, signOut, refreshProfile }}
     >
       {children}
     </PortalAuthContext.Provider>
