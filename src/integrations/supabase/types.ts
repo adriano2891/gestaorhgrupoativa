@@ -2365,6 +2365,8 @@ export type Database = {
           id: string
           nome: string
           numero_pis: string | null
+          perfil_updated_at: string | null
+          perfil_updated_by: string | null
           rg: string | null
           salario: number | null
           status: string | null
@@ -2388,6 +2390,8 @@ export type Database = {
           id: string
           nome: string
           numero_pis?: string | null
+          perfil_updated_at?: string | null
+          perfil_updated_by?: string | null
           rg?: string | null
           salario?: number | null
           status?: string | null
@@ -2411,6 +2415,8 @@ export type Database = {
           id?: string
           nome?: string
           numero_pis?: string | null
+          perfil_updated_at?: string | null
+          perfil_updated_by?: string | null
           rg?: string | null
           salario?: number | null
           status?: string | null

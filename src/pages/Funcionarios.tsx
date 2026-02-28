@@ -148,6 +148,7 @@ const Funcionarios = () => {
   const [selectedDepartment, setSelectedDepartment] = useState("Todos");
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }>>({});
+  const [employeeUpdates, setEmployeeUpdates] = useState<Record<string, { updated_at: string }>>({});
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [deletingEmployeeId, setDeletingEmployeeId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -571,6 +572,26 @@ const Funcionarios = () => {
     return () => {
       supabase.removeChannel(channel);
     };
+  }, [employees]);
+
+  // Fetch employee-initiated profile updates
+  useEffect(() => {
+    const fetchEmployeeUpdates = async () => {
+      if (employees.length === 0) return;
+      try {
+        const ids = employees.map(e => e.id);
+        const inFilter = ids.map(id => `"${id}"`).join(',');
+        const data = await restFetch('profiles', `?select=id,perfil_updated_at,perfil_updated_by&id=in.(${inFilter})&perfil_updated_by=eq.funcionario&perfil_updated_at=not.is.null`);
+        const map: Record<string, { updated_at: string }> = {};
+        (data || []).forEach((p: any) => {
+          if (p.perfil_updated_at) map[p.id] = { updated_at: p.perfil_updated_at };
+        });
+        setEmployeeUpdates(map);
+      } catch (e) {
+        console.error("Erro ao buscar atualizações de perfil:", e);
+      }
+    };
+    fetchEmployeeUpdates();
   }, [employees]);
 
   const filteredEmployees = employees.filter((emp) => {
@@ -1133,6 +1154,11 @@ const Funcionarios = () => {
                         </Avatar>
                         <div className="min-w-0">
                           <div className="font-medium text-xs sm:text-sm truncate max-w-[100px] sm:max-w-[150px]">{employee.name}</div>
+                          {employeeUpdates[employee.id] && (
+                            <span className="text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-full font-medium">
+                              ✏️ Atualizado pelo funcionário
+                            </span>
+                          )}
                         </div>
                       </div>
                     </TableCell>
@@ -1211,6 +1237,13 @@ const Funcionarios = () => {
             <DialogDescription>
               Atualize as informações do funcionário
             </DialogDescription>
+            {editingEmployee && employeeUpdates[editingEmployee.id] && (
+              <div className="mt-2 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                <span className="text-amber-600 text-xs font-medium">
+                  ✏️ Última atualização pelo funcionário em {new Date(employeeUpdates[editingEmployee.id].updated_at).toLocaleString('pt-BR')}
+                </span>
+              </div>
+            )}
           </DialogHeader>
           {editingEmployee && (
             <div className="grid gap-3 overflow-y-auto pr-2 -mr-2"
