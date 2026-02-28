@@ -493,6 +493,46 @@ const Relatorios = () => {
         const totalHE = pontoData.reduce((acc, r) => acc + parseInterval(r.horas_extras), 0);
         const totalHorasTrab = pontoData.reduce((acc, r) => acc + parseInterval(r.total_horas), 0);
 
+        // Cálculo de estouro de pausas (>20min) e almoço (>1h30)
+        const calcMinutesDiff = (saida: any, retorno: any): number => {
+          if (!saida || !retorno) return 0;
+          const s = new Date(saida).getTime();
+          const r = new Date(retorno).getTime();
+          if (isNaN(s) || isNaN(r) || r <= s) return 0;
+          return (r - s) / 60000;
+        };
+
+        let estouroPausa1 = 0;
+        let estouroPausa2 = 0;
+        let estouroAlmoco = 0;
+        const detalhesEstouro: { nome: string; data: string; tipo: string; duracao: string }[] = [];
+
+        pontoData.forEach(r => {
+          const prof = profileMap.get(r.user_id);
+          const nome = r.profiles?.nome || prof?.nome || "N/I";
+          const dataFmt = format(new Date(r.data), "dd/MM/yyyy");
+
+          const durP1 = calcMinutesDiff((r as any).saida_pausa_1, (r as any).retorno_pausa_1);
+          if (durP1 > 20) {
+            estouroPausa1++;
+            detalhesEstouro.push({ nome, data: dataFmt, tipo: "Pausa 1", duracao: `${durP1.toFixed(0)}min` });
+          }
+
+          const durP2 = calcMinutesDiff((r as any).saida_pausa_2, (r as any).retorno_pausa_2);
+          if (durP2 > 20) {
+            estouroPausa2++;
+            detalhesEstouro.push({ nome, data: dataFmt, tipo: "Pausa 2", duracao: `${durP2.toFixed(0)}min` });
+          }
+
+          const durAlm = calcMinutesDiff((r as any).saida_almoco, (r as any).retorno_almoco);
+          if (durAlm > 90) {
+            estouroAlmoco++;
+            detalhesEstouro.push({ nome, data: dataFmt, tipo: "Almoço", duracao: `${durAlm.toFixed(0)}min` });
+          }
+        });
+
+        const totalEstouros = estouroPausa1 + estouroPausa2 + estouroAlmoco;
+
         return {
           ...baseData,
           summary: {
@@ -502,10 +542,18 @@ const Relatorios = () => {
             "Taxa de Completude": `${taxaCompletude}%`,
             "Total Horas Trabalhadas": `${totalHorasTrab.toFixed(1)}h`,
             "Total Horas Extras": `${totalHE.toFixed(1)}h`,
+            "Estouros de Pausa": totalEstouros,
           },
           details: pontoData.length > 0 ? pontoData.slice(0, 100).map(r => {
             const prof = profileMap.get(r.user_id);
             const jornadaPrevista = getJornadaHoras(prof?.escala_trabalho);
+            const durP1 = calcMinutesDiff((r as any).saida_pausa_1, (r as any).retorno_pausa_1);
+            const durP2 = calcMinutesDiff((r as any).saida_pausa_2, (r as any).retorno_pausa_2);
+            const durAlm = calcMinutesDiff((r as any).saida_almoco, (r as any).retorno_almoco);
+            const estouros: string[] = [];
+            if (durP1 > 20) estouros.push(`P1: ${durP1.toFixed(0)}min`);
+            if (durP2 > 20) estouros.push(`P2: ${durP2.toFixed(0)}min`);
+            if (durAlm > 90) estouros.push(`Alm: ${durAlm.toFixed(0)}min`);
             return {
               nome: r.profiles?.nome || prof?.nome || "N/I",
               departamento: r.profiles?.departamento || prof?.departamento || "N/I",
@@ -517,8 +565,9 @@ const Relatorios = () => {
               cargaPrevista: `${jornadaPrevista}h`,
               horasTrabalhadas: r.total_horas ? String(r.total_horas).substring(0, 5) : "0:00",
               horasExtras: r.horas_extras ? String(r.horas_extras).substring(0, 5) : "0:00",
+              estouroPausa: estouros.length > 0 ? estouros.join(", ") : "—",
             };
-          }) : [{ nome: "Nenhum registro", departamento: "-", data: "-", entrada: "-", saidaAlmoco: "-", retornoAlmoco: "-", saida: "-", cargaPrevista: "-", horasTrabalhadas: "-", horasExtras: "-" }],
+          }) : [{ nome: "Nenhum registro", departamento: "-", data: "-", entrada: "-", saidaAlmoco: "-", retornoAlmoco: "-", saida: "-", cargaPrevista: "-", horasTrabalhadas: "-", horasExtras: "-", estouroPausa: "-" }],
           charts: [
             {
               type: "bar",
@@ -538,6 +587,18 @@ const Relatorios = () => {
                 { status: "Sem Registro", valor: Math.max(pontoData.length - totalComEntrada, 0) },
               ].filter(d => d.valor > 0) : [{ status: "Sem dados", valor: 1 }],
             },
+            ...(totalEstouros > 0 ? [{
+              type: "bar",
+              title: "Estouros de Pausa por Tipo",
+              description: "Quantidade de estouros detectados (Pausa >20min, Almoço >1h30)",
+              dataName: "Estouros",
+              insight: `Total de ${totalEstouros} estouro(s) de pausa detectado(s) no período.`,
+              data: [
+                { tipo: "Pausa 1", valor: estouroPausa1 },
+                { tipo: "Pausa 2", valor: estouroPausa2 },
+                { tipo: "Almoço", valor: estouroAlmoco },
+              ].filter(d => d.valor > 0),
+            }] : []),
           ],
         };
       }
