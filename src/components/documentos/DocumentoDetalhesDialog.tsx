@@ -262,7 +262,7 @@ export const DocumentoDetalhesDialog = ({
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => window.open(versao.arquivo_url, '_blank')}
+                              onClick={() => openDocumento(versao.arquivo_url, 'Erro ao baixar versão')}
                             >
                               <Download className="h-4 w-4" />
                             </Button>

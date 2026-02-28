@@ -526,17 +526,17 @@ export const useUploadVersao = () => {
       const docData = await restGet('documentos', `?select=versao_atual&id=eq.${documentoId}`);
       const novaVersao = ((docData[0]?.versao_atual) || 0) + 1;
 
-      await storageUpload('documentos', fileName, file);
-      const publicUrl = await storageSignedUrl('documentos', fileName);
+      const storagePath = fileName;
+      await storageUpload('documentos', storagePath, file);
 
       await restPost('documentos_versoes', {
         documento_id: documentoId, versao: novaVersao,
-        arquivo_url: publicUrl, arquivo_nome: file.name,
+        arquivo_url: storagePath, arquivo_nome: file.name,
         arquivo_tamanho: file.size, alteracoes, criado_por: userId,
       });
 
       await restPatch('documentos', `?id=eq.${documentoId}`, {
-        versao_atual: novaVersao, arquivo_url: publicUrl,
+        versao_atual: novaVersao, arquivo_url: storagePath,
         arquivo_nome: file.name, arquivo_tamanho: file.size,
         atualizado_por: userId,
       });
