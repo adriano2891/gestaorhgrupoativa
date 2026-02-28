@@ -1,6 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
 export interface Equipamento {
   id: string;
@@ -17,6 +20,30 @@ export interface Equipamento {
 
 export type EquipamentoInput = Omit<Equipamento, 'id' | 'created_at' | 'updated_at'>;
 
+const getAuthToken = (): string | null => {
+  try {
+    const raw = localStorage.getItem(`sb-${PROJECT_ID}-auth-token`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.access_token || null;
+  } catch {
+    return null;
+  }
+};
+
+const getHeaders = () => {
+  const token = getAuthToken();
+  const headers: Record<string, string> = {
+    "apikey": SUPABASE_KEY,
+    "Content-Type": "application/json",
+    "Prefer": "return=representation",
+  };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+  return headers;
+};
+
 export const useInventarioEquipamentos = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -24,26 +51,28 @@ export const useInventarioEquipamentos = () => {
   const { data: equipamentos = [], isLoading, error } = useQuery({
     queryKey: ["inventario-equipamentos"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("inventario_equipamentos")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as Equipamento[];
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/inventario_equipamentos?select=*&order=created_at.desc`,
+        { headers: getHeaders() }
+      );
+      if (!res.ok) throw new Error(await res.text());
+      return (await res.json()) as Equipamento[];
     },
   });
 
   const createEquipamento = useMutation({
     mutationFn: async (input: EquipamentoInput) => {
-      const { data, error } = await supabase
-        .from("inventario_equipamentos")
-        .insert([input])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/inventario_equipamentos`,
+        {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify(input),
+        }
+      );
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      return Array.isArray(data) ? data[0] : data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventario-equipamentos"] });
@@ -60,15 +89,17 @@ export const useInventarioEquipamentos = () => {
 
   const updateEquipamento = useMutation({
     mutationFn: async ({ id, ...input }: Partial<Equipamento> & { id: string }) => {
-      const { data, error } = await supabase
-        .from("inventario_equipamentos")
-        .update(input)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/inventario_equipamentos?id=eq.${id}`,
+        {
+          method: "PATCH",
+          headers: getHeaders(),
+          body: JSON.stringify(input),
+        }
+      );
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      return Array.isArray(data) ? data[0] : data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventario-equipamentos"] });
@@ -85,12 +116,14 @@ export const useInventarioEquipamentos = () => {
 
   const deleteEquipamento = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from("inventario_equipamentos")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/inventario_equipamentos?id=eq.${id}`,
+        {
+          method: "DELETE",
+          headers: getHeaders(),
+        }
+      );
+      if (!res.ok) throw new Error(await res.text());
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["inventario-equipamentos"] });
