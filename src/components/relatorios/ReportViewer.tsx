@@ -202,14 +202,14 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                       <Pie
                         data={chart.data}
                         cx="50%"
-                        cy="50%"
+                        cy="45%"
                         labelLine={false}
-                        outerRadius={100}
-                        innerRadius={50}
+                        outerRadius={80}
+                        innerRadius={40}
                         fill="#8884d8"
                         dataKey="valor"
                         nameKey={Object.keys(chart.data[0])[0]}
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
                       >
                         {chart.data.map((entry: any, i: number) => (
                           <Cell key={`cell-${i}`} fill={PIE_COLORS[i % PIE_COLORS.length]} />
@@ -217,7 +217,8 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                       </Pie>
                       <Tooltip content={<CustomTooltip />} />
                       <Legend 
-                        formatter={(value) => <span className="text-sm text-foreground">{value}</span>}
+                        wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
+                        formatter={(value) => <span className="text-xs sm:text-sm text-foreground">{value}</span>}
                       />
                     </PieChart>
                   ) : chart.type === "radar" ? (
