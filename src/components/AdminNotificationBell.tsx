@@ -44,8 +44,8 @@ export const AdminNotificationBell = () => {
         className="relative h-8 w-8 md:h-10 md:w-10 flex items-center justify-center rounded-md hover:bg-muted transition-colors"
         title="Notificações"
       >
-        <Bell className={`h-4 w-4 md:h-5 md:w-5 ${totalCount > 0 ? "text-amber-500 animate-bounce" : "text-muted-foreground"}`} />
-        {totalCount > 0 && (
+        <Bell className={`h-4 w-4 md:h-5 md:w-5 ${totalCount > 0 && !open ? "text-amber-500 animate-bounce" : totalCount > 0 ? "text-amber-500" : "text-muted-foreground"}`} />
+        {totalCount > 0 && !open && (
           <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold shadow-lg animate-pulse">
             {totalCount > 99 ? "99+" : totalCount}
           </span>
