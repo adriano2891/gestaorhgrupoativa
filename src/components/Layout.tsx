@@ -79,7 +79,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         <div className="container mx-auto px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 flex items-center justify-between">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <img src={logoHeader} alt="AtivaRH" className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 object-contain flex-shrink-0" />
-            <h1 className="text-base sm:text-lg md:text-xl font-bold text-foreground whitespace-nowrap">AtivaRH</h1>
+            <h1 className="text-base sm:text-lg md:text-xl font-bold text-foreground whitespace-nowrap" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>AtivaRH</h1>
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
