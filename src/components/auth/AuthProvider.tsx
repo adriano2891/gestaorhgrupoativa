@@ -37,26 +37,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const isSigningOut = useRef(false);
   const isSigningIn = useRef(false);
 
-  const loadUserData = useCallback(async (userId: string) => {
+  const loadUserData = useCallback(async (userId: string, token?: string) => {
     try {
-      const [profileResult, rolesResult] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("id, nome, email, departamento, cargo")
-          .eq("id", userId)
-          .maybeSingle(),
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userId),
-      ]);
-
-      if (profileResult.data) {
-        setProfile(profileResult.data as Profile);
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      const headers: Record<string, string> = {
+        'apikey': SUPABASE_KEY,
+        'Content-Type': 'application/json',
+      };
+      
+      // Use provided token or try to get from storage
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        const stored = localStorage.getItem(`sb-${import.meta.env.VITE_SUPABASE_PROJECT_ID}-auth-token`);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed?.access_token) {
+              headers['Authorization'] = `Bearer ${parsed.access_token}`;
+            }
+          } catch {}
+        }
       }
-
-      if (rolesResult.data) {
-        setRoles((rolesResult.data as any[])?.map((r: any) => r.role as UserRole) || []);
+      
+      const [profileRes, rolesRes] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=id,nome,email,departamento,cargo&limit=1`, { headers }),
+        fetch(`${SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${userId}&select=role`, { headers }),
+      ]);
+      
+      if (profileRes.ok) {
+        const profiles = await profileRes.json();
+        if (profiles?.[0]) setProfile(profiles[0] as Profile);
+      }
+      
+      if (rolesRes.ok) {
+        const rolesData = await rolesRes.json();
+        if (rolesData) setRoles(rolesData.map((r: any) => r.role as UserRole));
       }
     } catch (error) {
       console.error("Erro ao carregar dados do usuário:", error);
@@ -87,7 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (event === 'INITIAL_SESSION') {
         if (session?.user) {
           setUser(session.user);
-          await loadUserData(session.user.id);
+          await loadUserData(session.user.id, session.access_token);
         }
         if (isMounted && !initialLoadDone) {
           initialLoadDone = true;
@@ -97,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Skip if signOut is in progress OR if signIn is handling it eagerly
         if (isSigningOut.current || isSigningIn.current) return;
         setUser(session.user);
-        await loadUserData(session.user.id);
+        await loadUserData(session.user.id, session.access_token);
         if (isMounted) setLoading(false);
       } else if (event === 'SIGNED_OUT') {
         clearAuthState();
@@ -140,27 +158,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       queryClient.cancelQueries();
       queryClient.clear();
       
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: loginEmail,
-        password,
+      // Use REST auth to avoid SDK LockManager hangs
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      const authRes = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: {
+          'apikey': SUPABASE_KEY,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: loginEmail, password }),
       });
-      if (error) throw error;
-
-      if (data.user) {
-        setUser(data.user);
-        
-        // Load profile/roles with timeout to prevent login freeze
-        try {
-          await Promise.race([
-            loadUserData(data.user.id),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
-          ]);
-        } catch (e) {
-          console.warn("Auth: loadUserData timeout, navigating anyway", e);
-        }
-        
-        setLoading(false);
-        navigate("/dashboard");
+      
+      const authData = await authRes.json();
+      if (!authRes.ok) throw new Error(authData?.error_description || authData?.msg || "Erro ao fazer login");
+      
+      // Inject session into localStorage for SDK sync
+      const PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      localStorage.setItem(`sb-${PROJECT_ID}-auth-token`, JSON.stringify({
+        access_token: authData.access_token,
+        refresh_token: authData.refresh_token,
+        expires_at: Math.floor(Date.now() / 1000) + authData.expires_in,
+        expires_in: authData.expires_in,
+        token_type: 'bearer',
+        user: authData.user,
+      }));
+      
+      const userId = authData.user?.id;
+      setUser(authData.user);
+      setLoading(false);
+      
+      // Navigate IMMEDIATELY for fast UX
+      navigate("/dashboard");
+      
+      // Load profile/roles in background using REST (won't hang)
+      if (userId) {
+        loadUserData(userId, authData.access_token).catch(console.error);
       }
     } finally {
       isSigningIn.current = false;
