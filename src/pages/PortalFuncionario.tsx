@@ -56,16 +56,7 @@ const PortalContent = () => {
     return <LoginFuncionario />;
   }
 
-  // Se precisa trocar a senha no primeiro acesso
-  if (profile?.deve_trocar_senha && !senhaAlterada) {
-    return (
-      <TrocarSenhaObrigatoria
-        userId={user.id}
-        nomeUsuario={profile.nome?.split(" ")[0] || "Funcionário"}
-        onPasswordChanged={() => setSenhaAlterada(true)}
-      />
-    );
-  }
+  // Troca de senha obrigatória desativada - fluxo via chamado de suporte
 
   const handleNavigate = (section: string) => {
     setCurrentSection(section);
