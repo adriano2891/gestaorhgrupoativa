@@ -365,7 +365,7 @@ const Funcionarios = () => {
         const inFilter = targetIds.map(id => `"${id}"`).join(',');
         const profilesData = await restFetch(
           'profiles',
-          `?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url&id=in.(${inFilter})&order=nome.asc`
+          `?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by&id=in.(${inFilter})&order=nome.asc`
         );
 
         console.log("fetchEmployees: Profiles retornados:", profilesData?.length || 0);
@@ -388,10 +388,15 @@ const Funcionarios = () => {
         setEmployees(formattedEmployees);
 
         const salaries: Record<string, { salario: number | null; ultimaAlteracao?: { valor: number; data: string } }> = {};
+        const updates: Record<string, { updated_at: string }> = {};
         for (const profile of profilesData || []) {
           salaries[profile.id] = { salario: profile.salario };
+          if (profile.perfil_updated_by === 'funcionario' && profile.perfil_updated_at) {
+            updates[profile.id] = { updated_at: profile.perfil_updated_at };
+          }
         }
         setEmployeeSalaries(salaries);
+        setEmployeeUpdates(updates);
       } else {
         // Fallback: fetch all profiles (RLS will filter)
         console.log("fetchEmployees: Fallback - buscando profiles diretamente...");
