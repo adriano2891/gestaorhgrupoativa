@@ -152,31 +152,35 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         </div>
       </header>
 
-      {/* Desktop Navigation */}
-      <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[49px] sm:top-[53px] md:top-[65px] z-40 hidden md:block">
-        <div className="w-full px-4 md:px-6">
-          <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pr-2">
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.path;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  onMouseEnter={() => handlePrefetch(item.path)}
-                  className={`flex items-center gap-1 lg:gap-1.5 px-1.5 lg:px-3 py-3 lg:py-4 text-xs lg:text-sm font-medium transition-all whitespace-nowrap border-b-2 ${
-                    isActive
-                      ? "text-primary-foreground border-primary-foreground"
-                      : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:border-primary-foreground/30"
-                  }`}
-                >
-                  <span className="text-base lg:text-lg">{item.icon}</span>
-                  <span className="hidden 2xl:inline">{item.label}</span>
-                </Link>
-              );
-            })}
+      {/* Module Navigation Bar */}
+      {RH_PATHS.has(location.pathname) ? (
+        <RHModuleBar />
+      ) : (
+        <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[49px] sm:top-[53px] md:top-[65px] z-40 hidden md:block">
+          <div className="w-full px-4 md:px-6">
+            <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide pr-2">
+              {navItems.map((item) => {
+                const isActive = location.pathname === item.path;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    onMouseEnter={() => handlePrefetch(item.path)}
+                    className={`flex items-center gap-1 lg:gap-1.5 px-1.5 lg:px-3 py-3 lg:py-4 text-xs lg:text-sm font-medium transition-all whitespace-nowrap border-b-2 ${
+                      isActive
+                        ? "text-primary-foreground border-primary-foreground"
+                        : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:border-primary-foreground/30"
+                    }`}
+                  >
+                    <span className="text-base lg:text-lg">{item.icon}</span>
+                    <span className="hidden 2xl:inline">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      )}
 
       {/* Main Content */}
       <main className="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 lg:py-8">{children}</main>
