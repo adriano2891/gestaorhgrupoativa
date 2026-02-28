@@ -48,6 +48,7 @@ import { SuperAdminAuthDialog } from "@/components/ponto/SuperAdminAuthDialog";
 import { HistoricoAcoesPonto } from "@/components/ponto/HistoricoAcoesPonto";
 import { AutorizacaoFolgaDialog } from "@/components/ponto/AutorizacaoFolgaDialog";
 import { OcorrenciasPontoCard } from "@/components/ponto/OcorrenciasPontoCard";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 interface DayRecord {
   day: number;
@@ -84,6 +85,8 @@ interface EmployeeMonthRecord {
 const FolhaPonto = () => {
   usePontoRealtime();
   useFuncionariosRealtime();
+  const { hasRole } = useAuth();
+  const canEditFolha = hasRole("admin") || hasRole("rh");
   
   const { data: funcionarios, isLoading: loadingFuncionarios } = useFuncionarios();
 
@@ -531,7 +534,94 @@ const FolhaPonto = () => {
     toast.success("Excel detalhado exportado com sucesso!");
   };
 
+  const parseHorasExtrasToInterval = (value: string): string => {
+    const normalized = value.trim().toLowerCase();
+
+    if (!normalized || normalized === "-") {
+      return "00:00:00";
+    }
+
+    const hhmmMatch = normalized.match(/^(\d{1,2}):(\d{1,2})$/);
+    if (hhmmMatch) {
+      const hours = Number(hhmmMatch[1]);
+      const minutes = Number(hhmmMatch[2]);
+      if (minutes > 59) throw new Error("Minutos inválidos para HE");
+      return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:00`;
+    }
+
+    const textMatch = normalized.match(/^(\d{1,2})\s*h(?:\s*(\d{1,2})\s*min)?$/i);
+    if (textMatch) {
+      const hours = Number(textMatch[1]);
+      const minutes = Number(textMatch[2] || "0");
+      if (minutes > 59) throw new Error("Minutos inválidos para HE");
+      return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:00`;
+    }
+
+    throw new Error("Formato de HE inválido. Use '2h 30min' ou '02:30'.");
+  };
+
+  const upsertRegistroPonto = async (
+    token: string,
+    userId: string,
+    date: string,
+    payload: Record<string, unknown>
+  ) => {
+    const headers = {
+      apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Prefer: "return=representation",
+    };
+
+    const checkRes = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?user_id=eq.${userId}&data=eq.${date}&select=id&limit=1`,
+      {
+        headers: {
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!checkRes.ok) {
+      const errText = await checkRes.text().catch(() => "");
+      throw new Error(`Erro ao validar registro (${checkRes.status}): ${errText}`);
+    }
+
+    const existing = await checkRes.json();
+    const existingId = existing?.[0]?.id;
+
+    const saveRes = existingId
+      ? await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?id=eq.${existingId}`, {
+          method: "PATCH",
+          headers,
+          body: JSON.stringify(payload),
+        })
+      : await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto`, {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ user_id: userId, data: date, ...payload }),
+        });
+
+    if (!saveRes.ok) {
+      const errText = await saveRes.text().catch(() => "");
+      throw new Error(`Falha ao salvar no banco (${saveRes.status}): ${errText}`);
+    }
+
+    const savedRows = await saveRes.json();
+    if (!savedRows || savedRows.length === 0) {
+      throw new Error("Nenhuma linha foi afetada no salvamento");
+    }
+
+    return savedRows[0];
+  };
+
   const handleEditCell = (empId: string, day: number, field: 'status' | 'horas_extras', currentValue: string) => {
+    if (!canEditFolha) {
+      toast.error("Somente Admin RH e Super Admin podem editar a Folha de Ponto");
+      return;
+    }
+
     setPendingEdit({ empId, day, field, currentValue });
     setShowAuthDialog(true);
   };
@@ -546,201 +636,78 @@ const FolhaPonto = () => {
 
   const handleSaveEdit = async () => {
     if (!editingCell) return;
-    
+
+    if (!canEditFolha) {
+      toast.error("Permissão negada para editar registros de ponto");
+      return;
+    }
+
+    if (!authorizedAdmin) {
+      toast.error("Autorização obrigatória para salvar alterações");
+      return;
+    }
+
     try {
       const record = monthRecords.find(r => r.employee_id === editingCell.empId);
       if (!record) return;
-      
+
       const dayData = record.days[editingCell.day - 1];
       const date = `${selectedYear}-${selectedMonth}-${editingCell.day.toString().padStart(2, '0')}`;
-      
-      if (editingCell.field === 'status') {
-        // Persistir status_admin no banco via REST (upsert)
-        const token = getAccessToken();
-        if (!token) throw new Error('Sessão expirada');
 
-        // Check if a record exists for this day
-        const checkRes = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?user_id=eq.${editingCell.empId}&data=eq.${date}&select=id`,
-          {
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              'Authorization': `Bearer ${token}`,
-            },
-          }
-        );
-        const existing = await checkRes.json();
+      const token = getAccessToken();
+      if (!token) throw new Error("Sessão expirada. Faça login novamente.");
 
-        if (existing && existing.length > 0) {
-          // Update existing record
-          const updateRes = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?id=eq.${existing[0].id}`,
-            {
-              method: 'PATCH',
-              headers: {
-                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=representation',
-              },
-              body: JSON.stringify({ status_admin: editValue }),
-            }
-          );
-          if (!updateRes.ok) {
-            const errText = await updateRes.text().catch(() => '');
-            console.error('PATCH failed:', updateRes.status, errText);
-            throw new Error(`Erro ao atualizar: ${updateRes.status}`);
-          }
-          const updatedRows = await updateRes.json();
-          if (!updatedRows || updatedRows.length === 0) {
-            throw new Error('Nenhum registro foi atualizado. Verifique permissões.');
-          }
-          console.log('Status atualizado no banco:', updatedRows[0]?.status_admin);
-        } else {
-          // Insert new record with status_admin
-          const insertRes = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto`,
-            {
-              method: 'POST',
-              headers: {
-                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=representation',
-              },
-              body: JSON.stringify({ user_id: editingCell.empId, data: date, status_admin: editValue }),
-            }
-          );
-          if (!insertRes.ok) {
-            const errText = await insertRes.text().catch(() => '');
-            console.error('POST failed:', insertRes.status, errText);
-            throw new Error(`Erro ao inserir: ${insertRes.status}`);
-          }
-          const insertedRows = await insertRes.json();
-          console.log('Registro inserido no banco:', insertedRows[0]?.status_admin);
+      if (editingCell.field === "status") {
+        const allowedStatuses = ["completo", "incompleto", "ausente", "falta", "atestado", "pendente_folga", "invalidado"];
+        if (!allowedStatuses.includes(editValue)) {
+          throw new Error("Status inválido para salvamento");
         }
 
-        // Atualizar localmente
-        const updatedRecords = monthRecords.map(r => {
-          if (r.employee_id === editingCell.empId) {
-            const newDays = [...r.days];
-            newDays[editingCell.day - 1] = {
-              ...newDays[editingCell.day - 1],
-              status: editValue as any
-            };
-            
-            const total_faltas = newDays.filter(d => d.status === "ausente" || d.status === "falta" || d.status === "atestado").length;
-            const completos = newDays.filter(d => d.status === "completo").length;
-            
-            return { 
-              ...r, 
-              days: newDays,
-              total_faltas,
-              status: (completos > 0 ? "completo" : "incompleto") as "completo" | "incompleto"
-            };
-          }
-          return r;
-        });
-        setMonthRecords(updatedRecords);
-      } else if (editingCell.field === 'horas_extras') {
-        // Atualizar horas extras no banco via REST
-        const token = getAccessToken();
-        if (!token) throw new Error('Sessão expirada');
-        
-        const updateRes = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?user_id=eq.${editingCell.empId}&data=eq.${date}`,
-          {
-            method: 'PATCH',
-            headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              'Prefer': 'return=minimal',
-            },
-            body: JSON.stringify({ horas_extras: editValue }),
-          }
-        );
-        if (!updateRes.ok) throw new Error(`Erro ${updateRes.status}`);
-        
-        // Atualizar localmente e recalcular totais
-        const updatedRecords = monthRecords.map(r => {
-          if (r.employee_id === editingCell.empId) {
-            const newDays = [...r.days];
-            newDays[editingCell.day - 1] = {
-              ...newDays[editingCell.day - 1],
-              horas_extras: editValue
-            };
-            
-            // Recalcular total de horas extras
-            let total_horas_extras = 0;
-            newDays.forEach(day => {
-              if (day.horas_extras) {
-                const match = day.horas_extras.match(/(\d+)h\s*(\d+)min/);
-                if (match) {
-                  total_horas_extras += parseInt(match[1]) + parseInt(match[2]) / 60;
-                }
-              }
-            });
-            
-            return { 
-              ...r, 
-              days: newDays,
-              total_horas_extras
-            };
-          }
-          return r;
-        });
-        setMonthRecords(updatedRecords);
-      }
-      
-      // Log the edit with admin authorization
-      if (authorizedAdmin) {
-        const token = getAccessToken();
-        if (token) {
-          const logBody = {
-            employee_id: editingCell.empId,
-            employee_name: record.employee_name,
-            campo_editado: editingCell.field === 'status' ? 'Status' : 'Horas Extras',
-            valor_anterior: editingCell.field === 'status' ? dayData.status : (dayData.horas_extras || '0h 0min'),
-            valor_novo: editValue,
-            data_registro: date,
-            autorizado_por: authorizedAdmin.id,
-            autorizado_por_nome: authorizedAdmin.name,
-          };
-          console.log("Inserindo log de edição:", logBody);
-          const logRes = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/logs_edicao_ponto`,
-            {
-              method: 'POST',
-              headers: {
-                'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=representation',
-              },
-              body: JSON.stringify(logBody),
-            }
-          );
-          if (!logRes.ok) {
-            const errText = await logRes.text().catch(() => '');
-            console.error("Falha ao gravar log:", logRes.status, errText);
-            toast.error("Edição salva, mas falha ao registrar log");
-          } else {
-            const inserted = await logRes.json();
-            console.log("Log inserido com sucesso:", inserted);
-          }
-        }
+        await upsertRegistroPonto(token, editingCell.empId, date, { status_admin: editValue });
+      } else {
+        const horasExtrasInterval = parseHorasExtrasToInterval(editValue);
+        await upsertRegistroPonto(token, editingCell.empId, date, { horas_extras: horasExtrasInterval });
       }
 
-      toast.success("Registro atualizado com sucesso!");
+      try {
+        const logBody = {
+          employee_id: editingCell.empId,
+          employee_name: record.employee_name,
+          campo_editado: editingCell.field === "status" ? "Status" : "Horas Extras",
+          valor_anterior: editingCell.field === "status" ? dayData.status : (dayData.horas_extras || "0h 0min"),
+          valor_novo: editValue,
+          data_registro: date,
+          autorizado_por: authorizedAdmin.id,
+          autorizado_por_nome: authorizedAdmin.name,
+        };
+
+        const logRes = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/logs_edicao_ponto`, {
+          method: "POST",
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Prefer: "return=representation",
+          },
+          body: JSON.stringify(logBody),
+        });
+
+        if (!logRes.ok) {
+          const errText = await logRes.text().catch(() => "");
+          console.warn("Falha ao registrar log de edição:", logRes.status, errText);
+        }
+      } catch (logError) {
+        console.warn("Erro no log de edição (não bloqueante):", logError);
+      }
+
+      await loadMonthRecords();
+      toast.success("Alteração salva com sucesso e persistida no banco");
       setEditingCell(null);
       setEditValue("");
       setAuthorizedAdmin(null);
-      // Recarregar dados do banco para garantir consistência
-      loadMonthRecords();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao salvar edição:", error);
-      toast.error("Erro ao salvar alteração");
+      toast.error(error?.message || "Erro ao salvar alteração");
     }
   };
 
@@ -1121,7 +1088,7 @@ const FolhaPonto = () => {
                               )}
                             </TableCell>
                             <TableCell>
-                              {!(editingCell?.empId === record.employee_id && editingCell?.day === day.day) && (
+                              {canEditFolha && !(editingCell?.empId === record.employee_id && editingCell?.day === day.day) && (
                                 <div className="flex gap-1">
                                   <Button
                                     size="sm"

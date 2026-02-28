@@ -36,7 +36,7 @@ export const SuperAdminAuthDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Preencha o email e a senha do Super Administrador");
+      toast.error("Preencha o email e a senha do Admin RH ou Super Administrador");
       return;
     }
 
@@ -66,9 +66,9 @@ export const SuperAdminAuthDialog = ({
         throw new Error("Usuário não encontrado");
       }
 
-      // Check admin role via REST using the admin's own token
+      // Check admin/RH role via REST using the admin's own token
       const roleRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/user_roles?select=role&user_id=eq.${adminUserId}&role=eq.admin&limit=1`,
+        `${SUPABASE_URL}/rest/v1/user_roles?select=role&user_id=eq.${adminUserId}&role=in.(admin,rh)&limit=1`,
         {
           headers: {
             'apikey': SUPABASE_KEY,
@@ -81,7 +81,7 @@ export const SuperAdminAuthDialog = ({
       const roles = await roleRes.json();
 
       if (!roles || roles.length === 0) {
-        throw new Error("Usuário não possui permissão de Super Administrador");
+        throw new Error("Usuário não possui permissão de Admin RH ou Super Administrador");
       }
 
       // Get admin name via REST
@@ -127,16 +127,16 @@ export const SuperAdminAuthDialog = ({
         <DialogHeader>
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
-            <DialogTitle>Autorização de Super Administrador</DialogTitle>
+            <DialogTitle>Autorização Administrativa</DialogTitle>
           </div>
           <DialogDescription>
-            Para {actionDescription}, é necessário confirmar com a senha de um Super Administrador.
+            Para {actionDescription}, confirme com credenciais de Admin RH ou Super Administrador.
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="admin-email">Email do Super Administrador</Label>
+            <Label htmlFor="admin-email">Email do Admin RH ou Super Administrador</Label>
             <Input
               id="admin-email"
               type="email"
