@@ -157,9 +157,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       {RH_PATHS.has(location.pathname) ? (
         <RHModuleBar />
       ) : (
-        <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[44px] sm:top-[48px] md:top-[56px] z-40 hidden md:block overflow-hidden">
-          <div className="w-full overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <div className="flex items-center gap-0 px-4 md:px-6" style={{ width: 'max-content' }}>
+        <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[44px] sm:top-[48px] md:top-[56px] z-40 hidden md:block">
+          <div className="overflow-x-auto overflow-y-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex flex-nowrap items-center px-4 md:px-6" style={{ minWidth: 'max-content' }}>
               {navItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
@@ -167,13 +167,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     key={item.path}
                     to={item.path}
                     onMouseEnter={() => handlePrefetch(item.path)}
-                    className={`inline-flex items-center gap-1.5 px-3 py-3 text-xs lg:text-sm font-medium transition-all border-b-2 flex-shrink-0 ${
+                    style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+                    className={`inline-flex items-center gap-1.5 px-3 py-3 text-xs lg:text-sm font-medium transition-all border-b-2 ${
                       isActive
                         ? "text-primary-foreground border-primary-foreground"
                         : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:border-primary-foreground/30"
                     }`}
                   >
-                    <span className="text-base lg:text-lg flex-shrink-0">{item.icon}</span>
+                    <span className="text-base lg:text-lg" style={{ flexShrink: 0 }}>{item.icon}</span>
                     <span>{item.label}</span>
                   </Link>
                 );
