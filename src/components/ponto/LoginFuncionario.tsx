@@ -155,10 +155,6 @@ export const LoginFuncionario = () => {
             </form>
           </CardContent>
         </Card>
-
-        <p className="text-center text-white/80 text-xs mt-6 drop-shadow">
-          © {new Date().getFullYear()} Grupo Ativa • Todos os direitos reservados
-        </p>
       </div>
     </div>
   );
