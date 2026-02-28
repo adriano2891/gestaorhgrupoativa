@@ -54,7 +54,7 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
       if (!token) token = anonKey;
 
       const res = await fetch(
-        `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=id,nome,email,cpf,telefone,departamento,cargo,data_nascimento,foto_url,deve_trocar_senha,data_admissao,created_at&limit=1`,
+        `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=id,nome,email,cpf,telefone,departamento,cargo,data_nascimento,foto_url,deve_trocar_senha,data_admissao,created_at,endereco,perfil_updated_at,perfil_updated_by&limit=1`,
         {
           headers: {
             'apikey': anonKey,
