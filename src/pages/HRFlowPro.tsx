@@ -237,24 +237,26 @@ const HRFlowPro = () => {
   );
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
       <BackButton to="/gestao-rh" variant="light" />
       
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: '#000000' }}>
+            Formulários
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm md:text-base font-bold" style={{ color: '#000000' }}>
+            Gerencie formulários de gestão de pessoas
+          </p>
+        </div>
+        <Button onClick={() => setIsBuilderOpen(true)} className="w-full sm:w-auto">
+          <Plus className="h-4 w-4 mr-2" />
+          Novo Formulário
+        </Button>
+      </div>
+
       <Card>
-        <CardHeader className="p-4 sm:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <FileText className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0" style={{ color: '#40e0d0' }} />
-              <CardTitle className="text-lg sm:text-xl md:text-2xl" style={{ color: '#40e0d0' }}>
-                Formulários
-              </CardTitle>
-            </div>
-            <Button onClick={() => setIsBuilderOpen(true)} className="w-full sm:w-auto">
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Formulário
-            </Button>
-          </div>
-        </CardHeader>
+        <CardHeader className="p-4 sm:p-6" />
         <CardContent className="p-4 sm:p-6">
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
