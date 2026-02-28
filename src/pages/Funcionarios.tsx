@@ -369,12 +369,9 @@ const Funcionarios = () => {
 
         console.log("fetchEmployees: Profiles retornados:", profilesData?.length || 0);
 
-        const activeProfiles = (profilesData || []).filter((p: any) => {
-          const status = (p.status || "ativo").toLowerCase();
-          return status !== "demitido" && status !== "pediu_demissao";
-        });
+        const allProfiles = profilesData || [];
 
-        const formattedEmployees = await Promise.all(activeProfiles.map(async (profile: any) => ({
+        const formattedEmployees = await Promise.all(allProfiles.map(async (profile: any) => ({
           id: profile.id,
           name: profile.nome,
           email: profile.email,
@@ -402,12 +399,9 @@ const Funcionarios = () => {
           '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url&order=nome.asc'
         );
 
-        const activeProfiles = (fallbackProfiles || []).filter((p: any) => {
-          const status = (p.status || "ativo").toLowerCase();
-          return status !== "demitido" && status !== "pediu_demissao";
-        });
+        const allProfiles = fallbackProfiles || [];
 
-        const formatted = await Promise.all(activeProfiles.map(async (profile: any) => ({
+        const formatted = await Promise.all(allProfiles.map(async (profile: any) => ({
           id: profile.id,
           name: profile.nome,
           email: profile.email,
@@ -1392,8 +1386,8 @@ const Funcionarios = () => {
                     value={editingEmployee.status}
                     onValueChange={(value) => updateEditingEmployee('status', value)}
                   >
-                    <SelectTrigger className="h-9">
-                      <SelectValue />
+                    <SelectTrigger className={`h-9 ${editingEmployee.status === "demitido" ? "border-destructive text-destructive focus:ring-destructive" : ""}`}>
+                      <SelectValue className={editingEmployee.status === "demitido" ? "text-destructive" : ""} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ativo">Ativo</SelectItem>
@@ -1748,8 +1742,8 @@ const Funcionarios = () => {
                 value={newEmployee.status}
                 onValueChange={(value) => updateNewEmployee('status', value)}
               >
-                <SelectTrigger className="h-9">
-                  <SelectValue />
+                <SelectTrigger className={`h-9 ${(newEmployee.status as string) === "demitido" ? "border-destructive text-destructive focus:ring-destructive" : ""}`}>
+                  <SelectValue className={(newEmployee.status as string) === "demitido" ? "text-destructive" : ""} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="ativo">Ativo</SelectItem>

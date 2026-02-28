@@ -284,6 +284,7 @@ const Relatorios = () => {
       let freshProfilesEscala = profilesComEscala;
 
       // Always fetch fresh data via REST for reliability
+      const isTurnoverReport = selectedReport === 'turnover';
       if (!freshFuncionarios || freshFuncionarios.length === 0 || ['funcionarios', 'beneficios', 'turnover', 'desempenho'].includes(selectedReport || '')) {
         try {
           const roles = await fetchDirectREST("user_roles", "select=user_id,role");
@@ -298,10 +299,13 @@ const Relatorios = () => {
           if (targetIds.length > 0) {
             const idFilter = targetIds.map(id => `"${id}"`).join(",");
             const profiles = await fetchDirectREST("profiles", `select=*&id=in.(${idFilter})&order=nome.asc`);
-            freshFuncionarios = (profiles || []).filter((p: any) => {
-              const status = (p.status || "ativo").toLowerCase();
-              return status !== "demitido" && status !== "pediu_demissao" && status !== "pediu demissão";
-            });
+            const allProfiles = profiles || [];
+            freshFuncionarios = isTurnoverReport
+              ? allProfiles
+              : allProfiles.filter((p: any) => {
+                  const status = (p.status || "ativo").toLowerCase();
+                  return status !== "demitido" && status !== "pediu_demissao" && status !== "pediu demissão";
+                });
 
             // Build dept grouping
             const grouped: Record<string, number> = {};
@@ -854,13 +858,26 @@ const Relatorios = () => {
             "Total de Funcionários": totalFunc,
             "Tempo Médio Contratação": `${metricaTurnover?.tempo_medio_contratacao || 0} dias`,
           },
-          details: funcList?.slice(0, 30).map(f => ({
-            nome: f.nome,
-            departamento: f.departamento || "Não informado",
-            cargo: f.cargo || "Não informado",
-            dataAdmissao: format(new Date(f.created_at), "dd/MM/yyyy"),
-            status: "Ativo",
-          })) || [],
+          details: funcList?.slice(0, 30).map(f => {
+            const statusNormalizado = String(f.status || "ativo").toLowerCase();
+            const statusLabel = statusNormalizado === "demitido"
+              ? "Demitido"
+              : statusNormalizado === "pediu_demissao" || statusNormalizado === "pediu demissão"
+              ? "Pediu demissão"
+              : statusNormalizado === "afastado"
+              ? "Afastado"
+              : statusNormalizado === "em_ferias"
+              ? "Em férias"
+              : "Ativo";
+
+            return {
+              nome: f.nome,
+              departamento: f.departamento || "Não informado",
+              cargo: f.cargo || "Não informado",
+              dataAdmissao: f.created_at ? format(new Date(f.created_at), "dd/MM/yyyy") : "N/I",
+              status: statusLabel,
+            };
+          }) || [],
           charts: [
             {
               type: "pie",
