@@ -1386,8 +1386,8 @@ const Funcionarios = () => {
                     value={editingEmployee.status}
                     onValueChange={(value) => updateEditingEmployee('status', value)}
                   >
-                    <SelectTrigger className="h-9">
-                      <SelectValue />
+                    <SelectTrigger className={`h-9 ${editingEmployee.status === "demitido" ? "border-destructive text-destructive focus:ring-destructive" : ""}`}>
+                      <SelectValue className={editingEmployee.status === "demitido" ? "text-destructive" : ""} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ativo">Ativo</SelectItem>
