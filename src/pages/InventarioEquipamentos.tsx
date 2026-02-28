@@ -140,6 +140,9 @@ const InventarioEquipamentos = () => {
                   <DialogTitle className="text-base sm:text-lg">
                     {editingEquipamento ? "Editar Equipamento" : "Cadastrar Equipamento"}
                   </DialogTitle>
+                  <DialogDescription>
+                    {editingEquipamento ? "Edite as informações do equipamento." : "Preencha os dados para cadastrar um novo equipamento."}
+                  </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
