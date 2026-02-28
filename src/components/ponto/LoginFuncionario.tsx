@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Clock, LogIn, Eye, EyeOff } from "lucide-react";
 import loginBackground from "@/assets/login-background.png";
-import logoAtiva from "@/assets/logo-ativa-login.png";
+import logoPortal from "@/assets/logo-portal-funcionario.png";
 
 export const LoginFuncionario = () => {
   const [cpf, setCpf] = useState("");
@@ -70,9 +70,9 @@ export const LoginFuncionario = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <img 
-            src={logoAtiva} 
+            src={logoPortal} 
             alt="Logo Grupo Ativa" 
-            className="w-40 md:w-48 h-auto mx-auto mb-4"
+            className="w-40 md:w-48 h-auto mx-auto mb-4 object-contain"
           />
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Portal do Funcionário</h1>
           <p className="text-white/90 drop-shadow">Sistema de Registro de Ponto</p>
