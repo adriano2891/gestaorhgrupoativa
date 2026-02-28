@@ -159,7 +159,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       {RH_PATHS.has(location.pathname) ? (
         <RHModuleBar />
       ) : (
-        <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[44px] sm:top-[48px] md:top-[56px] z-40 hidden md:block">
+        <nav className="bg-primary border-b border-primary-foreground/10 fixed top-[44px] sm:top-[48px] md:top-[56px] left-0 right-0 z-40 hidden md:block">
           <div 
             className="w-full"
             style={{ 
