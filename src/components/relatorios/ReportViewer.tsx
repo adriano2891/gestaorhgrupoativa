@@ -91,11 +91,11 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
               <Card key={key} className="overflow-hidden border-l-4 border-l-primary hover:shadow-lg transition-all duration-300 group">
                 <CardContent className="p-3 sm:p-4">
                   <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-0.5 sm:space-y-1 min-w-0">
-                      <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider truncate">
+                    <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
+                      <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider break-words">
                         {key.replace(/([A-Z])/g, " $1").trim()}
                       </p>
-                      <p className={`text-lg sm:text-xl md:text-2xl font-bold ${colorClass.split(' ')[0]} group-hover:scale-105 transition-transform truncate`}>
+                      <p className={`text-base sm:text-lg md:text-xl font-bold ${colorClass.split(' ')[0]} group-hover:scale-105 transition-transform break-words`}>
                         {value as string}
                       </p>
                     </div>
