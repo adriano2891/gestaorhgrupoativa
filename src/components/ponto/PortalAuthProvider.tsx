@@ -37,23 +37,41 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
   const isSigningIn = useRef(false);
   const queryClient = useQueryClient();
 
-  const loadProfile = useCallback(async (userId: string): Promise<Profile | null> => {
+  const loadProfile = useCallback(async (userId: string, accessToken?: string): Promise<Profile | null> => {
     try {
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("id, nome, email, cpf, telefone, departamento, cargo, data_nascimento, foto_url, deve_trocar_senha, data_admissao, created_at")
-        .eq("id", userId)
-        .maybeSingle();
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-      if (profileError || !profileData) {
-        console.error("Erro ao carregar perfil:", profileError);
+      // Resolve token: use provided, or try localStorage
+      let token = accessToken;
+      if (!token) {
+        const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID || supabaseUrl.match(/\/\/([^.]+)/)?.[1];
+        const stored = localStorage.getItem(`sb-${projectRef}-auth-token`);
+        if (stored) {
+          try { token = JSON.parse(stored).access_token; } catch { /* ignore */ }
+        }
+      }
+      if (!token) token = anonKey;
+
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=id,nome,email,cpf,telefone,departamento,cargo,data_nascimento,foto_url,deve_trocar_senha,data_admissao,created_at&limit=1`,
+        {
+          headers: {
+            'apikey': anonKey,
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!res.ok) {
+        console.error("Erro ao carregar perfil:", res.status);
         return null;
       }
 
-      return {
-        ...profileData,
-        deve_trocar_senha: (profileData as any).deve_trocar_senha ?? false,
-      } as Profile;
+      const data = await res.json();
+      if (!data || data.length === 0) return null;
+
+      return { ...data[0], deve_trocar_senha: data[0].deve_trocar_senha ?? false } as Profile;
     } catch (error) {
       console.error("Erro inesperado ao carregar perfil:", error);
       return null;
@@ -202,7 +220,7 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
       const userId = authData.user?.id;
       if (userId) {
         const loadedProfile = await Promise.race([
-          loadProfile(userId),
+          loadProfile(userId, authData.access_token),
           new Promise<null>((_, reject) => setTimeout(() => reject(new Error('profile_timeout')), 5000))
         ]).catch(() => null);
         
