@@ -280,15 +280,12 @@ const Funcionarios = () => {
   const restFetch = async (table: string, query: string = '') => {
     const token = getAccessToken();
     if (!token) throw new Error('NO_TOKEN');
-    const separator = query.includes('?') ? '&' : '?';
-    const cacheBuster = `${separator}_t=${Date.now()}`;
-    const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${table}${query}${cacheBuster}`;
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${table}${query}`;
     const res = await fetch(url, {
       headers: {
         'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
     if (!res.ok) throw new Error(`REST ${res.status}: ${res.statusText}`);
@@ -647,16 +644,16 @@ const Funcionarios = () => {
     try {
       const token = getAccessToken();
       if (token) {
-        const detailsUrl = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by&id=eq.${employeeId}&limit=1&_t=${Date.now()}`;
-        const res = await fetch(detailsUrl, {
-          headers: {
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-          },
-        });
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by&id=eq.${employeeId}&limit=1`,
+          {
+            headers: {
+              'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
         if (res.ok) {
           const rows = await res.json();
           const profileData = rows?.[0];

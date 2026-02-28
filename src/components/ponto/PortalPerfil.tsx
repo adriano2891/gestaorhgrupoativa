@@ -52,15 +52,10 @@ const restPatch = async (path: string, body: any) => {
   const { url, headers } = getRestConfig();
   const res = await fetch(`${url}/rest/v1/${path}`, {
     method: 'PATCH',
-    headers: { ...headers, 'Prefer': 'return=representation' },
+    headers: { ...headers, 'Prefer': 'return=minimal' },
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`REST PATCH failed: ${res.status}`);
-  const data = await res.json();
-  if (!data || data.length === 0) {
-    throw new Error('Nenhum registro atualizado. Verifique suas permissões.');
-  }
-  return data;
 };
 
 // Campos permitidos para edição pelo funcionário
