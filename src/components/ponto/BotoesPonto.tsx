@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { usePortalAuth } from "./PortalAuthProvider";
+import { ConfirmacaoPontoPopup } from "./ConfirmacaoPontoPopup";
 
 const getRestConfig = () => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
