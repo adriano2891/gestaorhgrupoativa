@@ -23,8 +23,10 @@ const getRestConfig = () => {
   let token = anonKey;
   try {
     const raw = localStorage.getItem(storageKey);
-    if (raw) token = JSON.parse(raw).access_token || anonKey;
-  } catch {}
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      token = parsed?.access_token || parsed?.currentSession?.access_token || parsed?.session?.access_token || anonKey;
+    }
   return {
     url: supabaseUrl,
     headers: {
