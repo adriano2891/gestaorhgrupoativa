@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 import { useMemo, useCallback } from "react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 import iconFuncionarios from "@/assets/icon-rh-funcionarios.png";
 import iconTalentos from "@/assets/icon-rh-talentos.png";
@@ -90,44 +90,45 @@ export const RHModuleBar = () => {
   return (
     <nav className="bg-[#3EE0CF] border-b border-[#2bc4b5] sticky top-[49px] sm:top-[53px] md:top-[65px] z-40 hidden md:block">
       <div className="w-full px-2 md:px-4">
-        <div className="flex items-center justify-center gap-1 lg:gap-2 overflow-x-auto scrollbar-hide py-1.5">
-          <TooltipProvider delayDuration={200}>
-            {allModules.map((mod) => {
-              const isActive = location.pathname === mod.path;
-              const badge = badgeCounts[mod.path] || 0;
+        <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-1 py-1.5 lg:gap-x-4">
+          {allModules.map((mod) => {
+            const isActive = location.pathname === mod.path;
+            const badge = badgeCounts[mod.path] || 0;
 
-              return (
-                <Tooltip key={mod.path}>
-                  <TooltipTrigger asChild>
-                    <button
-                      onClick={() => navigate(mod.path)}
-                      onMouseEnter={() => handlePrefetch(mod.path)}
-                      className={`relative flex-shrink-0 rounded-full overflow-hidden transition-all duration-200 ${
-                        isActive 
-                          ? "ring-2 ring-white shadow-lg scale-110" 
-                          : "ring-1 ring-white/40 hover:ring-2 hover:ring-white hover:scale-105 opacity-80 hover:opacity-100"
-                      }`}
-                      style={{ width: 36, height: 36 }}
-                    >
-                      <img
-                        src={mod.iconSrc}
-                        alt={mod.title}
-                        className={`w-full h-full object-cover ${mod.iconScale || (mod.scaleIcon ? "scale-110" : "")}`}
-                      />
-                      {badge > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[8px] font-bold shadow z-10 ring-1 ring-white">
-                          {badge > 9 ? "9+" : badge}
-                        </span>
-                      )}
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="text-xs">
-                    {mod.title}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
-          </TooltipProvider>
+            return (
+              <button
+                key={mod.path}
+                onClick={() => navigate(mod.path)}
+                onMouseEnter={() => handlePrefetch(mod.path)}
+                className={`relative flex flex-col items-center gap-0.5 transition-all duration-200 group ${
+                  isActive ? "opacity-100" : "opacity-75 hover:opacity-100"
+                }`}
+              >
+                <div
+                  className={`relative flex-shrink-0 rounded-full overflow-hidden transition-all duration-200 ${
+                    isActive
+                      ? "ring-2 ring-white shadow-lg scale-105"
+                      : "ring-1 ring-white/40 group-hover:ring-2 group-hover:ring-white group-hover:scale-105"
+                  }`}
+                  style={{ width: 30, height: 30 }}
+                >
+                  <img
+                    src={mod.iconSrc}
+                    alt={mod.title}
+                    className={`w-full h-full object-cover ${mod.iconScale || (mod.scaleIcon ? "scale-110" : "")}`}
+                  />
+                  {badge > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-500 text-white text-[7px] font-bold shadow z-10 ring-1 ring-white">
+                      {badge > 9 ? "9+" : badge}
+                    </span>
+                  )}
+                </div>
+                <span className={`text-[9px] leading-tight text-white font-medium whitespace-nowrap max-w-[60px] truncate ${isActive ? "font-bold" : ""}`}>
+                  {mod.title}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
     </nav>
