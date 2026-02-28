@@ -75,7 +75,7 @@ export const LoginFuncionario = () => {
             className="w-52 md:w-64 h-auto mx-auto mb-4 object-contain"
           />
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Portal do Funcionário</h1>
-          <p className="text-white/90 drop-shadow">Sistema de Registro de Ponto</p>
+          <p className="text-white/90 drop-shadow">Portal do Colaborador 360</p>
         </div>
 
         {/* Card de Login */}
