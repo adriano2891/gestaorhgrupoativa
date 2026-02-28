@@ -127,7 +127,7 @@ export const DocumentoDetalhesDialog = ({
                   isFavorito ? "fill-yellow-500 text-yellow-500" : "text-muted-foreground"
                 )} />
               </Button>
-              <Button variant="outline" onClick={() => window.open(documento.arquivo_url, '_blank')}>
+              <Button variant="outline" onClick={() => openDocumento(documento.arquivo_url, 'Erro ao baixar documento')}>
                 <Download className="h-4 w-4 mr-2" />
                 Download
               </Button>
