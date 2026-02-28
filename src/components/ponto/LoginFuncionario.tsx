@@ -70,9 +70,9 @@ export const LoginFuncionario = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <img 
-            src={logoAtiva} 
+            src={logoPortal} 
             alt="Logo Grupo Ativa" 
-            className="w-40 md:w-48 h-auto mx-auto mb-4"
+            className="w-40 md:w-48 h-auto mx-auto mb-4 object-contain"
           />
           <h1 className="text-3xl font-bold text-white mb-2 drop-shadow-lg">Portal do Funcionário</h1>
           <p className="text-white/90 drop-shadow">Sistema de Registro de Ponto</p>
