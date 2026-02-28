@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Clock, LogIn, Eye, EyeOff } from "lucide-react";
 import loginBackground from "@/assets/login-background.png";
-import logoAtiva from "@/assets/logo-ativa-login.png";
+import logoPortal from "@/assets/logo-portal-funcionario.png";
 
 export const LoginFuncionario = () => {
   const [cpf, setCpf] = useState("");
