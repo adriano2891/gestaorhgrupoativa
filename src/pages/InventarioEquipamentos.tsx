@@ -129,14 +129,12 @@ const InventarioEquipamentos = () => {
                 <p className="text-[10px] sm:text-xs text-black/70 truncate">Controle de equipamentos</p>
               </div>
             </div>
+            <Button onClick={() => handleOpenDialog()} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-black hover:bg-black/90 text-white">
+              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+              <span className="hidden sm:inline">Novo Equipamento</span>
+              <span className="sm:hidden">Novo</span>
+            </Button>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => handleOpenDialog()} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-black hover:bg-black/90 text-white">
-                  <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Novo Equipamento</span>
-                  <span className="sm:hidden">Novo</span>
-                </Button>
-              </DialogTrigger>
               <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="text-base sm:text-lg">
