@@ -148,13 +148,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (data.user) {
         setUser(data.user);
+        
+        // Load profile/roles BEFORE navigating so UI renders correctly
+        await loadUserData(data.user.id);
+        
         setLoading(false);
-        
-        // Navigate IMMEDIATELY for fast UX
         navigate("/dashboard");
-        
-        // Load profile/roles in background
-        loadUserData(data.user.id).catch(console.error);
       }
     } finally {
       isSigningIn.current = false;
