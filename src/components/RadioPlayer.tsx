@@ -63,7 +63,7 @@ export const RadioPlayer = () => {
 
   return (
     <div className="flex items-center gap-1.5 bg-primary/10 rounded-full px-3 py-1.5 border border-primary/20">
-      <audio ref={audioRef} muted={muted} crossOrigin="anonymous" preload="none" />
+      <audio ref={audioRef} muted={muted} preload="none" />
       <Radio className="h-3.5 w-3.5 text-primary flex-shrink-0" />
       <span className="text-[11px] font-medium text-foreground max-w-[80px] truncate hidden lg:inline" title={station.name}>
         {station.name}
