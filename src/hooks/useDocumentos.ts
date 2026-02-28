@@ -367,15 +367,15 @@ export const useUploadDocumento = () => {
 
       const sanitizedName = sanitizeStorageFileName(file.name);
       const fileName = `${Date.now()}_${sanitizedName}`;
+      const storagePath = fileName;
       console.log('[Documentos] Upload fileName:', fileName);
-      await storageUpload('documentos', fileName, file);
-      const publicUrl = await storageSignedUrl('documentos', fileName);
+      await storageUpload('documentos', storagePath, file);
 
       const rows = await restPost('documentos', {
         titulo, descricao,
         categoria_id: categoriaId || null,
         tipo: getDocumentoTipo(file.type),
-        arquivo_url: publicUrl,
+        arquivo_url: storagePath,
         arquivo_nome: file.name,
         arquivo_tamanho: file.size,
         mime_type: file.type,
@@ -390,7 +390,7 @@ export const useUploadDocumento = () => {
       try {
         await restPost('documentos_versoes', {
           documento_id: data.id, versao: 1,
-          arquivo_url: publicUrl, arquivo_nome: file.name,
+          arquivo_url: storagePath, arquivo_nome: file.name,
           arquivo_tamanho: file.size, alteracoes: "Versão inicial",
           criado_por: userId,
         });
