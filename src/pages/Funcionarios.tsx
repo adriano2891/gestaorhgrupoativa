@@ -402,7 +402,7 @@ const Funcionarios = () => {
         console.log("fetchEmployees: Fallback - buscando profiles diretamente...");
         const fallbackProfiles = await restFetch(
           'profiles',
-          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url&order=nome.asc'
+          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by&order=nome.asc'
         );
 
         const allProfiles = fallbackProfiles || [];
@@ -419,8 +419,16 @@ const Funcionarios = () => {
           foto_url: await resolveFotoUrl(profile.foto_url),
         })));
 
+        const updates: Record<string, { updated_at: string }> = {};
+        (allProfiles || []).forEach((profile: any) => {
+          if (profile.perfil_updated_by === 'funcionario' && profile.perfil_updated_at) {
+            updates[profile.id] = { updated_at: profile.perfil_updated_at };
+          }
+        });
+
         console.log("fetchEmployees: Fallback retornou", formatted.length, "funcionários");
         setEmployees(formatted);
+        setEmployeeUpdates(updates);
       }
     } catch (error: any) {
       console.error("fetchEmployees: Exceção:", error.message);
