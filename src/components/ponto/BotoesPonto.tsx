@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { usePortalAuth } from "./PortalAuthProvider";
+import { ConfirmacaoPontoPopup } from "./ConfirmacaoPontoPopup";
 
 const getRestConfig = () => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
@@ -79,6 +80,7 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
   const { profile } = usePortalAuth();
   const [loading, setLoading] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ campo: string; label: string } | null>(null);
+  const [popup, setPopup] = useState<{ message: string; description: string } | null>(null);
 
   const registrarPonto = async (campo: string, label: string) => {
     setLoading(campo);
@@ -205,19 +207,20 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
 
       const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       if (campo === "entrada") {
-        toast("✔ Entrada registrada com sucesso. Bom trabalho!", {
+        setPopup({
+          message: "Entrada registrada com sucesso. Bom trabalho!",
           description: `Registrado às ${hora}`,
-          duration: 3000,
-          style: { background: "#10b981", color: "#fff", border: "none" },
         });
       } else if (campo === "saida") {
-        toast("✔ Ponto de saída confirmado com sucesso. Tenha um ótimo descanso!", {
+        setPopup({
+          message: "Ponto de saída confirmado com sucesso. Tenha um ótimo descanso!",
           description: `Registrado às ${hora}`,
-          duration: 3000,
-          style: { background: "#10b981", color: "#fff", border: "none" },
         });
       } else {
-        toast.success(`${label} registrado às ${hora}`, { duration: 3000 });
+        setPopup({
+          message: `${label} registrado com sucesso!`,
+          description: `Registrado às ${hora}`,
+        });
       }
 
       await new Promise(resolve => setTimeout(resolve, 300));
@@ -296,6 +299,15 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {popup && (
+        <ConfirmacaoPontoPopup
+          message={popup.message}
+          description={popup.description}
+          duration={3000}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </Card>
   );
 };
