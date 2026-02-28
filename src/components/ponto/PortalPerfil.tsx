@@ -178,11 +178,24 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
     }
     setSaving(true);
     try {
-      const currentValues: Record<string, string> = {
-        nome: nome.trim(),
-        email: email.trim(),
-        telefone: telefone.trim(),
-        endereco: endereco.trim(),
+      const parsed = perfilUpdateSchema.safeParse({
+        nome,
+        email,
+        telefone,
+        endereco,
+      });
+
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message || "Dados inválidos.");
+        setSaving(false);
+        return;
+      }
+
+      const currentValues: Record<(typeof CAMPOS_PERMITIDOS)[number], string> = {
+        nome: parsed.data.nome,
+        email: parsed.data.email,
+        telefone: parsed.data.telefone,
+        endereco: parsed.data.endereco,
       };
 
       // Detect changed fields
