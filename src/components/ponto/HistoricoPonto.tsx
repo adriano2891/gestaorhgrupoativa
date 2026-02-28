@@ -115,7 +115,7 @@ export const HistoricoPonto = () => {
           <CardTitle>Histórico Recente</CardTitle>
         </div>
         <CardDescription>
-          Últimos 5 dias de registro de ponto
+          Registros de ponto do mês vigente
         </CardDescription>
       </CardHeader>
       <CardContent>
