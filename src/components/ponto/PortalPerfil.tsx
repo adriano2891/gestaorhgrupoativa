@@ -66,6 +66,13 @@ const CAMPO_LABELS: Record<string, string> = {
   endereco: 'Endereço',
 };
 
+const perfilUpdateSchema = z.object({
+  nome: z.string().trim().min(2, "Informe um nome válido.").max(100, "Nome muito longo."),
+  email: z.string().trim().email("Informe um e-mail válido.").max(255, "E-mail muito longo."),
+  telefone: z.string().trim().min(8, "Informe um telefone válido.").max(20, "Telefone muito longo."),
+  endereco: z.string().trim().min(5, "Informe um endereço válido.").max(255, "Endereço muito longo."),
+});
+
 export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
   const { profile, user, refreshProfile } = usePortalAuth();
   const [nome, setNome] = useState("");
