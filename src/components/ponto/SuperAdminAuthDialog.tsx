@@ -66,9 +66,9 @@ export const SuperAdminAuthDialog = ({
         throw new Error("Usuário não encontrado");
       }
 
-      // Check admin role via REST using the admin's own token
+      // Check admin/RH role via REST using the admin's own token
       const roleRes = await fetch(
-        `${SUPABASE_URL}/rest/v1/user_roles?select=role&user_id=eq.${adminUserId}&role=eq.admin&limit=1`,
+        `${SUPABASE_URL}/rest/v1/user_roles?select=role&user_id=eq.${adminUserId}&role=in.(admin,rh)&limit=1`,
         {
           headers: {
             'apikey': SUPABASE_KEY,
@@ -81,7 +81,7 @@ export const SuperAdminAuthDialog = ({
       const roles = await roleRes.json();
 
       if (!roles || roles.length === 0) {
-        throw new Error("Usuário não possui permissão de Super Administrador");
+        throw new Error("Usuário não possui permissão de Admin RH ou Super Administrador");
       }
 
       // Get admin name via REST
