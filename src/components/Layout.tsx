@@ -152,6 +152,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
       </header>
+      {/* Spacer for fixed header */}
+      <div className="h-[44px] sm:h-[48px] md:h-[56px]" />
 
       {/* Module Navigation Bar */}
       {RH_PATHS.has(location.pathname) ? (
