@@ -36,7 +36,7 @@ export const SuperAdminAuthDialog = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Preencha o email e a senha do Super Administrador");
+      toast.error("Preencha o email e a senha do Admin RH ou Super Administrador");
       return;
     }
 
