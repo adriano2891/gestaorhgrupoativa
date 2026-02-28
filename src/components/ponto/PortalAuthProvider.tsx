@@ -27,6 +27,7 @@ interface PortalAuthContextType {
   loading: boolean;
   signInWithCPF: (cpf: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const PortalAuthContext = createContext<PortalAuthContextType | undefined>(undefined);
