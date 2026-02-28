@@ -1,5 +1,4 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import type { 
   Fornecedor, 
@@ -10,23 +9,64 @@ import type {
   FornecedorComEndereco 
 } from '@/types/fornecedores';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+function getAccessToken(): string {
+  const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || SUPABASE_URL?.match(/\/\/([^.]+)/)?.[1] || '';
+  const storageKey = `sb-${projectId}-auth-token`;
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed?.access_token || SUPABASE_KEY;
+    }
+  } catch {}
+  return SUPABASE_KEY;
+}
+
+function getHeaders(prefer?: string): Record<string, string> {
+  const token = getAccessToken();
+  const headers: Record<string, string> = {
+    'Authorization': `Bearer ${token}`,
+    'apikey': SUPABASE_KEY,
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  };
+  if (prefer) headers['Prefer'] = prefer;
+  return headers;
+}
+
+async function restCall(table: string, method: string, body?: any, query?: string) {
+  const url = `${SUPABASE_URL}/rest/v1/${table}${query || ''}`;
+  const prefer = (method === 'POST' || method === 'PATCH') ? 'return=representation' : undefined;
+  
+  const res = await fetch(url, {
+    method,
+    headers: getHeaders(prefer),
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    console.error(`[restCall ${table}] Error:`, res.status, err);
+    throw new Error(err || `HTTP ${res.status}`);
+  }
+
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
 // Fornecedores
 export function useFornecedores() {
   return useQuery({
     queryKey: ['fornecedores'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('fornecedores')
-          .select('*')
-          .order('razao_social');
-        if (error) {
-          console.error('Erro ao buscar fornecedores:', error.message);
-          return [] as Fornecedor[];
-        }
+        const data = await restCall('fornecedores', 'GET', undefined, '?select=*&order=razao_social.asc');
         return (data ?? []) as Fornecedor[];
       } catch (err) {
-        console.error('Erro inesperado ao buscar fornecedores:', err);
+        console.error('Erro ao buscar fornecedores:', err);
         return [] as Fornecedor[];
       }
     },
@@ -40,13 +80,8 @@ export function useFornecedor(id: string | undefined) {
     queryKey: ['fornecedor', id],
     queryFn: async () => {
       if (!id) return null;
-      const { data, error } = await supabase
-        .from('fornecedores')
-        .select('*')
-        .eq('id', id)
-        .maybeSingle();
-      if (error) throw error;
-      return data as Fornecedor | null;
+      const data = await restCall('fornecedores', 'GET', undefined, `?id=eq.${id}&select=*`);
+      return (Array.isArray(data) && data.length > 0 ? data[0] : null) as Fornecedor | null;
     },
     enabled: !!id,
   });
@@ -57,13 +92,8 @@ export function useEnderecoFornecedor(fornecedorId: string | undefined) {
     queryKey: ['endereco_fornecedor', fornecedorId],
     queryFn: async () => {
       if (!fornecedorId) return null;
-      const { data, error } = await supabase
-        .from('enderecos_fornecedor')
-        .select('*')
-        .eq('fornecedor_id', fornecedorId)
-        .maybeSingle();
-      if (error) throw error;
-      return data as EnderecoFornecedor | null;
+      const data = await restCall('enderecos_fornecedor', 'GET', undefined, `?fornecedor_id=eq.${fornecedorId}&select=*`);
+      return (Array.isArray(data) && data.length > 0 ? data[0] : null) as EnderecoFornecedor | null;
     },
     enabled: !!fornecedorId,
   });
@@ -77,20 +107,13 @@ export function useCreateFornecedor() {
       fornecedor: Omit<Fornecedor, 'id' | 'created_at' | 'updated_at'>;
       endereco?: Omit<EnderecoFornecedor, 'id' | 'fornecedor_id' | 'created_at' | 'updated_at'>;
     }) => {
-      const { data: fornecedor, error: fornecedorError } = await supabase
-        .from('fornecedores')
-        .insert(data.fornecedor)
-        .select()
-        .single();
+      const result = await restCall('fornecedores', 'POST', data.fornecedor);
+      const fornecedor = Array.isArray(result) ? result[0] : result;
       
-      if (fornecedorError) throw fornecedorError;
+      if (!fornecedor?.id) throw new Error('Falha ao criar fornecedor');
       
       if (data.endereco) {
-        const { error: enderecoError } = await supabase
-          .from('enderecos_fornecedor')
-          .insert({ ...data.endereco, fornecedor_id: fornecedor.id });
-        
-        if (enderecoError) throw enderecoError;
+        await restCall('enderecos_fornecedor', 'POST', { ...data.endereco, fornecedor_id: fornecedor.id });
       }
       
       return fornecedor;
@@ -100,11 +123,13 @@ export function useCreateFornecedor() {
       toast.success('Fornecedor cadastrado com sucesso!');
     },
     onError: (error: any) => {
-      if (error.code === '23505') {
+      const msg = error?.message || '';
+      if (msg.includes('23505') || msg.includes('duplicate')) {
         toast.error('Já existe um fornecedor com este CPF/CNPJ.');
       } else {
         toast.error('Erro ao cadastrar fornecedor.');
       }
+      console.error('Create fornecedor error:', error);
     },
   });
 }
@@ -118,29 +143,14 @@ export function useUpdateFornecedor() {
       fornecedor: Partial<Omit<Fornecedor, 'id' | 'created_at' | 'updated_at'>>;
       endereco?: Partial<Omit<EnderecoFornecedor, 'id' | 'fornecedor_id' | 'created_at' | 'updated_at'>>;
     }) => {
-      const { error: fornecedorError } = await supabase
-        .from('fornecedores')
-        .update(data.fornecedor)
-        .eq('id', data.id);
-      
-      if (fornecedorError) throw fornecedorError;
+      await restCall('fornecedores', 'PATCH', data.fornecedor, `?id=eq.${data.id}`);
       
       if (data.endereco) {
-        const { data: existingEndereco } = await supabase
-          .from('enderecos_fornecedor')
-          .select('id')
-          .eq('fornecedor_id', data.id)
-          .maybeSingle();
-        
-        if (existingEndereco) {
-          await supabase
-            .from('enderecos_fornecedor')
-            .update(data.endereco)
-            .eq('fornecedor_id', data.id);
+        const existing = await restCall('enderecos_fornecedor', 'GET', undefined, `?fornecedor_id=eq.${data.id}&select=id`);
+        if (Array.isArray(existing) && existing.length > 0) {
+          await restCall('enderecos_fornecedor', 'PATCH', data.endereco, `?fornecedor_id=eq.${data.id}`);
         } else {
-          await supabase
-            .from('enderecos_fornecedor')
-            .insert({ ...data.endereco, fornecedor_id: data.id });
+          await restCall('enderecos_fornecedor', 'POST', { ...data.endereco, fornecedor_id: data.id });
         }
       }
       
@@ -163,11 +173,7 @@ export function useDeleteFornecedor() {
   
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('fornecedores')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
+      await restCall('fornecedores', 'DELETE', undefined, `?id=eq.${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['fornecedores'] });
@@ -185,13 +191,8 @@ export function useItensFornecedor(fornecedorId: string | undefined) {
     queryKey: ['itens_fornecedor', fornecedorId],
     queryFn: async () => {
       if (!fornecedorId) return [];
-      const { data, error } = await supabase
-        .from('itens_fornecedor')
-        .select('*')
-        .eq('fornecedor_id', fornecedorId)
-        .order('nome');
-      if (error) throw error;
-      return data as ItemFornecedor[];
+      const data = await restCall('itens_fornecedor', 'GET', undefined, `?fornecedor_id=eq.${fornecedorId}&select=*&order=nome.asc`);
+      return (data ?? []) as ItemFornecedor[];
     },
     enabled: !!fornecedorId,
   });
@@ -202,13 +203,8 @@ export function useCreateItemFornecedor() {
   
   return useMutation({
     mutationFn: async (data: Omit<ItemFornecedor, 'id' | 'created_at' | 'updated_at'>) => {
-      const { data: item, error } = await supabase
-        .from('itens_fornecedor')
-        .insert(data)
-        .select()
-        .single();
-      if (error) throw error;
-      return item;
+      const result = await restCall('itens_fornecedor', 'POST', data);
+      return Array.isArray(result) ? result[0] : result;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['itens_fornecedor', variables.fornecedor_id] });
@@ -225,11 +221,7 @@ export function useUpdateItemFornecedor() {
   
   return useMutation({
     mutationFn: async (data: { id: string; fornecedor_id: string; updates: Partial<ItemFornecedor> }) => {
-      const { error } = await supabase
-        .from('itens_fornecedor')
-        .update(data.updates)
-        .eq('id', data.id);
-      if (error) throw error;
+      await restCall('itens_fornecedor', 'PATCH', data.updates, `?id=eq.${data.id}`);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['itens_fornecedor', variables.fornecedor_id] });
@@ -247,11 +239,7 @@ export function useDeleteItemFornecedor() {
   
   return useMutation({
     mutationFn: async (data: { id: string; fornecedor_id: string }) => {
-      const { error } = await supabase
-        .from('itens_fornecedor')
-        .delete()
-        .eq('id', data.id);
-      if (error) throw error;
+      await restCall('itens_fornecedor', 'DELETE', undefined, `?id=eq.${data.id}`);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['itens_fornecedor', variables.fornecedor_id] });
@@ -269,13 +257,8 @@ export function useDocumentosFornecedor(fornecedorId: string | undefined) {
     queryKey: ['documentos_fornecedor', fornecedorId],
     queryFn: async () => {
       if (!fornecedorId) return [];
-      const { data, error } = await supabase
-        .from('documentos_fornecedor')
-        .select('*')
-        .eq('fornecedor_id', fornecedorId)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data as DocumentoFornecedor[];
+      const data = await restCall('documentos_fornecedor', 'GET', undefined, `?fornecedor_id=eq.${fornecedorId}&select=*&order=created_at.desc`);
+      return (data ?? []) as DocumentoFornecedor[];
     },
     enabled: !!fornecedorId,
   });
@@ -286,13 +269,8 @@ export function useCreateDocumentoFornecedor() {
   
   return useMutation({
     mutationFn: async (data: Omit<DocumentoFornecedor, 'id' | 'created_at'>) => {
-      const { data: doc, error } = await supabase
-        .from('documentos_fornecedor')
-        .insert(data)
-        .select()
-        .single();
-      if (error) throw error;
-      return doc;
+      const result = await restCall('documentos_fornecedor', 'POST', data);
+      return Array.isArray(result) ? result[0] : result;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['documentos_fornecedor', variables.fornecedor_id] });
@@ -309,18 +287,20 @@ export function useDeleteDocumentoFornecedor() {
   
   return useMutation({
     mutationFn: async (data: { id: string; fornecedor_id: string; arquivo_url: string }) => {
-      // Delete from storage
+      // Delete from storage via REST
       const path = data.arquivo_url.split('/').pop();
       if (path) {
-        await supabase.storage.from('fornecedores').remove([path]);
+        try {
+          await fetch(`${SUPABASE_URL}/storage/v1/object/fornecedores/${path}`, {
+            method: 'DELETE',
+            headers: getHeaders(),
+          });
+        } catch (e) {
+          console.warn('Erro ao deletar arquivo do storage:', e);
+        }
       }
       
-      // Delete from database
-      const { error } = await supabase
-        .from('documentos_fornecedor')
-        .delete()
-        .eq('id', data.id);
-      if (error) throw error;
+      await restCall('documentos_fornecedor', 'DELETE', undefined, `?id=eq.${data.id}`);
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['documentos_fornecedor', variables.fornecedor_id] });
@@ -338,13 +318,8 @@ export function useHistoricoPrecos(itemId: string | undefined) {
     queryKey: ['historico_precos', itemId],
     queryFn: async () => {
       if (!itemId) return [];
-      const { data, error } = await supabase
-        .from('historico_precos_fornecedor')
-        .select('*')
-        .eq('item_id', itemId)
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data as HistoricoPrecoFornecedor[];
+      const data = await restCall('historico_precos_fornecedor', 'GET', undefined, `?item_id=eq.${itemId}&select=*&order=created_at.desc`);
+      return (data ?? []) as HistoricoPrecoFornecedor[];
     },
     enabled: !!itemId,
   });
