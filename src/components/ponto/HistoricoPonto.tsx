@@ -46,7 +46,7 @@ export const HistoricoPonto = () => {
           .eq("user_id", userId)
           .gte("data", primeiroDia)
           .lte("data", ultimoDiaStr)
-          .order("data", { ascending: false });
+          .order("data", { ascending: true });
 
         if (error) {
           console.error("Erro ao carregar histórico:", error);
