@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { ArrowLeft, User, Loader2, Camera } from "lucide-react";
+import { ArrowLeft, User, Loader2, Camera, Lock, Eye, EyeOff, Check, X } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
+import { Separator } from "@/components/ui/separator";
 import { PortalBackground } from "./PortalBackground";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -84,6 +85,70 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
   const [saving, setSaving] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoRef = useRef<HTMLInputElement>(null);
+
+  // Password change state
+  const [senhaAtual, setSenhaAtual] = useState("");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [showSenhaAtual, setShowSenhaAtual] = useState(false);
+  const [showNovaSenha, setShowNovaSenha] = useState(false);
+  const [showConfirmar, setShowConfirmar] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  const passwordValidation = {
+    minLength: novaSenha.length >= 8,
+    hasUppercase: /[A-Z]/.test(novaSenha),
+    hasLowercase: /[a-z]/.test(novaSenha),
+    hasNumber: /[0-9]/.test(novaSenha),
+    hasSpecial: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(novaSenha),
+  };
+  const allPasswordValid = Object.values(passwordValidation).every(Boolean);
+  const passwordsMatch = novaSenha === confirmarSenha && confirmarSenha.length > 0;
+
+  const handleChangePassword = async () => {
+    if (!senhaAtual.trim()) {
+      toast.error("Informe a senha atual.");
+      return;
+    }
+    if (!allPasswordValid) {
+      toast.error("A nova senha não atende todos os requisitos.");
+      return;
+    }
+    if (!passwordsMatch) {
+      toast.error("As senhas não coincidem.");
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      // Verify current password by re-signing in
+      const userEmail = profile?.email || user?.email;
+      if (!userEmail) throw new Error("E-mail não encontrado.");
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: senhaAtual,
+      });
+      if (signInError) {
+        toast.error("Senha atual incorreta.");
+        setSavingPassword(false);
+        return;
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({ password: novaSenha });
+      if (updateError) throw updateError;
+
+      toast.success("Senha alterada com sucesso! Use a nova senha no próximo login.");
+      setSenhaAtual("");
+      setNovaSenha("");
+      setConfirmarSenha("");
+    } catch (error: any) {
+      console.error("Erro ao alterar senha:", error);
+      toast.error(error.message || "Erro ao alterar a senha.");
+    } finally {
+      setSavingPassword(false);
+    }
+  };
 
   // Store original values for change detection
   const [originalValues, setOriginalValues] = useState<Record<string, string>>({});
@@ -348,6 +413,102 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
                   {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Salvar Alterações
                 </Button>
+
+                <Separator className="my-6" />
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Lock className="h-5 w-5 text-primary" />
+                    Alterar Senha
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    A nova senha será aplicada imediatamente e será obrigatória no próximo login.
+                  </p>
+
+                  <div>
+                    <Label htmlFor="senhaAtual">Senha Atual</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="senhaAtual"
+                        type={showSenhaAtual ? "text" : "password"}
+                        placeholder="Digite sua senha atual"
+                        value={senhaAtual}
+                        onChange={(e) => setSenhaAtual(e.target.value)}
+                        className="pl-10 pr-10"
+                      />
+                      <button type="button" onClick={() => setShowSenhaAtual(!showSenhaAtual)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        {showSenhaAtual ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="novaSenhaPerf">Nova Senha</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="novaSenhaPerf"
+                        type={showNovaSenha ? "text" : "password"}
+                        placeholder="Digite a nova senha"
+                        value={novaSenha}
+                        onChange={(e) => setNovaSenha(e.target.value)}
+                        className="pl-10 pr-10"
+                      />
+                      <button type="button" onClick={() => setShowNovaSenha(!showNovaSenha)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        {showNovaSenha ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="confirmarSenhaPerf">Confirmar Nova Senha</Label>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="confirmarSenhaPerf"
+                        type={showConfirmar ? "text" : "password"}
+                        placeholder="Confirme a nova senha"
+                        value={confirmarSenha}
+                        onChange={(e) => setConfirmarSenha(e.target.value)}
+                        className="pl-10 pr-10"
+                      />
+                      <button type="button" onClick={() => setShowConfirmar(!showConfirmar)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                        {showConfirmar ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
+                    {confirmarSenha.length > 0 && !passwordsMatch && (
+                      <p className="text-xs text-destructive mt-1">As senhas não coincidem</p>
+                    )}
+                  </div>
+
+                  {novaSenha.length > 0 && (
+                    <div className="bg-muted/50 rounded-lg p-3 space-y-1.5">
+                      <p className="text-xs font-medium mb-2">Requisitos da senha:</p>
+                      {[
+                        { met: passwordValidation.minLength, label: "Mínimo de 8 caracteres" },
+                        { met: passwordValidation.hasUppercase, label: "Letra maiúscula" },
+                        { met: passwordValidation.hasLowercase, label: "Letra minúscula" },
+                        { met: passwordValidation.hasNumber, label: "Um número" },
+                        { met: passwordValidation.hasSpecial, label: "Caractere especial" },
+                      ].map((req) => (
+                        <div key={req.label} className="flex items-center gap-2 text-sm">
+                          {req.met ? <Check className="h-4 w-4 text-green-500" /> : <X className="h-4 w-4 text-muted-foreground" />}
+                          <span className={req.met ? "text-green-600" : "text-muted-foreground"}>{req.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <Button
+                    className="w-full"
+                    onClick={handleChangePassword}
+                    disabled={savingPassword || !allPasswordValid || !passwordsMatch || !senhaAtual}
+                  >
+                    {savingPassword && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    Alterar Senha
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
