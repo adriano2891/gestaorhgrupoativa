@@ -78,7 +78,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       <header className="bg-card shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={logoHeader} alt="AtivaRH" className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 object-contain" />
+            <img src={logoHeader} alt="AtivaRH" className="h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 object-contain" />
             <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">AtivaRH</h1>
           </div>
 
