@@ -53,6 +53,7 @@ export const CriarCategoriaDialog = ({ open, onOpenChange, categorias }: CriarCa
       nome: "",
       descricao: "",
       cor: "#3B82F6",
+      categoria_pai_id: undefined,
     },
   });
 
