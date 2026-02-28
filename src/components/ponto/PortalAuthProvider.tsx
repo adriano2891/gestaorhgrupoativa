@@ -220,7 +220,7 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
       const userId = authData.user?.id;
       if (userId) {
         const loadedProfile = await Promise.race([
-          loadProfile(userId),
+          loadProfile(userId, authData.access_token),
           new Promise<null>((_, reject) => setTimeout(() => reject(new Error('profile_timeout')), 5000))
         ]).catch(() => null);
         
