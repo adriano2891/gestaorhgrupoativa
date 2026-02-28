@@ -399,12 +399,9 @@ const Funcionarios = () => {
           '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url&order=nome.asc'
         );
 
-        const activeProfiles = (fallbackProfiles || []).filter((p: any) => {
-          const status = (p.status || "ativo").toLowerCase();
-          return status !== "demitido" && status !== "pediu_demissao";
-        });
+        const allProfiles = fallbackProfiles || [];
 
-        const formatted = await Promise.all(activeProfiles.map(async (profile: any) => ({
+        const formatted = await Promise.all(allProfiles.map(async (profile: any) => ({
           id: profile.id,
           name: profile.nome,
           email: profile.email,
