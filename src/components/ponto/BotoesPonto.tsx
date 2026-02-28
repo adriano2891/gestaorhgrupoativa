@@ -203,17 +203,21 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
         await restPatch(`registros_ponto?id=eq.${registroHoje.id}`, { [campo]: agora });
       }
 
+      const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       if (campo === "entrada") {
-        toast.success("✔ Entrada registrada com sucesso. Bom trabalho!", { duration: 3000 });
-      } else if (campo === "saida") {
-        toast.success("✔ Ponto de saída confirmado com sucesso. Tenha um ótimo descanso!", { duration: 3000 });
-      } else {
-        toast.success("Ponto registrado!", {
-          description: `${label} registrado às ${new Date().toLocaleTimeString("pt-BR", {
-            hour: "2-digit", minute: "2-digit",
-          })}`,
+        toast("✔ Entrada registrada com sucesso. Bom trabalho!", {
+          description: `Registrado às ${hora}`,
           duration: 3000,
+          style: { background: "#10b981", color: "#fff", border: "none" },
         });
+      } else if (campo === "saida") {
+        toast("✔ Ponto de saída confirmado com sucesso. Tenha um ótimo descanso!", {
+          description: `Registrado às ${hora}`,
+          duration: 3000,
+          style: { background: "#10b981", color: "#fff", border: "none" },
+        });
+      } else {
+        toast.success(`${label} registrado às ${hora}`, { duration: 3000 });
       }
 
       await new Promise(resolve => setTimeout(resolve, 300));
