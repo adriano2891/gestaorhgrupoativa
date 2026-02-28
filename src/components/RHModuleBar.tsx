@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 import { useMemo, useCallback } from "react";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
 
 import iconFuncionarios from "@/assets/icon-rh-funcionarios.png";
 import iconTalentos from "@/assets/icon-rh-talentos.png";
