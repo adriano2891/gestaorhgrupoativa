@@ -217,6 +217,9 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
       // Update original values to current
       setOriginalValues({ ...currentValues });
 
+      // Refresh profile in context so data persists across navigation
+      await refreshProfile();
+
       toast.success("Dados atualizados com sucesso!");
     } catch (error: any) {
       console.error("Erro ao salvar perfil:", error);
