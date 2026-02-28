@@ -9,10 +9,10 @@ interface PortalBeneficiosProps {
 
 export const PortalBeneficios = ({ onBack }: PortalBeneficiosProps) => {
   const beneficios = [
-    { nome: "Vale Transporte", valor: "R$ 200,00/mês", status: "Ativo" },
-    { nome: "Vale Refeição", valor: "R$ 30,00/dia", status: "Ativo" },
-    { nome: "Plano de Saúde", valor: "Unimed", status: "Ativo" },
-    { nome: "Plano Odontológico", valor: "Odontoprev", status: "Ativo" },
+    { nome: "Vale Transporte", status: "Ativo" },
+    { nome: "Vale Refeição", status: "Ativo" },
+    { nome: "Plano de Saúde", status: "Ativo" },
+    { nome: "Plano Odontológico", status: "Ativo" },
   ];
 
   return (
