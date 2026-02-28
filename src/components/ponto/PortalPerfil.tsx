@@ -82,7 +82,7 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
       const origNome = profile.nome || "";
       const origEmail = profile.email || "";
       const origTelefone = profile.telefone || "";
-      const origEndereco = (profile as any).endereco || "";
+      const origEndereco = profile.endereco || "";
 
       setNome(origNome);
       setEmail(origEmail);
