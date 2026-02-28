@@ -299,6 +299,15 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {popup && (
+        <ConfirmacaoPontoPopup
+          message={popup.message}
+          description={popup.description}
+          duration={3000}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </Card>
   );
 };
