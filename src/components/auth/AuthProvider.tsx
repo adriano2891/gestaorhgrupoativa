@@ -115,7 +115,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         // Skip if signOut is in progress OR if signIn is handling it eagerly
         if (isSigningOut.current || isSigningIn.current) return;
         setUser(session.user);
-        await loadUserData(session.user.id);
+        await loadUserData(session.user.id, session.access_token);
         if (isMounted) setLoading(false);
       } else if (event === 'SIGNED_OUT') {
         clearAuthState();
