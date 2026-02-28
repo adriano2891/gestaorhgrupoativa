@@ -123,7 +123,7 @@ export const RHModuleBar = () => {
                     </span>
                   )}
                 </div>
-                <span className={`text-[9px] leading-tight text-white font-medium whitespace-nowrap ${isActive ? "font-bold" : ""}`}>
+                <span className={`text-xs leading-tight text-white font-medium whitespace-nowrap ${isActive ? "font-bold" : ""}`}>
                   {mod.title}
                 </span>
               </button>
