@@ -16,6 +16,9 @@ interface Profile {
   deve_trocar_senha: boolean;
   data_admissao: string | null;
   created_at: string | null;
+  endereco: string | null;
+  perfil_updated_at: string | null;
+  perfil_updated_by: string | null;
 }
 
 interface PortalAuthContextType {
