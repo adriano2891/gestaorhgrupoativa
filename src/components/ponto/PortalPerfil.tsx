@@ -227,15 +227,17 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
       });
 
       // Log each changed field
-      for (const change of changedFields) {
-        await restPost('log_alteracoes_perfil', {
-          user_id: userId,
-          campo: change.campo,
-          valor_anterior: change.valor_anterior,
-          valor_novo: change.valor_novo,
-          origem: 'funcionario',
-        });
-      }
+      await Promise.all(
+        changedFields.map((change) =>
+          restPost('log_alteracoes_perfil', {
+            user_id: userId,
+            campo: change.campo,
+            valor_anterior: change.valor_anterior,
+            valor_novo: change.valor_novo,
+            origem: 'funcionario',
+          })
+        )
+      );
 
       // Update original values to current
       setOriginalValues({ ...currentValues });

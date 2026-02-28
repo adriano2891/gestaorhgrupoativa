@@ -843,12 +843,12 @@ const Funcionarios = () => {
           description: "Os dados do funcionário foram atualizados com sucesso.",
         });
 
+        await fetchEmployees();
+
         setIsEditDialogOpen(false);
         setEditingEmployee(null);
         setEditPassword("");
         setEditSalary("");
-        
-        // O hook useFuncionariosRealtime vai atualizar automaticamente
       } catch (error: any) {
         toast({
           title: "Erro ao atualizar",
