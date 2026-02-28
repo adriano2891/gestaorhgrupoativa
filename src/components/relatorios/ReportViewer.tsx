@@ -270,7 +270,7 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                       <XAxis 
                         dataKey={Object.keys(chart.data[0])[0]} 
-                        tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                        tick={{ fontSize: 14, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                         axisLine={{ stroke: 'hsl(var(--border))' }}
                         angle={-20}
                         textAnchor="end"
