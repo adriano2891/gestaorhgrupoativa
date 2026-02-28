@@ -157,9 +157,9 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       {RH_PATHS.has(location.pathname) ? (
         <RHModuleBar />
       ) : (
-        <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[44px] sm:top-[48px] md:top-[56px] z-40 hidden md:block">
-          <div className="w-full px-4 md:px-6 overflow-x-auto scrollbar-thin scrollbar-thumb-primary-foreground/30">
-            <div className="flex items-center justify-center gap-1 whitespace-nowrap min-w-max pr-2">
+        <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[44px] sm:top-[48px] md:top-[56px] z-40 hidden md:block overflow-hidden">
+          <div className="w-full overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <div className="flex items-center gap-0 px-4 md:px-6" style={{ width: 'max-content' }}>
               {navItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
@@ -167,14 +167,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                     key={item.path}
                     to={item.path}
                     onMouseEnter={() => handlePrefetch(item.path)}
-                    className={`flex items-center gap-1 lg:gap-1.5 px-1.5 lg:px-3 py-3 lg:py-4 text-xs lg:text-sm font-medium transition-all whitespace-nowrap border-b-2 ${
+                    className={`inline-flex items-center gap-1.5 px-3 py-3 text-xs lg:text-sm font-medium transition-all border-b-2 flex-shrink-0 ${
                       isActive
                         ? "text-primary-foreground border-primary-foreground"
                         : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:border-primary-foreground/30"
                     }`}
                   >
-                    <span className="text-base lg:text-lg">{item.icon}</span>
-                    <span className="hidden 2xl:inline">{item.label}</span>
+                    <span className="text-base lg:text-lg flex-shrink-0">{item.icon}</span>
+                    <span>{item.label}</span>
                   </Link>
                 );
               })}
