@@ -200,10 +200,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isSigningIn.current = false;
     }
   };
-    } finally {
-      isSigningIn.current = false;
-    }
-  };
 
   const signUp = async (email: string, password: string, nome: string) => {
     const { error } = await supabase.auth.signUp({
