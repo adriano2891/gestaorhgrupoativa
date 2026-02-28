@@ -207,19 +207,20 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
 
       const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       if (campo === "entrada") {
-        toast("✔ Entrada registrada com sucesso. Bom trabalho!", {
+        setPopup({
+          message: "Entrada registrada com sucesso. Bom trabalho!",
           description: `Registrado às ${hora}`,
-          duration: 3000,
-          style: { background: "#10b981", color: "#fff", border: "none" },
         });
       } else if (campo === "saida") {
-        toast("✔ Ponto de saída confirmado com sucesso. Tenha um ótimo descanso!", {
+        setPopup({
+          message: "Ponto de saída confirmado com sucesso. Tenha um ótimo descanso!",
           description: `Registrado às ${hora}`,
-          duration: 3000,
-          style: { background: "#10b981", color: "#fff", border: "none" },
         });
       } else {
-        toast.success(`${label} registrado às ${hora}`, { duration: 3000 });
+        setPopup({
+          message: `${label} registrado com sucesso!`,
+          description: `Registrado às ${hora}`,
+        });
       }
 
       await new Promise(resolve => setTimeout(resolve, 300));
