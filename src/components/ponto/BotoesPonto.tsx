@@ -80,6 +80,7 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
   const { profile } = usePortalAuth();
   const [loading, setLoading] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ campo: string; label: string } | null>(null);
+  const [popup, setPopup] = useState<{ message: string; description: string } | null>(null);
 
   const registrarPonto = async (campo: string, label: string) => {
     setLoading(campo);
