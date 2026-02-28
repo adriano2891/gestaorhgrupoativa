@@ -127,10 +127,10 @@ export const SuperAdminAuthDialog = ({
         <DialogHeader>
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
-            <DialogTitle>Autorização de Super Administrador</DialogTitle>
+            <DialogTitle>Autorização Administrativa</DialogTitle>
           </div>
           <DialogDescription>
-            Para {actionDescription}, é necessário confirmar com a senha de um Super Administrador.
+            Para {actionDescription}, confirme com credenciais de Admin RH ou Super Administrador.
           </DialogDescription>
         </DialogHeader>
 
