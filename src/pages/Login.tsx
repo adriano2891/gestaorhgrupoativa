@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import loginBackground from "@/assets/login-background.png";
-import logoAtiva from "@/assets/logo-ativa-login.png";
+import logoAtiva from "@/assets/logo-header.png";
 
 const Login = () => {
   const { signIn } = useAuth();
