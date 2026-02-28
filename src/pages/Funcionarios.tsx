@@ -574,6 +574,26 @@ const Funcionarios = () => {
     };
   }, [employees]);
 
+  // Fetch employee-initiated profile updates
+  useEffect(() => {
+    const fetchEmployeeUpdates = async () => {
+      if (employees.length === 0) return;
+      try {
+        const ids = employees.map(e => e.id);
+        const inFilter = ids.map(id => `"${id}"`).join(',');
+        const data = await restFetch('profiles', `?select=id,perfil_updated_at,perfil_updated_by&id=in.(${inFilter})&perfil_updated_by=eq.funcionario&perfil_updated_at=not.is.null`);
+        const map: Record<string, { updated_at: string }> = {};
+        (data || []).forEach((p: any) => {
+          if (p.perfil_updated_at) map[p.id] = { updated_at: p.perfil_updated_at };
+        });
+        setEmployeeUpdates(map);
+      } catch (e) {
+        console.error("Erro ao buscar atualizações de perfil:", e);
+      }
+    };
+    fetchEmployeeUpdates();
+  }, [employees]);
+
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
       emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
