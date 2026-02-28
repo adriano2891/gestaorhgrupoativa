@@ -75,17 +75,14 @@ export const DocumentoDetalhesDialog = ({
   };
 
   const openDocumento = async (arquivoUrl: string, errorTitle: string) => {
-    const newTab = window.open('', '_blank', 'noopener,noreferrer');
-
     try {
+      console.log('[Documentos] openDocumento - arquivo_url:', arquivoUrl);
       const signedUrl = await getDocumentoAccessUrl(arquivoUrl);
-      if (newTab) {
-        newTab.location.href = signedUrl;
-      } else {
-        window.open(signedUrl, '_blank', 'noopener,noreferrer');
-      }
+      console.log('[Documentos] openDocumento - signed URL obtained:', signedUrl?.substring(0, 80));
+      if (!signedUrl) throw new Error("URL de acesso não gerada");
+      window.open(signedUrl, '_blank', 'noopener,noreferrer');
     } catch (error) {
-      if (newTab) newTab.close();
+      console.error('[Documentos] openDocumento error:', error);
       const message = error instanceof Error ? error.message : "Não foi possível abrir o arquivo";
       toast({ title: errorTitle, description: message, variant: "destructive" });
     }

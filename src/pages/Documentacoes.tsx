@@ -159,17 +159,14 @@ const Documentacoes = () => {
   };
 
   const handlePreview = async (doc: Documento) => {
-    const newTab = window.open('', '_blank', 'noopener,noreferrer');
-
     try {
+      console.log('[Documentos] Preview - arquivo_url:', doc.arquivo_url);
       const url = await getDocumentoAccessUrl(doc.arquivo_url);
-      if (newTab) {
-        newTab.location.href = url;
-      } else {
-        window.open(url, '_blank', 'noopener,noreferrer');
-      }
+      console.log('[Documentos] Preview - signed URL obtained:', url?.substring(0, 80));
+      if (!url) throw new Error("URL de acesso não gerada");
+      window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
-      if (newTab) newTab.close();
+      console.error('[Documentos] Preview error:', error);
       const message = error instanceof Error ? error.message : "Não foi possível abrir o documento";
       toast({ title: "Erro ao abrir documento", description: message, variant: "destructive" });
     }
