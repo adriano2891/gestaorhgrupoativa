@@ -88,9 +88,9 @@ export const RHModuleBar = () => {
   }, [prefetchMap]);
 
   return (
-    <nav className="bg-[#3EE0CF] border-b border-[#2bc4b5] sticky top-[49px] sm:top-[53px] md:top-[65px] z-40 hidden md:block">
-      <div className="w-full px-2 md:px-4">
-        <div className="flex items-center justify-center flex-wrap gap-x-3 gap-y-1 py-1.5 lg:gap-x-4">
+    <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[44px] sm:top-[48px] md:top-[56px] z-40">
+      <div className="w-full overflow-x-auto overflow-y-hidden" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div className="inline-flex min-w-max items-center gap-2 md:gap-3 px-2 md:px-4 py-1.5">
           {allModules.map((mod) => {
             const isActive = location.pathname === mod.path;
             const badge = badgeCounts[mod.path] || 0;
@@ -100,12 +100,12 @@ export const RHModuleBar = () => {
                 key={mod.path}
                 onClick={() => navigate(mod.path)}
                 onMouseEnter={() => handlePrefetch(mod.path)}
-                className={`relative flex items-center gap-1 transition-all duration-200 group ${
+                className={`relative inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap transition-all duration-200 group ${
                   isActive ? "opacity-100" : "opacity-75 hover:opacity-100"
                 }`}
               >
                 <div
-                  className={`relative flex-shrink-0 rounded-full overflow-hidden transition-all duration-200 ${
+                  className={`relative shrink-0 rounded-full overflow-hidden transition-all duration-200 ${
                     isActive
                       ? "ring-2 ring-white shadow-lg scale-105"
                       : "ring-1 ring-white/40 group-hover:ring-2 group-hover:ring-white group-hover:scale-105"
@@ -123,7 +123,7 @@ export const RHModuleBar = () => {
                     </span>
                   )}
                 </div>
-                <span className={`text-sm leading-tight text-white font-medium whitespace-nowrap ${isActive ? "font-bold" : ""}`}>
+                <span className={`text-xs sm:text-sm leading-tight text-white font-medium whitespace-nowrap ${isActive ? "font-bold" : ""}`}>
                   {mod.title}
                 </span>
               </button>
