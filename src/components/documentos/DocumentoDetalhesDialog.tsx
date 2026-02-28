@@ -74,6 +74,23 @@ export const DocumentoDetalhesDialog = ({
     return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
   };
 
+  const openDocumento = async (arquivoUrl: string, errorTitle: string) => {
+    const newTab = window.open('', '_blank', 'noopener,noreferrer');
+
+    try {
+      const signedUrl = await getDocumentoAccessUrl(arquivoUrl);
+      if (newTab) {
+        newTab.location.href = signedUrl;
+      } else {
+        window.open(signedUrl, '_blank', 'noopener,noreferrer');
+      }
+    } catch (error) {
+      if (newTab) newTab.close();
+      const message = error instanceof Error ? error.message : "Não foi possível abrir o arquivo";
+      toast({ title: errorTitle, description: message, variant: "destructive" });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[700px] max-h-[85vh] flex flex-col">
