@@ -86,6 +86,70 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const photoRef = useRef<HTMLInputElement>(null);
 
+  // Password change state
+  const [senhaAtual, setSenhaAtual] = useState("");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [confirmarSenha, setConfirmarSenha] = useState("");
+  const [showSenhaAtual, setShowSenhaAtual] = useState(false);
+  const [showNovaSenha, setShowNovaSenha] = useState(false);
+  const [showConfirmar, setShowConfirmar] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  const passwordValidation = {
+    minLength: novaSenha.length >= 8,
+    hasUppercase: /[A-Z]/.test(novaSenha),
+    hasLowercase: /[a-z]/.test(novaSenha),
+    hasNumber: /[0-9]/.test(novaSenha),
+    hasSpecial: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(novaSenha),
+  };
+  const allPasswordValid = Object.values(passwordValidation).every(Boolean);
+  const passwordsMatch = novaSenha === confirmarSenha && confirmarSenha.length > 0;
+
+  const handleChangePassword = async () => {
+    if (!senhaAtual.trim()) {
+      toast.error("Informe a senha atual.");
+      return;
+    }
+    if (!allPasswordValid) {
+      toast.error("A nova senha não atende todos os requisitos.");
+      return;
+    }
+    if (!passwordsMatch) {
+      toast.error("As senhas não coincidem.");
+      return;
+    }
+
+    setSavingPassword(true);
+    try {
+      // Verify current password by re-signing in
+      const userEmail = profile?.email || user?.email;
+      if (!userEmail) throw new Error("E-mail não encontrado.");
+
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: userEmail,
+        password: senhaAtual,
+      });
+      if (signInError) {
+        toast.error("Senha atual incorreta.");
+        setSavingPassword(false);
+        return;
+      }
+
+      const { error: updateError } = await supabase.auth.updateUser({ password: novaSenha });
+      if (updateError) throw updateError;
+
+      toast.success("Senha alterada com sucesso! Use a nova senha no próximo login.");
+      setSenhaAtual("");
+      setNovaSenha("");
+      setConfirmarSenha("");
+    } catch (error: any) {
+      console.error("Erro ao alterar senha:", error);
+      toast.error(error.message || "Erro ao alterar a senha.");
+    } finally {
+      setSavingPassword(false);
+    }
+  };
+
   // Store original values for change detection
   const [originalValues, setOriginalValues] = useState<Record<string, string>>({});
 
