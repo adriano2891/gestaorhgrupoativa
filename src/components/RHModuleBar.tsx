@@ -100,7 +100,7 @@ export const RHModuleBar = () => {
                 key={mod.path}
                 onClick={() => navigate(mod.path)}
                 onMouseEnter={() => handlePrefetch(mod.path)}
-                className={`relative flex flex-col items-center gap-0.5 transition-all duration-200 group ${
+                className={`relative flex items-center gap-1 transition-all duration-200 group ${
                   isActive ? "opacity-100" : "opacity-75 hover:opacity-100"
                 }`}
               >
@@ -110,7 +110,7 @@ export const RHModuleBar = () => {
                       ? "ring-2 ring-white shadow-lg scale-105"
                       : "ring-1 ring-white/40 group-hover:ring-2 group-hover:ring-white group-hover:scale-105"
                   }`}
-                  style={{ width: 30, height: 30 }}
+                  style={{ width: 26, height: 26 }}
                 >
                   <img
                     src={mod.iconSrc}
@@ -123,7 +123,7 @@ export const RHModuleBar = () => {
                     </span>
                   )}
                 </div>
-                <span className={`text-[9px] leading-tight text-white font-medium whitespace-nowrap max-w-[60px] truncate ${isActive ? "font-bold" : ""}`}>
+                <span className={`text-[9px] leading-tight text-white font-medium whitespace-nowrap ${isActive ? "font-bold" : ""}`}>
                   {mod.title}
                 </span>
               </button>
