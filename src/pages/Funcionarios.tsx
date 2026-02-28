@@ -1237,6 +1237,13 @@ const Funcionarios = () => {
             <DialogDescription>
               Atualize as informações do funcionário
             </DialogDescription>
+            {editingEmployee && employeeUpdates[editingEmployee.id] && (
+              <div className="mt-2 flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                <span className="text-amber-600 text-xs font-medium">
+                  ✏️ Última atualização pelo funcionário em {new Date(employeeUpdates[editingEmployee.id].updated_at).toLocaleString('pt-BR')}
+                </span>
+              </div>
+            )}
           </DialogHeader>
           {editingEmployee && (
             <div className="grid gap-3 overflow-y-auto pr-2 -mr-2"
