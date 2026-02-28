@@ -149,8 +149,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (data.user) {
         setUser(data.user);
         
-        // Load profile/roles BEFORE navigating so UI renders correctly
-        await loadUserData(data.user.id);
+        // Load profile/roles with timeout to prevent login freeze
+        try {
+          await Promise.race([
+            loadUserData(data.user.id),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+          ]);
+        } catch (e) {
+          console.warn("Auth: loadUserData timeout, navigating anyway", e);
+        }
         
         setLoading(false);
         navigate("/dashboard");
