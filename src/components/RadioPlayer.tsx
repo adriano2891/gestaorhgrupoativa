@@ -1,69 +1,90 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Play, Pause, SkipForward, SkipBack, Radio, Volume2, VolumeX } from "lucide-react";
 import { Button } from "./ui/button";
+import { toast } from "sonner";
 
 const STATIONS = [
-  { name: "Jovem Pan", url: "https://stream.zeno.fm/yn65fsaurfhvv" },
-  { name: "Band FM", url: "https://stream.zeno.fm/4s2hcbps2g8uv" },
-  { name: "Mix FM", url: "https://stream.zeno.fm/ra15gdam3fquv" },
-  { name: "Antena 1", url: "https://stream.zeno.fm/0r0xa792kwzuv" },
-  { name: "MPB FM", url: "https://stream.zeno.fm/phr7ygs9x18uv" },
-  { name: "89 Rock", url: "https://stream.zeno.fm/dmk2psk1f2zuv" },
-  { name: "CBN", url: "https://stream.zeno.fm/s53r7mn00phvv" },
-  { name: "Nativa FM", url: "https://stream.zeno.fm/xm73hcm30phvv" },
-  { name: "Alpha FM", url: "https://stream.zeno.fm/mhk6ksm30phvv" },
-  { name: "Kiss FM", url: "https://stream.zeno.fm/r6m6ksm30phvv" },
-  { name: "Transamérica", url: "https://stream.zeno.fm/mf8k6nk0f2zuv" },
-  { name: "Nova Brasil", url: "https://stream.zeno.fm/ze622sq1f2zuv" },
+  { name: "Jovem Pan", url: "https://streaming.jovempan.com.br/aac" },
+  { name: "Band News", url: "https://evpp.mm.uol.com.br:8443/bandnewsfm_sp/aac" },
+  { name: "CBN SP", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/CBN_SPAAC.aac" },
+  { name: "Cultura FM", url: "https://radios.cultura.sp.gov.br/culturafm" },
+  { name: "Smooth Jazz", url: "https://stream.laut.fm/smooth-jazz" },
+  { name: "Klassik Radio", url: "https://stream.klassikradio.de/live/mp3-192" },
+  { name: "Lo-Fi Hip Hop", url: "https://stream.laut.fm/lofi" },
+  { name: "Chill Out", url: "https://stream.laut.fm/chillout" },
+  { name: "Rock Radio", url: "https://stream.laut.fm/rock" },
+  { name: "Pop Hits", url: "https://stream.laut.fm/pop" },
+  { name: "Bossa Nova", url: "https://stream.laut.fm/bossanova" },
+  { name: "Jazz Radio", url: "https://stream.laut.fm/jazz" },
 ];
 
 export const RadioPlayer = () => {
   const [playing, setPlaying] = useState(false);
   const [stationIdx, setStationIdx] = useState(0);
   const [muted, setMuted] = useState(false);
+  const [loading, setLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const station = STATIONS[stationIdx];
 
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.src = station.url;
-      if (playing) audioRef.current.play().catch(() => {});
-    }
-  }, [stationIdx]);
+  const playStation = useCallback((url: string) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    setLoading(true);
+    audio.src = url;
+    audio.load();
+    audio.play()
+      .then(() => { setPlaying(true); setLoading(false); })
+      .catch(() => {
+        setPlaying(false);
+        setLoading(false);
+        toast.error("Não foi possível reproduzir esta estação");
+      });
+  }, []);
 
   const togglePlay = () => {
-    if (!audioRef.current) return;
+    const audio = audioRef.current;
+    if (!audio) return;
     if (playing) {
-      audioRef.current.pause();
+      audio.pause();
+      setPlaying(false);
     } else {
-      audioRef.current.play().catch(() => {});
+      playStation(station.url);
     }
-    setPlaying(!playing);
   };
 
   const changeStation = (dir: number) => {
-    setStationIdx((prev) => (prev + dir + STATIONS.length) % STATIONS.length);
+    const newIdx = (stationIdx + dir + STATIONS.length) % STATIONS.length;
+    setStationIdx(newIdx);
+    if (playing) {
+      playStation(STATIONS[newIdx].url);
+    }
   };
 
   return (
     <div className="flex items-center gap-1.5 bg-primary/10 rounded-full px-3 py-1.5 border border-primary/20">
-      <audio ref={audioRef} muted={muted} />
+      <audio ref={audioRef} muted={muted} crossOrigin="anonymous" preload="none" />
       <Radio className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-      <span className="text-[11px] font-medium text-foreground max-w-[70px] truncate hidden lg:inline" title={station.name}>
+      <span className="text-[11px] font-medium text-foreground max-w-[80px] truncate hidden lg:inline" title={station.name}>
         {station.name}
       </span>
       <div className="flex items-center gap-0.5">
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => changeStation(-1)}>
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => changeStation(-1)} title="Estação anterior">
           <SkipBack className="h-3 w-3" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={togglePlay}>
-          {playing ? <Pause className="h-3 w-3" /> : <Play className="h-3 w-3" />}
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={togglePlay} disabled={loading} title={playing ? "Pausar" : "Reproduzir"}>
+          {loading ? (
+            <Radio className="h-3 w-3 animate-pulse" />
+          ) : playing ? (
+            <Pause className="h-3 w-3" />
+          ) : (
+            <Play className="h-3 w-3" />
+          )}
         </Button>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => changeStation(1)}>
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => changeStation(1)} title="Próxima estação">
           <SkipForward className="h-3 w-3" />
         </Button>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setMuted(!muted); if (audioRef.current) audioRef.current.muted = !muted; }}>
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { const m = !muted; setMuted(m); if (audioRef.current) audioRef.current.muted = m; }} title={muted ? "Ativar som" : "Silenciar"}>
           {muted ? <VolumeX className="h-3 w-3" /> : <Volume2 className="h-3 w-3" />}
         </Button>
       </div>
