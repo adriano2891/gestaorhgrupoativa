@@ -37,26 +37,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const isSigningOut = useRef(false);
   const isSigningIn = useRef(false);
 
-  const loadUserData = useCallback(async (userId: string) => {
+  const loadUserData = useCallback(async (userId: string, token?: string) => {
     try {
-      const [profileResult, rolesResult] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("id, nome, email, departamento, cargo")
-          .eq("id", userId)
-          .maybeSingle(),
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userId),
-      ]);
-
-      if (profileResult.data) {
-        setProfile(profileResult.data as Profile);
+      const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+      const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      
+      const headers: Record<string, string> = {
+        'apikey': SUPABASE_KEY,
+        'Content-Type': 'application/json',
+      };
+      
+      // Use provided token or try to get from storage
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      } else {
+        const stored = localStorage.getItem(`sb-${import.meta.env.VITE_SUPABASE_PROJECT_ID}-auth-token`);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed?.access_token) {
+              headers['Authorization'] = `Bearer ${parsed.access_token}`;
+            }
+          } catch {}
+        }
       }
-
-      if (rolesResult.data) {
-        setRoles((rolesResult.data as any[])?.map((r: any) => r.role as UserRole) || []);
+      
+      const [profileRes, rolesRes] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=id,nome,email,departamento,cargo&limit=1`, { headers }),
+        fetch(`${SUPABASE_URL}/rest/v1/user_roles?user_id=eq.${userId}&select=role`, { headers }),
+      ]);
+      
+      if (profileRes.ok) {
+        const profiles = await profileRes.json();
+        if (profiles?.[0]) setProfile(profiles[0] as Profile);
+      }
+      
+      if (rolesRes.ok) {
+        const rolesData = await rolesRes.json();
+        if (rolesData) setRoles(rolesData.map((r: any) => r.role as UserRole));
       }
     } catch (error) {
       console.error("Erro ao carregar dados do usuário:", error);
