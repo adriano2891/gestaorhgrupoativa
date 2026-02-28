@@ -365,7 +365,7 @@ const Funcionarios = () => {
         const inFilter = targetIds.map(id => `"${id}"`).join(',');
         const profilesData = await restFetch(
           'profiles',
-          `?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url&id=in.(${inFilter})&order=nome.asc`
+          `?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by&id=in.(${inFilter})&order=nome.asc`
         );
 
         console.log("fetchEmployees: Profiles retornados:", profilesData?.length || 0);
@@ -388,16 +388,21 @@ const Funcionarios = () => {
         setEmployees(formattedEmployees);
 
         const salaries: Record<string, { salario: number | null; ultimaAlteracao?: { valor: number; data: string } }> = {};
+        const updates: Record<string, { updated_at: string }> = {};
         for (const profile of profilesData || []) {
           salaries[profile.id] = { salario: profile.salario };
+          if (profile.perfil_updated_by === 'funcionario' && profile.perfil_updated_at) {
+            updates[profile.id] = { updated_at: profile.perfil_updated_at };
+          }
         }
         setEmployeeSalaries(salaries);
+        setEmployeeUpdates(updates);
       } else {
         // Fallback: fetch all profiles (RLS will filter)
         console.log("fetchEmployees: Fallback - buscando profiles diretamente...");
         const fallbackProfiles = await restFetch(
           'profiles',
-          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url&order=nome.asc'
+          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by&order=nome.asc'
         );
 
         const allProfiles = fallbackProfiles || [];
@@ -414,8 +419,16 @@ const Funcionarios = () => {
           foto_url: await resolveFotoUrl(profile.foto_url),
         })));
 
+        const updates: Record<string, { updated_at: string }> = {};
+        (allProfiles || []).forEach((profile: any) => {
+          if (profile.perfil_updated_by === 'funcionario' && profile.perfil_updated_at) {
+            updates[profile.id] = { updated_at: profile.perfil_updated_at };
+          }
+        });
+
         console.log("fetchEmployees: Fallback retornou", formatted.length, "funcionários");
         setEmployees(formatted);
+        setEmployeeUpdates(updates);
       }
     } catch (error: any) {
       console.error("fetchEmployees: Exceção:", error.message);
@@ -632,7 +645,7 @@ const Funcionarios = () => {
       const token = getAccessToken();
       if (token) {
         const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=cpf,salario,endereco,escala_trabalho,turno&id=eq.${employeeId}&limit=1`,
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by&id=eq.${employeeId}&limit=1`,
           {
             headers: {
               'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -645,10 +658,24 @@ const Funcionarios = () => {
           const rows = await res.json();
           const profileData = rows?.[0];
           if (profileData) {
+            setEditingEmployee((prev) => prev ? ({
+              ...prev,
+              name: profileData.nome || prev.name,
+              email: profileData.email || prev.email,
+              phone: profileData.telefone || prev.phone,
+              position: profileData.cargo || prev.position,
+              department: profileData.departamento || prev.department,
+              status: (profileData.status || prev.status) as EmployeeStatus,
+              admissionDate: profileData.data_admissao || prev.admissionDate,
+              foto_url: prev.foto_url,
+            }) : prev);
             setEditCpf(profileData.cpf || "");
             setEditEndereco(profileData.endereco || "");
             setEditEscala(profileData.escala_trabalho || "8h");
             setEditTurno(profileData.turno || "diurno");
+            if (profileData.perfil_updated_by === 'funcionario' && profileData.perfil_updated_at) {
+              setEmployeeUpdates(prev => ({ ...prev, [employeeId]: { updated_at: profileData.perfil_updated_at } }));
+            }
             if (profileData.salario) {
               const salarioFormatado = parseFloat(profileData.salario.toString()).toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
@@ -816,12 +843,12 @@ const Funcionarios = () => {
           description: "Os dados do funcionário foram atualizados com sucesso.",
         });
 
+        await fetchEmployees();
+
         setIsEditDialogOpen(false);
         setEditingEmployee(null);
         setEditPassword("");
         setEditSalary("");
-        
-        // O hook useFuncionariosRealtime vai atualizar automaticamente
       } catch (error: any) {
         toast({
           title: "Erro ao atualizar",

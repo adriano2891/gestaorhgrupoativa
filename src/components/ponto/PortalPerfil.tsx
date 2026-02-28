@@ -9,6 +9,7 @@ import { usePortalAuth } from "./PortalAuthProvider";
 import { PortalBackground } from "./PortalBackground";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { z } from "zod";
 
 interface PortalPerfilProps {
   onBack: () => void;
@@ -22,7 +23,10 @@ const getRestConfig = () => {
   let token = anonKey;
   try {
     const raw = localStorage.getItem(storageKey);
-    if (raw) token = JSON.parse(raw).access_token || anonKey;
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      token = parsed?.access_token || parsed?.currentSession?.access_token || parsed?.session?.access_token || anonKey;
+    }
   } catch {}
   return {
     url: supabaseUrl,
@@ -62,6 +66,13 @@ const CAMPO_LABELS: Record<string, string> = {
   telefone: 'Telefone',
   endereco: 'Endereço',
 };
+
+const perfilUpdateSchema = z.object({
+  nome: z.string().trim().min(2, "Informe um nome válido.").max(100, "Nome muito longo."),
+  email: z.string().trim().email("Informe um e-mail válido.").max(255, "E-mail muito longo."),
+  telefone: z.string().trim().min(8, "Informe um telefone válido.").max(20, "Telefone muito longo."),
+  endereco: z.string().trim().min(5, "Informe um endereço válido.").max(255, "Endereço muito longo."),
+});
 
 export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
   const { profile, user, refreshProfile } = usePortalAuth();
@@ -168,11 +179,24 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
     }
     setSaving(true);
     try {
-      const currentValues: Record<string, string> = {
-        nome: nome.trim(),
-        email: email.trim(),
-        telefone: telefone.trim(),
-        endereco: endereco.trim(),
+      const parsed = perfilUpdateSchema.safeParse({
+        nome,
+        email,
+        telefone,
+        endereco,
+      });
+
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message || "Dados inválidos.");
+        setSaving(false);
+        return;
+      }
+
+      const currentValues: Record<(typeof CAMPOS_PERMITIDOS)[number], string> = {
+        nome: parsed.data.nome,
+        email: parsed.data.email,
+        telefone: parsed.data.telefone,
+        endereco: parsed.data.endereco,
       };
 
       // Detect changed fields
@@ -204,15 +228,17 @@ export const PortalPerfil = ({ onBack }: PortalPerfilProps) => {
       });
 
       // Log each changed field
-      for (const change of changedFields) {
-        await restPost('log_alteracoes_perfil', {
-          user_id: userId,
-          campo: change.campo,
-          valor_anterior: change.valor_anterior,
-          valor_novo: change.valor_novo,
-          origem: 'funcionario',
-        });
-      }
+      await Promise.all(
+        changedFields.map((change) =>
+          restPost('log_alteracoes_perfil', {
+            user_id: userId,
+            campo: change.campo,
+            valor_anterior: change.valor_anterior,
+            valor_novo: change.valor_novo,
+            origem: 'funcionario',
+          })
+        )
+      );
 
       // Update original values to current
       setOriginalValues({ ...currentValues });
