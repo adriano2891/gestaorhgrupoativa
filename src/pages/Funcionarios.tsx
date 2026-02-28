@@ -280,12 +280,15 @@ const Funcionarios = () => {
   const restFetch = async (table: string, query: string = '') => {
     const token = getAccessToken();
     if (!token) throw new Error('NO_TOKEN');
-    const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${table}${query}`;
+    const separator = query.includes('?') ? '&' : '?';
+    const cacheBuster = `${separator}_t=${Date.now()}`;
+    const url = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/${table}${query}${cacheBuster}`;
     const res = await fetch(url, {
       headers: {
         'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
     if (!res.ok) throw new Error(`REST ${res.status}: ${res.statusText}`);
