@@ -149,6 +149,7 @@ const Funcionarios = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }>>({});
   const [employeeUpdates, setEmployeeUpdates] = useState<Record<string, { updated_at: string }>>({});
+  const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
   const [deletingEmployeeId, setDeletingEmployeeId] = useState<string | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
