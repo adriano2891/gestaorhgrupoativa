@@ -369,12 +369,9 @@ const Funcionarios = () => {
 
         console.log("fetchEmployees: Profiles retornados:", profilesData?.length || 0);
 
-        const activeProfiles = (profilesData || []).filter((p: any) => {
-          const status = (p.status || "ativo").toLowerCase();
-          return status !== "demitido" && status !== "pediu_demissao";
-        });
+        const allProfiles = profilesData || [];
 
-        const formattedEmployees = await Promise.all(activeProfiles.map(async (profile: any) => ({
+        const formattedEmployees = await Promise.all(allProfiles.map(async (profile: any) => ({
           id: profile.id,
           name: profile.nome,
           email: profile.email,
