@@ -117,7 +117,7 @@ export const EsqueciSenhaDialog = ({ open, onOpenChange }: EsqueciSenhaDialogPro
 
         {sucesso ? (
           <div className="flex flex-col items-center gap-4 py-6 text-center">
-            <CheckCircle className="h-12 w-12 text-green-500" />
+            <CheckCircle className="h-12 w-12 text-primary" />
             <p className="text-sm text-muted-foreground">
               Solicitação recebida, a nova senha será enviada para seu contato de WhatsApp.
             </p>
