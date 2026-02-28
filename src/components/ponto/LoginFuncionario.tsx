@@ -149,7 +149,7 @@ export const LoginFuncionario = () => {
                 <button
                   type="button"
                   className="text-sm text-primary hover:underline"
-                  onClick={() => toast.info("Entre em contato com o RH para recuperar sua senha")}
+                  onClick={() => setEsqueciSenhaOpen(true)}
                 >
                   Esqueci minha senha
                 </button>
@@ -157,6 +157,8 @@ export const LoginFuncionario = () => {
             </form>
           </CardContent>
         </Card>
+
+        <EsqueciSenhaDialog open={esqueciSenhaOpen} onOpenChange={setEsqueciSenhaOpen} />
       </div>
     </div>
   );
