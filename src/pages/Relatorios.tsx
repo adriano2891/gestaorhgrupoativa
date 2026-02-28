@@ -1267,8 +1267,20 @@ const Relatorios = () => {
 
           const fmt = (v: number) => `R$ ${v.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`;
 
+          // Abreviar nome: "Antonio Adriano da Silva" → "Antonio A. da Silva"
+          const abreviarNome = (nome: string) => {
+            const partes = nome.trim().split(/\s+/);
+            if (partes.length <= 2) return nome;
+            const preposicoes = ['de', 'da', 'do', 'das', 'dos', 'e'];
+            return partes.map((p, i) => {
+              if (i === 0 || i === partes.length - 1) return p;
+              if (preposicoes.includes(p.toLowerCase())) return p;
+              return `${p[0]}.`;
+            }).join(' ');
+          };
+
           detalhamentoFolha.push({
-            nome: f.nome,
+            nome: abreviarNome(f.nome),
             departamento: f.departamento || "N/I",
             cargo: f.cargo || "N/I",
             salarioBase: fmt(salarioBruto),
