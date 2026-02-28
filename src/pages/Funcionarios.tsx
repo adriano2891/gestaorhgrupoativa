@@ -645,7 +645,7 @@ const Funcionarios = () => {
       const token = getAccessToken();
       if (token) {
         const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=cpf,salario,endereco,escala_trabalho,turno&id=eq.${employeeId}&limit=1`,
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by&id=eq.${employeeId}&limit=1`,
           {
             headers: {
               'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -658,10 +658,24 @@ const Funcionarios = () => {
           const rows = await res.json();
           const profileData = rows?.[0];
           if (profileData) {
+            setEditingEmployee((prev) => prev ? ({
+              ...prev,
+              name: profileData.nome || prev.name,
+              email: profileData.email || prev.email,
+              phone: profileData.telefone || prev.phone,
+              position: profileData.cargo || prev.position,
+              department: profileData.departamento || prev.department,
+              status: (profileData.status || prev.status) as EmployeeStatus,
+              admissionDate: profileData.data_admissao || prev.admissionDate,
+              foto_url: prev.foto_url,
+            }) : prev);
             setEditCpf(profileData.cpf || "");
             setEditEndereco(profileData.endereco || "");
             setEditEscala(profileData.escala_trabalho || "8h");
             setEditTurno(profileData.turno || "diurno");
+            if (profileData.perfil_updated_by === 'funcionario' && profileData.perfil_updated_at) {
+              setEmployeeUpdates(prev => ({ ...prev, [employeeId]: { updated_at: profileData.perfil_updated_at } }));
+            }
             if (profileData.salario) {
               const salarioFormatado = parseFloat(profileData.salario.toString()).toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
