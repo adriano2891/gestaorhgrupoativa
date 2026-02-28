@@ -267,9 +267,16 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
     }, 800);
   };
 
+  const refreshProfile = useCallback(async () => {
+    if (user) {
+      const updated = await loadProfile(user.id);
+      if (updated) setProfile(updated);
+    }
+  }, [user, loadProfile]);
+
   return (
     <PortalAuthContext.Provider
-      value={{ user, profile, loading, signInWithCPF, signOut }}
+      value={{ user, profile, loading, signInWithCPF, signOut, refreshProfile }}
     >
       {children}
     </PortalAuthContext.Provider>
