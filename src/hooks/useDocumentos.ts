@@ -118,9 +118,17 @@ function sanitizeStorageFileName(name: string): string {
   return sanitized;
 }
 
+function encodeStoragePath(path: string): string {
+  return path
+    .split('/')
+    .map((segment) => encodeURIComponent(segment))
+    .join('/');
+}
+
 async function storageUpload(bucket: string, fileName: string, file: File) {
   const token = getAccessToken();
-  const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${fileName}`;
+  const encodedPath = encodeStoragePath(fileName);
+  const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${encodedPath}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -138,7 +146,8 @@ async function storageUpload(bucket: string, fileName: string, file: File) {
 
 async function storageSignedUrl(bucket: string, fileName: string) {
   const token = getAccessToken();
-  const url = `${SUPABASE_URL}/storage/v1/object/sign/${bucket}/${fileName}`;
+  const encodedPath = encodeStoragePath(fileName);
+  const url = `${SUPABASE_URL}/storage/v1/object/sign/${bucket}/${encodedPath}`;
   const res = await fetch(url, {
     method: 'POST',
     headers: {
@@ -154,6 +163,53 @@ async function storageSignedUrl(bucket: string, fileName: string) {
   }
   const data = await res.json();
   return `${SUPABASE_URL}/storage/v1${data.signedURL}`;
+}
+
+function extractDocumentoStoragePath(arquivoUrl: string): string | null {
+  if (!arquivoUrl) return null;
+
+  const cleanUrl = arquivoUrl.trim();
+  if (!cleanUrl) return null;
+
+  try {
+    const parsed = new URL(cleanUrl);
+    const signPrefix = '/storage/v1/object/sign/documentos/';
+    const objectPrefix = '/storage/v1/object/documentos/';
+
+    if (parsed.pathname.includes(signPrefix)) {
+      const path = parsed.pathname.split(signPrefix)[1];
+      return path ? decodeURIComponent(path) : null;
+    }
+
+    if (parsed.pathname.includes(objectPrefix)) {
+      const path = parsed.pathname.split(objectPrefix)[1];
+      return path ? decodeURIComponent(path) : null;
+    }
+  } catch {
+    // fallback below
+  }
+
+  const withoutQuery = cleanUrl.split('?')[0].replace(/^\/+/, '');
+
+  if (withoutQuery.startsWith('documentos/')) {
+    return decodeURIComponent(withoutQuery.replace(/^documentos\//, ''));
+  }
+
+  if (!withoutQuery.includes('://')) {
+    return decodeURIComponent(withoutQuery);
+  }
+
+  return null;
+}
+
+export async function getDocumentoAccessUrl(arquivoUrl: string): Promise<string> {
+  const path = extractDocumentoStoragePath(arquivoUrl);
+
+  if (!path) {
+    return arquivoUrl;
+  }
+
+  return storageSignedUrl('documentos', path);
 }
 
 // Helper para detectar tipo do arquivo

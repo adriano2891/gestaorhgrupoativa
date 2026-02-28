@@ -50,7 +50,7 @@ export const UploadDocumentoDialog = ({ open, onOpenChange, categorias }: Upload
     defaultValues: {
       titulo: "",
       descricao: "",
-      categoria_id: "",
+      categoria_id: undefined,
       publico: false,
     },
   });

@@ -17,9 +17,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { useDocumentoComentarios, useDocumentoVersoes, useAddComentario, useUploadVersao } from "@/hooks/useDocumentos";
+import { useDocumentoComentarios, useDocumentoVersoes, useAddComentario, useUploadVersao, getDocumentoAccessUrl } from "@/hooks/useDocumentos";
 import { TIPO_LABELS, type Documento } from "@/types/documentos";
 import { cn } from "@/lib/utils";
+import { toast } from "@/hooks/use-toast";
 
 interface DocumentoDetalhesDialogProps {
   documento: Documento;
