@@ -173,6 +173,8 @@ export const OcorrenciasPontoCard = ({ mes, ano }: OcorrenciasPontoCardProps) =>
       limite_he: "Limite HE",
       dsr_trabalhado: "DSR Trabalhado",
       turno_irregular: "Turno Irregular",
+      estouro_pausa: "Estouro de Pausa",
+      estouro_almoco: "Estouro Almoço",
     };
     return map[tipo] || tipo;
   };
