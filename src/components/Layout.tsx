@@ -75,7 +75,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       {/* Overlay para melhorar legibilidade */}
       <div className="min-h-screen bg-background/85 backdrop-blur-[2px]">
       {/* Header */}
-      <header className="bg-card shadow-sm sticky top-0 z-50">
+      <header className="bg-card shadow-sm fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 flex items-center justify-between">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <img src={logoHeader} alt="AtivaRH" className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 object-contain flex-shrink-0" />
@@ -152,52 +152,57 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </div>
       </header>
+      {/* Spacer for fixed header */}
+      <div className="h-[44px] sm:h-[48px] md:h-[56px]" />
 
       {/* Module Navigation Bar */}
       {RH_PATHS.has(location.pathname) ? (
         <RHModuleBar />
       ) : (
-        <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[44px] sm:top-[48px] md:top-[56px] z-40 hidden md:block">
-          <div 
-            className="w-full"
-            style={{ 
-              overflowX: 'auto', 
-              overflowY: 'hidden',
-              WebkitOverflowScrolling: 'touch',
-            }}
-          >
-            <ul 
-              className="flex items-center px-4 md:px-6 list-none m-0 p-0"
+        <>
+          <nav className="bg-primary border-b border-primary-foreground/10 fixed top-[44px] sm:top-[48px] md:top-[56px] left-0 right-0 z-40 hidden md:block">
+            <div 
+              className="w-full"
               style={{ 
-                display: 'inline-flex',
-                flexWrap: 'nowrap',
-                minWidth: '100%',
-                width: 'max-content',
+                overflowX: 'auto', 
+                overflowY: 'hidden',
+                WebkitOverflowScrolling: 'touch',
               }}
             >
-              {navItems.map((item) => {
-                const isActive = location.pathname === item.path;
-                return (
-                  <li key={item.path} style={{ flexShrink: 0 }}>
-                    <Link
-                      to={item.path}
-                      onMouseEnter={() => handlePrefetch(item.path)}
-                      style={{ whiteSpace: 'nowrap' }}
-                      className={`inline-flex items-center gap-1.5 px-3 py-3 text-xs lg:text-sm font-medium transition-all border-b-2 ${
-                        isActive
-                          ? "text-primary-foreground border-primary-foreground"
-                          : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:border-primary-foreground/30"
-                      }`}
-                    >
-                      <span className="text-base lg:text-lg">{item.icon}</span>
-                      <span>{item.label}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        </nav>
+              <ul 
+                className="flex items-center px-4 md:px-6 list-none m-0 p-0"
+                style={{ 
+                  display: 'inline-flex',
+                  flexWrap: 'nowrap',
+                  minWidth: '100%',
+                  width: 'max-content',
+                }}
+              >
+                {navItems.map((item) => {
+                  const isActive = location.pathname === item.path;
+                  return (
+                    <li key={item.path} style={{ flexShrink: 0 }}>
+                      <Link
+                        to={item.path}
+                        onMouseEnter={() => handlePrefetch(item.path)}
+                        style={{ whiteSpace: 'nowrap' }}
+                        className={`inline-flex items-center gap-1.5 px-3 py-3 text-xs lg:text-sm font-medium transition-all border-b-2 ${
+                          isActive
+                            ? "text-primary-foreground border-primary-foreground"
+                            : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:border-primary-foreground/30"
+                        }`}
+                      >
+                        <span className="text-base lg:text-lg">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </nav>
+          <div className="hidden md:block h-[44px]" />
+        </>
       )}
 
       {/* Main Content */}
