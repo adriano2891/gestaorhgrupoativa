@@ -200,6 +200,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
             </ul>
           </div>
         </nav>
+        {/* Spacer for fixed non-RH nav */}
+        <div className="hidden md:block h-[44px]" />
       )}
 
       {/* Main Content */}
