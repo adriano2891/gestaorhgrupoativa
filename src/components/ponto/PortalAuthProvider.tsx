@@ -57,15 +57,15 @@ export const PortalAuthProvider = ({ children }: { children: React.ReactNode }) 
       }
       if (!token) token = anonKey;
 
-      const res = await fetch(
-        `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=id,nome,email,cpf,telefone,departamento,cargo,data_nascimento,foto_url,deve_trocar_senha,data_admissao,created_at,endereco,perfil_updated_at,perfil_updated_by&limit=1`,
-        {
-          headers: {
-            'apikey': anonKey,
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
+      const profileUrl = `${supabaseUrl}/rest/v1/profiles?id=eq.${userId}&select=id,nome,email,cpf,telefone,departamento,cargo,data_nascimento,foto_url,deve_trocar_senha,data_admissao,created_at,endereco,perfil_updated_at,perfil_updated_by&limit=1&_t=${Date.now()}`;
+      const res = await fetch(profileUrl, {
+        headers: {
+          'apikey': anonKey,
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        },
+      });
 
       if (!res.ok) {
         console.error("Erro ao carregar perfil:", res.status);
