@@ -58,39 +58,40 @@ export const EsqueciSenhaDialog = ({ open, onOpenChange }: EsqueciSenhaDialogPro
     setLoading(true);
 
     try {
-      // Look up user by CPF
-      const { data: userData, error: userError } = await supabase
-        .rpc("get_email_by_cpf", { cpf_input: cpf.replace(/\D/g, "") });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15000);
 
-      if (userError || !userData || userData.length === 0) {
-        toast.error("CPF não encontrado no sistema.");
-        setLoading(false);
-        return;
-      }
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/forgot-password`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "apikey": import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ cpf, nomeCompleto: nomeCompleto.trim() }),
+          signal: controller.signal,
+        }
+      );
 
-      const userId = userData[0].user_id;
+      clearTimeout(timeout);
 
-      // Create chamado for password recovery
-      const { error: chamadoError } = await supabase
-        .from("chamados_suporte")
-        .insert({
-          user_id: userId,
-          assunto: `Recuperação de Senha - ${nomeCompleto.trim()}`,
-          categoria: "outros",
-          status: "aberto",
-        });
+      const result = await response.json();
 
-      if (chamadoError) {
-        console.error("Erro ao criar chamado:", chamadoError);
-        toast.error("Erro ao enviar solicitação. Tente novamente.");
+      if (!response.ok) {
+        toast.error(result.error || "Erro ao enviar solicitação.");
         setLoading(false);
         return;
       }
 
       setSucesso(true);
-    } catch (err) {
-      console.error("Erro inesperado:", err);
-      toast.error("Erro inesperado. Tente novamente.");
+    } catch (err: any) {
+      if (err.name === "AbortError") {
+        toast.error("Tempo esgotado. Tente novamente.");
+      } else {
+        console.error("Erro inesperado:", err);
+        toast.error("Erro inesperado. Tente novamente.");
+      }
     } finally {
       setLoading(false);
     }
