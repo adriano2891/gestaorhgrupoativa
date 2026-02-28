@@ -105,7 +105,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (event === 'INITIAL_SESSION') {
         if (session?.user) {
           setUser(session.user);
-          await loadUserData(session.user.id);
+          await loadUserData(session.user.id, session.access_token);
         }
         if (isMounted && !initialLoadDone) {
           initialLoadDone = true;
