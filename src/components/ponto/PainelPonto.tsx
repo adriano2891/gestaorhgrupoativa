@@ -8,8 +8,24 @@ import { TabelaPontoDia } from "./TabelaPontoDia";
 import { HistoricoPonto } from "./HistoricoPonto";
 import { RelogioTurno } from "./RelogioTurno";
 import { CronometroPausa } from "./CronometroPausa";
-import { supabase } from "@/integrations/supabase/client";
 import { PortalBackground } from "./PortalBackground";
+
+const getRestHeaders = () => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
+  const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID || supabaseUrl.match(/\/\/([^.]+)/)?.[1];
+  const storageKey = `sb-${projectRef}-auth-token`;
+  let token = anonKey;
+  try {
+    const raw = localStorage.getItem(storageKey);
+    if (raw) token = JSON.parse(raw).access_token || anonKey;
+  } catch {}
+  return {
+    'apikey': anonKey,
+    'Authorization': `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
+};
 
 interface PainelPontoProps {
   onBack?: () => void;
@@ -23,38 +39,28 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
 
   const loadRegistroHoje = useCallback(async () => {
     try {
-      let userId = profile?.id;
-      
-      if (!userId) {
-        try {
-          const sessionPromise = supabase.auth.getSession();
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), 4000));
-          const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
-          userId = session?.user?.id;
-        } catch {
-          // Session fetch timed out or failed
-        }
-      }
-      
+      const userId = profile?.id;
       if (!userId) {
         setLoading(false);
         return;
       }
 
       const hoje = new Date().toISOString().split('T')[0];
-      
-      const { data, error } = await supabase
-        .from("registros_ponto")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("data", hoje)
-        .maybeSingle();
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-      if (error) {
-        console.error("Erro ao carregar registro:", error);
+      const res = await fetch(
+        `${supabaseUrl}/rest/v1/registros_ponto?user_id=eq.${userId}&data=eq.${hoje}&select=*&limit=1`,
+        { headers: getRestHeaders() }
+      );
+
+      if (!res.ok) {
+        console.error("Erro ao carregar registro:", res.status);
+        setLoading(false);
+        return;
       }
 
-      setRegistroHoje(data || null);
+      const data = await res.json();
+      setRegistroHoje(data?.[0] || null);
     } catch (error) {
       console.error("Erro ao carregar registro do dia:", error);
     } finally {
@@ -68,7 +74,7 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
 
   const handleRegistroAtualizado = useCallback(() => {
     loadRegistroHoje();
-    setRefreshKey(prev => prev + 1); // triggers HistoricoPonto refresh
+    setRefreshKey(prev => prev + 1);
   }, [loadRegistroHoje]);
 
   const handleBack = () => {
@@ -81,7 +87,6 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
 
   return (
     <PortalBackground>
-      {/* Cabeçalho */}
       <header className="bg-card border-b shadow-sm sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4">
           <Button variant="ghost" onClick={handleBack}>
@@ -91,10 +96,8 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
         </div>
       </header>
 
-      {/* Conteúdo Principal */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-6">
-          {/* Card de Boas-vindas */}
           <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -109,25 +112,21 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
             </CardHeader>
           </Card>
 
-          {/* Relógios e Cronômetros */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <RelogioTurno registroHoje={registroHoje} />
             <CronometroPausa registroHoje={registroHoje} />
           </div>
 
-          {/* Botões de Marcação */}
           <BotoesPonto 
             registroHoje={registroHoje} 
             onRegistroAtualizado={handleRegistroAtualizado}
           />
 
-          {/* Tabela do Dia */}
           <TabelaPontoDia 
             registro={registroHoje} 
             loading={loading}
           />
 
-          {/* Histórico dos Últimos 5 Dias */}
           <HistoricoPonto key={refreshKey} />
         </div>
       </main>
