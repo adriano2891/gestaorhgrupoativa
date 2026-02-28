@@ -35,12 +35,18 @@ export const HistoricoPonto = () => {
           return;
         }
 
+        const now = new Date();
+        const primeiroDia = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+        const ultimoDia = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        const ultimoDiaStr = `${ultimoDia.getFullYear()}-${String(ultimoDia.getMonth() + 1).padStart(2, '0')}-${String(ultimoDia.getDate()).padStart(2, '0')}`;
+
         const { data, error } = await supabase
           .from("registros_ponto")
           .select("*")
           .eq("user_id", userId)
-          .order("data", { ascending: false })
-          .limit(5);
+          .gte("data", primeiroDia)
+          .lte("data", ultimoDiaStr)
+          .order("data", { ascending: false });
 
         if (error) {
           console.error("Erro ao carregar histórico:", error);
@@ -109,7 +115,7 @@ export const HistoricoPonto = () => {
           <CardTitle>Histórico Recente</CardTitle>
         </div>
         <CardDescription>
-          Últimos 5 dias de registro de ponto
+          Registros de ponto do mês vigente
         </CardDescription>
       </CardHeader>
       <CardContent>
