@@ -158,28 +158,44 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         <RHModuleBar />
       ) : (
         <nav className="bg-primary border-b border-primary-foreground/10 sticky top-[44px] sm:top-[48px] md:top-[56px] z-40 hidden md:block">
-          <div className="overflow-x-auto overflow-y-hidden" style={{ WebkitOverflowScrolling: 'touch' }}>
-            <div className="flex flex-nowrap items-center px-4 md:px-6" style={{ minWidth: 'max-content' }}>
+          <div 
+            className="w-full"
+            style={{ 
+              overflowX: 'auto', 
+              overflowY: 'hidden',
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
+            <ul 
+              className="flex items-center px-4 md:px-6 list-none m-0 p-0"
+              style={{ 
+                display: 'inline-flex',
+                flexWrap: 'nowrap',
+                minWidth: '100%',
+                width: 'max-content',
+              }}
+            >
               {navItems.map((item) => {
                 const isActive = location.pathname === item.path;
                 return (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    onMouseEnter={() => handlePrefetch(item.path)}
-                    style={{ flexShrink: 0, whiteSpace: 'nowrap' }}
-                    className={`inline-flex items-center gap-1.5 px-3 py-3 text-xs lg:text-sm font-medium transition-all border-b-2 ${
-                      isActive
-                        ? "text-primary-foreground border-primary-foreground"
-                        : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:border-primary-foreground/30"
-                    }`}
-                  >
-                    <span className="text-base lg:text-lg" style={{ flexShrink: 0 }}>{item.icon}</span>
-                    <span>{item.label}</span>
-                  </Link>
+                  <li key={item.path} style={{ flexShrink: 0 }}>
+                    <Link
+                      to={item.path}
+                      onMouseEnter={() => handlePrefetch(item.path)}
+                      style={{ whiteSpace: 'nowrap' }}
+                      className={`inline-flex items-center gap-1.5 px-3 py-3 text-xs lg:text-sm font-medium transition-all border-b-2 ${
+                        isActive
+                          ? "text-primary-foreground border-primary-foreground"
+                          : "text-primary-foreground/70 border-transparent hover:text-primary-foreground hover:border-primary-foreground/30"
+                      }`}
+                    >
+                      <span className="text-base lg:text-lg">{item.icon}</span>
+                      <span>{item.label}</span>
+                    </Link>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </div>
         </nav>
       )}
