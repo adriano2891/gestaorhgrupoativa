@@ -85,6 +85,8 @@ interface EmployeeMonthRecord {
 const FolhaPonto = () => {
   usePontoRealtime();
   useFuncionariosRealtime();
+  const { hasRole } = useAuth();
+  const canEditFolha = hasRole("admin") || hasRole("rh");
   
   const { data: funcionarios, isLoading: loadingFuncionarios } = useFuncionarios();
 
