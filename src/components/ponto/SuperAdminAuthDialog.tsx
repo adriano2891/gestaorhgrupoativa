@@ -136,7 +136,7 @@ export const SuperAdminAuthDialog = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="admin-email">Email do Super Administrador</Label>
+            <Label htmlFor="admin-email">Email do Admin RH ou Super Administrador</Label>
             <Input
               id="admin-email"
               type="email"
