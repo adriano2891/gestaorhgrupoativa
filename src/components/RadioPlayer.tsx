@@ -4,18 +4,18 @@ import { Button } from "./ui/button";
 import { toast } from "sonner";
 
 const STATIONS = [
-  { name: "Jovem Pan", url: "https://streaming.jovempan.com.br/aac" },
-  { name: "Band News", url: "https://evpp.mm.uol.com.br:8443/bandnewsfm_sp/aac" },
-  { name: "CBN SP", url: "https://playerservices.streamtheworld.com/api/livestream-redirect/CBN_SPAAC.aac" },
-  { name: "Cultura FM", url: "https://radios.cultura.sp.gov.br/culturafm" },
   { name: "Smooth Jazz", url: "https://stream.laut.fm/smooth-jazz" },
-  { name: "Klassik Radio", url: "https://stream.klassikradio.de/live/mp3-192" },
   { name: "Lo-Fi Hip Hop", url: "https://stream.laut.fm/lofi" },
   { name: "Chill Out", url: "https://stream.laut.fm/chillout" },
   { name: "Rock Radio", url: "https://stream.laut.fm/rock" },
   { name: "Pop Hits", url: "https://stream.laut.fm/pop" },
   { name: "Bossa Nova", url: "https://stream.laut.fm/bossanova" },
   { name: "Jazz Radio", url: "https://stream.laut.fm/jazz" },
+  { name: "Klassik", url: "https://stream.laut.fm/klassik" },
+  { name: "80s Hits", url: "https://stream.laut.fm/80er" },
+  { name: "90s Hits", url: "https://stream.laut.fm/90er" },
+  { name: "Blues", url: "https://stream.laut.fm/blues" },
+  { name: "Reggae", url: "https://stream.laut.fm/reggae" },
 ];
 
 export const RadioPlayer = () => {
