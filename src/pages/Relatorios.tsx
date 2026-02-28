@@ -858,13 +858,26 @@ const Relatorios = () => {
             "Total de Funcionários": totalFunc,
             "Tempo Médio Contratação": `${metricaTurnover?.tempo_medio_contratacao || 0} dias`,
           },
-          details: funcList?.slice(0, 30).map(f => ({
-            nome: f.nome,
-            departamento: f.departamento || "Não informado",
-            cargo: f.cargo || "Não informado",
-            dataAdmissao: format(new Date(f.created_at), "dd/MM/yyyy"),
-            status: "Ativo",
-          })) || [],
+          details: funcList?.slice(0, 30).map(f => {
+            const statusNormalizado = String(f.status || "ativo").toLowerCase();
+            const statusLabel = statusNormalizado === "demitido"
+              ? "Demitido"
+              : statusNormalizado === "pediu_demissao" || statusNormalizado === "pediu demissão"
+              ? "Pediu demissão"
+              : statusNormalizado === "afastado"
+              ? "Afastado"
+              : statusNormalizado === "em_ferias"
+              ? "Em férias"
+              : "Ativo";
+
+            return {
+              nome: f.nome,
+              departamento: f.departamento || "Não informado",
+              cargo: f.cargo || "Não informado",
+              dataAdmissao: f.created_at ? format(new Date(f.created_at), "dd/MM/yyyy") : "N/I",
+              status: statusLabel,
+            };
+          }) || [],
           charts: [
             {
               type: "pie",
