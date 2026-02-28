@@ -42,6 +42,7 @@ const rhModules: RHModule[] = [
 const rhPaths = new Set(rhModules.map(m => m.path));
 rhPaths.add("/admins");
 rhPaths.add("/gestao-rh");
+rhPaths.add("/formularios-rh");
 
 export const RH_PATHS = rhPaths;
 
