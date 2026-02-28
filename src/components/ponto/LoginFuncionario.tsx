@@ -8,12 +8,14 @@ import { toast } from "sonner";
 import { Clock, LogIn, Eye, EyeOff } from "lucide-react";
 import loginBackground from "@/assets/login-background.png";
 import logoPortal from "@/assets/logo-portal-funcionario.png";
+import { EsqueciSenhaDialog } from "./EsqueciSenhaDialog";
 
 export const LoginFuncionario = () => {
   const [cpf, setCpf] = useState("");
   const [senha, setSenha] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [esqueciSenhaOpen, setEsqueciSenhaOpen] = useState(false);
   const { signInWithCPF } = usePortalAuth();
 
   const formatCPF = (value: string) => {
@@ -147,7 +149,7 @@ export const LoginFuncionario = () => {
                 <button
                   type="button"
                   className="text-sm text-primary hover:underline"
-                  onClick={() => toast.info("Entre em contato com o RH para recuperar sua senha")}
+                  onClick={() => setEsqueciSenhaOpen(true)}
                 >
                   Esqueci minha senha
                 </button>
@@ -155,6 +157,8 @@ export const LoginFuncionario = () => {
             </form>
           </CardContent>
         </Card>
+
+        <EsqueciSenhaDialog open={esqueciSenhaOpen} onOpenChange={setEsqueciSenhaOpen} />
       </div>
     </div>
   );
