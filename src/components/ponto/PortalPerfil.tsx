@@ -27,6 +27,7 @@ const getRestConfig = () => {
       const parsed = JSON.parse(raw);
       token = parsed?.access_token || parsed?.currentSession?.access_token || parsed?.session?.access_token || anonKey;
     }
+  } catch {}
   return {
     url: supabaseUrl,
     headers: {
