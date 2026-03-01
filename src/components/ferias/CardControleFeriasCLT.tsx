@@ -145,8 +145,10 @@ const useFuncionariosFerias = () => {
         return [] as FuncionarioFerias[];
       }
     },
-    staleTime: 1000 * 60 * 5,
-    retry: 1,
+    staleTime: 1000 * 30, // 30 seconds
+    refetchInterval: 1000 * 30, // Poll every 30s for near real-time updates
+    refetchOnWindowFocus: true,
+    retry: 2,
   });
 };
 
