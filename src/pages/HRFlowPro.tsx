@@ -23,12 +23,14 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { HRFlowFormBuilder } from "@/components/hrflow/HRFlowFormBuilder";
 import { HRFlowTemplates } from "@/components/hrflow/HRFlowTemplates";
 import { HRFlowAI } from "@/components/hrflow/HRFlowAI";
 import { HRFlowSettings } from "@/components/hrflow/HRFlowSettings";
 import { HRFlowForm, FormCategory, FormStatus, CATEGORY_LABELS, CATEGORY_COLORS } from "@/types/hrflow";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 const mockForms: HRFlowForm[] = [
   {
@@ -81,8 +83,21 @@ const HRFlowPro = () => {
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [editingForm, setEditingForm] = useState<HRFlowForm | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [forms, setForms] = useState<HRFlowForm[]>(mockForms);
+  const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
 
-  const filteredForms = mockForms.filter(form => {
+  const handleDeleteForm = (formId: string) => {
+    try {
+      setForms((currentForms) => currentForms.filter((form) => form.id !== formId));
+      setDeleteFormId(null);
+      toast.success("Formulário excluído com sucesso!");
+    } catch (error) {
+      console.error("Erro ao excluir formulário:", error);
+      toast.error("Não foi possível excluir o formulário.");
+    }
+  };
+
+  const filteredForms = forms.filter((form) => {
     const matchesSearch = form.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       form.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "todos" || form.category === categoryFilter;
@@ -205,7 +220,7 @@ const HRFlowPro = () => {
                       <Edit className="w-4 h-4 mr-1" />
                       Editar
                     </Button>
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
                           <MoreVertical className="w-4 h-4" />
@@ -220,7 +235,14 @@ const HRFlowPro = () => {
                           <ExternalLink className="w-4 h-4 mr-2" />
                           Link Público
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
+                        <DropdownMenuItem
+                          className="text-destructive"
+                          onSelect={(event) => {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            setDeleteFormId(form.id);
+                          }}
+                        >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Excluir
                         </DropdownMenuItem>
@@ -233,6 +255,30 @@ const HRFlowPro = () => {
           ))}
         </div>
       )}
+
+      <AlertDialog open={!!deleteFormId} onOpenChange={(open) => !open && setDeleteFormId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir formulário?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O formulário será permanentemente excluído.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={(event) => {
+                event.preventDefault();
+                if (!deleteFormId) return;
+                handleDeleteForm(deleteFormId);
+              }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 
