@@ -109,7 +109,7 @@ export const useSolicitacoesFerias = (filters?: {
 }) => {
   return useQuery({
     queryKey: ["solicitacoes-ferias", filters],
-    staleTime: 1000 * 30,
+    staleTime: 0,
     refetchInterval: 1000 * 30,
     refetchOnWindowFocus: true,
     retry: 2,
