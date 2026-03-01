@@ -257,20 +257,34 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
 
   // Síndico Responsável
   if ('clientSindico' in quote && quote.clientSindico) {
-    const sindicoLines = doc.splitTextToSize(`Síndico Responsável: ${quote.clientSindico}`, maxTextWidth);
-    doc.text(sindicoLines, rightCardX + 5, clientInfoY);
+    doc.setFont('helvetica', 'bold');
+    const sindicoLabel = 'Síndico Responsável: ';
+    doc.text(sindicoLabel, rightCardX + 5, clientInfoY);
+    doc.setFont('helvetica', 'normal');
+    const sindicoValueX = rightCardX + 5 + doc.getTextWidth(sindicoLabel);
+    const sindicoValueWidth = maxTextWidth - doc.getTextWidth(sindicoLabel);
+    const sindicoLines = doc.splitTextToSize(`${quote.clientSindico}`, sindicoValueWidth > 10 ? sindicoValueWidth : maxTextWidth);
+    doc.text(sindicoLines, sindicoValueX, clientInfoY);
     clientInfoY += sindicoLines.length * 3.5 + 1;
   }
 
   // Telefone
   if ('clientPhone' in quote && quote.clientPhone) {
-    doc.text(`Telefone: ${quote.clientPhone}`, rightCardX + 5, clientInfoY);
+    doc.setFont('helvetica', 'bold');
+    const telLabel = 'Telefone: ';
+    doc.text(telLabel, rightCardX + 5, clientInfoY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${quote.clientPhone}`, rightCardX + 5 + doc.getTextWidth(telLabel), clientInfoY);
     clientInfoY += 4.5;
   }
 
   // E-mail
   if ('clientEmail' in quote && quote.clientEmail) {
-    doc.text(`E-mail: ${quote.clientEmail}`, rightCardX + 5, clientInfoY);
+    doc.setFont('helvetica', 'bold');
+    const emailLabel = 'E-mail: ';
+    doc.text(emailLabel, rightCardX + 5, clientInfoY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${quote.clientEmail}`, rightCardX + 5 + doc.getTextWidth(emailLabel), clientInfoY);
     clientInfoY += 4.5;
   }
 
