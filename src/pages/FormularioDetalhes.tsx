@@ -135,23 +135,38 @@ const FormularioDetalhes = () => {
           {/* Campos Tab */}
           <TabsContent value="campos">
             <div className="space-y-4">
-              {/* Add Field */}
+              {/* Add Field - Grid of buttons */}
               <Card>
-                <CardContent className="flex items-center gap-4 py-4">
-                  <Select value={newFieldType} onValueChange={(v) => setNewFieldType(v as FormFieldType)}>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Tipo de campo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(FIELD_TYPE_LABELS).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>{label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={handleAddField} disabled={addCampo.isPending}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Campo
-                  </Button>
+                <CardHeader>
+                  <CardTitle className="text-base">Campos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {Object.entries(FIELD_TYPE_LABELS).map(([key, label]) => (
+                      <Button
+                        key={key}
+                        variant="outline"
+                        size="sm"
+                        className="justify-start h-auto py-2 px-3 text-xs"
+                        disabled={addCampo.isPending}
+                        onClick={async () => {
+                          if (!id) return;
+                          try {
+                            await addCampo.mutateAsync({
+                              formulario_id: id,
+                              label: label,
+                              tipo: key as FormFieldType,
+                              ordem: (campos?.length || 0) + 1,
+                            });
+                          } catch (error) {
+                            console.error("Erro ao adicionar campo:", error);
+                          }
+                        }}
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 
