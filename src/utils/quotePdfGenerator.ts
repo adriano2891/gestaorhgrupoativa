@@ -420,27 +420,34 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   // ============= SIGNATURE AREA (if signed) =============
   let signatureEndY = finalY;
   if (quote.signature && quote.signature.dataUrl) {
-    signatureEndY = finalY + 25;
+    const sigStartY = finalY + 8;
     
     doc.setTextColor(...black);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('Assinatura do Responsável:', margin, finalY + 15);
+    doc.text('Assinatura do Responsável:', margin, sigStartY);
+    
+    // Draw a subtle line for signature placement
+    doc.setDrawColor(...borderColor);
+    doc.setLineWidth(0.3);
+    doc.line(margin, sigStartY + 2, margin + 70, sigStartY + 2);
     
     try {
-      doc.addImage(quote.signature.dataUrl, 'PNG', margin, finalY + 20, 50, 20);
+      doc.addImage(quote.signature.dataUrl, 'PNG', margin, sigStartY + 4, 50, 20);
       
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
+      doc.setTextColor(...darkGray);
       const signedAt = quote.signature.signedAt instanceof Date ? quote.signature.signedAt : new Date(quote.signature.signedAt);
       doc.text(
         `${quote.signature.name} - ${format(signedAt, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
         margin,
-        finalY + 45
+        sigStartY + 28
       );
-      signatureEndY = finalY + 50;
+      signatureEndY = sigStartY + 32;
     } catch (error) {
       console.error('Erro ao adicionar assinatura:', error);
+      signatureEndY = sigStartY + 5;
     }
   }
 
