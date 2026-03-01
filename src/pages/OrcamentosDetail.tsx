@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuotes } from '@/contexts/QuotesContext';
 import { QuotesLayout } from '@/components/orcamentos/QuotesLayout';
@@ -5,16 +6,18 @@ import { GlassPanel } from '@/components/orcamentos/GlassPanel';
 import { QUOTE_STATUS_LABELS, QUOTE_STATUS_COLORS } from '@/types/quotes';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { Edit, FileDown, Link, CheckCircle, Clock } from 'lucide-react';
+import { Edit, FileDown, Link, CheckCircle, Clock, PenTool, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { downloadQuotePDF } from '@/utils/quotePdfGenerator';
+import { AssinaturaGestorDialog } from '@/components/orcamentos/AssinaturaGestorDialog';
 
 export default function OrcamentosDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { getQuote } = useQuotes();
+  const { getQuote, signQuote } = useQuotes();
+  const [signDialogOpen, setSignDialogOpen] = useState(false);
   
   const quote = id ? getQuote(id) : undefined;
 
@@ -30,6 +33,8 @@ export default function OrcamentosDetail() {
       </QuotesLayout>
     );
   }
+
+  const isSigned = quote.status === 'assinado';
 
   const formatCurrency = (value: number) => 
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -49,18 +54,38 @@ export default function OrcamentosDetail() {
     }
   };
 
+  const handleSign = (signatureDataUrl: string) => {
+    signQuote(quote.id, 'Gestor Responsável', signatureDataUrl);
+  };
+
   return (
     <QuotesLayout>
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-white">{quote.publicId}</h1>
-            <p className="text-white/80">Versão {quote.version} • {quote.clientName}</p>
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              {quote.publicId}
+              {isSigned && <Lock className="w-5 h-5 text-yellow-400" />}
+            </h1>
+            <p className="text-white/80">
+              Versão {quote.version} • {quote.clientName}
+              {isSigned && <span className="ml-2 text-yellow-300 text-sm">(Bloqueado - Assinado)</span>}
+            </p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
-              <Edit className="w-4 h-4 mr-2" />Editar
-            </Button>
+          <div className="flex gap-2 flex-wrap">
+            {!isSigned && (
+              <>
+                <Button variant="outline" onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
+                  <Edit className="w-4 h-4 mr-2" />Editar
+                </Button>
+                <Button
+                  onClick={() => setSignDialogOpen(true)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  <PenTool className="w-4 h-4 mr-2" />Assinar
+                </Button>
+              </>
+            )}
             <Button variant="outline" onClick={handleDownloadPDF}><FileDown className="w-4 h-4 mr-2" />PDF</Button>
             <Button onClick={handleCopyLink} className="bg-[#3EE0CF] text-black">
               <Link className="w-4 h-4 mr-2" />Link
@@ -114,10 +139,10 @@ export default function OrcamentosDetail() {
             {quote.signature && (
               <GlassPanel className="p-6">
                 <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-green-500" />Assinatura
+                  <CheckCircle className="w-5 h-5 text-green-500" />Assinatura do Gestor
                 </h2>
                 <div className="flex items-center gap-4">
-                  <img src={quote.signature.dataUrl} alt="Assinatura" className="h-20 border rounded" />
+                  <img src={quote.signature.dataUrl} alt="Assinatura" className="h-20 border rounded bg-white p-2" />
                   <div>
                     <p className="font-medium">{quote.signature.name}</p>
                     <p className="text-sm text-zinc-500">
@@ -147,6 +172,13 @@ export default function OrcamentosDetail() {
           </GlassPanel>
         </div>
       </div>
+
+      <AssinaturaGestorDialog
+        open={signDialogOpen}
+        onOpenChange={setSignDialogOpen}
+        onSign={handleSign}
+        signerName="Gestor Responsável"
+      />
     </QuotesLayout>
   );
 }
