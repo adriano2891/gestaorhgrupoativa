@@ -230,6 +230,10 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   const maxTextWidth = rightCardWidth - 10;
 
   // Nome do Condomínio
+  doc.setFont('helvetica', 'bold');
+  doc.text('Nome do Condomínio:', rightCardX + 5, clientInfoY);
+  clientInfoY += 4;
+  doc.setFont('helvetica', 'normal');
   const nameLines = doc.splitTextToSize(`${quote.clientName}`, maxTextWidth);
   doc.text(nameLines, rightCardX + 5, clientInfoY);
   clientInfoY += nameLines.length * 3.5 + 1;
