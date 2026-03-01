@@ -242,14 +242,13 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   clientInfoY += 4.5;
 
   // CNPJ (logo abaixo do nome do condomínio)
-  if ('clientCnpj' in quote && quote.clientCnpj) {
-    doc.setFont('helvetica', 'bold');
-    const cnpjLabel = 'CNPJ: ';
-    doc.text(cnpjLabel, rightCardX + 5, clientInfoY);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`${quote.clientCnpj}`, rightCardX + 5 + doc.getTextWidth(cnpjLabel), clientInfoY);
-    clientInfoY += 4.5;
-  }
+  doc.setFont('helvetica', 'bold');
+  const cnpjLabel = 'CNPJ: ';
+  doc.text(cnpjLabel, rightCardX + 5, clientInfoY);
+  doc.setFont('helvetica', 'normal');
+  const cnpjValue = ('clientCnpj' in quote && quote.clientCnpj) ? `${quote.clientCnpj}` : '-';
+  doc.text(cnpjValue, rightCardX + 5 + doc.getTextWidth(cnpjLabel), clientInfoY);
+  clientInfoY += 4.5;
 
   // Endereço
   if ('clientAddress' in quote && quote.clientAddress) {
