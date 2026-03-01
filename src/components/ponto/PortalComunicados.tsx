@@ -48,7 +48,7 @@ export const PortalComunicados = ({ onBack }: PortalComunicadosProps) => {
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-muted-foreground mb-4 text-lg">
                 Avisos e notícias da empresa
               </p>
               {isLoading ? (
