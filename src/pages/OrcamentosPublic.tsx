@@ -178,8 +178,10 @@ export default function OrcamentosPublic() {
                 </div>
               )}
               <div>
-                <p className="text-sm text-zinc-500 mb-1">Síndico Responsável:</p>
-                <p className="font-semibold text-zinc-800 text-base">{quote.clientSindico || '-'}</p>
+                <p className="text-zinc-800">
+                  <span className="font-bold">Síndico Responsável: </span>
+                  <span className="font-semibold">{quote.clientSindico || '-'}</span>
+                </p>
               </div>
             </div>
             <div className="space-y-2">
