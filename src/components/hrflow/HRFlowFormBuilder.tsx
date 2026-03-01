@@ -269,7 +269,9 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
                           </Button>
                         </div>
                       </div>
-                    ))}
+                      </div>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
