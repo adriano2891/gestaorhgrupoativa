@@ -360,7 +360,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.setTextColor(...darkTeal);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('Informações Importantes:', margin + 8, footerY + 8);
+  doc.text('Informações Importantes:', 13, footerY + 8);
 
   doc.setTextColor(...darkGray);
   doc.setFontSize(7);
