@@ -761,6 +761,7 @@ const Funcionarios = () => {
           endereco: editEndereco.trim() || null,
           escala_trabalho: editEscala,
           turno: editTurno,
+          data_admissao: editAdmissionDate || null,
         };
 
         // Converter salário formatado para número
