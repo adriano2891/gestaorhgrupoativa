@@ -82,7 +82,7 @@ export const HRFlowFormsList = () => {
     toast.success("Formulário duplicado com sucesso!");
   };
 
-  const filteredForms = mockForms.filter(form => {
+  const filteredForms = forms.filter(form => {
     const matchesSearch = form.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       form.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "todos" || form.category === categoryFilter;
