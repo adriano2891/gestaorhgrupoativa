@@ -46,7 +46,7 @@ export default function OrcamentosBuilder() {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
-  const { products, addQuote, getQuote, updateQuote } = useQuotes();
+  const { products, addQuote, getQuote, updateQuote, generatePublicId } = useQuotes();
   const { itens: dbItens, isLoading: isLoadingItens } = useItensOrcamento();
   const { clientes, isLoading: isLoadingClientes } = useClientesOrcamentos();
   
@@ -215,7 +215,7 @@ export default function OrcamentosBuilder() {
   const generatePdfData = () => {
     const selectedClient = clientes.find(c => c.id === clientId);
     return {
-      publicId: existingQuote?.publicId || `QT-${new Date().getFullYear()}-NOVO`,
+      publicId: existingQuote?.publicId || generatePublicId(),
       version: existingQuote?.version || 1,
       clientName: selectedClient?.nome_condominio || 'Cliente não selecionado',
       clientEmail: selectedClient?.email,

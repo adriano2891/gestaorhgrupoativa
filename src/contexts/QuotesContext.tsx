@@ -14,6 +14,7 @@ interface QuotesContextType {
   signQuote: (id: string, name: string, signatureDataUrl: string) => void;
   approveQuote: (id: string) => void;
   rejectQuote: (id: string) => void;
+  generatePublicId: () => string;
 }
 
 const QuotesContext = createContext<QuotesContextType | undefined>(undefined);
@@ -79,8 +80,8 @@ export function QuotesProvider({ children }: { children: ReactNode }) {
   const generatePublicId = () => {
     const year = new Date().getFullYear();
     const prefix = `QT-${year}-`;
-    // Find the highest existing number for this year
-    let maxNumber = 0;
+    const BASE_NUMBER = 162; // Start sequence from 0163
+    let maxNumber = BASE_NUMBER;
     quotes.forEach(q => {
       if (q.publicId.startsWith(prefix)) {
         const num = parseInt(q.publicId.replace(prefix, ''), 10);
@@ -254,6 +255,7 @@ export function QuotesProvider({ children }: { children: ReactNode }) {
       signQuote,
       approveQuote,
       rejectQuote,
+      generatePublicId,
     }}>
       {children}
     </QuotesContext.Provider>
