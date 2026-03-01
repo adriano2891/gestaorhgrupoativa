@@ -301,6 +301,7 @@ export type Database = {
           bairro: string | null
           cep: string | null
           cidade: string | null
+          cnpj: string | null
           complemento: string | null
           created_at: string
           email: string
@@ -320,6 +321,7 @@ export type Database = {
           bairro?: string | null
           cep?: string | null
           cidade?: string | null
+          cnpj?: string | null
           complemento?: string | null
           created_at?: string
           email: string
@@ -339,6 +341,7 @@ export type Database = {
           bairro?: string | null
           cep?: string | null
           cidade?: string | null
+          cnpj?: string | null
           complemento?: string | null
           created_at?: string
           email?: string

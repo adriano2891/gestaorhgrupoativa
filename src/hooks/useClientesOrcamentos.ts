@@ -35,6 +35,7 @@ export interface ClienteOrcamentoInput {
   cidade?: string;
   estado?: string;
   numero_unidades?: number;
+  cnpj?: string;
   observacoes?: string;
 }
 
