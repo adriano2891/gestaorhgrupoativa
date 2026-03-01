@@ -10,7 +10,8 @@ import {
   Trash2,
   Link,
   CheckCircle,
-  XCircle
+  XCircle,
+  Lock
 } from 'lucide-react';
 import { useQuotes } from '@/contexts/QuotesContext';
 import { QuotesLayout } from '@/components/orcamentos/QuotesLayout';
@@ -212,6 +213,7 @@ export default function OrcamentosLista() {
                         <Select 
                           value={quote.status} 
                           onValueChange={(value) => handleStatusChange(quote.id, value)}
+                          disabled={quote.status === 'assinado'}
                         >
                           <SelectTrigger className={cn(
                             "w-[100px] sm:w-[140px] h-7 sm:h-8 text-[10px] sm:text-xs font-medium text-white border-0",
@@ -253,9 +255,10 @@ export default function OrcamentosLista() {
                             size="icon"
                             onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}
                             className="h-8 w-8"
-                            title="Editar"
+                            title={quote.status === 'assinado' ? 'Bloqueado - Assinado' : 'Editar'}
+                            disabled={quote.status === 'assinado'}
                           >
-                            <Edit className="w-4 h-4" />
+                            {quote.status === 'assinado' ? <Lock className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
                           </Button>
                           <Button
                             variant="ghost"
@@ -280,10 +283,12 @@ export default function OrcamentosLista() {
                                 <Eye className="w-4 h-4 mr-2" />
                                 Ver Detalhes
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
-                                <Edit className="w-4 h-4 mr-2" />
-                                Editar
-                              </DropdownMenuItem>
+                              {quote.status !== 'assinado' && (
+                                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Editar
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem onClick={() => handleDownloadPdf(quote)}>
                                 <FileDown className="w-4 h-4 mr-2" />
                                 Baixar PDF
