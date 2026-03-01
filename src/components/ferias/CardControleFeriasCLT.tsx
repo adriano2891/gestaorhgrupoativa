@@ -225,12 +225,19 @@ export const CardControleFeriasCLT = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Status counters */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <div className="flex items-center gap-3 rounded-lg border p-3 bg-green-50 dark:bg-green-950/30">
             <CheckCircle className="h-5 w-5 text-green-600" />
             <div>
               <p className="text-sm text-muted-foreground">Cumprindo</p>
               <p className="text-xl font-bold text-green-700 dark:text-green-400">{counts.cumprindo}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-lg border p-3 bg-blue-50 dark:bg-blue-950/30">
+            <CheckCircle className="h-5 w-5 text-blue-600" />
+            <div>
+              <p className="text-sm text-muted-foreground">Em Férias</p>
+              <p className="text-xl font-bold text-blue-700 dark:text-blue-400">{counts.em_ferias}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-lg border p-3 bg-yellow-50 dark:bg-yellow-950/30">
