@@ -255,6 +255,7 @@ export function QuotesProvider({ children }: { children: ReactNode }) {
       signQuote,
       approveQuote,
       rejectQuote,
+      generatePublicId,
     }}>
       {children}
     </QuotesContext.Provider>
