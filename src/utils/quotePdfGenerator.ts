@@ -346,7 +346,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
 
   // ============= FOOTER - INFORMAÇÕES IMPORTANTES =============
   const footerCardHeight = 34;
-  const footerCardWidth = (pageWidth - margin * 2) / 2;
+  const footerCardWidth = (pageWidth - margin * 2) * 0.45;
   const footerY = signatureEndY + 12;
 
   // Teal footer background - smaller card
