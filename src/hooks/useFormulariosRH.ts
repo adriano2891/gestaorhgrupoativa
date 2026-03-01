@@ -208,7 +208,7 @@ export const useAddFormularioCampo = () => {
     }) => {
       const { data, error } = await supabase
         .from("formulario_campos")
-        .insert(fieldData)
+        .insert({ ...fieldData, tipo: fieldData.tipo as any })
         .select()
         .single();
 
