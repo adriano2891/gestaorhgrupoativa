@@ -222,38 +222,50 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.setTextColor(...black);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text('DADOS DO CLIENTE', rightCardX + 5, cardY + 8);
+  doc.text('DADOS DO CLIENTE', rightCardX + 5, cardY + 7);
 
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.text(`(${quote.clientName})`, rightCardX + 5, cardY + 14);
+  doc.setFontSize(8);
+  let clientInfoY = cardY + 13;
 
-  let clientInfoY = cardY + 20;
-  if ('clientCnpj' in quote && quote.clientCnpj) {
-    doc.setFontSize(8);
-    doc.text(`CNPJ: ${quote.clientCnpj}`, rightCardX + 5, clientInfoY);
-    clientInfoY += 5;
-  }
+  // Nome do Condomínio
+  doc.text(`${quote.clientName}`, rightCardX + 5, clientInfoY);
+  clientInfoY += 4.5;
+
+  // Endereço
   if ('clientAddress' in quote && quote.clientAddress) {
-    doc.setFontSize(8);
     doc.text(`${quote.clientAddress}`, rightCardX + 5, clientInfoY);
-    clientInfoY += 5;
+    clientInfoY += 4.5;
   }
-  if ('clientPhone' in quote && quote.clientPhone) {
-    doc.setFontSize(8);
-    doc.text(`Contato: ${quote.clientPhone}`, rightCardX + 5, clientInfoY);
-    clientInfoY += 5;
+
+  // CNPJ
+  if ('clientCnpj' in quote && quote.clientCnpj) {
+    doc.text(`CNPJ: ${quote.clientCnpj}`, rightCardX + 5, clientInfoY);
+    clientInfoY += 4.5;
   }
+
+  // Síndico Responsável
   if ('clientSindico' in quote && quote.clientSindico) {
-    doc.setFontSize(8);
-    doc.text(`Síndico: ${quote.clientSindico}`, rightCardX + 5, clientInfoY);
-    clientInfoY += 5;
+    doc.text(`Síndico Responsável: ${quote.clientSindico}`, rightCardX + 5, clientInfoY);
+    clientInfoY += 4.5;
+  }
+
+  // Telefone
+  if ('clientPhone' in quote && quote.clientPhone) {
+    doc.text(`Telefone: ${quote.clientPhone}`, rightCardX + 5, clientInfoY);
+    clientInfoY += 4.5;
+  }
+
+  // E-mail
+  if ('clientEmail' in quote && quote.clientEmail) {
+    doc.text(`E-mail: ${quote.clientEmail}`, rightCardX + 5, clientInfoY);
+    clientInfoY += 4.5;
   }
 
   // Quote ID inside client card at bottom
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.text(`Orçamento: ${quote.publicId}`, rightCardX + 5, cardY + cardHeight - 4);
+  doc.text(`Orçamento: ${quote.publicId}`, rightCardX + 5, cardY + cardHeight - 3);
 
   // ============= TITLE "ORÇAMENTO" =============
   let y = cardY + cardHeight + 18;
