@@ -1,16 +1,16 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
-// Realtime disabled to avoid LockManager hang
-// import { useFeriasRealtime } from "@/hooks/useRealtimeUpdates";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Download, FileText } from "lucide-react";
 import { MetricasFerias } from "@/components/ferias/MetricasFerias";
 import { FiltrosFerias } from "@/components/ferias/FiltrosFerias";
 import { TabelaFerias } from "@/components/ferias/TabelaFerias";
-import { CardControleFeriasCLT } from "@/components/ferias/CardControleFeriasCLT";
+import { CardControleFeriasCLT, useFuncionariosFerias } from "@/components/ferias/CardControleFeriasCLT";
 import { useSolicitacoesFerias } from "@/hooks/useFerias";
 import { Skeleton } from "@/components/ui/skeleton";
+import { exportarFeriasPDF, exportarFeriasExcel } from "@/utils/feriasPdfExcel";
+import { toast } from "sonner";
 
 const ControleFerias = () => {
   // useFeriasRealtime(); // Disabled - causes LockManager hang

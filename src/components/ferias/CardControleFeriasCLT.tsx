@@ -160,6 +160,8 @@ const getStatusConfig = (status: StatusFerias) => {
   }
 };
 
+export { useFuncionariosFerias };
+
 export const CardControleFeriasCLT = () => {
   const { data: funcionarios, isLoading } = useFuncionariosFerias();
   const queryClient = useQueryClient();
