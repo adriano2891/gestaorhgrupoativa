@@ -262,7 +262,10 @@ export const HRFlowFormsList = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteForm} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={() => handleDeleteForm(deleteFormId ?? undefined)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
