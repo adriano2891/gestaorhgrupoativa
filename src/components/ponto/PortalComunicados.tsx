@@ -44,7 +44,7 @@ export const PortalComunicados = ({ onBack }: PortalComunicadosProps) => {
             <CardHeader>
               <div className="flex items-center gap-3">
                 <Bell className="h-8 w-8 text-primary" />
-                <CardTitle className="text-2xl">Comunicados Internos</CardTitle>
+                <CardTitle className="text-3xl">Comunicados Internos</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
