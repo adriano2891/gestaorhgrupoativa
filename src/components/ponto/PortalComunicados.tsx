@@ -44,11 +44,11 @@ export const PortalComunicados = ({ onBack }: PortalComunicadosProps) => {
             <CardHeader>
               <div className="flex items-center gap-3">
                 <Bell className="h-8 w-8 text-primary" />
-                <CardTitle className="text-2xl">Comunicados Internos</CardTitle>
+                <CardTitle className="text-3xl">Comunicados Internos</CardTitle>
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground mb-4">
+              <p className="text-muted-foreground mb-4 text-lg">
                 Avisos e notícias da empresa
               </p>
               {isLoading ? (
@@ -77,17 +77,17 @@ export const PortalComunicados = ({ onBack }: PortalComunicadosProps) => {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium">{comunicado.titulo}</p>
+                            <p className="font-medium text-lg">{comunicado.titulo}</p>
                             {!comunicado.lido && (
                               <Badge variant="default" className="text-xs">
                                 Novo
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground mb-2">
+                          <p className="text-base text-muted-foreground mb-2">
                             {format(new Date(comunicado.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                           </p>
-                          <p className="text-sm">{comunicado.conteudo}</p>
+                          <p className="text-base">{comunicado.conteudo}</p>
                         </div>
                         <Badge variant="outline">{comunicado.tipo}</Badge>
                       </div>
