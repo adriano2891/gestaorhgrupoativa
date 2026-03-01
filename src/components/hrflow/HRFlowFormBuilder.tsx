@@ -195,7 +195,7 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
                     <p>Clique nos campos à esquerda para adicionar</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="flex flex-wrap gap-4">
                     {fields.map((field, index) => (
                       <div
                         key={field.id}
