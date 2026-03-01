@@ -282,10 +282,12 @@ export default function OrcamentosLista() {
                                 <Eye className="w-4 h-4 mr-2" />
                                 Ver Detalhes
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
-                                <Edit className="w-4 h-4 mr-2" />
-                                Editar
-                              </DropdownMenuItem>
+                              {quote.status !== 'assinado' && (
+                                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
+                                  <Edit className="w-4 h-4 mr-2" />
+                                  Editar
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem onClick={() => handleDownloadPdf(quote)}>
                                 <FileDown className="w-4 h-4 mr-2" />
                                 Baixar PDF
