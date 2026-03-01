@@ -3010,6 +3010,7 @@ export type Database = {
         | "number"
         | "email"
         | "phone"
+        | "radio"
       form_status:
         | "rascunho"
         | "pendente_aprovacao"
@@ -3176,6 +3177,7 @@ export const Constants = {
         "number",
         "email",
         "phone",
+        "radio",
       ],
       form_status: [
         "rascunho",
