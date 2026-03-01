@@ -34,7 +34,7 @@ const restGet = async (path: string) => {
   return res.json();
 };
 
-type StatusFerias = 'cumprindo' | 'prestes_a_vencer' | 'vencida';
+type StatusFerias = 'cumprindo' | 'prestes_a_vencer' | 'vencida' | 'em_ferias';
 
 interface FuncionarioFerias {
   id: string;
@@ -48,7 +48,7 @@ interface FuncionarioFerias {
   dias_para_vencer: number;
 }
 
-const calcularStatusFerias = (dataAdmissao: string): {
+const calcularStatusFerias = (dataAdmissao: string, statusPerfil: string): {
   fimAquisitivo: Date;
   fimConcessivo: Date;
   status: StatusFerias;
@@ -57,8 +57,6 @@ const calcularStatusFerias = (dataAdmissao: string): {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
-  // Base CLT simples por data de cadastro/admissão:
-  // 12 meses aquisitivo + 12 meses concessivo
   const admissao = new Date(`${dataAdmissao}T12:00:00`);
 
   const fimAquisitivo = new Date(admissao);
@@ -68,6 +66,12 @@ const calcularStatusFerias = (dataAdmissao: string): {
   fimConcessivo.setFullYear(fimConcessivo.getFullYear() + 2);
 
   const diasParaVencer = Math.ceil((fimConcessivo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+
+  // Se o status do perfil é "Em férias", mantém como ativo em férias
+  const stNorm = (statusPerfil || 'ativo').toLowerCase().replace(/[_\s]+/g, '');
+  if (stNorm === 'emferias' || stNorm === 'emférias') {
+    return { fimAquisitivo, fimConcessivo, status: 'em_ferias', diasParaVencer };
+  }
 
   let status: StatusFerias;
   if (hoje < fimAquisitivo) {
