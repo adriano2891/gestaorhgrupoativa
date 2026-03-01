@@ -262,7 +262,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
     doc.setFont('helvetica', 'bold');
     const sindicoLabel = 'Síndico Responsável:';
     doc.text(sindicoLabel, rightCardX + 5, clientInfoY);
-    const sindicoLabelWidth = doc.getTextWidth(sindicoLabel + ' ');
+    const sindicoLabelWidth = doc.getTextWidth(sindicoLabel + '   ');
     doc.setFont('helvetica', 'normal');
     const sindicoValueX = rightCardX + 5 + sindicoLabelWidth;
     const sindicoValueWidth = maxTextWidth - sindicoLabelWidth;
