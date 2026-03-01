@@ -231,12 +231,12 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
 
   // Nome do Condomínio
   doc.setFont('helvetica', 'bold');
-  doc.text('Nome do Condomínio:', rightCardX + 5, clientInfoY);
-  clientInfoY += 4;
+  const condLabel = 'Nome do Condomínio: ';
+  doc.text(condLabel, rightCardX + 5, clientInfoY);
+  const condLabelWidth = doc.getTextWidth(condLabel);
   doc.setFont('helvetica', 'normal');
-  const nameLines = doc.splitTextToSize(`${quote.clientName}`, maxTextWidth);
-  doc.text(nameLines, rightCardX + 5, clientInfoY);
-  clientInfoY += nameLines.length * 3.5 + 1;
+  doc.text(`${quote.clientName}`, rightCardX + 5 + condLabelWidth, clientInfoY);
+  clientInfoY += 4.5;
 
   // Endereço
   if ('clientAddress' in quote && quote.clientAddress) {
