@@ -351,11 +351,11 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
 
   // Teal footer background - smaller card
   doc.setFillColor(235, 250, 248);
-  doc.roundedRect(5, footerY, footerCardWidth, footerCardHeight, 4, 4, 'F');
+  doc.roundedRect(2, footerY, footerCardWidth, footerCardHeight, 4, 4, 'F');
 
   // Left teal accent
   doc.setFillColor(...tealColor);
-  doc.rect(5, footerY, 4, footerCardHeight, 'F');
+  doc.rect(2, footerY, 4, footerCardHeight, 'F');
 
   doc.setTextColor(...darkTeal);
   doc.setFontSize(9);
