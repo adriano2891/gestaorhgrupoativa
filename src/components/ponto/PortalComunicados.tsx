@@ -77,7 +77,7 @@ export const PortalComunicados = ({ onBack }: PortalComunicadosProps) => {
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <p className="font-medium">{comunicado.titulo}</p>
+                            <p className="font-medium text-lg">{comunicado.titulo}</p>
                             {!comunicado.lido && (
                               <Badge variant="default" className="text-xs">
                                 Novo
