@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { HRFlowForm, FormField, HRFlowFieldType, FIELD_TYPE_LABELS, CATEGORY_LABELS, FormCategory } from "@/types/hrflow";
+import { HRFlowForm, FormField, HRFlowFieldType, FIELD_TYPE_LABELS, CATEGORY_LABELS, FormCategory, WIDTH_OPTIONS } from "@/types/hrflow";
 import { FormTemplate } from "@/types/hrflow";
 import { cn } from "@/lib/utils";
 
@@ -195,10 +195,19 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
                     <p>Clique nos campos à esquerda para adicionar</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    {fields.map((field, index) => (
+                  <div className="flex flex-wrap gap-4">
+                    {fields.map((field, index) => {
+                      const w = field.width || 100;
+                      const widthClass = w === 100 ? 'w-full' 
+                        : w === 50 ? 'w-full sm:w-[calc(50%-0.5rem)]' 
+                        : w === 33 ? 'w-full sm:w-[calc(33.333%-0.667rem)]' 
+                        : 'w-full sm:w-[calc(25%-0.75rem)]';
+                      return (
                       <div
                         key={field.id}
+                        className={widthClass}
+                      >
+                      <div
                         draggable
                         onDragStart={(e) => handleDragStart(e, index)}
                         onDragEnd={handleDragEnd}
@@ -260,7 +269,9 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
                           </Button>
                         </div>
                       </div>
-                    ))}
+                      </div>
+                      );
+                    })}
                   </div>
                 )}
               </CardContent>
@@ -295,13 +306,31 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
                       className="mt-1"
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">Obrigatório</Label>
-                    <Switch
-                      checked={selectedField.required}
-                      onCheckedChange={(checked) => updateField(selectedField.id, { required: checked })}
-                    />
-                  </div>
+                    <div className="flex items-center justify-between">
+                     <Label className="text-xs">Obrigatório</Label>
+                     <Switch
+                       checked={selectedField.required}
+                       onCheckedChange={(checked) => updateField(selectedField.id, { required: checked })}
+                     />
+                   </div>
+                   <div>
+                     <Label className="text-xs">Largura</Label>
+                     <Select 
+                       value={String(selectedField.width || 100)} 
+                       onValueChange={(v) => updateField(selectedField.id, { width: parseInt(v) })}
+                     >
+                       <SelectTrigger className="mt-1">
+                         <SelectValue />
+                       </SelectTrigger>
+                       <SelectContent>
+                         {WIDTH_OPTIONS.map(opt => (
+                           <SelectItem key={opt.value} value={String(opt.value)}>
+                             {opt.label}
+                           </SelectItem>
+                         ))}
+                       </SelectContent>
+                     </Select>
+                   </div>
                   {(selectedField.type === 'select' || selectedField.type === 'radio' || selectedField.type === 'checkbox') && (
                     <div>
                       <Label className="text-xs">Opções (uma por linha)</Label>
