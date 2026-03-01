@@ -57,31 +57,15 @@ const calcularStatusFerias = (dataAdmissao: string): {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
-  const admissao = new Date(dataAdmissao + 'T12:00:00');
-  
-  // Calculate how many full years since admission
-  let anosCompletos = 0;
-  const testDate = new Date(admissao);
-  while (true) {
-    testDate.setFullYear(testDate.getFullYear() + 1);
-    if (testDate <= hoje) {
-      anosCompletos++;
-    } else {
-      break;
-    }
-  }
+  // Base CLT simples por data de cadastro/admissão:
+  // 12 meses aquisitivo + 12 meses concessivo
+  const admissao = new Date(`${dataAdmissao}T12:00:00`);
 
-  // Current acquisition period start
-  const inicioAquisitivo = new Date(admissao);
-  inicioAquisitivo.setFullYear(admissao.getFullYear() + anosCompletos);
+  const fimAquisitivo = new Date(admissao);
+  fimAquisitivo.setFullYear(fimAquisitivo.getFullYear() + 1);
 
-  // End of acquisition period (12 months after start)
-  const fimAquisitivo = new Date(inicioAquisitivo);
-  fimAquisitivo.setFullYear(inicioAquisitivo.getFullYear() + 1);
-
-  // End of concession period (12 months after end of acquisition)
-  const fimConcessivo = new Date(fimAquisitivo);
-  fimConcessivo.setFullYear(fimAquisitivo.getFullYear() + 1);
+  const fimConcessivo = new Date(admissao);
+  fimConcessivo.setFullYear(fimConcessivo.getFullYear() + 2);
 
   const diasParaVencer = Math.ceil((fimConcessivo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -93,7 +77,7 @@ const calcularStatusFerias = (dataAdmissao: string): {
   } else if (diasParaVencer <= 60) {
     status = 'prestes_a_vencer';
   } else {
-    status = 'cumprindo'; // Within concession period but not close to expiring
+    status = 'cumprindo';
   }
 
   return { fimAquisitivo, fimConcessivo, status, diasParaVencer };
