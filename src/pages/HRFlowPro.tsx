@@ -23,12 +23,14 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { HRFlowFormBuilder } from "@/components/hrflow/HRFlowFormBuilder";
 import { HRFlowTemplates } from "@/components/hrflow/HRFlowTemplates";
 import { HRFlowAI } from "@/components/hrflow/HRFlowAI";
 import { HRFlowSettings } from "@/components/hrflow/HRFlowSettings";
 import { HRFlowForm, FormCategory, FormStatus, CATEGORY_LABELS, CATEGORY_COLORS } from "@/types/hrflow";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 const mockForms: HRFlowForm[] = [
   {
