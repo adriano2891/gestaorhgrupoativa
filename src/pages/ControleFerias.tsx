@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +11,43 @@ import { useSolicitacoesFerias } from "@/hooks/useFerias";
 import { Skeleton } from "@/components/ui/skeleton";
 import { exportarFeriasPDF, exportarFeriasExcel } from "@/utils/feriasPdfExcel";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const ControleFerias = () => {
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [departamentoFilter, setDepartamentoFilter] = useState("todos");
   const [apenasNovas, setApenasNovas] = useState(false);
+
+  // Realtime: invalidate all vacation queries on relevant table changes
+  useEffect(() => {
+    const channel = supabase
+      .channel("controle-ferias-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "solicitacoes_ferias" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
+        queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "periodos_aquisitivos" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+        queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["funcionarios-ferias-clt"] });
+        queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+        queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_roles" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["funcionarios-ferias-clt"] });
+        queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const { data: funcionariosCLT } = useFuncionariosFerias();
 
