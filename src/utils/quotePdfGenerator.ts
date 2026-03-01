@@ -189,9 +189,12 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.text(COMPANY_INFO.name, margin + 5, cardY + 8);
 
   // CNPJ
-  doc.setFont('helvetica', 'normal');
+  doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.text(`CNPJ: ${COMPANY_INFO.cnpj}`, margin + 5, cardY + 14);
+  const companyCnpjLabel = 'CNPJ: ';
+  doc.text(companyCnpjLabel, margin + 5, cardY + 14);
+  doc.setFont('helvetica', 'normal');
+  doc.text(COMPANY_INFO.cnpj, margin + 5 + doc.getTextWidth(companyCnpjLabel), cardY + 14);
 
   // Address with icon
   const iconX = margin + 5;
