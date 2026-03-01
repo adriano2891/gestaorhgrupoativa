@@ -150,7 +150,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.rect(0, 40, pageWidth - 8, 2, 'F');
 
   // ============= COMPANY AND CLIENT INFO =============
-  let y = 50;
+  let y = 44;
 
   // Left side - Company info
   doc.setTextColor(...black);
@@ -222,13 +222,13 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   }
 
   // Quote ID on left
-  y = 88;
+  y = 82;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   doc.text(`Orçamento: ${quote.publicId}`, margin, y);
 
   // ============= TITLE "ORÇAMENTO" =============
-  y = 100;
+  y = 94;
   doc.setTextColor(...black);
   doc.setFontSize(28);
   doc.setFont('helvetica', 'bold');
