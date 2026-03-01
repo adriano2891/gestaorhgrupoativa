@@ -3013,6 +3013,7 @@ export type Database = {
         | "radio"
         | "likert"
         | "nps"
+        | "signature"
       form_status:
         | "rascunho"
         | "pendente_aprovacao"
@@ -3182,6 +3183,7 @@ export const Constants = {
         "radio",
         "likert",
         "nps",
+        "signature",
       ],
       form_status: [
         "rascunho",
