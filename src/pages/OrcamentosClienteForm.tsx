@@ -250,6 +250,21 @@ export default function OrcamentosClienteForm() {
                   </div>
 
                   <div>
+                    <Label htmlFor="cnpj">CNPJ</Label>
+                    <div className="relative mt-1">
+                      <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                      <Input
+                        id="cnpj"
+                        value={formData.cnpj}
+                        onChange={(e) => handleCnpjChange(e.target.value)}
+                        className="pl-10 bg-white"
+                        placeholder="00.000.000/0000-00"
+                        maxLength={18}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
                     <Label htmlFor="email">E-mail *</Label>
                     <div className="relative mt-1">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
