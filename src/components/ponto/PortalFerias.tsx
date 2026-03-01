@@ -247,7 +247,7 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
     );
 
     // Dias usados total (todos os períodos)
-    const diasUsadosTotal = periodos.reduce((acc, p) => acc + (p.dias_usados || 0), 0);
+    const diasUsadosTotal = allPeriodos.reduce((acc, p) => acc + (p.dias_usados || 0), 0);
 
     // Período em aquisição atual (mais recente)
     const periodoEmAquisicaoAtual = periodosEmAquisicao[0];
