@@ -158,18 +158,53 @@ export default function OrcamentosPublic() {
 
         {/* Client Info */}
         <GlassPanel className="p-6">
+          <h2 className="text-lg font-semibold text-zinc-800 mb-4">Dados do Cliente</h2>
           <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm text-zinc-500">Cliente</p>
-              <p className="font-semibold text-zinc-800">{quote.clientName}</p>
+            <div className="space-y-2">
+              <div>
+                <p className="text-sm text-zinc-500">Nome do Condomínio</p>
+                <p className="font-semibold text-zinc-800">{quote.clientName}</p>
+              </div>
+              {quote.clientCnpj && (
+                <div>
+                  <p className="text-sm text-zinc-500">CNPJ</p>
+                  <p className="font-semibold text-zinc-800">{quote.clientCnpj}</p>
+                </div>
+              )}
+              {quote.clientSindico && (
+                <div>
+                  <p className="text-sm text-zinc-500">Síndico Responsável</p>
+                  <p className="font-semibold text-zinc-800">{quote.clientSindico}</p>
+                </div>
+              )}
             </div>
-            <div>
-              <p className="text-sm text-zinc-500">Válido até</p>
-              <p className="font-semibold text-zinc-800">
-                {format(quote.validUntil, "dd/MM/yyyy", { locale: ptBR })}
-              </p>
+            <div className="space-y-2">
+              {quote.clientPhone && (
+                <div>
+                  <p className="text-sm text-zinc-500">Telefone</p>
+                  <p className="font-semibold text-zinc-800">{quote.clientPhone}</p>
+                </div>
+              )}
+              {quote.clientEmail && (
+                <div>
+                  <p className="text-sm text-zinc-500">E-mail</p>
+                  <p className="font-semibold text-zinc-800">{quote.clientEmail}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-sm text-zinc-500">Válido até</p>
+                <p className="font-semibold text-zinc-800">
+                  {format(quote.validUntil, "dd/MM/yyyy", { locale: ptBR })}
+                </p>
+              </div>
             </div>
           </div>
+          {quote.clientAddress && (
+            <div className="mt-4">
+              <p className="text-sm text-zinc-500">Endereço</p>
+              <p className="font-semibold text-zinc-800">{quote.clientAddress}</p>
+            </div>
+          )}
         </GlassPanel>
 
         {/* Items */}
