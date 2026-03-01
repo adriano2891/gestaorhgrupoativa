@@ -249,7 +249,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
     columnStyles: {
       0: { cellWidth: 22, halign: 'center', valign: 'middle' },
       1: { cellWidth: 75, halign: 'left', valign: 'middle', fontStyle: 'normal' },
-      2: { cellWidth: 28, halign: 'center', valign: 'middle' },
+      2: { cellWidth: 35, halign: 'center', valign: 'middle' },
       3: { cellWidth: 18, halign: 'center', valign: 'middle' },
       4: { cellWidth: 30, halign: 'center', valign: 'middle', fontStyle: 'bold', textColor: black },
     },
