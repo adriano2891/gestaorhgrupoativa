@@ -8,6 +8,24 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const MetricasFerias = () => {
   const { data: metricas, isLoading } = useMetricasFerias();
+  const queryClient = useQueryClient();
+
+  // Realtime: invalidate metrics when profiles or solicitacoes_ferias change
+  useEffect(() => {
+    const channel = supabase
+      .channel('metricas-ferias-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'solicitacoes_ferias' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   if (isLoading) {
     return (
