@@ -220,6 +220,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   ]);
 
   autoTable(doc, {
+    margin: { left: margin, right: margin },
     startY: y,
     head: [['ITEM', 'SERVIÇO/PRODUTO', 'VALOR UN.', 'QTD', 'TOTAL']],
     body: tableData,
