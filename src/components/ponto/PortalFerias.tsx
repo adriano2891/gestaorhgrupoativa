@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, AlertTriangle, Info } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
