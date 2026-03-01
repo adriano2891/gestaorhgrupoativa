@@ -1,7 +1,10 @@
+import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, CheckCircle, Calendar, TrendingUp } from "lucide-react";
 import { useMetricasFerias } from "@/hooks/useFerias";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
 
 export const MetricasFerias = () => {
   const { data: metricas, isLoading } = useMetricasFerias();

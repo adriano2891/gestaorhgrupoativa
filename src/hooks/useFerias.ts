@@ -155,6 +155,10 @@ export const useSolicitacoesFerias = (filters?: {
 export const useMetricasFerias = () => {
   return useQuery({
     queryKey: ["metricas-ferias"],
+    staleTime: 1000 * 30,
+    refetchInterval: 1000 * 30,
+    refetchOnWindowFocus: true,
+    retry: 2,
     queryFn: async () => {
       try {
         const solicitacoes: any[] = await restGet('solicitacoes_ferias?select=status,data_inicio,data_fim,user_id');
