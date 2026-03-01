@@ -177,12 +177,10 @@ export default function OrcamentosPublic() {
                   <p className="font-semibold text-zinc-800">{quote.clientCnpj}</p>
                 </div>
               )}
-              {quote.clientSindico && (
-                <div>
-                  <p className="text-sm text-zinc-500">Síndico Responsável</p>
-                  <p className="font-semibold text-zinc-800">{quote.clientSindico}</p>
-                </div>
-              )}
+              <div>
+                <p className="text-sm text-zinc-500">Síndico Responsável</p>
+                <p className="font-semibold text-zinc-800 text-base">{quote.clientSindico || '-'}</p>
+              </div>
             </div>
             <div className="space-y-2">
               {quote.clientPhone && (
