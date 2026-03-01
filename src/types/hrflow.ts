@@ -46,7 +46,15 @@ export interface FormField {
   };
   likertScale?: number;
   likertLabels?: { min: string; max: string };
+  width?: number; // 25, 33, 50, or 100
 }
+
+export const WIDTH_OPTIONS = [
+  { value: 100, label: '100%' },
+  { value: 50, label: '50%' },
+  { value: 33, label: '33%' },
+  { value: 25, label: '25%' },
+] as const;
 
 export interface FormTemplate {
   id: string;

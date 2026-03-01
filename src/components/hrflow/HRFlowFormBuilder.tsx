@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { HRFlowForm, FormField, HRFlowFieldType, FIELD_TYPE_LABELS, CATEGORY_LABELS, FormCategory } from "@/types/hrflow";
+import { HRFlowForm, FormField, HRFlowFieldType, FIELD_TYPE_LABELS, CATEGORY_LABELS, FormCategory, WIDTH_OPTIONS } from "@/types/hrflow";
 import { FormTemplate } from "@/types/hrflow";
 import { cn } from "@/lib/utils";
 
