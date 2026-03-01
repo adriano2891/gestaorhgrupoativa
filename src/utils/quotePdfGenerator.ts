@@ -4,7 +4,6 @@ import { Quote, QuoteItem } from '@/types/quotes';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import logoAtivaPdf from '@/assets/logo-ativa-pdf.png';
-import iconPhonePdf from '@/assets/icon-phone-pdf.png';
 
 // Company info
 const COMPANY_INFO = {
@@ -167,19 +166,19 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.text('Contato: ', margin, y + 24);
   const contatoPrefix = doc.getTextWidth('Contato: ');
   
-  // Phone icon from image
+  // Draw phone icon (handset)
   const phoneIconX = margin + contatoPrefix;
   const phoneIconY = y + 21;
   const pSize = 3;
-  let phoneIconData: string | null = null;
-  try {
-    phoneIconData = await loadImageAsBase64(iconPhonePdf);
-  } catch (e) {
-    console.error('Error loading phone icon:', e);
-  }
-  if (phoneIconData) {
-    doc.addImage(phoneIconData, 'PNG', phoneIconX, phoneIconY, pSize, pSize);
-  }
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.35);
+  doc.setFillColor(0, 0, 0);
+  // Handset body
+  doc.roundedRect(phoneIconX + 0.3, phoneIconY + 0.3, pSize - 0.6, pSize - 0.6, 0.4, 0.4, 'S');
+  // Receiver top
+  doc.line(phoneIconX + 0.6, phoneIconY + 0.8, phoneIconX + pSize - 0.6, phoneIconY + 0.8);
+  // Receiver bottom
+  doc.line(phoneIconX + 0.6, phoneIconY + pSize - 0.8, phoneIconX + pSize - 0.6, phoneIconY + pSize - 0.8);
   
   const phoneNumX = phoneIconX + pSize + 1;
   doc.text('(11) 5563-9886 / ', phoneNumX, y + 24);
