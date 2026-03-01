@@ -9,7 +9,8 @@ import logoAtivaPdf from '@/assets/logo-ativa-pdf.png';
 const COMPANY_INFO = {
   name: 'GRUPO ATIVA',
   cnpj: '42.523.488/0001-81',
-  address: 'R. Bela Cintra, 299, 3º Andar - Consolação, São Paulo - SP, 01415-001',
+  address1: 'R. Bela Cintra, 299, 3º Andar',
+  address2: 'Consolação, São Paulo - SP, 01415-001',
   phone: '(11) 5563-9886/ (11) 97501-1717',
   email: 'atendimento@grupoativatec.com.br',
 };
