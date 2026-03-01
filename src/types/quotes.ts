@@ -129,6 +129,11 @@ export interface Quote {
 export interface QuoteInput {
   clientId: string;
   clientName: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  clientAddress?: string;
+  clientCnpj?: string;
+  clientSindico?: string;
   validityDays: number;
   items: Omit<QuoteItem, 'id' | 'total' | 'hasExcessiveDiscount'>[];
   observations?: string;
