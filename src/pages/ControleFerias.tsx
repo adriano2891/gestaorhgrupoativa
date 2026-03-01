@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,8 @@ import { useSolicitacoesFerias } from "@/hooks/useFerias";
 import { Skeleton } from "@/components/ui/skeleton";
 import { exportarFeriasPDF, exportarFeriasExcel } from "@/utils/feriasPdfExcel";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const ControleFerias = () => {
   const [searchTerm, setSearchTerm] = useState("");
