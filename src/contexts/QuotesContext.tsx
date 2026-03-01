@@ -14,6 +14,7 @@ interface QuotesContextType {
   signQuote: (id: string, name: string, signatureDataUrl: string) => void;
   approveQuote: (id: string) => void;
   rejectQuote: (id: string) => void;
+  generatePublicId: () => string;
 }
 
 const QuotesContext = createContext<QuotesContextType | undefined>(undefined);
