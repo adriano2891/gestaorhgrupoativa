@@ -177,7 +177,7 @@ const useFuncionariosFerias = () => {
         const [periodosRes, solicitacoesRes] = await Promise.all([
           supabase
             .from('periodos_aquisitivos')
-            .select('id, user_id, data_inicio, data_fim, dias_direito, dias_disponiveis')
+            .select('id, user_id, data_inicio, data_fim, dias_direito, dias_disponiveis, dias_usados')
             .in('user_id', targetIds),
           supabase
             .from('solicitacoes_ferias')
