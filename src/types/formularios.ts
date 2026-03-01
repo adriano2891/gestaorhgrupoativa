@@ -32,9 +32,17 @@ export interface FormularioCampo {
   opcoes: string[] | null;
   placeholder: string | null;
   valor_padrao: string | null;
+  largura: number;
   created_at: string;
   updated_at: string;
 }
+
+export const LARGURA_OPTIONS = [
+  { value: 100, label: '100%' },
+  { value: 50, label: '50%' },
+  { value: 33, label: '33%' },
+  { value: 25, label: '25%' },
+] as const;
 
 export interface FormularioAtribuicao {
   id: string;

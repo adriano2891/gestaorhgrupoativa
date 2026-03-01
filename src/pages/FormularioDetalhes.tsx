@@ -178,14 +178,22 @@ const FormularioDetalhes = () => {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-3">
-                  {campos?.map((campo) => (
-                    <CampoFormulario 
-                      key={campo.id} 
-                      campo={campo} 
-                      onDelete={() => deleteCampo.mutate({ id: campo.id, formulario_id: campo.formulario_id })}
-                    />
-                  ))}
+                <div className="flex flex-wrap gap-3">
+                  {campos?.map((campo) => {
+                    const largura = campo.largura || 100;
+                    const widthClass = largura === 100 ? 'w-full' 
+                      : largura === 50 ? 'w-full sm:w-[calc(50%-0.375rem)]' 
+                      : largura === 33 ? 'w-full sm:w-[calc(33.333%-0.5rem)]' 
+                      : 'w-full sm:w-[calc(25%-0.5625rem)]';
+                    return (
+                      <div key={campo.id} className={widthClass}>
+                        <CampoFormulario 
+                          campo={campo} 
+                          onDelete={() => deleteCampo.mutate({ id: campo.id, formulario_id: campo.formulario_id })}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
