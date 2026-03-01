@@ -163,8 +163,26 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.text(`CNPJ: ${COMPANY_INFO.cnpj}`, margin, y + 6);
   doc.text(COMPANY_INFO.address1, margin, y + 12);
   doc.text(COMPANY_INFO.address2, margin, y + 18);
-  doc.text('Contato: (11) 5563-9886 / ', margin, y + 24);
-  const contatoLabelWidth = doc.getTextWidth('Contato: (11) 5563-9886 / ');
+  doc.text('Contato: ', margin, y + 24);
+  const contatoPrefix = doc.getTextWidth('Contato: ');
+  
+  // Draw phone icon (handset)
+  const phoneIconX = margin + contatoPrefix;
+  const phoneIconY = y + 21;
+  const pSize = 3;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.35);
+  doc.setFillColor(0, 0, 0);
+  // Handset body
+  doc.roundedRect(phoneIconX + 0.3, phoneIconY + 0.3, pSize - 0.6, pSize - 0.6, 0.4, 0.4, 'S');
+  // Receiver top
+  doc.line(phoneIconX + 0.6, phoneIconY + 0.8, phoneIconX + pSize - 0.6, phoneIconY + 0.8);
+  // Receiver bottom
+  doc.line(phoneIconX + 0.6, phoneIconY + pSize - 0.8, phoneIconX + pSize - 0.6, phoneIconY + pSize - 0.8);
+  
+  const phoneNumX = phoneIconX + pSize + 1;
+  doc.text('(11) 5563-9886 / ', phoneNumX, y + 24);
+  const contatoLabelWidth = phoneNumX + doc.getTextWidth('(11) 5563-9886 / ') - margin;
   
   // Draw small WhatsApp icon (black, no background)
   const waIconX = margin + contatoLabelWidth;
