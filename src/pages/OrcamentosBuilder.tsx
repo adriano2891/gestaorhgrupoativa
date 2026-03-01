@@ -205,6 +205,7 @@ export default function OrcamentosBuilder() {
         clientEmail: selectedClient?.email,
         clientPhone: selectedClient?.telefone || undefined,
         clientAddress: selectedClient ? [selectedClient.rua, selectedClient.numero, selectedClient.bairro, selectedClient.cidade, selectedClient.estado, selectedClient.cep].filter(Boolean).join(', ') : undefined,
+        clientCnpj: selectedClient?.cnpj || undefined,
         clientSindico: selectedClient?.nome_sindico || undefined,
         validityDays,
         items: items.map(({ id, total, hasExcessiveDiscount, ...rest }) => rest),
