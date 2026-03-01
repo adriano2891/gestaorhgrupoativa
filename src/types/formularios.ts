@@ -82,13 +82,19 @@ export const STATUS_LABELS: Record<FormStatus, string> = {
 };
 
 export const FIELD_TYPE_LABELS: Record<FormFieldType, string> = {
-  text: 'Texto',
+  text: 'Texto Curto',
   textarea: 'Texto Longo',
-  select: 'Seleção',
-  checkbox: 'Checkbox',
+  select: 'Lista de Seleção',
+  checkbox: 'Múltipla Escolha',
+  radio: 'Escolha Única',
   date: 'Data',
-  file: 'Arquivo',
+  file: 'Upload de Arquivo',
   number: 'Número',
   email: 'E-mail',
-  phone: 'Telefone'
+  phone: 'Telefone',
+  likert: 'Escala Likert',
+  nps: 'NPS (0-10)',
+  signature: 'Assinatura Digital',
+  section: 'Seção/Título',
+  paragraph: 'Parágrafo Informativo',
 };
