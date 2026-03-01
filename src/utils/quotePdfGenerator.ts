@@ -191,7 +191,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
 
   // Quote ID on left
   y = 82;
-  doc.setFont('helvetica', 'normal');
+  doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
   doc.text(`Orçamento: ${quote.publicId}`, margin, y);
 
