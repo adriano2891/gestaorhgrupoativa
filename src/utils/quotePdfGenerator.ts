@@ -247,7 +247,11 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
 
   // CNPJ
   if ('clientCnpj' in quote && quote.clientCnpj) {
-    doc.text(`CNPJ: ${quote.clientCnpj}`, rightCardX + 5, clientInfoY);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CNPJ:', rightCardX + 5, clientInfoY);
+    doc.setFont('helvetica', 'normal');
+    const cnpjTextX = rightCardX + 5 + doc.getTextWidth('CNPJ: ');
+    doc.text(`${quote.clientCnpj}`, cnpjTextX, clientInfoY);
     clientInfoY += 4.5;
   }
 
