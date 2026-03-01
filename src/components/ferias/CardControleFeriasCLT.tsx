@@ -135,7 +135,7 @@ const useFuncionariosFerias = () => {
         return [] as FuncionarioFerias[];
       }
     },
-    staleTime: 1000 * 30, // 30 seconds
+    staleTime: 0, // Always refetch on invalidation for real-time accuracy
     refetchInterval: 1000 * 30, // Poll every 30s for near real-time updates
     refetchOnWindowFocus: true,
     retry: 2,
