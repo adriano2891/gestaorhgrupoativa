@@ -59,6 +59,28 @@ export const HRFlowFormsList = () => {
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [editingForm, setEditingForm] = useState<HRFlowForm | null>(null);
+  const [forms, setForms] = useState<HRFlowForm[]>(mockForms);
+  const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
+
+  const handleDeleteForm = () => {
+    if (!deleteFormId) return;
+    setForms(forms.filter(f => f.id !== deleteFormId));
+    setDeleteFormId(null);
+    toast.success("Formulário excluído com sucesso!");
+  };
+
+  const handleDuplicateForm = (form: HRFlowForm) => {
+    const newForm: HRFlowForm = {
+      ...form,
+      id: `${Date.now()}`,
+      title: `${form.title} (Cópia)`,
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0],
+      responsesCount: 0,
+    };
+    setForms([newForm, ...forms]);
+    toast.success("Formulário duplicado com sucesso!");
+  };
 
   const filteredForms = mockForms.filter(form => {
     const matchesSearch = form.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
