@@ -238,21 +238,21 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.text(`${quote.clientName}`, rightCardX + 5 + condLabelWidth, clientInfoY);
   clientInfoY += 4.5;
 
+  // CNPJ (logo abaixo do nome do condomínio)
+  if ('clientCnpj' in quote && quote.clientCnpj) {
+    doc.setFont('helvetica', 'bold');
+    const cnpjLabel = 'CNPJ: ';
+    doc.text(cnpjLabel, rightCardX + 5, clientInfoY);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${quote.clientCnpj}`, rightCardX + 5 + doc.getTextWidth(cnpjLabel), clientInfoY);
+    clientInfoY += 4.5;
+  }
+
   // Endereço
   if ('clientAddress' in quote && quote.clientAddress) {
     const addrLines = doc.splitTextToSize(`${quote.clientAddress}`, maxTextWidth);
     doc.text(addrLines, rightCardX + 5, clientInfoY);
     clientInfoY += addrLines.length * 3.5 + 1;
-  }
-
-  // CNPJ
-  if ('clientCnpj' in quote && quote.clientCnpj) {
-    doc.setFont('helvetica', 'bold');
-    doc.text('CNPJ:', rightCardX + 5, clientInfoY);
-    doc.setFont('helvetica', 'normal');
-    const cnpjTextX = rightCardX + 5 + doc.getTextWidth('CNPJ: ');
-    doc.text(`${quote.clientCnpj}`, cnpjTextX, clientInfoY);
-    clientInfoY += 4.5;
   }
 
   // Síndico Responsável
