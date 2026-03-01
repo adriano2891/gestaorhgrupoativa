@@ -351,16 +351,16 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
 
   // Teal footer background - smaller card
   doc.setFillColor(235, 250, 248);
-  doc.roundedRect(5, footerY, footerCardWidth, footerCardHeight, 4, 4, 'F');
+  doc.roundedRect(margin, footerY, footerCardWidth, footerCardHeight, 4, 4, 'F');
 
   // Left teal accent
   doc.setFillColor(...tealColor);
-  doc.rect(5, footerY, 4, footerCardHeight, 'F');
+  doc.rect(margin, footerY, 4, footerCardHeight, 'F');
 
   doc.setTextColor(...darkTeal);
   doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('Informações Importantes:', 13, footerY + 8);
+  doc.text('Informações Importantes:', margin + 8, footerY + 8);
 
   doc.setTextColor(...darkGray);
   doc.setFontSize(7);
@@ -378,7 +378,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   ];
 
   infoLines.forEach((line, idx) => {
-    doc.text(line, 13, footerY + 15 + (idx * 5));
+    doc.text(line, margin + 8, footerY + 15 + (idx * 5));
   });
 
   return doc;
