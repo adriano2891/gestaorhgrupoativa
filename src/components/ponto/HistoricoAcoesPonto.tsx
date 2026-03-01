@@ -115,9 +115,8 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
           </div>
         ) : (
           <>
-            <ScrollArea className={expanded ? "max-h-[400px]" : ""}>
-              <div className="overflow-x-auto min-w-full">
-              <Table>
+            <div className={`overflow-x-auto overflow-y-auto ${expanded ? "max-h-[400px]" : ""}`} style={{ WebkitOverflowScrolling: "touch" }}>
+              <Table className="min-w-[700px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="whitespace-nowrap">Data</TableHead>
@@ -132,11 +131,11 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
                     const { data, hora } = formatDateTime(log.created_at);
                     return (
                       <TableRow key={log.id}>
-                        <TableCell className="text-sm">{data}</TableCell>
-                        <TableCell className="text-sm">{hora}</TableCell>
-                        <TableCell className="text-sm font-medium">{log.autorizado_por_nome}</TableCell>
-                        <TableCell>{getActionBadge(log.campo_editado)}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground max-w-[300px]">
+                        <TableCell className="text-sm whitespace-nowrap">{data}</TableCell>
+                        <TableCell className="text-sm whitespace-nowrap">{hora}</TableCell>
+                        <TableCell className="text-sm font-medium whitespace-nowrap">{log.autorizado_por_nome}</TableCell>
+                        <TableCell className="whitespace-nowrap">{getActionBadge(log.campo_editado)}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
                           <span className="font-medium text-foreground">{log.employee_name}</span>
                           {" — "}
                           {log.campo_editado}: {log.valor_anterior || "—"} → {log.valor_novo || "—"}
@@ -149,8 +148,7 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
                   })}
                 </TableBody>
               </Table>
-              </div>
-            </ScrollArea>
+            </div>
 
             {logs.length > 5 && (
               <div className="flex justify-center mt-3">
