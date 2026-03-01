@@ -62,9 +62,11 @@ export const HRFlowFormsList = () => {
   const [forms, setForms] = useState<HRFlowForm[]>(mockForms);
   const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
 
-  const handleDeleteForm = () => {
-    if (!deleteFormId) return;
-    setForms(forms.filter(f => f.id !== deleteFormId));
+  const handleDeleteForm = (formId?: string) => {
+    const idToDelete = formId ?? deleteFormId;
+    if (!idToDelete) return;
+
+    setForms((currentForms) => currentForms.filter((f) => f.id !== idToDelete));
     setDeleteFormId(null);
     toast.success("Formulário excluído com sucesso!");
   };
