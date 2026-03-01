@@ -34,6 +34,7 @@ export default function OrcamentosClienteForm() {
     email: '',
     telefone: '',
     numero_unidades: undefined,
+    cnpj: '',
     cep: '',
     rua: '',
     numero: '',
