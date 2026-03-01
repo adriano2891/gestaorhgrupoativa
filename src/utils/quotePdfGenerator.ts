@@ -228,7 +228,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.text(`Orçamento: ${quote.publicId}`, margin, y);
 
   // ============= TITLE "ORÇAMENTO" =============
-  y = 100;
+  y = 94;
   doc.setTextColor(...black);
   doc.setFontSize(28);
   doc.setFont('helvetica', 'bold');
