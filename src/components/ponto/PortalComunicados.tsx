@@ -84,10 +84,10 @@ export const PortalComunicados = ({ onBack }: PortalComunicadosProps) => {
                               </Badge>
                             )}
                           </div>
-                          <p className="text-sm text-muted-foreground mb-2">
+                          <p className="text-base text-muted-foreground mb-2">
                             {format(new Date(comunicado.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                           </p>
-                          <p className="text-sm">{comunicado.conteudo}</p>
+                          <p className="text-base">{comunicado.conteudo}</p>
                         </div>
                         <Badge variant="outline">{comunicado.tipo}</Badge>
                       </div>
