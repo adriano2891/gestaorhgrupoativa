@@ -13,11 +13,12 @@ import { exportarFeriasPDF, exportarFeriasExcel } from "@/utils/feriasPdfExcel";
 import { toast } from "sonner";
 
 const ControleFerias = () => {
-  // useFeriasRealtime(); // Disabled - causes LockManager hang
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
   const [departamentoFilter, setDepartamentoFilter] = useState("todos");
   const [apenasNovas, setApenasNovas] = useState(false);
+
+  const { data: funcionariosCLT } = useFuncionariosFerias();
 
   const { data: solicitacoes, isLoading } = useSolicitacoesFerias({
     status: statusFilter !== "todos" ? statusFilter : undefined,
@@ -36,9 +37,23 @@ const ControleFerias = () => {
     });
   }, [solicitacoes, searchTerm]);
 
-  const handleExportar = (formato: "pdf" | "excel") => {
-    // TODO: Implementar exportação
-    console.log("Exportar para", formato);
+  const handleExportar = async (formato: "pdf" | "excel") => {
+    if (!funcionariosCLT || funcionariosCLT.length === 0) {
+      toast.error("Nenhum dado disponível para exportar.");
+      return;
+    }
+    try {
+      if (formato === "pdf") {
+        exportarFeriasPDF(funcionariosCLT);
+        toast.success("PDF exportado com sucesso!");
+      } else {
+        await exportarFeriasExcel(funcionariosCLT);
+        toast.success("Excel exportado com sucesso!");
+      }
+    } catch (err) {
+      console.error("Erro ao exportar:", err);
+      toast.error("Erro ao gerar o arquivo.");
+    }
   };
 
   return (
