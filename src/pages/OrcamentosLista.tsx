@@ -213,6 +213,7 @@ export default function OrcamentosLista() {
                         <Select 
                           value={quote.status} 
                           onValueChange={(value) => handleStatusChange(quote.id, value)}
+                          disabled={quote.status === 'assinado'}
                         >
                           <SelectTrigger className={cn(
                             "w-[100px] sm:w-[140px] h-7 sm:h-8 text-[10px] sm:text-xs font-medium text-white border-0",
