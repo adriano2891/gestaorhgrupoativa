@@ -6,7 +6,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { HRFlowForm, FormCategory, FormStatus, CATEGORY_LABELS, CATEGORY_COLORS } from "@/types/hrflow";
+import { toast } from "sonner";
 import { HRFlowFormBuilder } from "./HRFlowFormBuilder";
 
 const mockForms: HRFlowForm[] = [
@@ -57,8 +59,30 @@ export const HRFlowFormsList = () => {
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [editingForm, setEditingForm] = useState<HRFlowForm | null>(null);
+  const [forms, setForms] = useState<HRFlowForm[]>(mockForms);
+  const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
 
-  const filteredForms = mockForms.filter(form => {
+  const handleDeleteForm = () => {
+    if (!deleteFormId) return;
+    setForms(forms.filter(f => f.id !== deleteFormId));
+    setDeleteFormId(null);
+    toast.success("Formulário excluído com sucesso!");
+  };
+
+  const handleDuplicateForm = (form: HRFlowForm) => {
+    const newForm: HRFlowForm = {
+      ...form,
+      id: `${Date.now()}`,
+      title: `${form.title} (Cópia)`,
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0],
+      responsesCount: 0,
+    };
+    setForms([newForm, ...forms]);
+    toast.success("Formulário duplicado com sucesso!");
+  };
+
+  const filteredForms = forms.filter(form => {
     const matchesSearch = form.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       form.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "todos" || form.category === categoryFilter;
@@ -199,7 +223,7 @@ export const HRFlowFormsList = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDuplicateForm(form)}>
                           <Copy className="w-4 h-4 mr-2" />
                           Duplicar
                         </DropdownMenuItem>
@@ -207,7 +231,7 @@ export const HRFlowFormsList = () => {
                           <ExternalLink className="w-4 h-4 mr-2" />
                           Link Público
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleteFormId(form.id)}>
                           <Trash2 className="w-4 h-4 mr-2" />
                           Excluir
                         </DropdownMenuItem>
@@ -220,6 +244,22 @@ export const HRFlowFormsList = () => {
           ))}
         </div>
       )}
+      <AlertDialog open={!!deleteFormId} onOpenChange={(open) => !open && setDeleteFormId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir formulário?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. O formulário será permanentemente excluído.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteForm} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
