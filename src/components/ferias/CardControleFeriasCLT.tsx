@@ -155,6 +155,8 @@ const getStatusConfig = (status: StatusFerias) => {
       return { label: 'Prestes a Vencer', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300', icon: Clock };
     case 'vencida':
       return { label: 'Vencida', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300', icon: AlertTriangle };
+    case 'em_ferias':
+      return { label: 'Em Férias', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300', icon: CheckCircle };
   }
 };
 
