@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, X, Building2, User, Mail, Phone, MapPin, FileText } from 'lucide-react';
+import { Save, X, Building2, User, Mail, Phone, MapPin, FileText, Hash } from 'lucide-react';
 import { QuotesLayout } from '@/components/orcamentos/QuotesLayout';
 import { GlassPanel } from '@/components/orcamentos/GlassPanel';
 import { Button } from '@/components/ui/button';
