@@ -186,11 +186,18 @@ export const useMetricasFerias = () => {
         hoje.setHours(0, 0, 0, 0);
         const hojeISO = hoje.toISOString().split('T')[0];
 
-        const cltStatusByUser = new Map<string, 'cumprindo' | 'prestes_a_vencer' | 'vencida'>();
+        const cltStatusByUser = new Map<string, 'cumprindo' | 'prestes_a_vencer' | 'vencida' | 'em_ferias'>();
 
         funcionariosAtivos.forEach((p: any) => {
           const dataBase = p.data_admissao || (p.created_at ? String(p.created_at).split('T')[0] : null);
           if (!dataBase) return;
+
+          // Check if employee status is "Em férias"
+          const stNorm = (p.status || 'ativo').toLowerCase().replace(/[_\s]+/g, '');
+          if (stNorm === 'emferias' || stNorm === 'emférias') {
+            cltStatusByUser.set(p.id, 'em_ferias');
+            return;
+          }
 
           const admissao = new Date(`${dataBase}T12:00:00`);
           const fimAquisitivo = new Date(admissao);
