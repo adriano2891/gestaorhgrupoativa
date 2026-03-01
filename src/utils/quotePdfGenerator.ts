@@ -11,8 +11,9 @@ const COMPANY_INFO = {
   cnpj: '42.523.488/0001-81',
   address1: 'R. Bela Cintra, 299, 3º Andar',
   address2: 'Consolação, São Paulo - SP, 01415-001',
-  phone: '(11) 5563-9886/ (11) 97501-1717',
+  phone: '(11) 5563-9886/(11) 97501-1717',
   email: 'atendimento@grupoativatec.com.br',
+  website: 'www.grupoativatec.com.br',
 };
 
 interface QuoteDataForPdf {
@@ -66,14 +67,11 @@ function createPlaceholderImage(): string {
   canvas.height = 80;
   const ctx = canvas.getContext('2d');
   if (ctx) {
-    // White background with border
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, 80, 80);
     ctx.strokeStyle = '#cccccc';
     ctx.lineWidth = 2;
     ctx.strokeRect(1, 1, 78, 78);
-    
-    // "FOTO" text
     ctx.fillStyle = '#999999';
     ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'center';
@@ -83,19 +81,43 @@ function createPlaceholderImage(): string {
   return canvas.toDataURL('image/png');
 }
 
+// Draw a small icon-like circle with symbol
+function drawIcon(doc: jsPDF, x: number, y: number, type: 'location' | 'phone' | 'email') {
+  const iconSize = 3.5;
+  const tealColor: [number, number, number] = [62, 224, 207];
+  
+  // Draw circle background
+  doc.setFillColor(...tealColor);
+  doc.circle(x + iconSize / 2, y - iconSize / 2 + 0.5, iconSize / 2, 'F');
+  
+  // Draw icon symbol
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(5);
+  doc.setFont('helvetica', 'bold');
+  
+  if (type === 'location') {
+    doc.text('⌂', x + iconSize / 2, y - iconSize / 2 + 1, { align: 'center' });
+  } else if (type === 'phone') {
+    doc.text('☎', x + iconSize / 2, y - iconSize / 2 + 1, { align: 'center' });
+  } else if (type === 'email') {
+    doc.text('✉', x + iconSize / 2, y - iconSize / 2 + 1, { align: 'center' });
+  }
+}
+
 export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<jsPDF> {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 15;
 
-  // Colors matching the model
+  // Colors
   const tealColor: [number, number, number] = [221, 217, 206]; // #ddd9ce
   const darkTeal: [number, number, number] = [180, 175, 165];
+  const tealAccent: [number, number, number] = [62, 224, 207]; // #3EE0CF
   const black: [number, number, number] = [0, 0, 0];
   const darkGray: [number, number, number] = [80, 80, 80];
-  const lightGray: [number, number, number] = [150, 150, 150];
   const bgColor: [number, number, number] = [221, 217, 206]; // #ddd9ce
+  const borderColor: [number, number, number] = [180, 175, 165];
 
   // Set page background color
   doc.setFillColor(...bgColor);
@@ -123,20 +145,23 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
     console.error('Error loading logo:', e);
   }
 
-  // ============= HEADER SECTION =============
-  // Teal line at top
-  doc.setFillColor(...tealColor);
-  doc.rect(0, 0, pageWidth, 3, 'F');
+  // ============= HEADER - TEAL ACCENT LINES =============
+  // Top teal line
+  doc.setFillColor(...tealAccent);
+  doc.rect(0, 0, pageWidth * 0.45, 3, 'F');
+  
+  // Right teal accent line
+  doc.setFillColor(...tealAccent);
+  doc.rect(pageWidth * 0.55, 0, pageWidth * 0.45, 3, 'F');
 
-  // Teal accent bar on right
-  doc.setFillColor(...tealColor);
-  doc.rect(pageWidth - 8, 0, 8, 50, 'F');
+  // Teal accent bar on right side
+  doc.setFillColor(...tealAccent);
+  doc.rect(pageWidth - 6, 0, 6, 50, 'F');
 
-  // Logo centered at top
+  // ============= LOGO CENTERED =============
   if (logoData) {
     doc.addImage(logoData, 'PNG', pageWidth / 2 - 25, 8, 50, 25);
   } else {
-    // Fallback text logo
     doc.setTextColor(...darkTeal);
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
@@ -145,58 +170,89 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
     doc.text('GRUPO ATIVA', pageWidth / 2, 28, { align: 'center' });
   }
 
-  // Teal divider line below header
-  doc.setFillColor(...tealColor);
-  doc.rect(0, 40, pageWidth - 8, 2, 'F');
+  // ============= COMPANY INFO CARD (left) =============
+  const cardY = 40;
+  const cardHeight = 38;
+  const leftCardWidth = (pageWidth - margin * 2 - 8) * 0.55;
+  const rightCardWidth = (pageWidth - margin * 2 - 8) * 0.45;
+  const rightCardX = margin + leftCardWidth + 8;
 
-  // ============= COMPANY AND CLIENT INFO =============
-  let y = 44;
+  // Left card border
+  doc.setDrawColor(...borderColor);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(margin, cardY, leftCardWidth, cardHeight, 2, 2, 'S');
 
-  // Left side - Company info
+  // Company name
+  doc.setTextColor(...black);
+  doc.setFontSize(11);
+  doc.setFont('helvetica', 'bold');
+  doc.text(COMPANY_INFO.name, margin + 5, cardY + 8);
+
+  // CNPJ
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text(`CNPJ: ${COMPANY_INFO.cnpj}`, margin + 5, cardY + 14);
+
+  // Address with icon
+  const iconX = margin + 5;
+  drawIcon(doc, iconX, cardY + 20, 'location');
+  doc.setTextColor(...darkGray);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text(COMPANY_INFO.address1, iconX + 5, cardY + 20);
+  doc.text(COMPANY_INFO.address2, iconX + 5, cardY + 24.5);
+
+  // Phone with icon
+  drawIcon(doc, iconX, cardY + 30, 'phone');
+  doc.text(`Contato: ${COMPANY_INFO.phone}`, iconX + 5, cardY + 30);
+
+  // Email with icon
+  drawIcon(doc, iconX, cardY + 35, 'email');
+  doc.text(`E-mail: ${COMPANY_INFO.email}`, iconX + 5, cardY + 35);
+
+  // ============= CLIENT INFO CARD (right) =============
+  doc.setDrawColor(...borderColor);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(rightCardX, cardY, rightCardWidth, cardHeight, 2, 2, 'S');
+
   doc.setTextColor(...black);
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  doc.text(COMPANY_INFO.name, margin, y);
-  
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.text(`CNPJ: ${COMPANY_INFO.cnpj}`, margin, y + 6);
-  doc.text(COMPANY_INFO.address1, margin, y + 12);
-  doc.text(COMPANY_INFO.address2, margin, y + 18);
-  doc.text(`Contato: ${COMPANY_INFO.phone}`, margin, y + 24);
-  doc.text(`E-mail: ${COMPANY_INFO.email}`, margin, y + 30);
+  doc.text('DADOS DO CLIENTE', rightCardX + 5, cardY + 8);
 
-  // Right side - Client info
-  const clientX = pageWidth / 2 + 10;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(10);
-  doc.text('DADOS DO CLIENTE', clientX, y);
-  
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
-  doc.text(`(${quote.clientName})`, clientX, y + 6);
-  
+  doc.text(`(${quote.clientName})`, rightCardX + 5, cardY + 14);
+
+  let clientInfoY = cardY + 20;
   if ('clientCnpj' in quote && quote.clientCnpj) {
-    doc.text(`(CNPJ: ${quote.clientCnpj})`, clientX, y + 12);
+    doc.setFontSize(8);
+    doc.text(`CNPJ: ${quote.clientCnpj}`, rightCardX + 5, clientInfoY);
+    clientInfoY += 5;
   }
   if ('clientAddress' in quote && quote.clientAddress) {
-    doc.text(`(${quote.clientAddress})`, clientX, y + 18);
+    doc.setFontSize(8);
+    doc.text(`${quote.clientAddress}`, rightCardX + 5, clientInfoY);
+    clientInfoY += 5;
   }
   if ('clientPhone' in quote && quote.clientPhone) {
-    doc.text(`Contato: ${quote.clientPhone}`, clientX, y + 24);
+    doc.setFontSize(8);
+    doc.text(`Contato: ${quote.clientPhone}`, rightCardX + 5, clientInfoY);
+    clientInfoY += 5;
   }
   if ('clientSindico' in quote && quote.clientSindico) {
-    doc.text(`Síndico Responsável: ${quote.clientSindico}`, clientX, y + 30);
+    doc.setFontSize(8);
+    doc.text(`Síndico: ${quote.clientSindico}`, rightCardX + 5, clientInfoY);
+    clientInfoY += 5;
   }
 
-  // Quote ID on left
-  y = 82;
+  // Quote ID inside client card at bottom
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(8);
-  doc.text(`Orçamento: ${quote.publicId}`, margin, y);
+  doc.text(`Orçamento: ${quote.publicId}`, rightCardX + 5, cardY + cardHeight - 4);
 
   // ============= TITLE "ORÇAMENTO" =============
-  y = 94;
+  let y = cardY + cardHeight + 18;
   doc.setTextColor(...black);
   doc.setFontSize(28);
   doc.setFont('helvetica', 'bold');
@@ -209,7 +265,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.line(pageWidth / 2 - textWidth / 2, y + 3, pageWidth / 2 + textWidth / 2, y + 3);
 
   // ============= ITEMS TABLE =============
-  y = 115;
+  y = y + 18;
   
   const tableData = quote.items.map((item, idx) => [
     '', // Image placeholder
@@ -222,7 +278,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   autoTable(doc, {
     margin: { left: margin, right: margin },
     startY: y,
-    head: [['ITEM', 'SERVIÇO/PRODUTO', 'VALOR UN.', 'QTD', 'TOTAL']],
+    head: [['ITEM', 'SERVIÇO/PRODUTO', 'VALOR UN.', 'QTD.', 'TOTAL']],
     body: tableData,
     headStyles: {
       fillColor: tealColor,
@@ -237,10 +293,10 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
       cellPadding: 6,
       lineColor: [200, 200, 200],
       lineWidth: 0.3,
-      fillColor: [62, 224, 207], // #3EE0CF - odd rows (1st, 3rd, etc.)
+      fillColor: tealAccent, // odd rows (1st, 3rd, etc.)
     },
     alternateRowStyles: {
-      fillColor: [255, 255, 255], // white - even rows (2nd, 4th, etc.)
+      fillColor: [255, 255, 255], // even rows white
     },
     styles: {
       overflow: 'linebreak',
@@ -257,7 +313,6 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
     tableLineColor: [200, 200, 200],
     tableLineWidth: 0.3,
     didDrawCell: (data) => {
-      // Draw images in the ITEM column for body rows
       if (data.section === 'body' && data.column.index === 0) {
         const rowIndex = data.row.index;
         const imageData = imageCache.get(rowIndex);
@@ -275,7 +330,6 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
           try {
             doc.addImage(imageData, 'PNG', imgX, imgY, imgSize, imgSize);
           } catch (e) {
-            // Fallback: draw placeholder box with "FOTO"
             doc.setFillColor(255, 255, 255);
             doc.rect(imgX, imgY, imgSize, imgSize, 'F');
             doc.setDrawColor(180, 180, 180);
@@ -304,7 +358,6 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.setFont('helvetica', 'bold');
   const totalValueWidth = doc.getTextWidth(totalValue);
   
-  // Calculate positions to fit both texts with proper spacing
   const totalStartX = pageWidth - margin - totalValueWidth - totalTextWidth - 8;
   
   doc.setTextColor(...black);
@@ -349,12 +402,12 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   const footerCardWidth = (pageWidth - margin * 2) * 0.45;
   const footerY = signatureEndY + 12;
 
-  // Teal footer background - smaller card
+  // Light teal footer background
   doc.setFillColor(235, 250, 248);
   doc.roundedRect(margin, footerY, footerCardWidth, footerCardHeight, 4, 4, 'F');
 
   // Left teal accent
-  doc.setFillColor(...tealColor);
+  doc.setFillColor(...tealAccent);
   doc.rect(margin, footerY, 4, footerCardHeight, 'F');
 
   doc.setTextColor(...darkTeal);
@@ -380,6 +433,20 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   infoLines.forEach((line, idx) => {
     doc.text(line, margin + 8, footerY + 15 + (idx * 5));
   });
+
+  // ============= BOTTOM FOOTER - LINE + WEBSITE =============
+  const bottomY = pageHeight - 10;
+  
+  // Horizontal line
+  doc.setDrawColor(...tealAccent);
+  doc.setLineWidth(1);
+  doc.line(margin, bottomY - 5, pageWidth - margin, bottomY - 5);
+
+  // Website text centered
+  doc.setTextColor(...darkGray);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  doc.text(COMPANY_INFO.website, pageWidth / 2, bottomY, { align: 'center' });
 
   return doc;
 }
