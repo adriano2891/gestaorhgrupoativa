@@ -195,15 +195,8 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.circle(waIconX + waSize / 2, waIconY + waSize / 2, waSize / 4, 'F');
   const waNumberX = waIconX + waSize + 1;
   const waNumber = '(11) 97501-1717';
-  const waUrl = 'https://wa.me/5511975011717';
-  doc.setTextColor(0, 102, 204);
-  doc.textWithLink(waNumber, waNumberX, y + 24, { url: waUrl });
-  doc.setTextColor(...black);
-  doc.text('E-mail: ', margin, y + 30);
-  const emailLabelWidth = doc.getTextWidth('E-mail: ');
-  doc.setTextColor(0, 102, 204);
-  doc.textWithLink(COMPANY_INFO.email, margin + emailLabelWidth, y + 30, { url: `mailto:${COMPANY_INFO.email}` });
-  doc.setTextColor(...black);
+  doc.text(waNumber, waNumberX, y + 24);
+  doc.text(`E-mail: ${COMPANY_INFO.email}`, margin, y + 30);
 
   // Right side - Client info
   const clientX = pageWidth / 2 + 10;
