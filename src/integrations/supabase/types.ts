@@ -3014,6 +3014,7 @@ export type Database = {
         | "likert"
         | "nps"
         | "signature"
+        | "section"
       form_status:
         | "rascunho"
         | "pendente_aprovacao"
@@ -3184,6 +3185,7 @@ export const Constants = {
         "likert",
         "nps",
         "signature",
+        "section",
       ],
       form_status: [
         "rascunho",
