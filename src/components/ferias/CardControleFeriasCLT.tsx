@@ -9,31 +9,6 @@ import { Search, Users, AlertTriangle, Clock, CheckCircle } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-const getAccessToken = (): string | null => {
-  try {
-    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || SUPABASE_URL?.match(/\/\/([^.]+)/)?.[1];
-    const raw = localStorage.getItem(`sb-${projectId}-auth-token`);
-    if (raw) return JSON.parse(raw)?.access_token || null;
-  } catch {}
-  return null;
-};
-
-const restGet = async (path: string) => {
-  const token = getAccessToken();
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token || SUPABASE_KEY}`,
-      'Accept': 'application/json',
-    },
-  });
-  if (!res.ok) throw new Error(`REST ${res.status}`);
-  return res.json();
-};
-
 type StatusFerias = 'cumprindo' | 'prestes_a_vencer' | 'vencida' | 'em_ferias';
 
 interface FuncionarioFerias {
@@ -59,22 +34,25 @@ const calcularStatusFerias = (dataAdmissao: string, statusPerfil: string): {
 
   const admissao = new Date(`${dataAdmissao}T12:00:00`);
 
+  // Calcular o período aquisitivo ATUAL (pode haver múltiplos ciclos)
   const fimAquisitivo = new Date(admissao);
-  fimAquisitivo.setFullYear(fimAquisitivo.getFullYear() + 1);
+  while (fimAquisitivo <= hoje) {
+    fimAquisitivo.setFullYear(fimAquisitivo.getFullYear() + 1);
+  }
 
-  const fimConcessivo = new Date(admissao);
-  fimConcessivo.setFullYear(fimConcessivo.getFullYear() + 2);
+  const fimConcessivo = new Date(fimAquisitivo);
+  fimConcessivo.setFullYear(fimConcessivo.getFullYear() + 1);
 
   const diasParaVencer = Math.ceil((fimConcessivo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
 
-  // Se o status do perfil é "Em férias", mantém como ativo em férias
   const stNorm = (statusPerfil || 'ativo').toLowerCase().replace(/[_\s]+/g, '');
   if (stNorm === 'emferias' || stNorm === 'emférias') {
     return { fimAquisitivo, fimConcessivo, status: 'em_ferias', diasParaVencer };
   }
 
   let status: StatusFerias;
-  if (hoje < fimAquisitivo) {
+  if (hoje < new Date(fimAquisitivo.getTime() - 365 * 24 * 60 * 60 * 1000)) {
+    // Still within the acquisition period (before fimAquisitivo - 1 year = start of current cycle)
     status = 'cumprindo';
   } else if (hoje >= fimConcessivo) {
     status = 'vencida';
@@ -92,8 +70,13 @@ const useFuncionariosFerias = () => {
     queryKey: ["funcionarios-ferias-clt"],
     queryFn: async () => {
       try {
-        // Get employee roles
-        const roles: { user_id: string; role: string }[] = await restGet('user_roles?select=user_id,role');
+        // Buscar roles via Supabase client
+        const { data: roles, error: rolesError } = await supabase
+          .from('user_roles')
+          .select('user_id, role');
+        
+        if (rolesError) throw rolesError;
+
         const employeeIds = new Set<string>();
         const adminIds = new Set<string>();
         (roles || []).forEach(r => {
@@ -103,8 +86,14 @@ const useFuncionariosFerias = () => {
         const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
         if (targetIds.length === 0) return [] as FuncionarioFerias[];
 
-        const idsParam = targetIds.map(id => `"${id}"`).join(',');
-        const profiles: any[] = await restGet(`profiles?select=id,nome,cargo,departamento,data_admissao,created_at,status&id=in.(${idsParam})&order=nome.asc`);
+        // Buscar profiles via Supabase client
+        const { data: profiles, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, nome, cargo, departamento, data_admissao, created_at, status')
+          .in('id', targetIds)
+          .order('nome', { ascending: true });
+
+        if (profilesError) throw profilesError;
 
         const activeProfiles = (profiles || []).filter((p: any) => {
           const st = (p.status || 'ativo').toLowerCase();
@@ -135,8 +124,8 @@ const useFuncionariosFerias = () => {
         return [] as FuncionarioFerias[];
       }
     },
-    staleTime: 0, // Always refetch on invalidation for real-time accuracy
-    refetchInterval: 1000 * 30, // Poll every 30s for near real-time updates
+    staleTime: 0,
+    refetchInterval: 1000 * 30,
     refetchOnWindowFocus: true,
     retry: 2,
   });
