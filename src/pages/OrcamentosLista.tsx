@@ -10,7 +10,8 @@ import {
   Trash2,
   Link,
   CheckCircle,
-  XCircle
+  XCircle,
+  Lock
 } from 'lucide-react';
 import { useQuotes } from '@/contexts/QuotesContext';
 import { QuotesLayout } from '@/components/orcamentos/QuotesLayout';
