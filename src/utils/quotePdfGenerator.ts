@@ -209,12 +209,14 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   drawIcon(doc, iconX, cardY + 30, 'phone');
   doc.setTextColor(...black);
   doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
   doc.text(`Contato: ${COMPANY_INFO.phone}`, iconX + 5, cardY + 30);
 
   // Email with icon
   drawIcon(doc, iconX, cardY + 35, 'email');
   doc.setTextColor(...black);
   doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
   doc.text(`E-mail: ${COMPANY_INFO.email}`, iconX + 5, cardY + 35);
 
   // ============= CLIENT INFO CARD (right) =============
