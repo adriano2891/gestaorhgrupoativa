@@ -92,17 +92,79 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
         const userId = user?.id;
         if (!userId) return [];
 
-        const { data, error } = await supabase
+        // 1. Fetch existing periods
+        const { data: existingPeriods, error } = await supabase
           .from("periodos_aquisitivos")
           .select("*")
           .eq("user_id", userId)
-          .order("data_inicio", { ascending: false });
+          .order("data_inicio", { ascending: true });
 
         if (error) {
           console.error("Erro ao buscar períodos aquisitivos:", error);
           return [];
         }
-        return data || [];
+
+        const periods = existingPeriods || [];
+
+        // 2. Auto-generate missing periods from data_admissao
+        const profileData = profile as any;
+        const dataAdmissaoStr = profileData?.data_admissao;
+        if (!dataAdmissaoStr) return periods;
+
+        const admissao = new Date(`${dataAdmissaoStr}T12:00:00`);
+        const hoje = new Date();
+        const missingPeriods: Array<{ data_inicio: string; data_fim: string }> = [];
+
+        // Calculate all periods that SHOULD exist from admission
+        let periodoInicio = new Date(admissao);
+        while (periodoInicio < hoje) {
+          const periodoFim = new Date(periodoInicio);
+          periodoFim.setFullYear(periodoFim.getFullYear() + 1);
+          periodoFim.setDate(periodoFim.getDate() - 1);
+
+          const inicioStr = periodoInicio.toISOString().split('T')[0];
+
+          // Check if this period already exists in DB
+          const exists = periods.some(p => p.data_inicio === inicioStr);
+          if (!exists) {
+            missingPeriods.push({
+              data_inicio: inicioStr,
+              data_fim: periodoFim.toISOString().split('T')[0],
+            });
+          }
+
+          // Move to next period
+          periodoInicio = new Date(periodoFim);
+          periodoInicio.setDate(periodoInicio.getDate() + 1);
+        }
+
+        // 3. Insert missing periods
+        if (missingPeriods.length > 0) {
+          const inserts = missingPeriods.map(mp => ({
+            user_id: userId,
+            data_inicio: mp.data_inicio,
+            data_fim: mp.data_fim,
+            dias_direito: 30,
+            dias_usados: 0,
+          }));
+
+          const { data: inserted, error: insertError } = await supabase
+            .from("periodos_aquisitivos")
+            .insert(inserts)
+            .select();
+
+          if (insertError) {
+            console.error("Erro ao criar períodos faltantes:", insertError);
+          } else if (inserted) {
+            const allPeriods = [...periods, ...inserted].sort(
+              (a, b) => b.data_inicio.localeCompare(a.data_inicio)
+            );
+            return allPeriods;
+          }
+        }
+
+        // Return sorted desc
+        return periods.sort((a, b) => b.data_inicio.localeCompare(a.data_inicio));
       } catch (e) {
         console.error("Erro inesperado em períodos aquisitivos:", e);
         return [];
@@ -110,7 +172,8 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
     },
     enabled: !!user?.id,
     retry: 2,
-    staleTime: 1000 * 30,
+    staleTime: 1000 * 10,
+    refetchInterval: 1000 * 30,
   });
 
   const { data: solicitacoes, isLoading: loadingSolicitacoes } = useQuery({
@@ -151,28 +214,28 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
         ? new Date(profileData.created_at)
         : null;
 
-    if (!periodos || periodos.length === 0 || !dataAdmissao) {
+    if (!dataAdmissao) {
       return {
         saldoDisponivel: 0,
         diasUsadosTotal: 0,
         periodoAtualCompleto: false,
         periodoAtual: null,
-        proximoPeriodoData: dataAdmissao ? addYears(dataAdmissao, 1) : null,
-        diasRestantesAquisicao: dataAdmissao
-          ? Math.max(0, differenceInDays(addYears(dataAdmissao, 1), hoje))
-          : null,
+        proximoPeriodoData: null,
+        diasRestantesAquisicao: null,
         periodosCompletosComSaldo: [],
         periodosEmAquisicao: [],
       };
     }
 
+    const allPeriodos = periodos || [];
+
     // Separar períodos completos (12 meses passaram) e em aquisição
-    const periodosCompletos = periodos.filter((p) => {
+    const periodosCompletos = allPeriodos.filter((p) => {
       const fimPeriodo = parseISO(p.data_fim);
       return isBefore(fimPeriodo, hoje);
     });
 
-    const periodosEmAquisicao = periodos.filter((p) => {
+    const periodosEmAquisicao = allPeriodos.filter((p) => {
       const fimPeriodo = parseISO(p.data_fim);
       return !isBefore(fimPeriodo, hoje);
     });
@@ -184,7 +247,7 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
     );
 
     // Dias usados total (todos os períodos)
-    const diasUsadosTotal = periodos.reduce((acc, p) => acc + (p.dias_usados || 0), 0);
+    const diasUsadosTotal = allPeriodos.reduce((acc, p) => acc + (p.dias_usados || 0), 0);
 
     // Período em aquisição atual (mais recente)
     const periodoEmAquisicaoAtual = periodosEmAquisicao[0];
