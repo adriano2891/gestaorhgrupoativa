@@ -295,13 +295,31 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
                       className="mt-1"
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <Label className="text-xs">Obrigatório</Label>
-                    <Switch
-                      checked={selectedField.required}
-                      onCheckedChange={(checked) => updateField(selectedField.id, { required: checked })}
-                    />
-                  </div>
+                    <div className="flex items-center justify-between">
+                     <Label className="text-xs">Obrigatório</Label>
+                     <Switch
+                       checked={selectedField.required}
+                       onCheckedChange={(checked) => updateField(selectedField.id, { required: checked })}
+                     />
+                   </div>
+                   <div>
+                     <Label className="text-xs">Largura</Label>
+                     <Select 
+                       value={String(selectedField.width || 100)} 
+                       onValueChange={(v) => updateField(selectedField.id, { width: parseInt(v) })}
+                     >
+                       <SelectTrigger className="mt-1">
+                         <SelectValue />
+                       </SelectTrigger>
+                       <SelectContent>
+                         {WIDTH_OPTIONS.map(opt => (
+                           <SelectItem key={opt.value} value={String(opt.value)}>
+                             {opt.label}
+                           </SelectItem>
+                         ))}
+                       </SelectContent>
+                     </Select>
+                   </div>
                   {(selectedField.type === 'select' || selectedField.type === 'radio' || selectedField.type === 'checkbox') && (
                     <div>
                       <Label className="text-xs">Opções (uma por linha)</Label>
