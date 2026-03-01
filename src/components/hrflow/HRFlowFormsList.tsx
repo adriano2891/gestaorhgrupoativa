@@ -62,9 +62,11 @@ export const HRFlowFormsList = () => {
   const [forms, setForms] = useState<HRFlowForm[]>(mockForms);
   const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
 
-  const handleDeleteForm = () => {
-    if (!deleteFormId) return;
-    setForms(forms.filter(f => f.id !== deleteFormId));
+  const handleDeleteForm = (formId?: string) => {
+    const idToDelete = formId ?? deleteFormId;
+    if (!idToDelete) return;
+
+    setForms((currentForms) => currentForms.filter((f) => f.id !== idToDelete));
     setDeleteFormId(null);
     toast.success("Formulário excluído com sucesso!");
   };
@@ -216,7 +218,7 @@ export const HRFlowFormsList = () => {
                       <Edit className="w-4 h-4 mr-1" />
                       Editar
                     </Button>
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="text-gray-400">
                           <MoreVertical className="w-4 h-4" />
@@ -231,7 +233,13 @@ export const HRFlowFormsList = () => {
                           <ExternalLink className="w-4 h-4 mr-2" />
                           Link Público
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleteFormId(form.id)}>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onSelect={(event) => {
+                            event.preventDefault();
+                            setDeleteFormId(form.id);
+                          }}
+                        >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Excluir
                         </DropdownMenuItem>
@@ -254,7 +262,10 @@ export const HRFlowFormsList = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteForm} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={() => handleDeleteForm(deleteFormId ?? undefined)}
+              className="bg-destructive hover:bg-destructive/90"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
