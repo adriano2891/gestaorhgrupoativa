@@ -197,24 +197,27 @@ export const useMetricasFerias = () => {
           if (!dataBase) return;
 
           // Check if employee status is "Em férias"
-          const stNorm = (p.status || 'ativo').toLowerCase().replace(/[_\s]+/g, '');
-          if (stNorm === 'emferias' || stNorm === 'emférias') {
+          const stNorm = (p.status || 'ativo').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[_\s]+/g, '');
+          if (stNorm === 'emferias') {
             cltStatusByUser.set(p.id, 'em_ferias');
             return;
           }
 
+          // Same logic as CardControleFeriasCLT: admission date + 1 year = fim aquisitivo
           const admissao = new Date(`${dataBase}T12:00:00`);
           const fimAquisitivo = new Date(admissao);
           fimAquisitivo.setFullYear(fimAquisitivo.getFullYear() + 1);
-          const fimConcessivo = new Date(admissao);
-          fimConcessivo.setFullYear(fimConcessivo.getFullYear() + 2);
 
-          const diasParaVencer = Math.ceil((fimConcessivo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+          const diasParaVencer = Math.ceil((fimAquisitivo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
 
           let status: 'cumprindo' | 'prestes_a_vencer' | 'vencida' = 'cumprindo';
-          if (hoje >= fimConcessivo) status = 'vencida';
-          else if (hoje < fimAquisitivo) status = 'cumprindo';
-          else if (diasParaVencer <= 60) status = 'prestes_a_vencer';
+          if (diasParaVencer < 0) {
+            status = 'vencida';
+          } else if (diasParaVencer <= 60) {
+            status = 'prestes_a_vencer';
+          } else {
+            status = 'cumprindo';
+          }
 
           cltStatusByUser.set(p.id, status);
         });
