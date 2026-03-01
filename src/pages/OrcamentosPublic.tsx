@@ -185,7 +185,7 @@ export default function OrcamentosPublic() {
             <div className="space-y-2">
               {quote.clientPhone && (
                 <div>
-                  <p className="text-sm text-zinc-500">Telefone</p>
+                  <p className="text-sm text-zinc-500 mb-1">Telefone:</p>
                   <p className="font-semibold text-zinc-800">{quote.clientPhone}</p>
                 </div>
               )}
