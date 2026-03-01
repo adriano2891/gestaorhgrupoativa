@@ -171,9 +171,33 @@ const getStatusConfig = (status: StatusFerias) => {
 
 export const CardControleFeriasCLT = () => {
   const { data: funcionarios, isLoading } = useFuncionariosFerias();
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
 
+  useEffect(() => {
+    const channel = supabase
+      .channel("ferias-clt-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["funcionarios-ferias-clt"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_roles" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["funcionarios-ferias-clt"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
   const filtered = useMemo(() => {
     if (!funcionarios) return [];
     return funcionarios.filter(f => {
