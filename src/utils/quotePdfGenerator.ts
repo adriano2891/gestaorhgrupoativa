@@ -260,14 +260,22 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   // Síndico Responsável
   if ('clientSindico' in quote && quote.clientSindico) {
     doc.setFont('helvetica', 'bold');
-    const sindicoLabel = 'Síndico Responsável: ';
+    const sindicoLabel = 'Síndico Responsável:';
     doc.text(sindicoLabel, rightCardX + 5, clientInfoY);
+    const sindicoLabelWidth = doc.getTextWidth(sindicoLabel + ' ');
     doc.setFont('helvetica', 'normal');
-    const sindicoValueX = rightCardX + 5 + doc.getTextWidth(sindicoLabel);
-    const sindicoValueWidth = maxTextWidth - doc.getTextWidth(sindicoLabel);
-    const sindicoLines = doc.splitTextToSize(`${quote.clientSindico}`, sindicoValueWidth > 10 ? sindicoValueWidth : maxTextWidth);
-    doc.text(sindicoLines, sindicoValueX, clientInfoY);
-    clientInfoY += sindicoLines.length * 3.5 + 1;
+    const sindicoValueX = rightCardX + 5 + sindicoLabelWidth;
+    const sindicoValueWidth = maxTextWidth - sindicoLabelWidth;
+    if (sindicoValueWidth > 20) {
+      const sindicoLines = doc.splitTextToSize(`${quote.clientSindico}`, sindicoValueWidth);
+      doc.text(sindicoLines, sindicoValueX, clientInfoY);
+      clientInfoY += sindicoLines.length * 3.5 + 1;
+    } else {
+      clientInfoY += 3.5;
+      const sindicoLines = doc.splitTextToSize(`${quote.clientSindico}`, maxTextWidth);
+      doc.text(sindicoLines, rightCardX + 5, clientInfoY);
+      clientInfoY += sindicoLines.length * 3.5 + 1;
+    }
   }
 
   // Telefone
