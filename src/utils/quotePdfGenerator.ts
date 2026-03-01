@@ -378,7 +378,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   ];
 
   infoLines.forEach((line, idx) => {
-    doc.text(line, 13, footerY + 15 + (idx * 5));
+    doc.text(line, 10, footerY + 15 + (idx * 5));
   });
 
   return doc;
