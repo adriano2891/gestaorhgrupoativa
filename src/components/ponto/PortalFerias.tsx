@@ -18,10 +18,10 @@ interface PortalFeriasProps {
 }
 
 export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
-  const { user, profile } = usePortalAuth();
+  const { user, profile, refreshProfile } = usePortalAuth();
   const queryClient = useQueryClient();
 
-  // Realtime: escuta mudanças na solicitação de férias do funcionário
+  // Realtime: escuta mudanças na solicitação de férias, períodos e perfil do funcionário
   useEffect(() => {
     if (!user?.id) return;
 
@@ -63,12 +63,27 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
           queryClient.invalidateQueries({ queryKey: ["periodos-aquisitivos-portal", user.id] });
         }
       )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`,
+        },
+        () => {
+          // Atualiza perfil (data_admissao, status) quando admin altera cadastro
+          refreshProfile();
+          queryClient.invalidateQueries({ queryKey: ["periodos-aquisitivos-portal", user.id] });
+          queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias-portal", user.id] });
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [user?.id, queryClient]);
+  }, [user?.id, queryClient, refreshProfile]);
 
   const { data: periodos, isLoading } = useQuery({
     queryKey: ["periodos-aquisitivos-portal", user?.id],
