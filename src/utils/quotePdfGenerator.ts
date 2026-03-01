@@ -358,12 +358,12 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.rect(margin, footerY, 4, footerCardHeight, 'F');
 
   doc.setTextColor(...darkTeal);
-  doc.setFontSize(9);
+  doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
   doc.text('Informações Importantes:', margin + 8, footerY + 8);
 
   doc.setTextColor(...darkGray);
-  doc.setFontSize(7);
+  doc.setFontSize(6);
   doc.setFont('helvetica', 'normal');
   
   const createdDate = quote.createdAt instanceof Date ? quote.createdAt : new Date(quote.createdAt);
