@@ -107,7 +107,25 @@ export default function OrcamentosLista() {
   const handleDownloadPdf = async (quote: Quote) => {
     try {
       toast.info('Gerando PDF...');
-      await downloadQuotePDF(quote);
+      // Enrich quote with client data from DB if CNPJ is missing
+      let enrichedQuote = { ...quote };
+      if (!quote.clientCnpj && quote.clientId) {
+        const { data: clientData } = await supabase
+          .from('clientes_orcamentos')
+          .select('cnpj, nome_sindico, telefone, email')
+          .eq('id', quote.clientId)
+          .single();
+        if (clientData) {
+          enrichedQuote = {
+            ...enrichedQuote,
+            clientCnpj: clientData.cnpj || undefined,
+            clientSindico: enrichedQuote.clientSindico || clientData.nome_sindico || undefined,
+            clientPhone: enrichedQuote.clientPhone || clientData.telefone || undefined,
+            clientEmail: enrichedQuote.clientEmail || clientData.email || undefined,
+          };
+        }
+      }
+      await downloadQuotePDF(enrichedQuote);
       toast.success('PDF baixado com sucesso');
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
