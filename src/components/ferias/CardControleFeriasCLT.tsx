@@ -52,6 +52,31 @@ const parseDateSafe = (value: string) => {
   return Number.isNaN(parsed.getTime()) ? startOfToday() : parsed;
 };
 
+const DAY_IN_MS = 1000 * 60 * 60 * 24;
+
+const calcularSaldoPeriodo = (periodo: PeriodoAquisitivoRow) => {
+  if (typeof periodo.dias_disponiveis === 'number') return periodo.dias_disponiveis;
+  if (typeof periodo.dias_direito === 'number') {
+    const diasUsados = typeof periodo.dias_usados === 'number' ? periodo.dias_usados : 0;
+    return Math.max(periodo.dias_direito - diasUsados, 0);
+  }
+  return 0;
+};
+
+const calcularFimAquisitivoPorAdmissao = (dataAdmissao: string) => {
+  const admissao = parseDateSafe(dataAdmissao);
+  const fimAquisitivo = new Date(admissao);
+  fimAquisitivo.setFullYear(fimAquisitivo.getFullYear() + 1);
+  return fimAquisitivo;
+};
+
+const normalizarStatus = (status: string) =>
+  (status || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[_\s]+/g, '');
+
 const calcularStatusFerias = ({
   dataAdmissao,
   statusPerfil,
@@ -71,39 +96,42 @@ const calcularStatusFerias = ({
   const hoje = startOfToday();
   const hojeISO = hoje.toISOString().split('T')[0];
 
-  const periodosOrdenados = [...periodos]
-    .filter((p) => Boolean(p.data_fim))
+  const fimAquisitivoPorAdmissao = calcularFimAquisitivoPorAdmissao(dataAdmissao);
+
+  const periodosPendentes = [...periodos]
+    .filter((p) => Boolean(p.data_fim) && calcularSaldoPeriodo(p) > 0)
     .sort((a, b) => parseDateSafe(a.data_fim).getTime() - parseDateSafe(b.data_fim).getTime());
 
-  const periodosPendentes = periodosOrdenados.filter((p) => (p.dias_disponiveis ?? p.dias_direito ?? 0) > 0);
+  const fimAquisitivoPeriodoPendente = periodosPendentes[0]
+    ? parseDateSafe(periodosPendentes[0].data_fim)
+    : null;
 
-  let fimAquisitivo: Date;
-  if (periodosPendentes.length > 0) {
-    fimAquisitivo = parseDateSafe(periodosPendentes[0].data_fim);
-  } else {
-    const admissao = parseDateSafe(dataAdmissao);
-    fimAquisitivo = new Date(admissao);
-    fimAquisitivo.setFullYear(fimAquisitivo.getFullYear() + 1);
-    while (fimAquisitivo < hoje) {
-      fimAquisitivo.setFullYear(fimAquisitivo.getFullYear() + 1);
-    }
-  }
+  // Fonte principal: Data de Admissão do cadastro; usa período pendente apenas quando mais antigo.
+  const fimAquisitivo =
+    fimAquisitivoPeriodoPendente && fimAquisitivoPeriodoPendente < fimAquisitivoPorAdmissao
+      ? fimAquisitivoPeriodoPendente
+      : fimAquisitivoPorAdmissao;
 
   const fimConcessivo = new Date(fimAquisitivo);
   fimConcessivo.setFullYear(fimConcessivo.getFullYear() + 1);
 
-  // Regras do card: vencimento pela data do período aquisitivo
-  const diasParaVencer = Math.ceil((fimAquisitivo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+  const diasParaVencer = Math.ceil((fimAquisitivo.getTime() - hoje.getTime()) / DAY_IN_MS);
 
-  const stNorm = (statusPerfil || 'ativo').toLowerCase().replace(/[_\s]+/g, '');
+  const statusPerfilNorm = normalizarStatus(statusPerfil || 'ativo');
+  const emFeriasPorCadastro = statusPerfilNorm === 'emferias';
+
   const emFeriasPorSolicitacao = solicitacoes.some((s) => {
-    const st = (s.status || '').toLowerCase();
-    const statusAtivo = st === 'em_andamento' || st === 'aprovado';
+    const statusSolicitacao = normalizarStatus(s.status || '');
+    const statusAtivo =
+      statusSolicitacao === 'emandamento' ||
+      statusSolicitacao === 'aprovado' ||
+      statusSolicitacao === 'emferias';
+
     return statusAtivo && s.data_inicio <= hojeISO && s.data_fim >= hojeISO;
   });
 
   let status: StatusFerias;
-  if (stNorm === 'emferias' || stNorm === 'emférias' || emFeriasPorSolicitacao) {
+  if (emFeriasPorCadastro || emFeriasPorSolicitacao) {
     status = 'em_ferias';
   } else if (diasParaVencer < 0) {
     status = 'vencida';
