@@ -107,6 +107,11 @@ export interface Quote {
   version: number;
   clientId: string;
   clientName: string;
+  clientEmail?: string;
+  clientPhone?: string;
+  clientAddress?: string;
+  clientCnpj?: string;
+  clientSindico?: string;
   validUntil: Date;
   items: QuoteItem[];
   financials: QuoteFinancials;
