@@ -169,22 +169,17 @@ export const CardControleFeriasCLT = () => {
   const [statusFilter, setStatusFilter] = useState("todos");
 
   useEffect(() => {
+    const invalidate = () => {
+      queryClient.invalidateQueries({ queryKey: ["funcionarios-ferias-clt"] });
+      queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+      queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
+    };
     const channel = supabase
       .channel("ferias-clt-realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "profiles" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["funcionarios-ferias-clt"] });
-        }
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "user_roles" },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["funcionarios-ferias-clt"] });
-        }
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "profiles" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_roles" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "solicitacoes_ferias" }, invalidate)
+      .on("postgres_changes", { event: "*", schema: "public", table: "periodos_aquisitivos" }, invalidate)
       .subscribe();
 
     return () => {
