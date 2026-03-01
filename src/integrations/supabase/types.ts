@@ -1109,6 +1109,7 @@ export type Database = {
           formulario_id: string
           id: string
           label: string
+          largura: number | null
           obrigatorio: boolean
           opcoes: Json | null
           ordem: number
@@ -1122,6 +1123,7 @@ export type Database = {
           formulario_id: string
           id?: string
           label: string
+          largura?: number | null
           obrigatorio?: boolean
           opcoes?: Json | null
           ordem?: number
@@ -1135,6 +1137,7 @@ export type Database = {
           formulario_id?: string
           id?: string
           label?: string
+          largura?: number | null
           obrigatorio?: boolean
           opcoes?: Json | null
           ordem?: number
