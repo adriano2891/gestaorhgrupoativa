@@ -274,11 +274,6 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
     clientInfoY += 4.5;
   }
 
-  // Quote ID inside client card at bottom
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(8);
-  doc.text(`Orçamento: ${quote.publicId}`, rightCardX + 5, cardY + cardHeight - 3);
-
   // ============= TITLE "ORÇAMENTO" =============
   let y = cardY + cardHeight + 18;
   doc.setTextColor(...black);
@@ -292,8 +287,15 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.setLineWidth(0.8);
   doc.line(pageWidth / 2 - textWidth / 2, y + 3, pageWidth / 2 + textWidth / 2, y + 3);
 
+  // Quote ID below title
+  y = y + 12;
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.setTextColor(...black);
+  doc.text(`Orçamento: ${quote.publicId}`, margin, y);
+
   // ============= ITEMS TABLE =============
-  y = y + 18;
+  y = y + 10;
   
   const tableData = quote.items.map((item, idx) => [
     '', // Image placeholder
