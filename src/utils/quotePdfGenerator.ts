@@ -4,6 +4,7 @@ import { Quote, QuoteItem } from '@/types/quotes';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import logoAtivaPdf from '@/assets/logo-ativa-pdf.png';
+import iconPhonePdf from '@/assets/icon-phone-pdf.png';
 
 // Company info
 const COMPANY_INFO = {
