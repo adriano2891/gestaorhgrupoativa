@@ -417,47 +417,10 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.setFont('helvetica', 'bold');
   doc.text(totalValue, pageWidth - margin, finalY, { align: 'right' });
 
-  // ============= SIGNATURE AREA (if signed) - Right side below total =============
-  let signatureEndY = finalY;
-  if (quote.signature && quote.signature.dataUrl) {
-    const sigStartY = finalY + 8;
-    const sigX = pageWidth / 2 + 5; // Right half of the page
-    const sigWidth = pageWidth - margin - sigX;
-    
-    doc.setTextColor(...black);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Assinatura do Responsável:', sigX, sigStartY);
-    
-    // Draw a subtle line for signature placement
-    doc.setDrawColor(...borderColor);
-    doc.setLineWidth(0.3);
-    doc.line(sigX, sigStartY + 2, pageWidth - margin, sigStartY + 2);
-    
-    try {
-      const imgWidth = Math.min(50, sigWidth - 5);
-      doc.addImage(quote.signature.dataUrl, 'PNG', sigX, sigStartY + 4, imgWidth, 20);
-      
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(...darkGray);
-      const signedAt = quote.signature.signedAt instanceof Date ? quote.signature.signedAt : new Date(quote.signature.signedAt);
-      doc.text(
-        `${quote.signature.name} - ${format(signedAt, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
-        sigX,
-        sigStartY + 28
-      );
-      signatureEndY = sigStartY + 32;
-    } catch (error) {
-      console.error('Erro ao adicionar assinatura:', error);
-      signatureEndY = sigStartY + 5;
-    }
-  }
-
-  // ============= FOOTER - INFORMAÇÕES IMPORTANTES =============
+  // ============= FOOTER - INFORMAÇÕES IMPORTANTES + SIGNATURE SIDE BY SIDE =============
   const footerCardHeight = 34;
   const footerCardWidth = (pageWidth - margin * 2) * 0.45;
-  const footerY = signatureEndY + 12;
+  const footerY = finalY + 12;
 
   // Light teal footer background
   doc.setFillColor(235, 250, 248);
@@ -490,6 +453,39 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   infoLines.forEach((line, idx) => {
     doc.text(line, margin + 8, footerY + 15 + (idx * 5));
   });
+
+  // ============= SIGNATURE AREA - Right side, same row as footer card =============
+  if (quote.signature && quote.signature.dataUrl) {
+    const sigX = margin + footerCardWidth + 10;
+    const sigWidth = pageWidth - margin - sigX;
+
+    doc.setTextColor(...black);
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Assinatura do Responsável:', sigX, footerY + 4);
+
+    // Draw a subtle line for signature placement
+    doc.setDrawColor(...borderColor);
+    doc.setLineWidth(0.3);
+    doc.line(sigX, footerY + 6, pageWidth - margin, footerY + 6);
+
+    try {
+      const imgWidth = Math.min(45, sigWidth - 5);
+      doc.addImage(quote.signature.dataUrl, 'PNG', sigX, footerY + 8, imgWidth, 16);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(...darkGray);
+      const signedAt = quote.signature.signedAt instanceof Date ? quote.signature.signedAt : new Date(quote.signature.signedAt);
+      doc.text(
+        `${quote.signature.name} - ${format(signedAt, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
+        sigX,
+        footerY + 28
+      );
+    } catch (error) {
+      console.error('Erro ao adicionar assinatura:', error);
+    }
+  }
 
   // ============= BOTTOM FOOTER - LINE + WEBSITE =============
   const bottomY = pageHeight - 10;
