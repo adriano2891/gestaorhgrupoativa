@@ -344,23 +344,25 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   }
 
   // ============= FOOTER - INFORMAÇÕES IMPORTANTES =============
-  const footerY = Math.max(signatureEndY + 20, pageHeight - 70);
+  const footerCardHeight = 42;
+  const footerCardWidth = pageWidth - margin * 2;
+  const footerY = Math.max(signatureEndY + 12, pageHeight - 52);
 
-  // Teal footer background
+  // Teal footer background - smaller card
   doc.setFillColor(235, 250, 248);
-  doc.rect(0, footerY, pageWidth, pageHeight - footerY, 'F');
+  doc.rect(margin, footerY, footerCardWidth, footerCardHeight, 'F');
 
   // Left teal accent
   doc.setFillColor(...tealColor);
-  doc.rect(0, footerY, 5, pageHeight - footerY, 'F');
+  doc.rect(margin, footerY, 4, footerCardHeight, 'F');
 
   doc.setTextColor(...darkTeal);
-  doc.setFontSize(11);
+  doc.setFontSize(9);
   doc.setFont('helvetica', 'bold');
-  doc.text('Informações Importantes:', margin + 5, footerY + 12);
+  doc.text('Informações Importantes:', margin + 8, footerY + 8);
 
   doc.setTextColor(...darkGray);
-  doc.setFontSize(9);
+  doc.setFontSize(7);
   doc.setFont('helvetica', 'normal');
   
   const createdDate = quote.createdAt instanceof Date ? quote.createdAt : new Date(quote.createdAt);
@@ -375,7 +377,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   ];
 
   infoLines.forEach((line, idx) => {
-    doc.text(line, margin + 5, footerY + 22 + (idx * 6));
+    doc.text(line, margin + 8, footerY + 15 + (idx * 5));
   });
 
   return doc;
