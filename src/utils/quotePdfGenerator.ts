@@ -161,7 +161,28 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.setFontSize(9);
   doc.text(`CNPJ: ${COMPANY_INFO.cnpj}`, margin, y + 6);
   doc.text(COMPANY_INFO.address, margin, y + 12);
-  doc.text(`Contato: ${COMPANY_INFO.phone}`, margin, y + 18);
+  doc.text('Contato: (11) 5563-9886 / ', margin, y + 18);
+  const contatoLabelWidth = doc.getTextWidth('Contato: (11) 5563-9886 / ');
+  
+  // Draw small WhatsApp icon (black, no background)
+  const waIconX = margin + contatoLabelWidth;
+  const waIconY = y + 14.5;
+  const waSize = 3.5;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
+  // Chat bubble circle
+  doc.circle(waIconX + waSize / 2, waIconY + waSize / 2, waSize / 2, 'S');
+  // Phone handset (simplified)
+  doc.setFillColor(0, 0, 0);
+  doc.circle(waIconX + waSize / 2, waIconY + waSize / 2, waSize / 4, 'F');
+  
+  // WhatsApp number with hyperlink
+  const waNumberX = waIconX + waSize + 1;
+  const waNumber = '(11) 97501-1717';
+  const waUrl = 'https://wa.me/5511975011717';
+  doc.setTextColor(0, 102, 204);
+  doc.textWithLink(waNumber, waNumberX, y + 18, { url: waUrl });
+  doc.setTextColor(...black);
   doc.text('E-mail: ', margin, y + 24);
   const emailLabelWidth = doc.getTextWidth('E-mail: ');
   doc.setTextColor(0, 102, 204);
