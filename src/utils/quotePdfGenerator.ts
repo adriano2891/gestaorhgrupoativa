@@ -162,7 +162,11 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.text(`CNPJ: ${COMPANY_INFO.cnpj}`, margin, y + 6);
   doc.text(COMPANY_INFO.address, margin, y + 12);
   doc.text(`Contato: ${COMPANY_INFO.phone}`, margin, y + 18);
-  doc.text(`E-mail: ${COMPANY_INFO.email}`, margin, y + 24);
+  doc.text('E-mail: ', margin, y + 24);
+  const emailLabelWidth = doc.getTextWidth('E-mail: ');
+  doc.setTextColor(0, 102, 204);
+  doc.textWithLink(COMPANY_INFO.email, margin + emailLabelWidth, y + 24, { url: `mailto:${COMPANY_INFO.email}` });
+  doc.setTextColor(...black);
 
   // Right side - Client info
   const clientX = pageWidth / 2 + 10;
