@@ -149,6 +149,7 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
                   })}
                 </TableBody>
               </Table>
+              </div>
             </ScrollArea>
 
             {logs.length > 5 && (
