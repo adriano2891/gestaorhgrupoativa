@@ -227,15 +227,18 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8);
   let clientInfoY = cardY + 13;
+  const maxTextWidth = rightCardWidth - 10;
 
   // Nome do Condomínio
-  doc.text(`${quote.clientName}`, rightCardX + 5, clientInfoY);
-  clientInfoY += 4.5;
+  const nameLines = doc.splitTextToSize(`${quote.clientName}`, maxTextWidth);
+  doc.text(nameLines, rightCardX + 5, clientInfoY);
+  clientInfoY += nameLines.length * 3.5 + 1;
 
   // Endereço
   if ('clientAddress' in quote && quote.clientAddress) {
-    doc.text(`${quote.clientAddress}`, rightCardX + 5, clientInfoY);
-    clientInfoY += 4.5;
+    const addrLines = doc.splitTextToSize(`${quote.clientAddress}`, maxTextWidth);
+    doc.text(addrLines, rightCardX + 5, clientInfoY);
+    clientInfoY += addrLines.length * 3.5 + 1;
   }
 
   // CNPJ
@@ -246,8 +249,9 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
 
   // Síndico Responsável
   if ('clientSindico' in quote && quote.clientSindico) {
-    doc.text(`Síndico Responsável: ${quote.clientSindico}`, rightCardX + 5, clientInfoY);
-    clientInfoY += 4.5;
+    const sindicoLines = doc.splitTextToSize(`Síndico Responsável: ${quote.clientSindico}`, maxTextWidth);
+    doc.text(sindicoLines, rightCardX + 5, clientInfoY);
+    clientInfoY += sindicoLines.length * 3.5 + 1;
   }
 
   // Telefone
