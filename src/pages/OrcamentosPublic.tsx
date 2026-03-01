@@ -145,6 +145,12 @@ export default function OrcamentosPublic() {
   return (
     <div className="min-h-screen py-8 px-4" style={{ backgroundColor: '#3ee0cf' }}>
       <div className="max-w-4xl mx-auto space-y-6">
+      {/* Public Notice */}
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-white drop-shadow">Orçamento público</h1>
+          <p className="text-sm text-white/80 mt-1">Não possui validade como comprovante jurídico</p>
+        </div>
+
         {/* Header */}
         <GlassPanel className="p-6">
           <div className="flex items-center justify-between">
