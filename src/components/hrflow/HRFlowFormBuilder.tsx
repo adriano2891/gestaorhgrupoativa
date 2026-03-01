@@ -196,9 +196,18 @@ export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilder
                   </div>
                 ) : (
                   <div className="flex flex-wrap gap-4">
-                    {fields.map((field, index) => (
+                    {fields.map((field, index) => {
+                      const w = field.width || 100;
+                      const widthClass = w === 100 ? 'w-full' 
+                        : w === 50 ? 'w-full sm:w-[calc(50%-0.5rem)]' 
+                        : w === 33 ? 'w-full sm:w-[calc(33.333%-0.667rem)]' 
+                        : 'w-full sm:w-[calc(25%-0.75rem)]';
+                      return (
                       <div
                         key={field.id}
+                        className={widthClass}
+                      >
+                      <div
                         draggable
                         onDragStart={(e) => handleDragStart(e, index)}
                         onDragEnd={handleDragEnd}
