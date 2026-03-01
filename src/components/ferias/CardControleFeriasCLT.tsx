@@ -145,6 +145,34 @@ const useFuncionariosFerias = () => {
 
         if (profilesError) throw profilesError;
 
+        const [periodosRes, solicitacoesRes] = await Promise.all([
+          supabase
+            .from('periodos_aquisitivos')
+            .select('id, user_id, data_inicio, data_fim, dias_direito, dias_disponiveis')
+            .in('user_id', targetIds),
+          supabase
+            .from('solicitacoes_ferias')
+            .select('user_id, periodo_aquisitivo_id, data_inicio, data_fim, status')
+            .in('user_id', targetIds),
+        ]);
+
+        if (periodosRes.error) throw periodosRes.error;
+        if (solicitacoesRes.error) throw solicitacoesRes.error;
+
+        const periodosPorUser = new Map<string, PeriodoAquisitivoRow[]>();
+        (periodosRes.data || []).forEach((periodo) => {
+          const lista = periodosPorUser.get(periodo.user_id) || [];
+          lista.push(periodo as PeriodoAquisitivoRow);
+          periodosPorUser.set(periodo.user_id, lista);
+        });
+
+        const solicitacoesPorUser = new Map<string, SolicitacaoFeriasRow[]>();
+        (solicitacoesRes.data || []).forEach((solicitacao) => {
+          const lista = solicitacoesPorUser.get(solicitacao.user_id) || [];
+          lista.push(solicitacao as SolicitacaoFeriasRow);
+          solicitacoesPorUser.set(solicitacao.user_id, lista);
+        });
+
         const activeProfiles = (profiles || []).filter((p: any) => {
           const st = (p.status || 'ativo').toLowerCase();
           return st !== 'demitido' && st !== 'pediu_demissao';
@@ -155,7 +183,15 @@ const useFuncionariosFerias = () => {
           if (!dataAdmissao) return null;
 
           const statusPerfil = p.status || 'ativo';
-          const { fimAquisitivo, fimConcessivo, status, diasParaVencer } = calcularStatusFerias(dataAdmissao, statusPerfil);
+          const periodosFuncionario = periodosPorUser.get(p.id) || [];
+          const solicitacoesFuncionario = solicitacoesPorUser.get(p.id) || [];
+
+          const { fimAquisitivo, fimConcessivo, status, diasParaVencer } = calcularStatusFerias({
+            dataAdmissao,
+            statusPerfil,
+            periodos: periodosFuncionario,
+            solicitacoes: solicitacoesFuncionario,
+          });
 
           return {
             id: p.id,
