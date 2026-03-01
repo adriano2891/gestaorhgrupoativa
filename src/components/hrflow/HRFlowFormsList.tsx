@@ -223,7 +223,7 @@ export const HRFlowFormsList = () => {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDuplicateForm(form)}>
                           <Copy className="w-4 h-4 mr-2" />
                           Duplicar
                         </DropdownMenuItem>
@@ -231,7 +231,7 @@ export const HRFlowFormsList = () => {
                           <ExternalLink className="w-4 h-4 mr-2" />
                           Link Público
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
+                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleteFormId(form.id)}>
                           <Trash2 className="w-4 h-4 mr-2" />
                           Excluir
                         </DropdownMenuItem>
