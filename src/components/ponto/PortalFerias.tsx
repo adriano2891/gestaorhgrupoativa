@@ -1,12 +1,12 @@
 import { useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, AlertTriangle, Info } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format, differenceInDays, parseISO, isBefore, addYears } from "date-fns";
+import { format, differenceInDays, parseISO, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SolicitarFeriasDialog } from "./SolicitarFeriasDialog";
 import { PortalBackground } from "./PortalBackground";
@@ -92,79 +92,37 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
         const userId = user?.id;
         if (!userId) return [];
 
-        // 1. Fetch existing periods
-        const { data: existingPeriods, error } = await supabase
+        // Gera/sincroniza períodos no backend (bypass de RLS para funcionário)
+        const { data: ensuredResponse, error: ensureError } = await supabase.functions.invoke(
+          "ensure-periodos-aquisitivos",
+          { body: { user_id: userId } }
+        );
+
+        if (ensureError) {
+          console.error("Erro ao sincronizar períodos aquisitivos:", ensureError);
+        }
+
+        const ensuredPeriods = Array.isArray((ensuredResponse as any)?.periodos)
+          ? (ensuredResponse as any).periodos
+          : [];
+
+        if (ensuredPeriods.length > 0) {
+          return ensuredPeriods.sort((a: any, b: any) => b.data_inicio.localeCompare(a.data_inicio));
+        }
+
+        // Fallback de leitura direta
+        const { data, error } = await supabase
           .from("periodos_aquisitivos")
           .select("*")
           .eq("user_id", userId)
-          .order("data_inicio", { ascending: true });
+          .order("data_inicio", { ascending: false });
 
         if (error) {
           console.error("Erro ao buscar períodos aquisitivos:", error);
           return [];
         }
 
-        const periods = existingPeriods || [];
-
-        // 2. Auto-generate missing periods from data_admissao
-        const profileData = profile as any;
-        const dataAdmissaoStr = profileData?.data_admissao;
-        if (!dataAdmissaoStr) return periods;
-
-        const admissao = new Date(`${dataAdmissaoStr}T12:00:00`);
-        const hoje = new Date();
-        const missingPeriods: Array<{ data_inicio: string; data_fim: string }> = [];
-
-        // Calculate all periods that SHOULD exist from admission
-        let periodoInicio = new Date(admissao);
-        while (periodoInicio < hoje) {
-          const periodoFim = new Date(periodoInicio);
-          periodoFim.setFullYear(periodoFim.getFullYear() + 1);
-          periodoFim.setDate(periodoFim.getDate() - 1);
-
-          const inicioStr = periodoInicio.toISOString().split('T')[0];
-
-          // Check if this period already exists in DB
-          const exists = periods.some(p => p.data_inicio === inicioStr);
-          if (!exists) {
-            missingPeriods.push({
-              data_inicio: inicioStr,
-              data_fim: periodoFim.toISOString().split('T')[0],
-            });
-          }
-
-          // Move to next period
-          periodoInicio = new Date(periodoFim);
-          periodoInicio.setDate(periodoInicio.getDate() + 1);
-        }
-
-        // 3. Insert missing periods
-        if (missingPeriods.length > 0) {
-          const inserts = missingPeriods.map(mp => ({
-            user_id: userId,
-            data_inicio: mp.data_inicio,
-            data_fim: mp.data_fim,
-            dias_direito: 30,
-            dias_usados: 0,
-          }));
-
-          const { data: inserted, error: insertError } = await supabase
-            .from("periodos_aquisitivos")
-            .insert(inserts)
-            .select();
-
-          if (insertError) {
-            console.error("Erro ao criar períodos faltantes:", insertError);
-          } else if (inserted) {
-            const allPeriods = [...periods, ...inserted].sort(
-              (a, b) => b.data_inicio.localeCompare(a.data_inicio)
-            );
-            return allPeriods;
-          }
-        }
-
-        // Return sorted desc
-        return periods.sort((a, b) => b.data_inicio.localeCompare(a.data_inicio));
+        return data || [];
       } catch (e) {
         console.error("Erro inesperado em períodos aquisitivos:", e);
         return [];
@@ -172,8 +130,8 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
     },
     enabled: !!user?.id,
     retry: 2,
-    staleTime: 1000 * 10,
-    refetchInterval: 1000 * 30,
+    staleTime: 0,
+    refetchInterval: 1000 * 15,
   });
 
   const { data: solicitacoes, isLoading: loadingSolicitacoes } = useQuery({
