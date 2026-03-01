@@ -346,7 +346,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   // ============= FOOTER - INFORMAÇÕES IMPORTANTES =============
   const footerCardHeight = 42;
   const footerCardWidth = (pageWidth - margin * 2) / 2;
-  const footerY = Math.max(signatureEndY + 12, pageHeight - 52);
+  const footerY = signatureEndY + 12;
 
   // Teal footer background - smaller card
   doc.setFillColor(235, 250, 248);
