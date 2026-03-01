@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { GripVertical, Trash2, Settings, ChevronDown, ChevronUp } from "lucide-react";
+import { GripVertical, Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,9 +7,10 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useUpdateFormularioCampo } from "@/hooks/useFormulariosRH";
-import { FIELD_TYPE_LABELS, type FormularioCampo } from "@/types/formularios";
+import { FIELD_TYPE_LABELS, LARGURA_OPTIONS, type FormularioCampo } from "@/types/formularios";
 
 interface CampoFormularioProps {
   campo: FormularioCampo;
@@ -42,6 +43,16 @@ export const CampoFormulario = ({ campo, onDelete }: CampoFormularioProps) => {
     });
   };
 
+  const handleLarguraChange = (value: string) => {
+    updateCampo.mutate({
+      id: campo.id,
+      formulario_id: campo.formulario_id,
+      largura: parseInt(value),
+    });
+  };
+
+  const currentLargura = campo.largura || 100;
+
   return (
     <Card className="group">
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
@@ -68,6 +79,11 @@ export const CampoFormulario = ({ campo, onDelete }: CampoFormularioProps) => {
                 <Badge variant="secondary" className="text-xs">
                   {FIELD_TYPE_LABELS[campo.tipo]}
                 </Badge>
+                {currentLargura < 100 && (
+                  <Badge variant="outline" className="text-xs">
+                    {currentLargura}%
+                  </Badge>
+                )}
               </div>
             </div>
 
@@ -89,7 +105,7 @@ export const CampoFormulario = ({ campo, onDelete }: CampoFormularioProps) => {
           </div>
 
           <CollapsibleContent className="pt-4 space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div>
                 <Label>Placeholder</Label>
                 <Input
@@ -99,8 +115,23 @@ export const CampoFormulario = ({ campo, onDelete }: CampoFormularioProps) => {
                   placeholder="Texto de exemplo..."
                 />
               </div>
+              <div>
+                <Label>Largura</Label>
+                <Select value={String(currentLargura)} onValueChange={handleLarguraChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LARGURA_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={String(opt.value)}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="flex items-center justify-between sm:justify-start sm:gap-4">
-                <Label>Campo Obrigatório</Label>
+                <Label>Obrigatório</Label>
                 <Switch
                   checked={campo.obrigatorio}
                   onCheckedChange={handleToggleObrigatorio}
