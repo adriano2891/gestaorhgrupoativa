@@ -47,9 +47,7 @@ export const FormularioCard = ({ formulario, isTemplate }: FormularioCardProps) 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAtribuirDialog, setShowAtribuirDialog] = useState(false);
 
-  const handleView = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleView = () => {
     try {
       navigate(`/formularios-rh/${formulario.id}`);
     } catch (error) {
@@ -57,9 +55,7 @@ export const FormularioCard = ({ formulario, isTemplate }: FormularioCardProps) 
     }
   };
 
-  const handleEdit = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleEdit = () => {
     try {
       navigate(`/formularios-rh/${formulario.id}`);
     } catch (error) {
