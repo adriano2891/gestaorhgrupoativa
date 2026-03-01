@@ -240,9 +240,9 @@ const useFuncionariosFerias = () => {
       }
     },
     staleTime: 0,
-    refetchInterval: 1000 * 30,
+    refetchInterval: 1000 * 10,
+    refetchIntervalInBackground: true,
     refetchOnWindowFocus: true,
-    retry: 2,
   });
 };
 
