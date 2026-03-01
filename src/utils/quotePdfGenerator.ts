@@ -172,7 +172,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
 
   // ============= COMPANY INFO CARD (left) =============
   const cardY = 40;
-  const cardHeight = 38;
+  const cardHeight = 46;
   const leftCardWidth = (pageWidth - margin * 2 - 8) * 0.55;
   const rightCardWidth = (pageWidth - margin * 2 - 8) * 0.45;
   const rightCardX = margin + leftCardWidth + 8;
