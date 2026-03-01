@@ -199,11 +199,12 @@ export const CardControleFeriasCLT = () => {
   }, [funcionarios, searchTerm, statusFilter]);
 
   const counts = useMemo(() => {
-    if (!funcionarios) return { cumprindo: 0, prestes_a_vencer: 0, vencida: 0 };
+    if (!funcionarios) return { cumprindo: 0, prestes_a_vencer: 0, vencida: 0, em_ferias: 0 };
     return {
       cumprindo: funcionarios.filter(f => f.status === 'cumprindo').length,
       prestes_a_vencer: funcionarios.filter(f => f.status === 'prestes_a_vencer').length,
       vencida: funcionarios.filter(f => f.status === 'vencida').length,
+      em_ferias: funcionarios.filter(f => f.status === 'em_ferias').length,
     };
   }, [funcionarios]);
 
