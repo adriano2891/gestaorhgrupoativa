@@ -417,23 +417,26 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.setFont('helvetica', 'bold');
   doc.text(totalValue, pageWidth - margin, finalY, { align: 'right' });
 
-  // ============= SIGNATURE AREA (if signed) =============
+  // ============= SIGNATURE AREA (if signed) - Right side below total =============
   let signatureEndY = finalY;
   if (quote.signature && quote.signature.dataUrl) {
     const sigStartY = finalY + 8;
+    const sigX = pageWidth / 2 + 5; // Right half of the page
+    const sigWidth = pageWidth - margin - sigX;
     
     doc.setTextColor(...black);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
-    doc.text('Assinatura do Responsável:', margin, sigStartY);
+    doc.text('Assinatura do Responsável:', sigX, sigStartY);
     
     // Draw a subtle line for signature placement
     doc.setDrawColor(...borderColor);
     doc.setLineWidth(0.3);
-    doc.line(margin, sigStartY + 2, margin + 70, sigStartY + 2);
+    doc.line(sigX, sigStartY + 2, pageWidth - margin, sigStartY + 2);
     
     try {
-      doc.addImage(quote.signature.dataUrl, 'PNG', margin, sigStartY + 4, 50, 20);
+      const imgWidth = Math.min(50, sigWidth - 5);
+      doc.addImage(quote.signature.dataUrl, 'PNG', sigX, sigStartY + 4, imgWidth, 20);
       
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(8);
@@ -441,7 +444,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
       const signedAt = quote.signature.signedAt instanceof Date ? quote.signature.signedAt : new Date(quote.signature.signedAt);
       doc.text(
         `${quote.signature.name} - ${format(signedAt, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
-        margin,
+        sigX,
         sigStartY + 28
       );
       signatureEndY = sigStartY + 32;
