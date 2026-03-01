@@ -293,6 +293,7 @@ export const useAtualizarStatusChamado = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["meus-chamados"] });
       queryClient.invalidateQueries({ queryKey: ["todos-chamados"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-notif-chamados"] });
       toast.success("Status atualizado!");
     },
     onError: (error: any) => {
