@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Save, X, Building2, User, Mail, Phone, MapPin, FileText } from 'lucide-react';
+import { Save, X, Building2, User, Mail, Phone, MapPin, FileText, Hash } from 'lucide-react';
 import { QuotesLayout } from '@/components/orcamentos/QuotesLayout';
 import { GlassPanel } from '@/components/orcamentos/GlassPanel';
 import { Button } from '@/components/ui/button';
@@ -34,6 +34,7 @@ export default function OrcamentosClienteForm() {
     email: '',
     telefone: '',
     numero_unidades: undefined,
+    cnpj: '',
     cep: '',
     rua: '',
     numero: '',
@@ -61,6 +62,19 @@ export default function OrcamentosClienteForm() {
   const formatCep = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     return numbers.replace(/(\d{5})(\d{0,3})/, '$1-$2').trim();
+  };
+
+  const formatCnpj = (value: string) => {
+    const numbers = value.replace(/\D/g, '').slice(0, 14);
+    return numbers
+      .replace(/^(\d{2})(\d)/, '$1.$2')
+      .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+      .replace(/\.(\d{3})(\d)/, '.$1/$2')
+      .replace(/(\d{4})(\d)/, '$1-$2');
+  };
+
+  const handleCnpjChange = (value: string) => {
+    handleChange('cnpj', formatCnpj(value));
   };
 
   const handlePhoneChange = (value: string) => {
@@ -127,6 +141,7 @@ export default function OrcamentosClienteForm() {
         nome_sindico: formData.nome_sindico.trim(),
         email: formData.email.trim(),
         telefone: formData.telefone || undefined,
+        cnpj: formData.cnpj || undefined,
         cep: formData.cep || undefined,
         rua: formData.rua || undefined,
         numero: formData.numero || undefined,
@@ -232,6 +247,21 @@ export default function OrcamentosClienteForm() {
                       placeholder="Ex: 120"
                       min={1}
                     />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="cnpj">CNPJ</Label>
+                    <div className="relative mt-1">
+                      <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                      <Input
+                        id="cnpj"
+                        value={formData.cnpj}
+                        onChange={(e) => handleCnpjChange(e.target.value)}
+                        className="pl-10 bg-white"
+                        placeholder="00.000.000/0000-00"
+                        maxLength={18}
+                      />
+                    </div>
                   </div>
 
                   <div>

@@ -15,6 +15,7 @@ export interface ClienteOrcamento {
   cidade: string | null;
   estado: string | null;
   numero_unidades: number | null;
+  cnpj: string | null;
   observacoes: string | null;
   ativo: boolean;
   created_at: string;
@@ -34,6 +35,7 @@ export interface ClienteOrcamentoInput {
   cidade?: string;
   estado?: string;
   numero_unidades?: number;
+  cnpj?: string;
   observacoes?: string;
 }
 
