@@ -46,7 +46,7 @@ export default function OrcamentosBuilder() {
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
-  const { products, addQuote, getQuote, updateQuote } = useQuotes();
+  const { products, addQuote, getQuote, updateQuote, generatePublicId } = useQuotes();
   const { itens: dbItens, isLoading: isLoadingItens } = useItensOrcamento();
   const { clientes, isLoading: isLoadingClientes } = useClientesOrcamentos();
   
