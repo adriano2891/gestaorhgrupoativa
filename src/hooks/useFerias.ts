@@ -209,7 +209,8 @@ export const useMetricasFerias = () => {
 
           let status: 'cumprindo' | 'prestes_a_vencer' | 'vencida' = 'cumprindo';
           if (hoje >= fimConcessivo) status = 'vencida';
-          else if (hoje >= fimAquisitivo && diasParaVencer <= 60) status = 'prestes_a_vencer';
+          else if (hoje < fimAquisitivo) status = 'cumprindo';
+          else if (diasParaVencer <= 60) status = 'prestes_a_vencer';
 
           cltStatusByUser.set(p.id, status);
         });
