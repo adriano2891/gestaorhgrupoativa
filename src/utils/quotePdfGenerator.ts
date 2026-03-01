@@ -161,8 +161,9 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.text(`CNPJ: ${COMPANY_INFO.cnpj}`, margin, y + 6);
-  doc.text(COMPANY_INFO.address, margin, y + 12);
-  doc.text('Contato: (11) 5563-9886 / ', margin, y + 18);
+  doc.text(COMPANY_INFO.address1, margin, y + 12);
+  doc.text(COMPANY_INFO.address2, margin, y + 18);
+  doc.text('Contato: (11) 5563-9886 / ', margin, y + 24);
   const contatoLabelWidth = doc.getTextWidth('Contato: (11) 5563-9886 / ');
   
   // Draw small WhatsApp icon (black, no background)
