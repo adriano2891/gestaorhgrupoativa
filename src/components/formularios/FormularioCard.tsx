@@ -48,13 +48,23 @@ export const FormularioCard = ({ formulario, isTemplate }: FormularioCardProps) 
   const [showAtribuirDialog, setShowAtribuirDialog] = useState(false);
 
   const handleView = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    navigate(`/formularios-rh/${formulario.id}`);
+    try {
+      navigate(`/formularios-rh/${formulario.id}`);
+    } catch (error) {
+      console.error("Erro ao navegar para formulário:", error);
+    }
   };
 
   const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
-    navigate(`/formularios-rh/${formulario.id}`);
+    try {
+      navigate(`/formularios-rh/${formulario.id}`);
+    } catch (error) {
+      console.error("Erro ao navegar para edição:", error);
+    }
   };
 
   const handleDuplicate = async () => {
