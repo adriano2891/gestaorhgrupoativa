@@ -8,7 +8,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -36,21 +35,14 @@ const FormularioDetalhes = () => {
   const deleteCampo = useDeleteFormularioCampo();
 
   const [showAtribuirDialog, setShowAtribuirDialog] = useState(false);
-  const [newFieldType, setNewFieldType] = useState<FormFieldType>("text");
 
   const handleStatusChange = async (status: FormStatus) => {
     if (!id) return;
-    await updateFormulario.mutateAsync({ id, status });
-  };
-
-  const handleAddField = async () => {
-    if (!id) return;
-    await addCampo.mutateAsync({
-      formulario_id: id,
-      label: "Novo Campo",
-      tipo: newFieldType,
-      ordem: (campos?.length || 0) + 1,
-    });
+    try {
+      await updateFormulario.mutateAsync({ id, status });
+    } catch (error) {
+      console.error("Erro ao alterar status:", error);
+    }
   };
 
   if (loadingForm) {
@@ -135,23 +127,38 @@ const FormularioDetalhes = () => {
           {/* Campos Tab */}
           <TabsContent value="campos">
             <div className="space-y-4">
-              {/* Add Field */}
+              {/* Add Field - Grid of buttons */}
               <Card>
-                <CardContent className="flex items-center gap-4 py-4">
-                  <Select value={newFieldType} onValueChange={(v) => setNewFieldType(v as FormFieldType)}>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Tipo de campo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(FIELD_TYPE_LABELS).map(([key, label]) => (
-                        <SelectItem key={key} value={key}>{label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button onClick={handleAddField} disabled={addCampo.isPending}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar Campo
-                  </Button>
+                <CardHeader>
+                  <CardTitle className="text-base">Campos</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {Object.entries(FIELD_TYPE_LABELS).map(([key, label]) => (
+                      <Button
+                        key={key}
+                        variant="outline"
+                        size="sm"
+                        className="justify-start h-auto py-2 px-3 text-xs"
+                        disabled={addCampo.isPending}
+                        onClick={async () => {
+                          if (!id) return;
+                          try {
+                            await addCampo.mutateAsync({
+                              formulario_id: id,
+                              label: label,
+                              tipo: key as FormFieldType,
+                              ordem: (campos?.length || 0) + 1,
+                            });
+                          } catch (error) {
+                            console.error("Erro ao adicionar campo:", error);
+                          }
+                        }}
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </div>
                 </CardContent>
               </Card>
 

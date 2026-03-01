@@ -208,7 +208,7 @@ export const useAddFormularioCampo = () => {
     }) => {
       const { data, error } = await supabase
         .from("formulario_campos")
-        .insert(fieldData)
+        .insert({ ...fieldData, tipo: fieldData.tipo as any })
         .select()
         .single();
 
@@ -233,7 +233,7 @@ export const useUpdateFormularioCampo = () => {
     mutationFn: async ({ id, formulario_id, ...fieldData }: Partial<FormularioCampo> & { id: string; formulario_id: string }) => {
       const { data, error } = await supabase
         .from("formulario_campos")
-        .update(fieldData)
+        .update({ ...fieldData, tipo: fieldData.tipo as any })
         .eq("id", id)
         .select()
         .single();
