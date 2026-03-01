@@ -253,9 +253,10 @@ export default function OrcamentosLista() {
                             size="icon"
                             onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}
                             className="h-8 w-8"
-                            title="Editar"
+                            title={quote.status === 'assinado' ? 'Bloqueado - Assinado' : 'Editar'}
+                            disabled={quote.status === 'assinado'}
                           >
-                            <Edit className="w-4 h-4" />
+                            {quote.status === 'assinado' ? <Lock className="w-4 h-4" /> : <Edit className="w-4 h-4" />}
                           </Button>
                           <Button
                             variant="ghost"

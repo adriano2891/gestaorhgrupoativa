@@ -53,6 +53,14 @@ export default function OrcamentosBuilder() {
   const isEditing = Boolean(id);
   const existingQuote = id ? getQuote(id) : undefined;
 
+  // Block editing signed quotes
+  useEffect(() => {
+    if (existingQuote?.status === 'assinado') {
+      toast.error('Este orçamento está assinado e não pode ser editado.');
+      navigate(`/orcamentos/${id}`);
+    }
+  }, [existingQuote?.status, id, navigate]);
+
   // Check if a client was just created and passed via navigation state
   const selectedClientFromNav = (location.state as any)?.selectedClientId || '';
 
