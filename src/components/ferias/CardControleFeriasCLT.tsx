@@ -30,6 +30,7 @@ interface PeriodoAquisitivoRow {
   data_fim: string;
   dias_direito: number | null;
   dias_disponiveis: number | null;
+  dias_usados?: number | null;
 }
 
 interface SolicitacaoFeriasRow {
