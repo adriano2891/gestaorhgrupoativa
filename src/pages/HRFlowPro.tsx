@@ -83,8 +83,21 @@ const HRFlowPro = () => {
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [editingForm, setEditingForm] = useState<HRFlowForm | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [forms, setForms] = useState<HRFlowForm[]>(mockForms);
+  const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
 
-  const filteredForms = mockForms.filter(form => {
+  const handleDeleteForm = (formId: string) => {
+    try {
+      setForms((currentForms) => currentForms.filter((form) => form.id !== formId));
+      setDeleteFormId(null);
+      toast.success("Formulário excluído com sucesso!");
+    } catch (error) {
+      console.error("Erro ao excluir formulário:", error);
+      toast.error("Não foi possível excluir o formulário.");
+    }
+  };
+
+  const filteredForms = forms.filter((form) => {
     const matchesSearch = form.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       form.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "todos" || form.category === categoryFilter;
