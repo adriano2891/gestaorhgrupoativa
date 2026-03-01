@@ -150,7 +150,7 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   doc.rect(0, 40, pageWidth - 8, 2, 'F');
 
   // ============= COMPANY AND CLIENT INFO =============
-  let y = 50;
+  let y = 44;
 
   // Left side - Company info
   doc.setTextColor(...black);
