@@ -115,7 +115,8 @@ const useFuncionariosFerias = () => {
           const dataAdmissao = p.data_admissao || (p.created_at ? p.created_at.split('T')[0] : null);
           if (!dataAdmissao) return null;
 
-          const { fimAquisitivo, fimConcessivo, status, diasParaVencer } = calcularStatusFerias(dataAdmissao);
+          const statusPerfil = p.status || 'ativo';
+          const { fimAquisitivo, fimConcessivo, status, diasParaVencer } = calcularStatusFerias(dataAdmissao, statusPerfil);
 
           return {
             id: p.id,
