@@ -1,4 +1,4 @@
-export type FormFieldType = 'text' | 'textarea' | 'select' | 'checkbox' | 'date' | 'file' | 'number' | 'email' | 'phone';
+export type FormFieldType = 'text' | 'textarea' | 'select' | 'checkbox' | 'radio' | 'date' | 'file' | 'number' | 'email' | 'phone' | 'likert' | 'nps' | 'signature' | 'section' | 'paragraph';
 export type FormStatus = 'rascunho' | 'pendente_aprovacao' | 'aprovado' | 'publicado' | 'arquivado';
 export type FormCategory = 'admissao' | 'desligamento' | 'avaliacao_desempenho' | 'feedback' | 'solicitacao' | 'treinamento' | 'documentos' | 'outro';
 
