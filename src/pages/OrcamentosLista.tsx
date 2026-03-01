@@ -289,9 +289,8 @@ export default function OrcamentosLista() {
                                   Editar
                                 </DropdownMenuItem>
                               )}
-                              <DropdownMenuItem onSelect={(e) => {
-                                e.preventDefault();
-                                handleDownloadPdf(quote);
+                              <DropdownMenuItem onSelect={() => {
+                                setTimeout(() => handleDownloadPdf(quote), 100);
                               }}>
                                 <FileDown className="w-4 h-4 mr-2" />
                                 Baixar PDF
