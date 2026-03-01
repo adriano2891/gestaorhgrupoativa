@@ -78,9 +78,18 @@ export function QuotesProvider({ children }: { children: ReactNode }) {
 
   const generatePublicId = () => {
     const year = new Date().getFullYear();
-    const baseNumber = 163; // Numeração inicial
-    const count = quotes.filter(q => q.publicId.includes(`QT-${year}`)).length + baseNumber;
-    return `QT-${year}-${String(count).padStart(4, '0')}`;
+    const prefix = `QT-${year}-`;
+    // Find the highest existing number for this year
+    let maxNumber = 0;
+    quotes.forEach(q => {
+      if (q.publicId.startsWith(prefix)) {
+        const num = parseInt(q.publicId.replace(prefix, ''), 10);
+        if (!isNaN(num) && num > maxNumber) {
+          maxNumber = num;
+        }
+      }
+    });
+    return `${prefix}${String(maxNumber + 1).padStart(4, '0')}`;
   };
 
   const calculateFinancials = (items: QuoteItem[], taxRate: number = 5, fees: number = 0) => {
