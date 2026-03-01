@@ -274,6 +274,7 @@ export const CardControleFeriasCLT = () => {
             <SelectContent>
               <SelectItem value="todos">Todos os Status</SelectItem>
               <SelectItem value="cumprindo">🟢 Cumprindo</SelectItem>
+              <SelectItem value="em_ferias">🔵 Em Férias</SelectItem>
               <SelectItem value="prestes_a_vencer">🟡 Prestes a Vencer</SelectItem>
               <SelectItem value="vencida">🔴 Vencida</SelectItem>
             </SelectContent>

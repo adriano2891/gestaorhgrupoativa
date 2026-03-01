@@ -224,8 +224,9 @@ export const useMetricasFerias = () => {
             colaboradoresFerias.add(s.user_id);
           }
         });
+        // Employees with profile status "Em férias" count as on vacation
         cltStatusByUser.forEach((status, userId) => {
-          if (status === 'vencida') colaboradoresFerias.add(userId);
+          if (status === 'em_ferias') colaboradoresFerias.add(userId);
         });
 
         const proximasFerias = new Set<string>();
