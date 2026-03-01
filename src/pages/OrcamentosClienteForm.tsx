@@ -141,6 +141,7 @@ export default function OrcamentosClienteForm() {
         nome_sindico: formData.nome_sindico.trim(),
         email: formData.email.trim(),
         telefone: formData.telefone || undefined,
+        cnpj: formData.cnpj || undefined,
         cep: formData.cep || undefined,
         rua: formData.rua || undefined,
         numero: formData.numero || undefined,
