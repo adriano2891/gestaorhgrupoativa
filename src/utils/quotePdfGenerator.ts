@@ -168,27 +168,14 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   
   // Draw small WhatsApp icon (black, no background)
   const waIconX = margin + contatoLabelWidth;
-  const waIconY = y + 14.5;
-  const waSize = 3.5;
-  doc.setDrawColor(0, 0, 0);
-  doc.setLineWidth(0.4);
-  // Chat bubble circle
-  doc.circle(waIconX + waSize / 2, waIconY + waSize / 2, waSize / 2, 'S');
-  // Phone handset (simplified)
-  doc.setFillColor(0, 0, 0);
-  doc.circle(waIconX + waSize / 2, waIconY + waSize / 2, waSize / 4, 'F');
-  
-  // WhatsApp number with hyperlink
-  const waNumberX = waIconX + waSize + 1;
-  const waNumber = '(11) 97501-1717';
-  const waUrl = 'https://wa.me/5511975011717';
-  doc.setTextColor(0, 102, 204);
-  doc.textWithLink(waNumber, waNumberX, y + 18, { url: waUrl });
+  const waIconY = y + 20.5;
+...
+  doc.textWithLink(waNumber, waNumberX, y + 24, { url: waUrl });
   doc.setTextColor(...black);
-  doc.text('E-mail: ', margin, y + 24);
+  doc.text('E-mail: ', margin, y + 30);
   const emailLabelWidth = doc.getTextWidth('E-mail: ');
   doc.setTextColor(0, 102, 204);
-  doc.textWithLink(COMPANY_INFO.email, margin + emailLabelWidth, y + 24, { url: `mailto:${COMPANY_INFO.email}` });
+  doc.textWithLink(COMPANY_INFO.email, margin + emailLabelWidth, y + 30, { url: `mailto:${COMPANY_INFO.email}` });
   doc.setTextColor(...black);
 
   // Right side - Client info
