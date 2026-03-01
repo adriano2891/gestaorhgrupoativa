@@ -218,7 +218,7 @@ export const HRFlowFormsList = () => {
                       <Edit className="w-4 h-4 mr-1" />
                       Editar
                     </Button>
-                    <DropdownMenu>
+                    <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="text-gray-400">
                           <MoreVertical className="w-4 h-4" />
@@ -233,7 +233,13 @@ export const HRFlowFormsList = () => {
                           <ExternalLink className="w-4 h-4 mr-2" />
                           Link Público
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive focus:text-destructive" onClick={() => setDeleteFormId(form.id)}>
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onSelect={(event) => {
+                            event.preventDefault();
+                            setDeleteFormId(form.id);
+                          }}
+                        >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Excluir
                         </DropdownMenuItem>
