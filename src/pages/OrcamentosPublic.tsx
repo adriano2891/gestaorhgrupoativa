@@ -208,7 +208,7 @@ export default function OrcamentosPublic() {
           {quote.clientAddress && (
             <div className="mt-4">
               <p className="text-sm text-zinc-500">Endereço</p>
-              <p className="font-semibold text-zinc-800">{quote.clientAddress}</p>
+              <p className="text-zinc-800">{quote.clientAddress}</p>
             </div>
           )}
         </GlassPanel>
