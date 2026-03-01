@@ -169,7 +169,16 @@ export async function generateQuotePDF(quote: Quote | QuoteDataForPdf): Promise<
   // Draw small WhatsApp icon (black, no background)
   const waIconX = margin + contatoLabelWidth;
   const waIconY = y + 20.5;
-...
+  const waSize = 3.5;
+  doc.setDrawColor(0, 0, 0);
+  doc.setLineWidth(0.4);
+  doc.circle(waIconX + waSize / 2, waIconY + waSize / 2, waSize / 2, 'S');
+  doc.setFillColor(0, 0, 0);
+  doc.circle(waIconX + waSize / 2, waIconY + waSize / 2, waSize / 4, 'F');
+  const waNumberX = waIconX + waSize + 1;
+  const waNumber = '(11) 97501-1717';
+  const waUrl = 'https://wa.me/5511975011717';
+  doc.setTextColor(0, 102, 204);
   doc.textWithLink(waNumber, waNumberX, y + 24, { url: waUrl });
   doc.setTextColor(...black);
   doc.text('E-mail: ', margin, y + 30);
