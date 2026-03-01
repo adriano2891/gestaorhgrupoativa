@@ -161,38 +161,92 @@ export const useMetricasFerias = () => {
     retry: 2,
     queryFn: async () => {
       try {
-        const solicitacoes: any[] = await restGet('solicitacoes_ferias?select=status,data_inicio,data_fim,user_id');
+        const [solicitacoes, roles, profiles, periodos] = await Promise.all([
+          restGet('solicitacoes_ferias?select=status,data_inicio,data_fim,user_id'),
+          restGet('user_roles?select=user_id,role'),
+          restGet('profiles?select=id,status,data_admissao,created_at'),
+          restGet('periodos_aquisitivos?select=dias_disponiveis'),
+        ]);
 
-        // Get profiles to filter active employees
-        const userIds = [...new Set(solicitacoes.map(s => s.user_id))];
-        let profiles: any[] = [];
-        if (userIds.length > 0) {
-          profiles = await restGet(`profiles?select=id,status&id=in.(${userIds.join(',')})`);
-        }
-        const profileMap = new Map(profiles.map(p => [p.id, p]));
+        const employeeIds = new Set<string>();
+        const adminLikeIds = new Set<string>();
 
-        const ativas = solicitacoes.filter(s => {
-          const prof = profileMap.get(s.user_id);
-          return prof?.status !== 'demitido' && prof?.status !== 'pediu_demissao';
+        (roles || []).forEach((r: any) => {
+          if (r.role === 'funcionario') employeeIds.add(r.user_id);
+          if (['admin', 'gestor', 'rh'].includes(r.role)) adminLikeIds.add(r.user_id);
         });
 
-        const hoje = new Date().toISOString().split('T')[0];
-        const pendentes = ativas.filter(s => s.status === "pendente").length;
-        const emAndamento = ativas.filter(s =>
-          s.status === "em_andamento" ||
-          (s.status === "aprovado" && s.data_inicio <= hoje && s.data_fim >= hoje)
-        ).length;
-        const proximas = ativas.filter(s => s.status === "aprovado" && s.data_inicio > hoje).length;
+        const funcionariosAtivos = (profiles || []).filter((p: any) => {
+          const st = (p.status || 'ativo').toLowerCase();
+          return employeeIds.has(p.id) && !adminLikeIds.has(p.id) && st !== 'demitido' && st !== 'pediu_demissao';
+        });
 
-        const periodos: any[] = await restGet('periodos_aquisitivos?select=dias_disponiveis');
+        const activeIds = new Set(funcionariosAtivos.map((p: any) => p.id));
+        const hoje = new Date();
+        hoje.setHours(0, 0, 0, 0);
+        const hojeISO = hoje.toISOString().split('T')[0];
+
+        const cltStatusByUser = new Map<string, 'cumprindo' | 'prestes_a_vencer' | 'vencida'>();
+
+        funcionariosAtivos.forEach((p: any) => {
+          const dataBase = p.data_admissao || (p.created_at ? String(p.created_at).split('T')[0] : null);
+          if (!dataBase) return;
+
+          const admissao = new Date(`${dataBase}T12:00:00`);
+          const fimAquisitivo = new Date(admissao);
+          fimAquisitivo.setFullYear(fimAquisitivo.getFullYear() + 1);
+          const fimConcessivo = new Date(admissao);
+          fimConcessivo.setFullYear(fimConcessivo.getFullYear() + 2);
+
+          const diasParaVencer = Math.ceil((fimConcessivo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+
+          let status: 'cumprindo' | 'prestes_a_vencer' | 'vencida' = 'cumprindo';
+          if (hoje >= fimConcessivo) status = 'vencida';
+          else if (hoje >= fimAquisitivo && diasParaVencer <= 60) status = 'prestes_a_vencer';
+
+          cltStatusByUser.set(p.id, status);
+        });
+
+        const solicitacoesAtivas = (solicitacoes || []).filter((s: any) => activeIds.has(s.user_id));
+
+        const pendentes = solicitacoesAtivas.filter((s: any) => s.status === "pendente").length;
+
+        const colaboradoresFerias = new Set<string>();
+        solicitacoesAtivas.forEach((s: any) => {
+          if (s.status === "em_andamento" || (s.status === "aprovado" && s.data_inicio <= hojeISO && s.data_fim >= hojeISO)) {
+            colaboradoresFerias.add(s.user_id);
+          }
+        });
+        cltStatusByUser.forEach((status, userId) => {
+          if (status === 'vencida') colaboradoresFerias.add(userId);
+        });
+
+        const proximasFerias = new Set<string>();
+        solicitacoesAtivas.forEach((s: any) => {
+          if (s.status === "aprovado" && s.data_inicio > hojeISO) {
+            proximasFerias.add(s.user_id);
+          }
+        });
+        cltStatusByUser.forEach((status, userId) => {
+          if (status === 'prestes_a_vencer') proximasFerias.add(userId);
+        });
+
+        const vencidas = Array.from(cltStatusByUser.values()).filter((status) => status === 'vencida').length;
+
         const saldoMedio = periodos?.length
-          ? Math.round(periodos.reduce((acc, p) => acc + (p.dias_disponiveis || 0), 0) / periodos.length)
+          ? Math.round(periodos.reduce((acc: number, p: any) => acc + (p.dias_disponiveis || 0), 0) / periodos.length)
           : 0;
 
-        return { pendentes, emAndamento, proximas, saldoMedio };
+        return {
+          pendentes,
+          emAndamento: colaboradoresFerias.size,
+          proximas: proximasFerias.size,
+          vencidas,
+          saldoMedio,
+        };
       } catch (error) {
         console.error("Erro em useMetricasFerias:", error);
-        return { pendentes: 0, emAndamento: 0, proximas: 0, saldoMedio: 0 };
+        return { pendentes: 0, emAndamento: 0, proximas: 0, vencidas: 0, saldoMedio: 0 };
       }
     },
   });
