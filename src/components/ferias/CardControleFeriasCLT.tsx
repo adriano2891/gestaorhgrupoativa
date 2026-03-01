@@ -34,7 +34,7 @@ const restGet = async (path: string) => {
   return res.json();
 };
 
-type StatusFerias = 'cumprindo' | 'prestes_a_vencer' | 'vencida';
+type StatusFerias = 'cumprindo' | 'prestes_a_vencer' | 'vencida' | 'em_ferias';
 
 interface FuncionarioFerias {
   id: string;
@@ -48,7 +48,7 @@ interface FuncionarioFerias {
   dias_para_vencer: number;
 }
 
-const calcularStatusFerias = (dataAdmissao: string): {
+const calcularStatusFerias = (dataAdmissao: string, statusPerfil: string): {
   fimAquisitivo: Date;
   fimConcessivo: Date;
   status: StatusFerias;
@@ -57,8 +57,6 @@ const calcularStatusFerias = (dataAdmissao: string): {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
 
-  // Base CLT simples por data de cadastro/admissão:
-  // 12 meses aquisitivo + 12 meses concessivo
   const admissao = new Date(`${dataAdmissao}T12:00:00`);
 
   const fimAquisitivo = new Date(admissao);
@@ -68,6 +66,12 @@ const calcularStatusFerias = (dataAdmissao: string): {
   fimConcessivo.setFullYear(fimConcessivo.getFullYear() + 2);
 
   const diasParaVencer = Math.ceil((fimConcessivo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+
+  // Se o status do perfil é "Em férias", mantém como ativo em férias
+  const stNorm = (statusPerfil || 'ativo').toLowerCase().replace(/[_\s]+/g, '');
+  if (stNorm === 'emferias' || stNorm === 'emférias') {
+    return { fimAquisitivo, fimConcessivo, status: 'em_ferias', diasParaVencer };
+  }
 
   let status: StatusFerias;
   if (hoje < fimAquisitivo) {
@@ -111,7 +115,8 @@ const useFuncionariosFerias = () => {
           const dataAdmissao = p.data_admissao || (p.created_at ? p.created_at.split('T')[0] : null);
           if (!dataAdmissao) return null;
 
-          const { fimAquisitivo, fimConcessivo, status, diasParaVencer } = calcularStatusFerias(dataAdmissao);
+          const statusPerfil = p.status || 'ativo';
+          const { fimAquisitivo, fimConcessivo, status, diasParaVencer } = calcularStatusFerias(dataAdmissao, statusPerfil);
 
           return {
             id: p.id,
@@ -150,6 +155,8 @@ const getStatusConfig = (status: StatusFerias) => {
       return { label: 'Prestes a Vencer', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300', icon: Clock };
     case 'vencida':
       return { label: 'Vencida', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300', icon: AlertTriangle };
+    case 'em_ferias':
+      return { label: 'Em Férias', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300', icon: CheckCircle };
   }
 };
 
@@ -192,11 +199,12 @@ export const CardControleFeriasCLT = () => {
   }, [funcionarios, searchTerm, statusFilter]);
 
   const counts = useMemo(() => {
-    if (!funcionarios) return { cumprindo: 0, prestes_a_vencer: 0, vencida: 0 };
+    if (!funcionarios) return { cumprindo: 0, prestes_a_vencer: 0, vencida: 0, em_ferias: 0 };
     return {
       cumprindo: funcionarios.filter(f => f.status === 'cumprindo').length,
       prestes_a_vencer: funcionarios.filter(f => f.status === 'prestes_a_vencer').length,
       vencida: funcionarios.filter(f => f.status === 'vencida').length,
+      em_ferias: funcionarios.filter(f => f.status === 'em_ferias').length,
     };
   }, [funcionarios]);
 
@@ -217,12 +225,19 @@ export const CardControleFeriasCLT = () => {
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Status counters */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           <div className="flex items-center gap-3 rounded-lg border p-3 bg-green-50 dark:bg-green-950/30">
             <CheckCircle className="h-5 w-5 text-green-600" />
             <div>
               <p className="text-sm text-muted-foreground">Cumprindo</p>
               <p className="text-xl font-bold text-green-700 dark:text-green-400">{counts.cumprindo}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-lg border p-3 bg-blue-50 dark:bg-blue-950/30">
+            <CheckCircle className="h-5 w-5 text-blue-600" />
+            <div>
+              <p className="text-sm text-muted-foreground">Em Férias</p>
+              <p className="text-xl font-bold text-blue-700 dark:text-blue-400">{counts.em_ferias}</p>
             </div>
           </div>
           <div className="flex items-center gap-3 rounded-lg border p-3 bg-yellow-50 dark:bg-yellow-950/30">
@@ -259,6 +274,7 @@ export const CardControleFeriasCLT = () => {
             <SelectContent>
               <SelectItem value="todos">Todos os Status</SelectItem>
               <SelectItem value="cumprindo">🟢 Cumprindo</SelectItem>
+              <SelectItem value="em_ferias">🔵 Em Férias</SelectItem>
               <SelectItem value="prestes_a_vencer">🟡 Prestes a Vencer</SelectItem>
               <SelectItem value="vencida">🔴 Vencida</SelectItem>
             </SelectContent>
