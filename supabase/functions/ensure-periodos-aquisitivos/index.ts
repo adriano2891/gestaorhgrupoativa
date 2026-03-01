@@ -129,7 +129,6 @@ Deno.serve(async (req) => {
           data_fim: mp.data_fim,
           dias_direito: 30,
           dias_usados: 0,
-          dias_disponiveis: 30,
         }))
       );
 
