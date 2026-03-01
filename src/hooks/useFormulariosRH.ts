@@ -231,9 +231,15 @@ export const useUpdateFormularioCampo = () => {
 
   return useMutation({
     mutationFn: async ({ id, formulario_id, ...fieldData }: Partial<FormularioCampo> & { id: string; formulario_id: string }) => {
+      const updateData: Record<string, any> = { ...fieldData };
+      if (updateData.tipo) {
+        updateData.tipo = updateData.tipo as any;
+      } else {
+        delete updateData.tipo;
+      }
       const { data, error } = await supabase
         .from("formulario_campos")
-        .update({ ...fieldData, tipo: fieldData.tipo as any })
+        .update(updateData)
         .eq("id", id)
         .select()
         .single();
