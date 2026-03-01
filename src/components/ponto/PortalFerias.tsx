@@ -214,28 +214,28 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
         ? new Date(profileData.created_at)
         : null;
 
-    if (!periodos || periodos.length === 0 || !dataAdmissao) {
+    if (!dataAdmissao) {
       return {
         saldoDisponivel: 0,
         diasUsadosTotal: 0,
         periodoAtualCompleto: false,
         periodoAtual: null,
-        proximoPeriodoData: dataAdmissao ? addYears(dataAdmissao, 1) : null,
-        diasRestantesAquisicao: dataAdmissao
-          ? Math.max(0, differenceInDays(addYears(dataAdmissao, 1), hoje))
-          : null,
+        proximoPeriodoData: null,
+        diasRestantesAquisicao: null,
         periodosCompletosComSaldo: [],
         periodosEmAquisicao: [],
       };
     }
 
+    const allPeriodos = periodos || [];
+
     // Separar períodos completos (12 meses passaram) e em aquisição
-    const periodosCompletos = periodos.filter((p) => {
+    const periodosCompletos = allPeriodos.filter((p) => {
       const fimPeriodo = parseISO(p.data_fim);
       return isBefore(fimPeriodo, hoje);
     });
 
-    const periodosEmAquisicao = periodos.filter((p) => {
+    const periodosEmAquisicao = allPeriodos.filter((p) => {
       const fimPeriodo = parseISO(p.data_fim);
       return !isBefore(fimPeriodo, hoje);
     });
