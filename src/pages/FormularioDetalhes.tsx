@@ -36,21 +36,14 @@ const FormularioDetalhes = () => {
   const deleteCampo = useDeleteFormularioCampo();
 
   const [showAtribuirDialog, setShowAtribuirDialog] = useState(false);
-  const [newFieldType, setNewFieldType] = useState<FormFieldType>("text");
 
   const handleStatusChange = async (status: FormStatus) => {
     if (!id) return;
-    await updateFormulario.mutateAsync({ id, status });
-  };
-
-  const handleAddField = async () => {
-    if (!id) return;
-    await addCampo.mutateAsync({
-      formulario_id: id,
-      label: "Novo Campo",
-      tipo: newFieldType,
-      ordem: (campos?.length || 0) + 1,
-    });
+    try {
+      await updateFormulario.mutateAsync({ id, status });
+    } catch (error) {
+      console.error("Erro ao alterar status:", error);
+    }
   };
 
   if (loadingForm) {
