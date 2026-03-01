@@ -6,7 +6,7 @@ import { usePortalAuth } from "./PortalAuthProvider";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { format, differenceInDays, parseISO, isBefore, addYears } from "date-fns";
+import { format, differenceInDays, parseISO, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SolicitarFeriasDialog } from "./SolicitarFeriasDialog";
 import { PortalBackground } from "./PortalBackground";
