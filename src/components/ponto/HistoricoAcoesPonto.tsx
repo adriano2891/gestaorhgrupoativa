@@ -116,6 +116,7 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
         ) : (
           <>
             <ScrollArea className={expanded ? "max-h-[400px]" : ""}>
+              <div className="overflow-x-auto min-w-full">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -148,6 +149,7 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
                   })}
                 </TableBody>
               </Table>
+              </div>
             </ScrollArea>
 
             {logs.length > 5 && (
