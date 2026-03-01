@@ -64,6 +64,19 @@ export default function OrcamentosClienteForm() {
     return numbers.replace(/(\d{5})(\d{0,3})/, '$1-$2').trim();
   };
 
+  const formatCnpj = (value: string) => {
+    const numbers = value.replace(/\D/g, '').slice(0, 14);
+    return numbers
+      .replace(/^(\d{2})(\d)/, '$1.$2')
+      .replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3')
+      .replace(/\.(\d{3})(\d)/, '.$1/$2')
+      .replace(/(\d{4})(\d)/, '$1-$2');
+  };
+
+  const handleCnpjChange = (value: string) => {
+    handleChange('cnpj', formatCnpj(value));
+  };
+
   const handlePhoneChange = (value: string) => {
     handleChange('telefone', formatPhone(value));
   };
