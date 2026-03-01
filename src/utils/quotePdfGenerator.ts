@@ -7,7 +7,7 @@ import logoAtivaPdf from '@/assets/logo-ativa-pdf.png';
 
 // Company info
 const COMPANY_INFO = {
-  name: 'GRUPO ATIVA',
+  name: 'GRUPO ATIVA TEC',
   cnpj: '42.523.488/0001-81',
   address1: 'R. Bela Cintra, 299, 3º Andar',
   address2: 'Consolação, São Paulo - SP, 01415-001',
