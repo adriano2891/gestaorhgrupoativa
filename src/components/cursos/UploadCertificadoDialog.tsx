@@ -69,7 +69,7 @@ export const UploadCertificadoDialog = ({
 
     setIsUploading(true);
     try {
-      // Verificar se existe matrícula concluída
+      // 1. Verificar matrícula
       const { data: matriculaExistente } = await supabase
         .from("matriculas")
         .select("id, status, progresso")
@@ -79,18 +79,69 @@ export const UploadCertificadoDialog = ({
 
       if (!matriculaExistente) {
         toast.error("Funcionário não matriculado", {
-          description: "O funcionário precisa estar matriculado e ter concluído o curso antes de receber o certificado.",
+          description: "O funcionário precisa estar matriculado no curso.",
         });
         setIsUploading(false);
         return;
       }
 
-      if (matriculaExistente.status !== "concluido" || Number(matriculaExistente.progresso) < 100) {
-        toast.error("Curso não concluído", {
-          description: "O funcionário precisa ter concluído 100% do curso antes de receber o certificado.",
-        });
-        setIsUploading(false);
-        return;
+      // 2. Verificar conclusão de todas as aulas (módulos)
+      const { data: modulos } = await supabase
+        .from("modulos_curso")
+        .select("id")
+        .eq("curso_id", selectedCurso);
+
+      if (modulos && modulos.length > 0) {
+        const moduloIds = modulos.map(m => m.id);
+        const { data: aulas } = await supabase
+          .from("aulas")
+          .select("id")
+          .in("modulo_id", moduloIds);
+
+        if (aulas && aulas.length > 0) {
+          const aulaIds = aulas.map(a => a.id);
+          const { data: progressos } = await supabase
+            .from("progresso_aulas")
+            .select("aula_id, concluida")
+            .eq("user_id", selectedFuncionario)
+            .in("aula_id", aulaIds);
+
+          const aulasConcluidas = progressos?.filter(p => p.concluida).length || 0;
+          if (aulasConcluidas < aulas.length) {
+            toast.error("Aulas não concluídas", {
+              description: `O funcionário concluiu ${aulasConcluidas} de ${aulas.length} aulas. Todas devem ser finalizadas.`,
+            });
+            setIsUploading(false);
+            return;
+          }
+        }
+      }
+
+      // 3. Verificar aprovação nas avaliações do curso (se existirem)
+      const { data: avaliacoes } = await supabase
+        .from("avaliacoes_curso")
+        .select("id")
+        .eq("curso_id", selectedCurso);
+
+      if (avaliacoes && avaliacoes.length > 0) {
+        const avaliacaoIds = avaliacoes.map(a => a.id);
+        const { data: tentativas } = await supabase
+          .from("tentativas_avaliacao")
+          .select("avaliacao_id, aprovado")
+          .eq("user_id", selectedFuncionario)
+          .in("avaliacao_id", avaliacaoIds);
+
+        const avaliacoesAprovadas = new Set(
+          tentativas?.filter(t => t.aprovado).map(t => t.avaliacao_id) || []
+        );
+
+        if (avaliacoesAprovadas.size < avaliacoes.length) {
+          toast.error("Avaliações pendentes", {
+            description: `O funcionário foi aprovado em ${avaliacoesAprovadas.size} de ${avaliacoes.length} avaliações. Todas devem ser aprovadas.`,
+          });
+          setIsUploading(false);
+          return;
+        }
       }
 
       const matriculaId = matriculaExistente.id;
