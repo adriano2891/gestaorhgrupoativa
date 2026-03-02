@@ -105,19 +105,6 @@ const HRFlowPro = () => {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  if (viewingForm) {
-    return (
-      <div className="space-y-4 sm:space-y-6">
-        <BackButton to="/hrflow-pro" onClick={() => setViewingForm(null)} />
-        <HRFlowFormBuilder 
-          form={viewingForm} 
-          onClose={() => setViewingForm(null)}
-          readOnly
-        />
-      </div>
-    );
-  }
-
   if (isBuilderOpen) {
     return (
       <div className="space-y-4 sm:space-y-6">
