@@ -168,7 +168,7 @@ export const useMetricasFerias = () => {
         const [solicitacoes, roles, profiles, periodos] = await Promise.all([
           restGet('solicitacoes_ferias?select=status,data_inicio,data_fim,user_id'),
           restGet('user_roles?select=user_id,role'),
-          restGet('profiles?select=id,status,data_admissao,created_at'),
+          restGet('profiles?select=id,status,data_admissao,created_at,tipo_perfil'),
           restGet('periodos_aquisitivos?select=dias_disponiveis'),
         ]);
 
@@ -182,7 +182,8 @@ export const useMetricasFerias = () => {
 
         const funcionariosAtivos = (profiles || []).filter((p: any) => {
           const st = (p.status || 'ativo').toLowerCase();
-          return employeeIds.has(p.id) && !adminLikeIds.has(p.id) && st !== 'demitido' && st !== 'pediu_demissao';
+          const tipoPerfil = (p.tipo_perfil || 'funcionario').toLowerCase();
+          return tipoPerfil === 'funcionario' && employeeIds.has(p.id) && !adminLikeIds.has(p.id) && st !== 'demitido' && st !== 'pediu_demissao';
         });
 
         const activeIds = new Set(funcionariosAtivos.map((p: any) => p.id));
