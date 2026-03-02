@@ -74,6 +74,32 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
     loadRegistroHoje();
   }, [loadRegistroHoje]);
 
+  // Realtime subscription for instant updates
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const channel = supabase
+      .channel('ponto-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'registros_ponto',
+          filter: `user_id=eq.${profile.id}`,
+        },
+        () => {
+          loadRegistroHoje();
+          setRefreshKey(prev => prev + 1);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.id, loadRegistroHoje]);
+
   const handleRegistroAtualizado = useCallback(() => {
     loadRegistroHoje();
     setRefreshKey(prev => prev + 1);
