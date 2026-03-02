@@ -211,7 +211,7 @@ const DirectVideoPlayer = ({
         console.log(`Tentativa ${retryCount + 1} de ${maxRetries}...`);
         setHasError(false);
         setIsLoading(true);
-        setOptimizedUrl(getOptimizedUrl(url));
+        setCurrentUrl(url);
         if (videoRef.current) {
           videoRef.current.load();
         }
@@ -219,7 +219,7 @@ const DirectVideoPlayer = ({
       
       return () => clearTimeout(timer);
     }
-  }, [hasError, retryCount, url, getOptimizedUrl]);
+  }, [hasError, retryCount, url]);
 
   const hideControlsAfterDelay = useCallback(() => {
     if (controlsTimeoutRef.current) {
