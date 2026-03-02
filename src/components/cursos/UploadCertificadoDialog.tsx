@@ -69,6 +69,32 @@ export const UploadCertificadoDialog = ({
 
     setIsUploading(true);
     try {
+      // Verificar se existe matrícula concluída
+      const { data: matriculaExistente } = await supabase
+        .from("matriculas")
+        .select("id, status, progresso")
+        .eq("curso_id", selectedCurso)
+        .eq("user_id", selectedFuncionario)
+        .maybeSingle();
+
+      if (!matriculaExistente) {
+        toast.error("Funcionário não matriculado", {
+          description: "O funcionário precisa estar matriculado e ter concluído o curso antes de receber o certificado.",
+        });
+        setIsUploading(false);
+        return;
+      }
+
+      if (matriculaExistente.status !== "concluido" || Number(matriculaExistente.progresso) < 100) {
+        toast.error("Curso não concluído", {
+          description: "O funcionário precisa ter concluído 100% do curso antes de receber o certificado.",
+        });
+        setIsUploading(false);
+        return;
+      }
+
+      const matriculaId = matriculaExistente.id;
+
       // Upload do arquivo
       const ext = selectedFile.name.split(".").pop();
       const fileName = `certificados-externos/${selectedFuncionario}/${Date.now()}.${ext}`;
@@ -83,33 +109,6 @@ export const UploadCertificadoDialog = ({
         .from("cursos")
         .createSignedUrl(fileName, 86400);
       if (urlError) throw urlError;
-
-      // Verificar se existe matrícula, se não, criar
-      const { data: matriculaExistente } = await supabase
-        .from("matriculas")
-        .select("id")
-        .eq("curso_id", selectedCurso)
-        .eq("user_id", selectedFuncionario)
-        .maybeSingle();
-
-      let matriculaId = matriculaExistente?.id;
-
-      if (!matriculaId) {
-        const { data: novaMatricula, error: matriculaError } = await supabase
-          .from("matriculas")
-          .insert({
-            curso_id: selectedCurso,
-            user_id: selectedFuncionario,
-            status: "concluido",
-            progresso: 100,
-            data_conclusao: new Date().toISOString(),
-          })
-          .select("id")
-          .single();
-
-        if (matriculaError) throw matriculaError;
-        matriculaId = novaMatricula.id;
-      }
 
       // Criar certificado
       const codigoValidacao = `EXT-${Date.now().toString(36).toUpperCase()}`;
