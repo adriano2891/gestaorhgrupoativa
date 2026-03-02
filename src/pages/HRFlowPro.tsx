@@ -74,6 +74,8 @@ const STATUS_LABELS: Record<FormStatus, { label: string; class: string }> = {
   arquivado: { label: 'Arquivado', class: 'bg-amber-100 text-amber-700' }
 };
 
+const HRFLOW_FORMS_STORAGE_KEY = "hrflow-pro-forms";
+
 const HRFlowPro = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>('forms');
