@@ -17,6 +17,7 @@ interface HRFlowFormBuilderProps {
   form?: HRFlowForm | null;
   template?: FormTemplate | null;
   onClose: () => void;
+  readOnly?: boolean;
 }
 
 const defaultField: Omit<FormField, 'id'> = {

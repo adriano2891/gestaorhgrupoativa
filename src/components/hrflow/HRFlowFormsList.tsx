@@ -213,7 +213,12 @@ export const HRFlowFormsList = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" className="text-gray-600">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-gray-600"
+                      onClick={() => setViewingForm(form)}
+                    >
                       <Eye className="w-4 h-4 mr-1" />
                       Ver
                     </Button>
