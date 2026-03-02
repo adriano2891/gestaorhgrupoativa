@@ -177,13 +177,6 @@ const Relatorios = () => {
       description: "Índices e tendências de ausências",
     },
     {
-      id: "treinamentos",
-      name: "Treinamentos e Capacitação",
-      icon: GraduationCap,
-      category: "Desenvolvimento",
-      description: "Cursos, certificações e ROI",
-    },
-    {
       id: "beneficios",
       name: "Benefícios",
       icon: Heart,
