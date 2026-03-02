@@ -91,7 +91,7 @@ export const useFuncionariosPorDepartamento = () => {
       if (targetIds.length === 0) return [];
 
       const idsParam = targetIds.map(id => `"${id}"`).join(',');
-      const data: any[] = await restGet(`profiles?select=departamento,id,status&id=in.(${idsParam})&order=departamento.asc`);
+      const data: any[] = await restGet(`profiles?select=departamento,id,status&id=in.(${idsParam})&tipo_perfil=eq.funcionario&order=departamento.asc`);
 
       const activeData = (data || []).filter((p: any) => {
         const status = (p.status || "ativo").toLowerCase();
