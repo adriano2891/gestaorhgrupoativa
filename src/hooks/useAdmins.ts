@@ -185,11 +185,11 @@ export const useDeleteAdmin = () => {
       // Check if user is an admin-only profile - if so, don't add funcionario role
       const { data: profileData } = await supabase
         .from("profiles")
-        .select("tipo_perfil")
+        .select("tipo_perfil" as any)
         .eq("id", userId)
         .single();
 
-      const isAdminOnly = profileData?.tipo_perfil === 'admin';
+      const isAdminOnly = (profileData as any)?.tipo_perfil === 'admin';
 
       // Adicionar role de funcionário apenas se não for perfil admin-only
       const { data: remainingRoles } = await supabase
