@@ -54,13 +54,29 @@ const CursosAdmin = () => {
   const { data: funcionarios } = useFuncionarios();
   const { deleteCurso } = useCursoMutations();
 
-  // Realtime: atualiza cards de stats quando matrículas mudam
+  // Realtime: atualiza cards de stats quando matrículas ou cursos mudam
   useEffect(() => {
     const channel = supabase
-      .channel('matriculas-stats-realtime')
+      .channel('cursos-admin-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'matriculas' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["cursos-stats"] });
+          queryClient.invalidateQueries({ queryKey: ["matriculas"] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'cursos' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["cursos-stats"] });
+          queryClient.invalidateQueries({ queryKey: ["cursos"] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'progresso_aulas' },
         () => {
           queryClient.invalidateQueries({ queryKey: ["cursos-stats"] });
           queryClient.invalidateQueries({ queryKey: ["matriculas"] });
