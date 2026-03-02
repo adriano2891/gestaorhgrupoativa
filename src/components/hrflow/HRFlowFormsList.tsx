@@ -93,6 +93,16 @@ export const HRFlowFormsList = () => {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
+  if (viewingForm) {
+    return (
+      <HRFlowFormBuilder 
+        form={viewingForm} 
+        onClose={() => setViewingForm(null)}
+        readOnly
+      />
+    );
+  }
+
   if (isBuilderOpen) {
     return (
       <HRFlowFormBuilder 
