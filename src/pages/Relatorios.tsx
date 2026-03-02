@@ -69,6 +69,7 @@ const Relatorios = () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("id, nome, departamento, cargo, escala_trabalho, turno, status")
+        .eq("tipo_perfil", "funcionario")
         .neq("status", "demitido")
         .neq("status", "pediu_demissao");
       if (error) throw error;
