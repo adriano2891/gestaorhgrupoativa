@@ -292,7 +292,7 @@ All colors MUST be HSL.
   /* Reset page margins */
   @page {
     size: A4;
-    margin: 15mm;
+    margin: 0;
   }
 
   /* Body reset for print */
@@ -326,7 +326,7 @@ All colors MUST be HSL.
     max-width: none !important;
     min-height: auto !important;
     margin: 0 !important;
-    padding: 0 !important;
+    padding: 15mm !important;
     box-shadow: none !important;
     border: none !important;
     background: white !important;
