@@ -352,9 +352,9 @@ const GestaoRH = () => {
         </div>
 
         {/* Layout Circular - XL */}
-        <div className="hidden xl:block relative" style={{ width: '700px', height: '500px' }}>
+        <div className="hidden xl:block relative" style={{ width: '800px', height: '600px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 260);
+            const { x, y } = getModulePosition(index, modules.length, 310);
             return (
               <div
                 key={module.path}
@@ -368,15 +368,17 @@ const GestaoRH = () => {
                 onClick={() => navigate(module.path)}
                 onMouseEnter={() => handlePrefetch(module.path)}
               >
-                <div className="relative">
-                  {renderBadge(module)}
-                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-28 h-28 ring-4 ring-white/30">
-                    <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                <div className="flex flex-col items-center">
+                  <div className="relative">
+                    {renderBadge(module)}
+                    <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-24 h-24 ring-4 ring-white/30">
+                      <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                    </div>
                   </div>
+                  <p className="text-center mt-2 font-bold text-white text-[11px] w-[100px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+                    {module.title}
+                  </p>
                 </div>
-                <p className="text-center mt-3 font-bold text-white text-xs max-w-[120px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)', fontFamily: 'Arial, Helvetica, sans-serif' }}>
-                  {module.title}
-                </p>
               </div>
             );
           })}
