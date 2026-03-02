@@ -224,6 +224,9 @@ const HRFlowPro = () => {
                       size="sm"
                       onClick={() => setViewingForm(form)}
                     >
+                      <Eye className="w-4 h-4 mr-1" />
+                      Ver
+                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
