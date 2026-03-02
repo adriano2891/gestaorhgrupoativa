@@ -182,7 +182,8 @@ export const useMetricasFerias = () => {
 
         const funcionariosAtivos = (profiles || []).filter((p: any) => {
           const st = (p.status || 'ativo').toLowerCase();
-          return employeeIds.has(p.id) && !adminLikeIds.has(p.id) && st !== 'demitido' && st !== 'pediu_demissao';
+          const tipoPerfil = (p.tipo_perfil || 'funcionario').toLowerCase();
+          return tipoPerfil === 'funcionario' && employeeIds.has(p.id) && !adminLikeIds.has(p.id) && st !== 'demitido' && st !== 'pediu_demissao';
         });
 
         const activeIds = new Set(funcionariosAtivos.map((p: any) => p.id));

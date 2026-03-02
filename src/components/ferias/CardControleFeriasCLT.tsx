@@ -165,11 +165,12 @@ const useFuncionariosFerias = () => {
         const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
         if (targetIds.length === 0) return [] as FuncionarioFerias[];
 
-        // Buscar profiles via Supabase client
+        // Buscar profiles via Supabase client - filtrar apenas funcionários reais
         const { data: profiles, error: profilesError } = await supabase
           .from('profiles')
-          .select('id, nome, cargo, departamento, data_admissao, created_at, status')
+          .select('id, nome, cargo, departamento, data_admissao, created_at, status, tipo_perfil')
           .in('id', targetIds)
+          .eq('tipo_perfil', 'funcionario')
           .order('nome', { ascending: true });
 
         if (profilesError) throw profilesError;
