@@ -352,9 +352,9 @@ const GestaoRH = () => {
         </div>
 
         {/* Layout Circular - XL */}
-        <div className="hidden xl:block relative" style={{ width: '800px', height: '600px' }}>
+        <div className="hidden xl:block relative" style={{ width: '700px', height: '500px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 310);
+            const { x, y } = getModulePosition(index, modules.length, 260);
             return (
               <div
                 key={module.path}
@@ -368,57 +368,22 @@ const GestaoRH = () => {
                 onClick={() => navigate(module.path)}
                 onMouseEnter={() => handlePrefetch(module.path)}
               >
-                <div className="flex flex-col items-center">
-                  <div className="relative">
-                    {renderBadge(module)}
-                    <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-24 h-24 ring-4 ring-white/30">
-                      <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
-                    </div>
+                <div className="relative">
+                  {renderBadge(module)}
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-28 h-28 ring-4 ring-white/30">
+                    <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
-                  <p className="text-center mt-2 font-bold text-white text-[11px] w-[100px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)', fontFamily: 'Arial, Helvetica, sans-serif' }}>
-                    {module.title}
-                  </p>
                 </div>
+                <p className="text-center mt-3 font-bold text-white text-xs max-w-[120px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+                  {module.title}
+                </p>
               </div>
             );
           })}
         </div>
 
         {/* Layout Circular - LG */}
-        <div className="hidden lg:block xl:hidden relative" style={{ width: '700px', height: '520px' }}>
-          {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 265);
-            return (
-              <div
-                key={module.path}
-                className={`absolute rh-module-icon cursor-pointer ${isAnimating ? 'rh-animate-module' : ''}`}
-                style={{ 
-                  left: '50%', 
-                  top: '50%', 
-                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                  ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
-                }}
-                onClick={() => navigate(module.path)}
-                onMouseEnter={() => handlePrefetch(module.path)}
-              >
-                <div className="flex flex-col items-center">
-                  <div className="relative">
-                    {renderBadge(module)}
-                    <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 ring-3 ring-white/30">
-                      <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
-                    </div>
-                  </div>
-                  <p className="text-center mt-2 font-bold text-white text-[10px] w-[90px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)', fontFamily: 'Arial, Helvetica, sans-serif' }}>
-                    {module.title}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Layout Circular - MD */}
-        <div className="hidden md:block lg:hidden relative" style={{ width: '580px', height: '460px' }}>
+        <div className="hidden lg:block xl:hidden relative" style={{ width: '600px', height: '450px' }}>
           {modules.map((module, index) => {
             const { x, y } = getModulePosition(index, modules.length, 220);
             return (
@@ -434,17 +399,46 @@ const GestaoRH = () => {
                 onClick={() => navigate(module.path)}
                 onMouseEnter={() => handlePrefetch(module.path)}
               >
-                <div className="flex flex-col items-center">
-                  <div className="relative">
-                    {renderBadge(module)}
-                    <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-16 h-16 ring-2 ring-white/30">
-                      <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
-                    </div>
+                <div className="relative">
+                  {renderBadge(module)}
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-24 h-24 ring-3 ring-white/30">
+                    <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
-                  <p className="text-center mt-1.5 font-bold text-white text-[9px] w-[80px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)', fontFamily: 'Arial, Helvetica, sans-serif' }}>
-                    {module.title}
-                  </p>
                 </div>
+                <p className="text-center mt-2 font-bold text-white text-[11px] max-w-[100px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+                  {module.title}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Layout Circular - MD */}
+        <div className="hidden md:block lg:hidden relative" style={{ width: '500px', height: '400px' }}>
+          {modules.map((module, index) => {
+            const { x, y } = getModulePosition(index, modules.length, 180);
+            return (
+              <div
+                key={module.path}
+                className={`absolute rh-module-icon cursor-pointer ${isAnimating ? 'rh-animate-module' : ''}`}
+                style={{ 
+                  left: '50%', 
+                  top: '50%', 
+                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                  ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
+                }}
+                onClick={() => navigate(module.path)}
+                onMouseEnter={() => handlePrefetch(module.path)}
+              >
+                <div className="relative">
+                  {renderBadge(module)}
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 ring-2 ring-white/30">
+                    <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                  </div>
+                </div>
+                <p className="text-center mt-2 font-bold text-white text-[10px] max-w-[85px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+                  {module.title}
+                </p>
               </div>
             );
           })}
