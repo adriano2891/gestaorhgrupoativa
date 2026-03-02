@@ -280,7 +280,7 @@ const DirectVideoPlayer = ({
     setErrorMessage("");
     setIsLoading(true);
     setRetryCount(0);
-    setOptimizedUrl(getOptimizedUrl(url));
+    setCurrentUrl(url);
     if (videoRef.current) {
       videoRef.current.load();
     }
