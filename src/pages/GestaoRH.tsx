@@ -405,7 +405,7 @@ const GestaoRH = () => {
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
-                <p className="text-center mt-2 font-bold text-white text-[11px] max-w-[100px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+                <p className="text-center mt-1 font-bold text-white text-[9px] max-w-[80px] leading-tight drop-shadow-md mx-auto" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)', fontFamily: 'Arial, Helvetica, sans-serif' }}>
                   {module.title}
                 </p>
               </div>
