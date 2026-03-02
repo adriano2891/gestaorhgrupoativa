@@ -181,24 +181,9 @@ const DirectVideoPlayer = ({
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
   const maxRetries = 3;
 
-  // Adicionar cache-busting e validação de URL
-  const getOptimizedUrl = useCallback((originalUrl: string): string => {
-    if (!originalUrl) return '';
-    
-    try {
-      const urlObj = new URL(originalUrl);
-      
-      // Adicionar timestamp para evitar cache problemático
-      urlObj.searchParams.set('t', Date.now().toString());
-      
-      return urlObj.toString();
-    } catch {
-      // Se não for URL válida, retornar original
-      return originalUrl;
-    }
-  }, []);
-
-  const [optimizedUrl, setOptimizedUrl] = useState(() => getOptimizedUrl(url));
+  // NÃO adicionar cache-busting a URLs assinadas — isso invalida a assinatura
+  // e causa interrupção do streaming após o primeiro chunk bufferizado.
+  const [currentUrl, setCurrentUrl] = useState(url);
 
   useEffect(() => {
     // Reset states quando URL muda
@@ -209,8 +194,8 @@ const DirectVideoPlayer = ({
     setCurrentTime(0);
     setDuration(0);
     setRetryCount(0);
-    setOptimizedUrl(getOptimizedUrl(url));
-  }, [url, getOptimizedUrl]);
+    setCurrentUrl(url);
+  }, [url]);
 
   useEffect(() => {
     if (videoRef.current && initialPosition && !isLoading) {
@@ -226,7 +211,7 @@ const DirectVideoPlayer = ({
         console.log(`Tentativa ${retryCount + 1} de ${maxRetries}...`);
         setHasError(false);
         setIsLoading(true);
-        setOptimizedUrl(getOptimizedUrl(url));
+        setCurrentUrl(url);
         if (videoRef.current) {
           videoRef.current.load();
         }
@@ -234,7 +219,7 @@ const DirectVideoPlayer = ({
       
       return () => clearTimeout(timer);
     }
-  }, [hasError, retryCount, url, getOptimizedUrl]);
+  }, [hasError, retryCount, url]);
 
   const hideControlsAfterDelay = useCallback(() => {
     if (controlsTimeoutRef.current) {
@@ -295,7 +280,7 @@ const DirectVideoPlayer = ({
     setErrorMessage("");
     setIsLoading(true);
     setRetryCount(0);
-    setOptimizedUrl(getOptimizedUrl(url));
+    setCurrentUrl(url);
     if (videoRef.current) {
       videoRef.current.load();
     }
@@ -410,7 +395,7 @@ const DirectVideoPlayer = ({
     >
       <video
         ref={videoRef}
-        src={optimizedUrl}
+        src={currentUrl}
         className="w-full h-full object-contain"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={(e) => {
@@ -440,8 +425,7 @@ const DirectVideoPlayer = ({
         onError={handleError}
         muted={isMuted}
         playsInline
-        preload="metadata"
-        crossOrigin="anonymous"
+        preload="auto"
         controlsList="nodownload noremoteplayback"
         disablePictureInPicture
         onContextMenu={(e) => e.preventDefault()}

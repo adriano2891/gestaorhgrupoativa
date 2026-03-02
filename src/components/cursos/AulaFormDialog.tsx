@@ -324,19 +324,10 @@ export const AulaFormDialog = ({
       return;
     }
 
-    // Validações definitivas (antes de enviar):
-    // 1) MP4 precisa ser 'fast start' (moov no início)
-    // 2) Bitrate estimado dentro do recomendado para a resolução
+    // Validação de metadados do vídeo (bitrate)
+    // Nota: a verificação de "fast start" (moov atom) foi removida pois o Storage
+    // suporta range requests, permitindo streaming mesmo sem moov no início.
     try {
-      if (fileExt === "mp4" || file.type === "video/mp4") {
-        const fastStart = await isMp4FastStart(file);
-        if (!fastStart) {
-          toast.error(
-            "Este MP4 não está otimizado para streaming (fast start). Reexporte/converta com 'Fast Start' para evitar travamentos." 
-          );
-          return;
-        }
-      }
 
       const meta = await probeVideoFile(file);
       const maxBitrate = getRecommendedMaxBitrateMbps(meta.height);
