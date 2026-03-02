@@ -1424,7 +1424,7 @@ export const VideoPlayer = ({
 
   // YouTube - usa IFrame API para detectar fim e medir progresso
   if (sourceType === "youtube") {
-    const videoId = extractYouTubeId(url);
+    const videoId = extractYouTubeId(effectiveUrl);
 
     if (videoId) {
       return (
