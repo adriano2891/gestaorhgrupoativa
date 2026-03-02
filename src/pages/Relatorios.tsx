@@ -177,13 +177,6 @@ const Relatorios = () => {
       description: "Índices e tendências de ausências",
     },
     {
-      id: "desempenho",
-      name: "Desempenho",
-      icon: Target,
-      category: "Performance",
-      description: "Avaliações e metas",
-    },
-    {
       id: "treinamentos",
       name: "Treinamentos e Capacitação",
       icon: GraduationCap,
