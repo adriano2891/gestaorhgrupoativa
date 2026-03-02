@@ -395,7 +395,7 @@ const DirectVideoPlayer = ({
     >
       <video
         ref={videoRef}
-        src={optimizedUrl}
+        src={currentUrl}
         className="w-full h-full object-contain"
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={(e) => {
@@ -425,8 +425,7 @@ const DirectVideoPlayer = ({
         onError={handleError}
         muted={isMuted}
         playsInline
-        preload="metadata"
-        crossOrigin="anonymous"
+        preload="auto"
         controlsList="nodownload noremoteplayback"
         disablePictureInPicture
         onContextMenu={(e) => e.preventDefault()}
