@@ -63,6 +63,27 @@ export const RelatoriosCursosDialog = ({
   const { data: metricas, isLoading } = useMetricasDetalhadas(
     selectedCurso !== "all" ? selectedCurso : undefined
   );
+  const queryClient = useQueryClient();
+
+  // Realtime: atualiza cards quando dados mudam
+  useEffect(() => {
+    if (!open) return;
+    const channel = supabase
+      .channel('relatorios-cursos-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'matriculas' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["cursos-stats"] });
+        queryClient.invalidateQueries({ queryKey: ["metricas-detalhadas"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cursos' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["cursos-stats"] });
+        queryClient.invalidateQueries({ queryKey: ["cursos"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'progresso_aulas' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["metricas-detalhadas"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [open, queryClient]);
 
   const exportarCSV = async () => {
     if (!metricas?.funcionariosMatriculados) return;
