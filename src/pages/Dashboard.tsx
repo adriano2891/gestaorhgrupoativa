@@ -46,6 +46,14 @@ const Dashboard = () => {
     '/documentacoes': () => import("./Documentacoes"),
   }), []);
 
+  // Eagerly prefetch ALL module chunks after dashboard renders
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      Object.values(prefetchMap).forEach(fn => fn());
+    }, 300); // slight delay to not block initial render
+    return () => clearTimeout(timer);
+  }, [prefetchMap]);
+
   const handlePrefetch = useCallback((path?: string) => {
     if (path) prefetchMap[path]?.();
   }, [prefetchMap]);
