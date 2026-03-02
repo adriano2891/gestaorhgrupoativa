@@ -907,20 +907,26 @@ const Relatorios = () => {
         };
 
       case "turnover":
-        const metricaTurnover = metricasList?.[0];
-        const totalFunc = funcList?.length || 0;
-        const taxaRetencao = metricaTurnover?.taxa_retencao || 0;
-        const taxaTurnover = 100 - taxaRetencao;
+        // Calculate turnover exclusively from employee status field
+        const allEmployees = funcList || [];
+        const totalFuncTurnover = allEmployees.length;
+        const desligados = allEmployees.filter((f: any) => {
+          const s = String(f.status || "").toLowerCase();
+          return s === "demitido" || s === "pediu_demissao" || s === "pediu demissão";
+        });
+        const totalDesligados = desligados.length;
+        const taxaTurnoverReal = totalFuncTurnover > 0 ? (totalDesligados / totalFuncTurnover) * 100 : 0;
+        const taxaRetencaoReal = 100 - taxaTurnoverReal;
         
         return {
           ...baseData,
           summary: {
-            "Taxa de Turnover": `${taxaTurnover.toFixed(1)}%`,
-            "Taxa de Retenção": `${taxaRetencao.toFixed(1)}%`,
-            "Total de Funcionários": totalFunc,
-            "Tempo Médio Contratação": `${metricaTurnover?.tempo_medio_contratacao || 0} dias`,
+            "Taxa de Turnover": `${taxaTurnoverReal.toFixed(1)}%`,
+            "Taxa de Retenção": `${taxaRetencaoReal.toFixed(1)}%`,
+            "Total de Funcionários": totalFuncTurnover,
+            "Desligamentos": totalDesligados,
           },
-          details: funcList?.slice(0, 30).map(f => {
+          details: allEmployees.slice(0, 30).map(f => {
             const statusNormalizado = String(f.status || "ativo").toLowerCase();
             const statusLabel = statusNormalizado === "demitido"
               ? "Demitido"
@@ -936,7 +942,7 @@ const Relatorios = () => {
               nome: f.nome,
               departamento: f.departamento || "Não informado",
               cargo: f.cargo || "Não informado",
-              dataAdmissao: f.created_at ? format(new Date(f.created_at), "dd/MM/yyyy") : "N/I",
+              dataAdmissao: f.data_admissao ? format(new Date(f.data_admissao), "dd/MM/yyyy") : f.created_at ? format(new Date(f.created_at), "dd/MM/yyyy") : "N/I",
               status: statusLabel,
             };
           }) || [],
@@ -946,8 +952,8 @@ const Relatorios = () => {
               title: "Turnover vs Retenção",
               description: "Proporção entre rotatividade e retenção de colaboradores",
               data: [
-                { tipo: "Retidos", valor: taxaRetencao },
-                { tipo: "Turnover", valor: taxaTurnover },
+                { tipo: "Retidos", valor: taxaRetencaoReal },
+                { tipo: "Turnover", valor: taxaTurnoverReal },
               ],
             },
             ...(funcDeptList ? [{
