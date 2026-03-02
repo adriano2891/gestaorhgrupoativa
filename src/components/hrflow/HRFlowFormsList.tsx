@@ -59,7 +59,6 @@ export const HRFlowFormsList = () => {
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [editingForm, setEditingForm] = useState<HRFlowForm | null>(null);
-  const [viewingForm, setViewingForm] = useState<HRFlowForm | null>(null);
   const [forms, setForms] = useState<HRFlowForm[]>(mockForms);
   const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
 
@@ -92,16 +91,6 @@ export const HRFlowFormsList = () => {
     const matchesStatus = statusFilter === "todos" || form.status === statusFilter;
     return matchesSearch && matchesCategory && matchesStatus;
   });
-
-  if (viewingForm) {
-    return (
-      <HRFlowFormBuilder 
-        form={viewingForm} 
-        onClose={() => setViewingForm(null)}
-        readOnly
-      />
-    );
-  }
 
   if (isBuilderOpen) {
     return (
@@ -217,7 +206,10 @@ export const HRFlowFormsList = () => {
                       variant="outline" 
                       size="sm" 
                       className="text-gray-600"
-                      onClick={() => setViewingForm(form)}
+                      onClick={() => {
+                        setEditingForm(form);
+                        setIsBuilderOpen(true);
+                      }}
                     >
                       <Eye className="w-4 h-4 mr-1" />
                       Ver

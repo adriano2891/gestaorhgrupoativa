@@ -82,7 +82,6 @@ const HRFlowPro = () => {
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [editingForm, setEditingForm] = useState<HRFlowForm | null>(null);
-  const [viewingForm, setViewingForm] = useState<HRFlowForm | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [forms, setForms] = useState<HRFlowForm[]>(mockForms);
   const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
@@ -105,19 +104,6 @@ const HRFlowPro = () => {
     const matchesStatus = statusFilter === "todos" || form.status === statusFilter;
     return matchesSearch && matchesCategory && matchesStatus;
   });
-
-  if (viewingForm) {
-    return (
-      <div className="space-y-4 sm:space-y-6">
-        <BackButton to="/hrflow-pro" onClick={() => setViewingForm(null)} />
-        <HRFlowFormBuilder 
-          form={viewingForm} 
-          onClose={() => setViewingForm(null)}
-          readOnly
-        />
-      </div>
-    );
-  }
 
   if (isBuilderOpen) {
     return (
@@ -222,7 +208,10 @@ const HRFlowPro = () => {
                     <Button 
                       variant="outline" 
                       size="sm"
-                      onClick={() => setViewingForm(form)}
+                      onClick={() => {
+                        setEditingForm(form);
+                        setIsBuilderOpen(true);
+                      }}
                     >
                       <Eye className="w-4 h-4 mr-1" />
                       Ver
