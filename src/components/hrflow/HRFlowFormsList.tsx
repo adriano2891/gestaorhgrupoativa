@@ -59,6 +59,7 @@ export const HRFlowFormsList = () => {
   const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [editingForm, setEditingForm] = useState<HRFlowForm | null>(null);
+  const [viewingForm, setViewingForm] = useState<HRFlowForm | null>(null);
   const [forms, setForms] = useState<HRFlowForm[]>(mockForms);
   const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
 
