@@ -168,7 +168,7 @@ export const useMetricasFerias = () => {
         const [solicitacoes, roles, profiles, periodos] = await Promise.all([
           restGet('solicitacoes_ferias?select=status,data_inicio,data_fim,user_id'),
           restGet('user_roles?select=user_id,role'),
-          restGet('profiles?select=id,status,data_admissao,created_at'),
+          restGet('profiles?select=id,status,data_admissao,created_at,tipo_perfil'),
           restGet('periodos_aquisitivos?select=dias_disponiveis'),
         ]);
 
