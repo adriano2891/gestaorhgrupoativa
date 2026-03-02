@@ -2407,6 +2407,7 @@ export type Database = {
           salario: number | null
           status: string | null
           telefone: string | null
+          tipo_perfil: string
           turno: string | null
           updated_at: string | null
           usuario: string | null
@@ -2432,6 +2433,7 @@ export type Database = {
           salario?: number | null
           status?: string | null
           telefone?: string | null
+          tipo_perfil?: string
           turno?: string | null
           updated_at?: string | null
           usuario?: string | null
@@ -2457,6 +2459,7 @@ export type Database = {
           salario?: number | null
           status?: string | null
           telefone?: string | null
+          tipo_perfil?: string
           turno?: string | null
           updated_at?: string | null
           usuario?: string | null
