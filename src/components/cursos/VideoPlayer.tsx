@@ -1457,7 +1457,7 @@ export const VideoPlayer = ({
   // Vídeo direto (upload ou link externo)
   return (
     <DirectVideoPlayer 
-      url={url} 
+      url={effectiveUrl} 
       onTimeUpdate={onTimeUpdate} 
       onEnded={onEnded} 
       initialPosition={initialPosition}
