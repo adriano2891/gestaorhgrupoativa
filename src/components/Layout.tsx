@@ -1,5 +1,6 @@
 import { Moon, Sun, LogOut, Menu, X } from "lucide-react";
 import logoHeader from "@/assets/logo-header.png";
+import logoAtivaRHQ from "@/assets/logo-ativarhq-header.png";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useState, useCallback, useMemo } from "react";
@@ -80,7 +81,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
         <div className="container mx-auto px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 flex items-center justify-between">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <img src={logoHeader} alt="AtivaRH" className="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 object-contain flex-shrink-0" />
-            <h1 className="text-base sm:text-lg md:text-xl font-bold text-foreground whitespace-nowrap" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>AtivaRH</h1>
+            <img src={logoAtivaRHQ} alt="AtivaRH" className="h-6 sm:h-7 md:h-8 object-contain" />
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
