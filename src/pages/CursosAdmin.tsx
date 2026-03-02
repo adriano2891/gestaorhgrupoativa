@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Layout } from "@/components/Layout";
 import { BackButton } from "@/components/ui/back-button";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -34,6 +36,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Curso } from "@/types/cursos";
 
 const CursosAdmin = () => {
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [categoriaFilter, setCategoriaFilter] = useState<string>("all");
@@ -50,6 +53,25 @@ const CursosAdmin = () => {
   const { data: categorias } = useCategoriasCurso();
   const { data: funcionarios } = useFuncionarios();
   const { deleteCurso } = useCursoMutations();
+
+  // Realtime: atualiza cards de stats quando matrículas mudam
+  useEffect(() => {
+    const channel = supabase
+      .channel('matriculas-stats-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'matriculas' },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["cursos-stats"] });
+          queryClient.invalidateQueries({ queryKey: ["matriculas"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   const handleDeleteCurso = (cursoId: string) => {
     deleteCurso.mutate(cursoId);
