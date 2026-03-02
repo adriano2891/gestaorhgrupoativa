@@ -101,6 +101,7 @@ Deno.serve(async (req) => {
         email,
         departamento: departamento || null,
         cargo: cargo || null,
+        tipo_perfil: 'admin',
       });
 
     if (profileError) {
