@@ -2138,6 +2138,7 @@ export type Database = {
       notificacoes: {
         Row: {
           agendado_para: string | null
+          anexos: Json | null
           created_at: string
           criado_por: string | null
           destinatario_departamento: string | null
@@ -2152,6 +2153,7 @@ export type Database = {
         }
         Insert: {
           agendado_para?: string | null
+          anexos?: Json | null
           created_at?: string
           criado_por?: string | null
           destinatario_departamento?: string | null
@@ -2166,6 +2168,7 @@ export type Database = {
         }
         Update: {
           agendado_para?: string | null
+          anexos?: Json | null
           created_at?: string
           criado_por?: string | null
           destinatario_departamento?: string | null
