@@ -59,9 +59,9 @@ export const useFuncionarios = () => {
       const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
       if (targetIds.length === 0) return [] as Funcionario[];
 
-      // Step 2: Fetch profiles via REST (batched if needed)
+      // Step 2: Fetch profiles via REST (batched if needed), excluding admin-only profiles
       const idsParam = targetIds.map(id => `"${id}"`).join(',');
-      const profiles: any[] = await restGet(`profiles?select=*&id=in.(${idsParam})&order=nome.asc`);
+      const profiles: any[] = await restGet(`profiles?select=*&id=in.(${idsParam})&tipo_perfil=eq.funcionario&order=nome.asc`);
 
       const activeData = (profiles || []).filter((p: any) => {
         const status = (p.status || "ativo").toLowerCase();
