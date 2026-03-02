@@ -179,14 +179,13 @@ const DirectVideoPlayer = ({
   const [showControls, setShowControls] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const stallTimerRef = useRef<NodeJS.Timeout>();
+  const lastProgressTimeRef = useRef<number>(0);
   const maxRetries = 3;
 
-  // NÃO adicionar cache-busting a URLs assinadas — isso invalida a assinatura
-  // e causa interrupção do streaming após o primeiro chunk bufferizado.
   const [currentUrl, setCurrentUrl] = useState(url);
 
   useEffect(() => {
-    // Reset states quando URL muda
     setIsLoading(true);
     setHasError(false);
     setErrorMessage("");
@@ -195,6 +194,7 @@ const DirectVideoPlayer = ({
     setDuration(0);
     setRetryCount(0);
     setCurrentUrl(url);
+    lastProgressTimeRef.current = 0;
   }, [url]);
 
   useEffect(() => {
@@ -202,6 +202,47 @@ const DirectVideoPlayer = ({
       videoRef.current.currentTime = initialPosition;
     }
   }, [initialPosition, isLoading]);
+
+  // Stall detection: if the video is playing but currentTime hasn't advanced
+  // for 8 seconds, it's likely an H.265 codec issue (browser can't decode beyond buffer).
+  useEffect(() => {
+    if (!isPlaying || hasError || !videoRef.current) {
+      if (stallTimerRef.current) clearInterval(stallTimerRef.current);
+      return;
+    }
+
+    lastProgressTimeRef.current = videoRef.current.currentTime;
+
+    stallTimerRef.current = setInterval(() => {
+      const video = videoRef.current;
+      if (!video || video.paused || video.ended) return;
+
+      const now = video.currentTime;
+      // If time hasn't advanced at all in 8 seconds while playing
+      if (Math.abs(now - lastProgressTimeRef.current) < 0.5) {
+        console.warn("Stall detectado: vídeo parou de progredir. Possível problema de codec H.265/HEVC.");
+        clearInterval(stallTimerRef.current!);
+        video.pause();
+        setIsPlaying(false);
+        setIsLoading(false);
+        setHasError(true);
+        setErrorMessage(
+          "O vídeo parou de reproduzir. Isso geralmente acontece com vídeos codificados em H.265 (HEVC), " +
+          "que não é suportado pela maioria dos navegadores.\n\n" +
+          "Soluções:\n" +
+          "• Converta o vídeo para H.264 (AVC) usando HandBrake (gratuito) ou VLC\n" +
+          "• Baixe o vídeo e assista com VLC Media Player\n" +
+          "• No iPhone, vá em Ajustes > Câmera > Formatos > Mais Compatível"
+        );
+      } else {
+        lastProgressTimeRef.current = now;
+      }
+    }, 4000);
+
+    return () => {
+      if (stallTimerRef.current) clearInterval(stallTimerRef.current);
+    };
+  }, [isPlaying, hasError]);
 
   // Auto-retry com delay progressivo
   useEffect(() => {
