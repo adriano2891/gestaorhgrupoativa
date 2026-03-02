@@ -206,7 +206,10 @@ export const HRFlowFormsList = () => {
                       variant="outline" 
                       size="sm" 
                       className="text-gray-600"
-                      onClick={() => setViewingForm(form)}
+                      onClick={() => {
+                        setEditingForm(form);
+                        setIsBuilderOpen(true);
+                      }}
                     >
                       <Eye className="w-4 h-4 mr-1" />
                       Ver
