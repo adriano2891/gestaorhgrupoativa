@@ -10,6 +10,7 @@ import { RelogioTurno } from "./RelogioTurno";
 import { CronometroPausa } from "./CronometroPausa";
 import { FolhasPontoCard } from "./FolhasPontoCard";
 import { PortalBackground } from "./PortalBackground";
+import { supabase } from "@/integrations/supabase/client";
 
 const getRestHeaders = () => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
