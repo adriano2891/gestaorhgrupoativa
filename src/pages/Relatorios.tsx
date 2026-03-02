@@ -328,7 +328,7 @@ const Relatorios = () => {
 
       if (!freshProfilesEscala || freshProfilesEscala.length === 0) {
         try {
-          freshProfilesEscala = await fetchDirectREST("profiles", "select=id,nome,departamento,cargo,escala_trabalho,turno,status&status=neq.demitido");
+          freshProfilesEscala = await fetchDirectREST("profiles", "select=id,nome,departamento,cargo,escala_trabalho,turno,status&tipo_perfil=eq.funcionario&status=neq.demitido");
         } catch (e) {
           console.error("Error fetching profiles escala:", e);
           freshProfilesEscala = [];
