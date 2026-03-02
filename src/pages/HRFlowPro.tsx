@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { 
   FileText, 
   LayoutTemplate, 
@@ -74,6 +74,8 @@ const STATUS_LABELS: Record<FormStatus, { label: string; class: string }> = {
   arquivado: { label: 'Arquivado', class: 'bg-amber-100 text-amber-700' }
 };
 
+const HRFLOW_FORMS_STORAGE_KEY = "hrflow-pro-forms";
+
 const HRFlowPro = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>('forms');
@@ -83,8 +85,22 @@ const HRFlowPro = () => {
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [editingForm, setEditingForm] = useState<HRFlowForm | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [forms, setForms] = useState<HRFlowForm[]>(mockForms);
+  const [forms, setForms] = useState<HRFlowForm[]>(() => {
+    try {
+      const storedForms = localStorage.getItem(HRFLOW_FORMS_STORAGE_KEY);
+      if (!storedForms) return mockForms;
+
+      const parsed = JSON.parse(storedForms);
+      return Array.isArray(parsed) ? parsed : mockForms;
+    } catch {
+      return mockForms;
+    }
+  });
   const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem(HRFLOW_FORMS_STORAGE_KEY, JSON.stringify(forms));
+  }, [forms]);
 
   const handleDeleteForm = (formId: string) => {
     try {
