@@ -324,15 +324,11 @@ export const AulaFormDialog = ({
       return;
     }
 
-    // Validação de metadados do vídeo (bitrate)
-    // Nota: a verificação de "fast start" (moov atom) foi removida pois o Storage
-    // suporta range requests, permitindo streaming mesmo sem moov no início.
+    // Validação de metadados do vídeo (bitrate + codec)
     try {
-
       const meta = await probeVideoFile(file);
       const maxBitrate = getRecommendedMaxBitrateMbps(meta.height);
 
-      // margem pequena (10%) para evitar falso positivo
       if (meta.bitrateMbps && meta.bitrateMbps > maxBitrate * 1.1) {
         toast.error(
           `Bitrate alto (${meta.bitrateMbps.toFixed(1)} Mbps) para ${meta.height || "?"}p. ` +
@@ -342,10 +338,40 @@ export const AulaFormDialog = ({
       }
     } catch (err) {
       console.error("Falha ao validar vídeo antes do upload:", err);
-      toast.error(
-        "Não foi possível validar o vídeo antes do upload. Tente novamente ou converta para MP4 (H.264 + AAC) com Fast Start."
+      // Se o browser não conseguiu ler metadata, provavelmente é H.265/HEVC
+      // Mostra aviso mas permite upload (pode funcionar em Safari/Edge)
+      toast.warning(
+        "Atenção: Não foi possível ler os metadados do vídeo. " +
+        "Se o arquivo estiver codificado em H.265 (HEVC), a reprodução poderá falhar na maioria dos navegadores. " +
+        "Recomendamos converter para H.264 (AVC) usando HandBrake ou VLC.",
+        { duration: 8000 }
       );
-      return;
+    }
+
+    // Verificação adicional de codec H.265: tenta detectar pelo container
+    // Se o browser reporta que não pode reproduzir, avisamos
+    const testVideo = document.createElement("video");
+    const canPlayHevc = testVideo.canPlayType('video/mp4; codecs="hvc1"') || 
+                        testVideo.canPlayType('video/mp4; codecs="hev1"');
+    // Se o file type é mp4 e o browser NÃO suporta HEVC, alertamos sobre risco
+    if (fileExt === "mp4" && !canPlayHevc) {
+      // Check if this might be HEVC by trying to read first bytes for codec info
+      const headerBlob = file.slice(0, 64 * 1024);
+      const headerBuf = await headerBlob.arrayBuffer();
+      const headerBytes = new Uint8Array(headerBuf);
+      const headerStr = Array.from(headerBytes.slice(0, 8192))
+        .map(b => String.fromCharCode(b))
+        .join("");
+      
+      // HEVC codec markers in MP4 ftyp/moov boxes
+      const isLikelyHevc = headerStr.includes("hvc1") || headerStr.includes("hev1") || headerStr.includes("HEVC");
+      if (isLikelyHevc) {
+        toast.warning(
+          "⚠️ Este vídeo parece usar codec H.265 (HEVC), que NÃO é suportado pelo Chrome e Firefox. " +
+          "O vídeo poderá travar durante a reprodução. Recomendamos converter para H.264 antes de enviar.",
+          { duration: 10000 }
+        );
+      }
     }
 
     setIsUploading(true);
