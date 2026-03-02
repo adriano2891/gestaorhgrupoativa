@@ -1,5 +1,6 @@
 import { Moon, Sun, LogOut, Menu, X } from "lucide-react";
 import logoHeader from "@/assets/logo-header.png";
+import logoAtivaRHQ from "@/assets/logo-ativarhq-header.png";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useState, useCallback, useMemo } from "react";
