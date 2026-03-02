@@ -298,7 +298,7 @@ const Relatorios = () => {
           
           if (targetIds.length > 0) {
             const idFilter = targetIds.map(id => `"${id}"`).join(",");
-            const profiles = await fetchDirectREST("profiles", `select=*&id=in.(${idFilter})&order=nome.asc`);
+            const profiles = await fetchDirectREST("profiles", `select=*&id=in.(${idFilter})&tipo_perfil=eq.funcionario&order=nome.asc`);
             const allProfiles = profiles || [];
             freshFuncionarios = isTurnoverReport
               ? allProfiles
