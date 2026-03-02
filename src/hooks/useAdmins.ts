@@ -182,13 +182,22 @@ export const useDeleteAdmin = () => {
 
       if (roleError) throw roleError;
 
-      // Adicionar role de funcionário se não tiver nenhum
+      // Check if user is an admin-only profile - if so, don't add funcionario role
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("tipo_perfil")
+        .eq("id", userId)
+        .single();
+
+      const isAdminOnly = profileData?.tipo_perfil === 'admin';
+
+      // Adicionar role de funcionário apenas se não for perfil admin-only
       const { data: remainingRoles } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", userId);
 
-      if (!remainingRoles || remainingRoles.length === 0) {
+      if ((!remainingRoles || remainingRoles.length === 0) && !isAdminOnly) {
         await supabase
           .from("user_roles")
           .insert({ user_id: userId, role: "funcionario" });
