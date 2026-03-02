@@ -69,6 +69,7 @@ const Relatorios = () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("id, nome, departamento, cargo, escala_trabalho, turno, status")
+        .eq("tipo_perfil", "funcionario")
         .neq("status", "demitido")
         .neq("status", "pediu_demissao");
       if (error) throw error;
@@ -298,7 +299,7 @@ const Relatorios = () => {
           
           if (targetIds.length > 0) {
             const idFilter = targetIds.map(id => `"${id}"`).join(",");
-            const profiles = await fetchDirectREST("profiles", `select=*&id=in.(${idFilter})&order=nome.asc`);
+            const profiles = await fetchDirectREST("profiles", `select=*&id=in.(${idFilter})&tipo_perfil=eq.funcionario&order=nome.asc`);
             const allProfiles = profiles || [];
             freshFuncionarios = isTurnoverReport
               ? allProfiles
@@ -328,7 +329,7 @@ const Relatorios = () => {
 
       if (!freshProfilesEscala || freshProfilesEscala.length === 0) {
         try {
-          freshProfilesEscala = await fetchDirectREST("profiles", "select=id,nome,departamento,cargo,escala_trabalho,turno,status&status=neq.demitido");
+          freshProfilesEscala = await fetchDirectREST("profiles", "select=id,nome,departamento,cargo,escala_trabalho,turno,status&tipo_perfil=eq.funcionario&status=neq.demitido");
         } catch (e) {
           console.error("Error fetching profiles escala:", e);
           freshProfilesEscala = [];
