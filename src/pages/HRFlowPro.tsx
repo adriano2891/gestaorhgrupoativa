@@ -85,8 +85,22 @@ const HRFlowPro = () => {
   const [isBuilderOpen, setIsBuilderOpen] = useState(false);
   const [editingForm, setEditingForm] = useState<HRFlowForm | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [forms, setForms] = useState<HRFlowForm[]>(mockForms);
+  const [forms, setForms] = useState<HRFlowForm[]>(() => {
+    try {
+      const storedForms = localStorage.getItem(HRFLOW_FORMS_STORAGE_KEY);
+      if (!storedForms) return mockForms;
+
+      const parsed = JSON.parse(storedForms);
+      return Array.isArray(parsed) ? parsed : mockForms;
+    } catch {
+      return mockForms;
+    }
+  });
   const [deleteFormId, setDeleteFormId] = useState<string | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem(HRFLOW_FORMS_STORAGE_KEY, JSON.stringify(forms));
+  }, [forms]);
 
   const handleDeleteForm = (formId: string) => {
     try {
