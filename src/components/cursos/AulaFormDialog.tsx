@@ -396,12 +396,8 @@ export const AulaFormDialog = ({
         throw uploadError;
       }
 
-      const { data: signedData, error: signedError } = await supabase.storage
-        .from("cursos")
-        .createSignedUrl(filePath, 3600);
-
-      if (signedError) throw signedError;
-      setFormData((prev) => ({ ...prev, video_url: signedData.signedUrl }));
+      // Armazenar o caminho permanente do arquivo, NÃO a URL assinada temporária
+      setFormData((prev) => ({ ...prev, video_url: `storage:cursos/${filePath}` }));
       setUploadProgress(100);
       toast.success("Vídeo enviado com sucesso!");
     } catch (error: any) {

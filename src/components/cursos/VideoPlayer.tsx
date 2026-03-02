@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { 
   Play, 
@@ -1278,6 +1279,73 @@ const ExternalPdfViewer = ({ url }: { url: string }) => {
   );
 };
 
+// Helper: resolve storage: prefixed paths to signed URLs
+const useResolvedUrl = (url: string) => {
+  const [resolvedUrl, setResolvedUrl] = useState<string | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
+
+  useEffect(() => {
+    if (!url) {
+      setResolvedUrl(null);
+      return;
+    }
+
+    // Handle storage:bucket/path format
+    if (url.startsWith("storage:")) {
+      setIsResolving(true);
+      const storagePath = url.replace("storage:", "");
+      const slashIndex = storagePath.indexOf("/");
+      const bucket = storagePath.substring(0, slashIndex);
+      const filePath = storagePath.substring(slashIndex + 1);
+
+      supabase.storage
+        .from(bucket)
+        .createSignedUrl(filePath, 7200) // 2 hours
+        .then(({ data, error }) => {
+          if (error || !data?.signedUrl) {
+            console.error("Erro ao gerar URL assinada:", error);
+            setResolvedUrl(null);
+          } else {
+            setResolvedUrl(data.signedUrl);
+          }
+          setIsResolving(false);
+        });
+      return;
+    }
+
+    // Handle legacy signed URLs from Supabase storage (already expired or not)
+    // These are old URLs that were stored before the fix
+    if (url.includes("/storage/v1/") && url.includes("token=")) {
+      // Try to extract bucket and path to regenerate signed URL
+      const match = url.match(/\/storage\/v1\/object\/sign\/([^?]+)/);
+      if (match?.[1]) {
+        setIsResolving(true);
+        const fullPath = decodeURIComponent(match[1]);
+        const slashIndex = fullPath.indexOf("/");
+        const bucket = fullPath.substring(0, slashIndex);
+        const filePath = fullPath.substring(slashIndex + 1);
+
+        supabase.storage
+          .from(bucket)
+          .createSignedUrl(filePath, 7200)
+          .then(({ data, error }) => {
+            if (error || !data?.signedUrl) {
+              setResolvedUrl(url); // fallback to original
+            } else {
+              setResolvedUrl(data.signedUrl);
+            }
+            setIsResolving(false);
+          });
+        return;
+      }
+    }
+
+    setResolvedUrl(url);
+  }, [url]);
+
+  return { resolvedUrl, isResolving };
+};
+
 // Player unificado que escolhe o componente correto
 export const VideoPlayer = ({
   url,
@@ -1286,19 +1354,40 @@ export const VideoPlayer = ({
   initialPosition,
   embedVariant = "default",
 }: VideoPlayerProps) => {
-  if (!url) {
+  const { resolvedUrl, isResolving } = useResolvedUrl(url);
+
+  if (!url || isResolving) {
     return (
       <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
         <div className="text-center">
-          <Play className="h-16 w-16 mx-auto text-muted-foreground/50 mb-2" />
-          <p className="text-muted-foreground">Selecione uma aula para começar</p>
+          {isResolving ? (
+            <Loader2 className="h-12 w-12 animate-spin mx-auto text-muted-foreground/50 mb-2" />
+          ) : (
+            <>
+              <Play className="h-16 w-16 mx-auto text-muted-foreground/50 mb-2" />
+              <p className="text-muted-foreground">Selecione uma aula para começar</p>
+            </>
+          )}
         </div>
       </div>
     );
   }
 
-  const sourceType = detectVideoSource(url);
-  const embedUrl = getEmbedUrl(url, sourceType);
+  if (!resolvedUrl) {
+    return (
+      <div className="aspect-video bg-muted rounded-lg flex items-center justify-center">
+        <div className="text-center px-4">
+          <AlertCircle className="h-12 w-12 mx-auto text-destructive mb-4" />
+          <p className="text-muted-foreground font-medium">Erro ao carregar o vídeo</p>
+          <p className="text-sm text-muted-foreground">Não foi possível gerar a URL de acesso.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const effectiveUrl = resolvedUrl;
+  const sourceType = detectVideoSource(effectiveUrl);
+  const embedUrl = getEmbedUrl(effectiveUrl, sourceType);
 
   // Se não conseguiu gerar embed URL (ex: link de pasta do Drive)
   if (!embedUrl && (sourceType === "youtube" || sourceType === "drive" || sourceType === "drive_pdf")) {
@@ -1335,7 +1424,7 @@ export const VideoPlayer = ({
 
   // YouTube - usa IFrame API para detectar fim e medir progresso
   if (sourceType === "youtube") {
-    const videoId = extractYouTubeId(url);
+    const videoId = extractYouTubeId(effectiveUrl);
 
     if (videoId) {
       return (
@@ -1368,7 +1457,7 @@ export const VideoPlayer = ({
   // Vídeo direto (upload ou link externo)
   return (
     <DirectVideoPlayer 
-      url={url} 
+      url={effectiveUrl} 
       onTimeUpdate={onTimeUpdate} 
       onEnded={onEnded} 
       initialPosition={initialPosition}
