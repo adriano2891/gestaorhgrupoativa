@@ -219,10 +219,11 @@ const HRFlowPro = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">
-                      <Eye className="w-4 h-4 mr-1" />
-                      Ver
-                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setViewingForm(form)}
+                    >
                     <Button 
                       variant="outline" 
                       size="sm"
