@@ -17,6 +17,10 @@ import { useQuotes } from '@/contexts/QuotesContext';
 import { QuotesLayout } from '@/components/orcamentos/QuotesLayout';
 import { GlassPanel } from '@/components/orcamentos/GlassPanel';
 import { QUOTE_STATUS_LABELS, QUOTE_STATUS_COLORS, QuoteStatus } from '@/types/quotes';
+import { downloadQuotePDF } from '@/utils/quotePdfGenerator';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import type { Quote } from '@/types/quotes';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -62,6 +66,34 @@ export default function OrcamentosDashboard() {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  const handleDownloadPdf = async (quote: Quote) => {
+    try {
+      toast.info('Gerando PDF...');
+      let enrichedQuote = { ...quote };
+      if (!quote.clientCnpj && quote.clientId) {
+        const { data: clientData } = await supabase
+          .from('clientes_orcamentos')
+          .select('cnpj, nome_sindico, telefone, email')
+          .eq('id', quote.clientId)
+          .single();
+        if (clientData) {
+          enrichedQuote = {
+            ...enrichedQuote,
+            clientCnpj: clientData.cnpj || undefined,
+            clientSindico: enrichedQuote.clientSindico || clientData.nome_sindico || undefined,
+            clientPhone: enrichedQuote.clientPhone || clientData.telefone || undefined,
+            clientEmail: enrichedQuote.clientEmail || clientData.email || undefined,
+          };
+        }
+      }
+      await downloadQuotePDF(enrichedQuote);
+      toast.success('PDF baixado com sucesso');
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast.error('Erro ao gerar PDF');
+    }
   };
 
   return (
@@ -252,7 +284,7 @@ export default function OrcamentosDashboard() {
                                 <Edit className="w-4 h-4 mr-2" />
                                 Editar
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="hover:bg-[#3EE0CF]/10">
+                              <DropdownMenuItem onClick={() => handleDownloadPdf(quote)} className="hover:bg-[#3EE0CF]/10">
                                 <FileDown className="w-4 h-4 mr-2" />
                                 Baixar PDF
                               </DropdownMenuItem>
