@@ -407,15 +407,33 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
     );
   };
 
+  const hasContent = (data.summary && Object.keys(data.summary).length > 0) || 
+                     (data.details && data.details.length > 0) || 
+                     (data.charts && data.charts.length > 0);
+
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
       <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
         <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
         <span>Relatório gerado em {new Date(data.generatedAt).toLocaleString('pt-BR')}</span>
       </div>
-      {renderEnhancedSummary()}
-      {renderEnhancedCharts()}
-      {renderEnhancedTable()}
+      {!hasContent ? (
+        <Card className="p-6 sm:p-8 text-center">
+          <div className="flex flex-col items-center gap-3">
+            <AlertCircle className="w-10 h-10 text-muted-foreground" />
+            <p className="text-base sm:text-lg font-semibold text-foreground">Nenhum dado encontrado</p>
+            <p className="text-sm text-muted-foreground max-w-md">
+              Não foram encontrados registros para os filtros selecionados. Verifique se há funcionários cadastrados no módulo de Funcionários.
+            </p>
+          </div>
+        </Card>
+      ) : (
+        <>
+          {renderEnhancedSummary()}
+          {renderEnhancedCharts()}
+          {renderEnhancedTable()}
+        </>
+      )}
     </div>
   );
 };
