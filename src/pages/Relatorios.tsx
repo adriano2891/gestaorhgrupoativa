@@ -184,13 +184,6 @@ const Relatorios = () => {
       description: "Cursos, certificações e ROI",
     },
     {
-      id: "produtividade",
-      name: "Produtividade",
-      icon: Activity,
-      category: "Performance",
-      description: "Output e eficiência por equipe",
-    },
-    {
       id: "beneficios",
       name: "Benefícios",
       icon: Heart,
