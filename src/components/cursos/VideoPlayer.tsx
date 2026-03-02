@@ -181,24 +181,9 @@ const DirectVideoPlayer = ({
   const controlsTimeoutRef = useRef<NodeJS.Timeout>();
   const maxRetries = 3;
 
-  // Adicionar cache-busting e validação de URL
-  const getOptimizedUrl = useCallback((originalUrl: string): string => {
-    if (!originalUrl) return '';
-    
-    try {
-      const urlObj = new URL(originalUrl);
-      
-      // Adicionar timestamp para evitar cache problemático
-      urlObj.searchParams.set('t', Date.now().toString());
-      
-      return urlObj.toString();
-    } catch {
-      // Se não for URL válida, retornar original
-      return originalUrl;
-    }
-  }, []);
-
-  const [optimizedUrl, setOptimizedUrl] = useState(() => getOptimizedUrl(url));
+  // NÃO adicionar cache-busting a URLs assinadas — isso invalida a assinatura
+  // e causa interrupção do streaming após o primeiro chunk bufferizado.
+  const [currentUrl, setCurrentUrl] = useState(url);
 
   useEffect(() => {
     // Reset states quando URL muda
@@ -209,8 +194,8 @@ const DirectVideoPlayer = ({
     setCurrentTime(0);
     setDuration(0);
     setRetryCount(0);
-    setOptimizedUrl(getOptimizedUrl(url));
-  }, [url, getOptimizedUrl]);
+    setCurrentUrl(url);
+  }, [url]);
 
   useEffect(() => {
     if (videoRef.current && initialPosition && !isLoading) {
