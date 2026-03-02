@@ -26,7 +26,7 @@ const defaultField: Omit<FormField, 'id'> = {
   required: false,
 };
 
-export const HRFlowFormBuilder = ({ form, template, onClose }: HRFlowFormBuilderProps) => {
+export const HRFlowFormBuilder = ({ form, template, onClose, readOnly = false }: HRFlowFormBuilderProps) => {
   const [title, setTitle] = useState(form?.title || template?.title || 'Novo Formulário');
   const [description, setDescription] = useState(form?.description || template?.description || '');
   const [category, setCategory] = useState<FormCategory>(form?.category || template?.category as FormCategory || 'outros');
