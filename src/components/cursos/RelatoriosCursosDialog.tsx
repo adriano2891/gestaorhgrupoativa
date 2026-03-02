@@ -37,6 +37,8 @@ import {
   UserMinus,
 } from "lucide-react";
 import { useCursos, useCursosStats, useMetricasDetalhadas } from "@/hooks/useCursos";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
