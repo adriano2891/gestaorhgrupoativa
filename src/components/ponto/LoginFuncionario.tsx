@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { toast } from "sonner";
 import { Clock, LogIn, Eye, EyeOff } from "lucide-react";
 import loginBackground from "@/assets/login-background.png";
-import logoPortal from "@/assets/logo-portal-funcionario.png";
+import logoPortal from "@/assets/logo-portal-funcionario-new.png";
 import { EsqueciSenhaDialog } from "./EsqueciSenhaDialog";
 
 export const LoginFuncionario = () => {
