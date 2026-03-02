@@ -197,13 +197,6 @@ const Relatorios = () => {
       category: "Bem-estar",
       description: "Incidentes e afastamentos",
     },
-    {
-      id: "clima",
-      name: "Clima Organizacional",
-      icon: Smile,
-      category: "Bem-estar",
-      description: "Pesquisas de satisfação e engajamento",
-    },
   ];
 
   const handleSelectReport = (reportId: string) => {
