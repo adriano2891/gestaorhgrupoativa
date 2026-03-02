@@ -310,10 +310,15 @@ const GestaoRH = () => {
       <style>{animationStyles}</style>
       
       {/* Header */}
-      <div className={`flex items-start justify-between px-4 md:px-6 lg:px-8 pt-4 lg:pt-6 ${isAnimating ? 'rh-animate-header' : ''}`}>
+      <div className={`flex items-center justify-between px-4 md:px-6 lg:px-8 pt-4 lg:pt-6 ${isAnimating ? 'rh-animate-header' : ''}`}>
         <div className="flex flex-col items-start min-w-0">
+          <BackButton 
+            to="/dashboard" 
+            variant="light"
+          />
+          {/* Título */}
           <h1 
-            className={`text-2xl md:text-3xl lg:text-4xl xl:text-5xl text-white font-bold truncate ${isAnimating ? 'rh-animate-title' : ''}`}
+            className={`text-2xl md:text-3xl lg:text-4xl xl:text-5xl text-white mt-2 font-bold truncate ${isAnimating ? 'rh-animate-title' : ''}`}
             style={{ 
               fontFamily: "Arial, sans-serif",
               textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
@@ -321,15 +326,10 @@ const GestaoRH = () => {
           >
             Gestão RH
           </h1>
-          <BackButton 
-            to="/dashboard" 
-            variant="light"
-            className="mt-2"
-          />
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity flex-shrink-0"
+          className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity self-start flex-shrink-0"
         >
           <LogOut className="w-5 h-5 lg:w-6 lg:h-6" />
           <span className="text-sm lg:text-lg font-medium">Sair</span>
