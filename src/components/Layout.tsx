@@ -71,7 +71,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <div 
-      className="min-h-screen bg-cover bg-center bg-no-repeat bg-fixed"
+      className="min-h-screen bg-cover bg-center bg-no-repeat bg-scroll md:bg-fixed"
       style={{ backgroundImage: `url(${loginBackground})` }}
     >
       {/* Overlay para melhorar legibilidade */}
