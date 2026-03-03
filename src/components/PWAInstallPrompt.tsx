@@ -30,8 +30,14 @@ const PWAInstallPrompt = () => {
   const [isInstalled, setIsInstalled] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [showAndroidHint, setShowAndroidHint] = useState(false);
 
-  const isIOS = useMemo(() => /iPad|iPhone|iPod/.test(navigator.userAgent), []);
+  const isIOS = useMemo(() => {
+    const ua = navigator.userAgent;
+    return /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }, []);
+
+  const isAndroid = useMemo(() => /Android/i.test(navigator.userAgent), []);
 
   useEffect(() => {
     const inStandalone =
@@ -57,8 +63,11 @@ const PWAInstallPrompt = () => {
     };
   }, []);
 
+  const showAndroidManual = isAndroid && !deferredPrompt;
+
   useEffect(() => {
-    const shouldShow = !isInstalled && !dismissed && (!!deferredPrompt || isIOS);
+    const shouldShow = !isInstalled && !dismissed && (isIOS || !!deferredPrompt || showAndroidManual);
+
     if (!shouldShow) {
       setVisible(false);
       return;
@@ -66,10 +75,13 @@ const PWAInstallPrompt = () => {
 
     const timer = window.setTimeout(() => setVisible(true), 200);
     return () => window.clearTimeout(timer);
-  }, [deferredPrompt, dismissed, isIOS, isInstalled]);
+  }, [deferredPrompt, dismissed, isIOS, isInstalled, showAndroidManual]);
 
   const handleInstall = async () => {
-    if (!deferredPrompt) return;
+    if (!deferredPrompt) {
+      setShowAndroidHint(true);
+      return;
+    }
 
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
@@ -80,7 +92,7 @@ const PWAInstallPrompt = () => {
     setDeferredPrompt(null);
   };
 
-  if (isInstalled || dismissed || (!deferredPrompt && !isIOS)) return null;
+  if (isInstalled || dismissed || (!isIOS && !deferredPrompt && !showAndroidManual)) return null;
 
   return createPortal(
     <div className="pointer-events-none fixed inset-x-0 top-0 z-[99999] pt-[max(env(safe-area-inset-top),0.25rem)]">
@@ -100,15 +112,24 @@ const PWAInstallPrompt = () => {
 
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-foreground">Instale o app para uma melhor experiência.</p>
-              {isIOS && (
-                <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
-                  Toque em <Share className="h-3.5 w-3.5" /> Compartilhar → Adicionar à Tela de Início
-                </p>
+              <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                {isIOS ? (
+                  <>
+                    Toque em <Share className="h-3.5 w-3.5" /> Compartilhar → Adicionar à Tela de Início
+                  </>
+                ) : deferredPrompt ? (
+                  "Instalação rápida com um toque."
+                ) : (
+                  "No Chrome, toque em ⋮ → Instalar aplicativo"
+                )}
+              </p>
+              {showAndroidHint && showAndroidManual && (
+                <p className="mt-1 text-[11px] text-muted-foreground">Se não aparecer, abra o menu do navegador e escolha “Instalar app”.</p>
               )}
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5">
-              {!isIOS && deferredPrompt && (
+              {!isIOS && (
                 <Button size="sm" onClick={handleInstall} className="h-8 px-3 text-xs font-semibold">
                   Instalar
                 </Button>
@@ -131,4 +152,5 @@ const PWAInstallPrompt = () => {
 };
 
 export default PWAInstallPrompt;
+
 
