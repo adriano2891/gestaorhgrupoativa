@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => ({
     VitePWA({
       registerType: "autoUpdate",
       injectRegister: "auto",
+      useCredentials: true,
       devOptions: {
         enabled: true,
         type: "module",
