@@ -166,11 +166,11 @@ export const PortalHolerite = ({ onBack }: PortalHoleriteProps) => {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => handleDownload(holerite.arquivo_url)}
-                        disabled={downloadUrl.isPending}
+                        onClick={() => handleDownload(holerite.arquivo_url, holerite.mes, holerite.ano)}
+                        disabled={isDownloading}
                         className="ml-4 flex-shrink-0"
                       >
-                        {downloadUrl.isPending ? (
+                        {isDownloading ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <>
