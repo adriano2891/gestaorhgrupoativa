@@ -92,6 +92,9 @@ const Login = () => {
           </form>
         </CardContent>
       </Card>
+      <div className="mt-6 flex justify-center">
+        <PWAInstallPrompt />
+      </div>
     </div>
   );
 };
