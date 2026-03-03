@@ -363,6 +363,7 @@ const App = () => {
                 </Suspense>
               </div>
               <GlobalFooter />
+              <PWAInstallPrompt />
             </div>
           </QuotesProvider>
         </AuthProvider>
