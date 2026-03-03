@@ -51,10 +51,6 @@ const AppSelector = () => {
         </button>
       </div>
 
-      {/* PWA Install Prompt */}
-      <div className="mt-10">
-        <PWAInstallPrompt />
-      </div>
 
       <p className="mt-auto pb-6 pt-10 text-white/30 text-xs">
         © {new Date().getFullYear()} Grupo Ativa — Todos os direitos reservados
