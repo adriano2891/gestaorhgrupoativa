@@ -99,6 +99,7 @@ const App = () => {
               <div className="flex-1">
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
+                    <Route path="/selecionar" element={<AppSelector />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/criar-admin" element={<CreateAdmin />} />
                     <Route path="/portal-funcionario" element={<PortalFuncionario />} />
