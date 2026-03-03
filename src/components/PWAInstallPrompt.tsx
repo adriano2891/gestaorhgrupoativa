@@ -14,7 +14,6 @@ declare global {
   }
 }
 
-const DISMISS_SESSION_KEY = "pwa-install-dismissed";
 let cachedInstallPrompt: BeforeInstallPromptEvent | null = null;
 
 if (typeof window !== "undefined" && !window.__installPromptBound) {
@@ -29,10 +28,7 @@ if (typeof window !== "undefined" && !window.__installPromptBound) {
 const PWAInstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(cachedInstallPrompt);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [dismissed, setDismissed] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return sessionStorage.getItem(DISMISS_SESSION_KEY) === "1";
-  });
+  const [dismissed, setDismissed] = useState(false);
   const [visible, setVisible] = useState(false);
   const [showManualHint, setShowManualHint] = useState(false);
 
@@ -67,11 +63,6 @@ const PWAInstallPrompt = () => {
     };
   }, []);
 
-  useEffect(() => {
-    if (dismissed && typeof window !== "undefined") {
-      sessionStorage.setItem(DISMISS_SESSION_KEY, "1");
-    }
-  }, [dismissed]);
 
   const isMobile = isIOS || isAndroid;
   const showManualInstructions = !deferredPrompt;
