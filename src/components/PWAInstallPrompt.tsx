@@ -121,8 +121,46 @@ const PWAInstallPrompt = () => {
     );
   }
 
-  // Desktop/other browsers without native prompt — don't show anything
-  return null;
+  // Desktop browsers — show install guide
+  const isChromium = /Chrome|Chromium|Edg/.test(navigator.userAgent);
+
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-black/40 backdrop-blur-md flex justify-center safe-bottom">
+      <div className="bg-white rounded-2xl px-5 py-4 shadow-xl max-w-sm w-full relative">
+        <button onClick={() => setDismissed(true)} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground">
+          <X className="w-4 h-4" />
+        </button>
+        <div className="flex items-center gap-3 mb-3">
+          <Download className="w-6 h-6 text-primary shrink-0" />
+          <div>
+            <p className="text-sm font-semibold text-foreground">Instalar App no Desktop</p>
+            <p className="text-xs text-muted-foreground">Use como um aplicativo nativo</p>
+          </div>
+        </div>
+        <div className="space-y-2 text-xs text-muted-foreground">
+          {isChromium ? (
+            <>
+              <p>No <strong className="text-foreground">Chrome ou Edge</strong>:</p>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                  <span className="text-[10px] font-bold text-primary">1</span>
+                </div>
+                <span>Clique no ícone <strong className="text-foreground">⋮</strong> (menu) no canto superior direito</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                  <span className="text-[10px] font-bold text-primary">2</span>
+                </div>
+                <span>Selecione <strong className="text-foreground">"Instalar AtivaRH"</strong></span>
+              </div>
+            </>
+          ) : (
+            <p>Abra este site no <strong className="text-foreground">Google Chrome</strong> ou <strong className="text-foreground">Microsoft Edge</strong> para instalar como app.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default PWAInstallPrompt;
