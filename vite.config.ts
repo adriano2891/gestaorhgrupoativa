@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.png", "favicon.ico", "icon-192.png", "icon-512.png"],
+      includeAssets: ["favicon.png", "favicon.ico", "pwa-icon.png"],
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
@@ -43,24 +43,15 @@ export default defineConfig(({ mode }) => ({
         scope: "/",
         categories: ["business", "productivity"],
         icons: [
-          {
-            src: "/icon-192.png",
-            sizes: "192x192",
-            type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "/icon-512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "any",
-          },
-          {
-            src: "/icon-512.png",
-            sizes: "512x512",
-            type: "image/png",
-            purpose: "maskable",
-          },
+          { src: "/pwa-icon.png", sizes: "72x72", type: "image/png", purpose: "any" },
+          { src: "/pwa-icon.png", sizes: "96x96", type: "image/png", purpose: "any" },
+          { src: "/pwa-icon.png", sizes: "128x128", type: "image/png", purpose: "any" },
+          { src: "/pwa-icon.png", sizes: "144x144", type: "image/png", purpose: "any" },
+          { src: "/pwa-icon.png", sizes: "152x152", type: "image/png", purpose: "any" },
+          { src: "/pwa-icon.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "/pwa-icon.png", sizes: "384x384", type: "image/png", purpose: "any" },
+          { src: "/pwa-icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: "/pwa-icon.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
         ],
       },
     }),
