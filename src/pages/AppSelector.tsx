@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import logoAtiva from "@/assets/logo-ativa-3d.png";
 import { Users, ShieldCheck } from "lucide-react";
-import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+
 
 const AppSelector = () => {
   const navigate = useNavigate();
