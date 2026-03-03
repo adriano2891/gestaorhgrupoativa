@@ -15,14 +15,15 @@ const PWAInstallPrompt = () => {
   const [mounted, setMounted] = useState(false);
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const isInStandaloneMode =
-    window.matchMedia("(display-mode: standalone)").matches ||
-    (navigator as any).standalone === true;
 
   useEffect(() => {
     setMounted(true);
 
-    if (isInStandaloneMode) {
+    const inStandaloneMode =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as any).standalone === true;
+
+    if (inStandaloneMode) {
       setIsInstalled(true);
       return;
     }
@@ -40,7 +41,7 @@ const PWAInstallPrompt = () => {
       window.removeEventListener("beforeinstallprompt", handler);
       window.removeEventListener("appinstalled", installedHandler);
     };
-  }, [isInStandaloneMode]);
+  }, []);
 
   const handleInstall = async () => {
     if (deferredPrompt) {
