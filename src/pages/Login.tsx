@@ -41,7 +41,7 @@ const Login = () => {
 
   return (
     <div 
-      className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-cover bg-center bg-no-repeat safe-bottom safe-top"
+      className="min-h-screen w-full overflow-y-auto bg-cover bg-center bg-no-repeat bg-scroll md:bg-fixed p-4 sm:p-6 lg:p-8 safe-bottom safe-top flex flex-col items-center justify-start sm:justify-center"
       style={{ backgroundImage: `url(${loginBackground})` }}
     >
       <Card className="w-full max-w-[95%] sm:max-w-md">

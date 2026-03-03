@@ -14,6 +14,7 @@ declare global {
   }
 }
 
+const DISMISS_SESSION_KEY = "pwa-install-dismissed";
 let cachedInstallPrompt: BeforeInstallPromptEvent | null = null;
 
 if (typeof window !== "undefined" && !window.__installPromptBound) {
@@ -28,9 +29,12 @@ if (typeof window !== "undefined" && !window.__installPromptBound) {
 const PWAInstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(cachedInstallPrompt);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return sessionStorage.getItem(DISMISS_SESSION_KEY) === "1";
+  });
   const [visible, setVisible] = useState(false);
-  const [showAndroidHint, setShowAndroidHint] = useState(false);
+  const [showManualHint, setShowManualHint] = useState(false);
 
   const isIOS = useMemo(() => {
     const ua = navigator.userAgent;
@@ -63,23 +67,36 @@ const PWAInstallPrompt = () => {
     };
   }, []);
 
-  const showAndroidManual = isAndroid && !deferredPrompt;
+  useEffect(() => {
+    if (dismissed && typeof window !== "undefined") {
+      sessionStorage.setItem(DISMISS_SESSION_KEY, "1");
+    }
+  }, [dismissed]);
+
+  const isMobile = isIOS || isAndroid;
+  const showManualInstructions = !deferredPrompt;
+  const shouldShow = !isInstalled && !dismissed && (isMobile || !!deferredPrompt || !isMobile);
 
   useEffect(() => {
-    const shouldShow = !isInstalled && !dismissed && (isIOS || !!deferredPrompt || showAndroidManual);
-
     if (!shouldShow) {
       setVisible(false);
       return;
     }
 
-    const timer = window.setTimeout(() => setVisible(true), 200);
+    const timer = window.setTimeout(() => setVisible(true), 250);
     return () => window.clearTimeout(timer);
-  }, [deferredPrompt, dismissed, isIOS, isInstalled, showAndroidManual]);
+  }, [shouldShow]);
+
+  const helperText = useMemo(() => {
+    if (isIOS) return "Toque em Compartilhar → Adicionar à Tela de Início";
+    if (deferredPrompt) return "Instalação rápida com um toque.";
+    if (isAndroid) return "No Chrome, toque em ⋮ → Instalar aplicativo";
+    return "No navegador, abra o menu e escolha “Instalar aplicativo”.";
+  }, [deferredPrompt, isAndroid, isIOS]);
 
   const handleInstall = async () => {
     if (!deferredPrompt) {
-      setShowAndroidHint(true);
+      setShowManualHint(true);
       return;
     }
 
@@ -92,7 +109,7 @@ const PWAInstallPrompt = () => {
     setDeferredPrompt(null);
   };
 
-  if (isInstalled || dismissed || (!isIOS && !deferredPrompt && !showAndroidManual)) return null;
+  if (!shouldShow) return null;
 
   return createPortal(
     <div className="pointer-events-none fixed inset-x-0 top-0 z-[99999] pt-[max(env(safe-area-inset-top),0.25rem)]">
@@ -102,7 +119,7 @@ const PWAInstallPrompt = () => {
         }`}
       >
         <div className="border-b border-border/70 bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/85 sm:px-4">
-          <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
+          <div className="mx-auto flex w-full max-w-4xl items-center gap-3">
             <img
               src="/pwa-icon.png"
               alt="Ícone do app AtivaRH"
@@ -111,25 +128,23 @@ const PWAInstallPrompt = () => {
             />
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-semibold text-foreground">Instale o app para uma melhor experiência.</p>
+              <p className="truncate text-sm font-semibold text-foreground">Instale o AtivaRH para uma melhor experiência.</p>
               <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
                 {isIOS ? (
                   <>
                     Toque em <Share className="h-3.5 w-3.5" /> Compartilhar → Adicionar à Tela de Início
                   </>
-                ) : deferredPrompt ? (
-                  "Instalação rápida com um toque."
                 ) : (
-                  "No Chrome, toque em ⋮ → Instalar aplicativo"
+                  helperText
                 )}
               </p>
-              {showAndroidHint && showAndroidManual && (
-                <p className="mt-1 text-[11px] text-muted-foreground">Se não aparecer, abra o menu do navegador e escolha “Instalar app”.</p>
+              {showManualHint && showManualInstructions && (
+                <p className="mt-1 text-[11px] text-muted-foreground">Se não aparecer, use o menu do navegador e escolha “Instalar aplicativo”.</p>
               )}
             </div>
 
             <div className="flex shrink-0 items-center gap-1.5">
-              {!isIOS && (
+              {deferredPrompt && (
                 <Button size="sm" onClick={handleInstall} className="h-8 px-3 text-xs font-semibold">
                   Instalar
                 </Button>
