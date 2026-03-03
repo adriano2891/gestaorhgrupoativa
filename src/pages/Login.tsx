@@ -15,7 +15,7 @@ import { LogIn } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import loginBackground from "@/assets/login-background.png";
 import logoAtiva from "@/assets/logo-login-adm.png";
-import PWAInstallPrompt from "@/components/PWAInstallPrompt";
+
 
 const Login = () => {
   const { signIn } = useAuth();
