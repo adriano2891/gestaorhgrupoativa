@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, FileText, Download, RefreshCw, Loader2 } from "lucide-react";
@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { PortalBackground } from "./PortalBackground";
 import { supabase } from "@/integrations/supabase/client";
+import { downloadFileFromStorage } from "@/utils/downloadFile";
 import { playNotificationSound } from "@/utils/notificationSound";
 
 interface PortalHoleriteProps {
@@ -33,7 +34,9 @@ export const PortalHolerite = ({ onBack }: PortalHoleriteProps) => {
     return meses[mes - 1];
   };
 
-  const handleDownload = async (arquivoUrl: string | null) => {
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownload = async (arquivoUrl: string | null, mes?: number, ano?: number) => {
     if (!arquivoUrl) {
       toast({
         title: "Arquivo não disponível",
@@ -43,15 +46,13 @@ export const PortalHolerite = ({ onBack }: PortalHoleriteProps) => {
       return;
     }
 
+    setIsDownloading(true);
     try {
-      // Se é uma URL assinada, abre diretamente
-      if (arquivoUrl.includes("token=")) {
-        window.open(arquivoUrl, '_blank');
-      } else {
-        // Gerar nova URL assinada
-        const signedUrl = await downloadUrl.mutateAsync(arquivoUrl);
-        window.open(signedUrl, '_blank');
-      }
+      const filename = `holerite-${mes || ""}-${ano || ""}.pdf`;
+      await downloadFileFromStorage("holerites", arquivoUrl, {
+        filename,
+        onProgress: (msg) => toast({ title: msg }),
+      });
     } catch (error) {
       console.error("Erro ao baixar:", error);
       toast({
@@ -59,6 +60,8 @@ export const PortalHolerite = ({ onBack }: PortalHoleriteProps) => {
         description: "Não foi possível baixar o arquivo. Tente novamente.",
         variant: "destructive",
       });
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -163,11 +166,11 @@ export const PortalHolerite = ({ onBack }: PortalHoleriteProps) => {
                       <Button 
                         size="sm" 
                         variant="outline"
-                        onClick={() => handleDownload(holerite.arquivo_url)}
-                        disabled={downloadUrl.isPending}
+                        onClick={() => handleDownload(holerite.arquivo_url, holerite.mes, holerite.ano)}
+                        disabled={isDownloading}
                         className="ml-4 flex-shrink-0"
                       >
-                        {downloadUrl.isPending ? (
+                        {isDownloading ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
                           <>

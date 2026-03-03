@@ -143,15 +143,11 @@ const Documentacoes = () => {
     try {
       const url = await getDocumentoAccessUrl(doc.arquivo_url);
 
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = doc.arquivo_nome;
-      link.target = '_blank';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast({ title: "Download iniciado", description: doc.arquivo_nome });
+      const { downloadFileFromUrl } = await import("@/utils/downloadFile");
+      await downloadFileFromUrl(url, {
+        filename: doc.arquivo_nome,
+        onProgress: (msg) => toast({ title: msg }),
+      });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Não foi possível baixar o documento";
       toast({ title: "Erro ao baixar documento", description: message, variant: "destructive" });

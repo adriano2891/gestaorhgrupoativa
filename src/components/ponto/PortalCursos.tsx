@@ -72,18 +72,21 @@ export const PortalCursos = ({ onBack }: PortalCursosProps) => {
     navigate(`/portal-funcionario/cursos/${cursoId}`);
   };
 
-  const handleDownloadCertificado = (certificado: any) => {
+  const handleDownloadCertificado = async (certificado: any) => {
+    if (!certificado.url_certificado) {
+      toast.error("Certificado não disponível para download. Contate o administrador.");
+      return;
+    }
     try {
-      if (certificado.url_certificado) {
-        // Abrir o PDF diretamente em nova aba (funciona melhor com Supabase Storage)
-        window.open(certificado.url_certificado, '_blank');
-        toast.success("Certificado aberto em nova aba!");
-      } else {
-        toast.error("Certificado não disponível para download. Contate o administrador.");
-      }
+      const { downloadFileFromUrl } = await import("@/utils/downloadFile");
+      toast.info("Preparando download do certificado...");
+      await downloadFileFromUrl(certificado.url_certificado, {
+        filename: `certificado-${certificado.curso_id || "curso"}.pdf`,
+      });
+      toast.success("Certificado baixado com sucesso!");
     } catch (error) {
-      console.error("Erro ao abrir certificado:", error);
-      toast.error("Erro ao abrir o certificado. Tente novamente.");
+      console.error("Erro ao baixar certificado:", error);
+      toast.error("Erro ao baixar o certificado. Tente novamente.");
     }
   };
 
