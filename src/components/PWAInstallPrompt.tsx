@@ -1,183 +1,134 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
-import { Share, X } from "lucide-react";
+import { Share } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: string }>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
+}
+
+declare global {
+  interface Window {
+    __installPromptBound?: boolean;
+  }
+}
+
+let cachedInstallPrompt: BeforeInstallPromptEvent | null = null;
+
+if (typeof window !== "undefined" && !window.__installPromptBound) {
+  window.__installPromptBound = true;
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    cachedInstallPrompt = event as BeforeInstallPromptEvent;
+    window.dispatchEvent(new Event("install-prompt-ready"));
+  });
 }
 
 const PWAInstallPrompt = () => {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(cachedInstallPrompt);
   const [isInstalled, setIsInstalled] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [visible, setVisible] = useState(false);
 
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isIOS = useMemo(() => /iPad|iPhone|iPod/.test(navigator.userAgent), []);
 
   useEffect(() => {
     const inStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
-      (navigator as any).standalone === true;
+      (navigator as Navigator & { standalone?: boolean }).standalone === true;
 
     if (inStandalone) {
       setIsInstalled(true);
       return;
     }
 
-    const timer = setTimeout(() => setVisible(true), 1500);
+    const onPromptReady = () => setDeferredPrompt(cachedInstallPrompt);
+    const onAppInstalled = () => setIsInstalled(true);
 
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", () => setIsInstalled(true));
+    window.addEventListener("install-prompt-ready", onPromptReady);
+    window.addEventListener("appinstalled", onAppInstalled);
+
+    onPromptReady();
 
     return () => {
-      clearTimeout(timer);
-      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("install-prompt-ready", onPromptReady);
+      window.removeEventListener("appinstalled", onAppInstalled);
     };
   }, []);
 
-  const handleInstall = async () => {
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") setIsInstalled(true);
-      setDeferredPrompt(null);
+  useEffect(() => {
+    const shouldShow = !isInstalled && !dismissed && (!!deferredPrompt || isIOS);
+    if (!shouldShow) {
+      setVisible(false);
+      return;
     }
+
+    const timer = window.setTimeout(() => setVisible(true), 200);
+    return () => window.clearTimeout(timer);
+  }, [deferredPrompt, dismissed, isIOS, isInstalled]);
+
+  const handleInstall = async () => {
+    if (!deferredPrompt) return;
+
+    await deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+
+    if (outcome === "accepted") setIsInstalled(true);
+
+    cachedInstallPrompt = null;
+    setDeferredPrompt(null);
   };
 
-  const handleDismiss = () => {
-    setVisible(false);
-    setTimeout(() => setDismissed(true), 400);
-  };
+  if (isInstalled || dismissed || (!deferredPrompt && !isIOS)) return null;
 
-  if (isInstalled || dismissed) return null;
-  if (!deferredPrompt && !isIOS) return null;
-
-  const banner = (
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 99999,
-        transition: "transform 0.4s cubic-bezier(.4,0,.2,1), opacity 0.4s ease",
-        transform: visible ? "translateY(0)" : "translateY(-100%)",
-        opacity: visible ? 1 : 0,
-        pointerEvents: visible ? "auto" : "none",
-      }}
-    >
+  return createPortal(
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-[99999] pt-[max(env(safe-area-inset-top),0.25rem)]">
       <div
-        style={{
-          background: "rgba(15, 23, 42, 0.95)",
-          backdropFilter: "blur(12px)",
-          WebkitBackdropFilter: "blur(12px)",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
-          padding: "10px 16px",
-          paddingTop: "max(10px, env(safe-area-inset-top))",
-        }}
+        className={`pointer-events-auto mx-auto w-full transition-all duration-300 ease-out ${
+          visible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
+        }`}
       >
-        <div
-          style={{
-            maxWidth: 480,
-            margin: "0 auto",
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-          }}
-        >
-          <img
-            src="/pwa-icon.png"
-            alt="AtivaRH"
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: 10,
-              flexShrink: 0,
-            }}
-          />
+        <div className="border-b border-border/70 bg-background/95 px-3 py-2 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-background/85 sm:px-4">
+          <div className="mx-auto flex w-full max-w-3xl items-center gap-3">
+            <img
+              src="/pwa-icon.png"
+              alt="Ícone do app AtivaRH"
+              className="h-9 w-9 shrink-0 rounded-lg border border-border/60"
+              loading="lazy"
+            />
 
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p
-              style={{
-                margin: 0,
-                fontSize: 13,
-                fontWeight: 600,
-                color: "#f1f5f9",
-                lineHeight: 1.3,
-              }}
-            >
-              Instale o app para uma melhor experiência.
-            </p>
-            {isIOS && (
-              <p
-                style={{
-                  margin: "2px 0 0",
-                  fontSize: 11,
-                  color: "#94a3b8",
-                  lineHeight: 1.3,
-                }}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-semibold text-foreground">Instale o app para uma melhor experiência.</p>
+              {isIOS && (
+                <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
+                  Toque em <Share className="h-3.5 w-3.5" /> Compartilhar → Adicionar à Tela de Início
+                </p>
+              )}
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1.5">
+              {!isIOS && deferredPrompt && (
+                <Button size="sm" onClick={handleInstall} className="h-8 px-3 text-xs font-semibold">
+                  Instalar
+                </Button>
+              )}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setDismissed(true)}
+                className="h-8 px-2.5 text-xs text-muted-foreground"
               >
-                Toque em{" "}
-                <Share
-                  style={{
-                    width: 12,
-                    height: 12,
-                    display: "inline",
-                    verticalAlign: "-1px",
-                  }}
-                />{" "}
-                → <strong>Adicionar à Tela de Início</strong>
-              </p>
-            )}
+                Agora não
+              </Button>
+            </div>
           </div>
-
-          {deferredPrompt && (
-            <button
-              onClick={handleInstall}
-              style={{
-                padding: "6px 16px",
-                background: "linear-gradient(135deg, #3b82f6, #2563eb)",
-                color: "#fff",
-                fontSize: 12,
-                fontWeight: 700,
-                border: "none",
-                borderRadius: 8,
-                cursor: "pointer",
-                flexShrink: 0,
-                letterSpacing: 0.3,
-              }}
-            >
-              Instalar
-            </button>
-          )}
-
-          <button
-            onClick={handleDismiss}
-            aria-label="Fechar"
-            style={{
-              background: "none",
-              border: "none",
-              color: "#64748b",
-              cursor: "pointer",
-              padding: 4,
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <X style={{ width: 16, height: 16 }} />
-          </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
-
-  return createPortal(banner, document.body);
 };
 
 export default PWAInstallPrompt;
+
