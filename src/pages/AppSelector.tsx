@@ -1,40 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import logoAtiva from "@/assets/logo-ativa-3d.png";
-import { Users, ShieldCheck, Download } from "lucide-react";
-import { useEffect, useState } from "react";
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: string }>;
-}
+import { Users, ShieldCheck } from "lucide-react";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 const AppSelector = () => {
   const navigate = useNavigate();
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
-    window.addEventListener("beforeinstallprompt", handler);
-
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setIsInstalled(true);
-    }
-
-    return () => window.removeEventListener("beforeinstallprompt", handler);
-  }, []);
-
-  const handleInstall = async () => {
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") setIsInstalled(true);
-      setDeferredPrompt(null);
-    }
-  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)" }}>
@@ -81,22 +51,10 @@ const AppSelector = () => {
         </button>
       </div>
 
-      {/* Install Button */}
-      {deferredPrompt && !isInstalled && (
-        <button
-          onClick={handleInstall}
-          className="mt-10 flex items-center gap-2 px-6 py-3 bg-[#3EE0CF] text-gray-900 font-semibold rounded-xl hover:bg-[#3EE0CF]/90 transition-all hover:scale-105 animate-fade-in"
-        >
-          <Download className="w-5 h-5" />
-          Instalar App
-        </button>
-      )}
-
-      {isInstalled && (
-        <p className="mt-8 text-white/40 text-xs flex items-center gap-1">
-          ✅ App instalado
-        </p>
-      )}
+      {/* PWA Install Prompt */}
+      <div className="mt-10">
+        <PWAInstallPrompt />
+      </div>
 
       <p className="mt-auto pb-6 pt-10 text-white/30 text-xs">
         © {new Date().getFullYear()} Grupo Ativa — Todos os direitos reservados
