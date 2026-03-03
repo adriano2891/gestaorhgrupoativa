@@ -121,21 +121,8 @@ const PWAInstallPrompt = () => {
     );
   }
 
-  // Desktop/other browsers — show a subtle install hint
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-black/40 backdrop-blur-md flex justify-center safe-bottom">
-      <div className="flex items-center gap-3 bg-white rounded-2xl px-5 py-3 shadow-xl max-w-sm w-full">
-        <Download className="w-6 h-6 text-primary shrink-0" />
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-foreground">Instalar App</p>
-          <p className="text-xs text-muted-foreground">Acesse pelo celular para instalar o app</p>
-        </div>
-        <button onClick={() => setDismissed(true)} className="text-muted-foreground hover:text-foreground">
-          <X className="w-4 h-4" />
-        </button>
-      </div>
-    </div>
-  );
+  // Desktop/other browsers without native prompt — don't show anything
+  return null;
 };
 
 export default PWAInstallPrompt;
