@@ -160,6 +160,10 @@ export const LoginFuncionario = () => {
         </Card>
 
         <EsqueciSenhaDialog open={esqueciSenhaOpen} onOpenChange={setEsqueciSenhaOpen} />
+
+        <div className="mt-6 flex justify-center">
+          <PWAInstallPrompt />
+        </div>
       </div>
     </div>
   );
