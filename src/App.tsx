@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 // Eagerly loaded (critical path)
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import AppSelector from "./pages/AppSelector";
 
 // Lazy loaded pages
 const GestaoRH = lazy(() => import("./pages/GestaoRH"));
