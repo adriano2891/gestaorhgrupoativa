@@ -101,14 +101,29 @@ const Holerites = () => {
     return meses[mes - 1];
   };
 
-  const handleDownload = (id: string) => {
+  const handleDownload = async (id: string) => {
     const holerite = getLatestHolerite(id);
-    if (holerite?.arquivo_url) {
-      window.open(holerite.arquivo_url, '_blank');
-    } else {
+    const employee = funcionarios?.find((emp) => emp.id === id);
+    if (!holerite?.arquivo_url) {
       toast({
         title: "Arquivo não disponível",
         description: "Este funcionário não possui holerite com arquivo anexado.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const filename = `holerite-${employee?.nome || id}-${holerite.mes}-${holerite.ano}.pdf`;
+      await downloadFileFromStorage("holerites", holerite.arquivo_url, {
+        filename,
+        onProgress: (msg) => toast({ title: msg }),
+      });
+    } catch (error) {
+      console.error("Erro ao baixar holerite:", error);
+      toast({
+        title: "Erro ao baixar",
+        description: error instanceof Error ? error.message : "Não foi possível baixar o arquivo.",
         variant: "destructive",
       });
     }
