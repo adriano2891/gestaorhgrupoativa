@@ -9,6 +9,7 @@ import { Clock, LogIn, Eye, EyeOff } from "lucide-react";
 import loginBackground from "@/assets/login-background.png";
 import logoPortal from "@/assets/logo-portal-funcionario-new.png";
 import { EsqueciSenhaDialog } from "./EsqueciSenhaDialog";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 export const LoginFuncionario = () => {
   const [cpf, setCpf] = useState("");
