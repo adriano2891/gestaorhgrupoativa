@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { PortalBackground } from "./PortalBackground";
 import { supabase } from "@/integrations/supabase/client";
+import { downloadFileFromStorage } from "@/utils/downloadFile";
 import { playNotificationSound } from "@/utils/notificationSound";
 
 interface PortalHoleriteProps {
