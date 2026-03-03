@@ -14,7 +14,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 // Eagerly loaded (critical path)
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
-import AppSelector from "./pages/AppSelector";
 
 // Lazy loaded pages
 const GestaoRH = lazy(() => import("./pages/GestaoRH"));
@@ -99,7 +98,7 @@ const App = () => {
               <div className="flex-1">
                 <Suspense fallback={<PageLoader />}>
                   <Routes>
-                    <Route path="/selecionar" element={<AppSelector />} />
+                    <Route path="/selecionar" element={<Navigate to="/login" replace />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/criar-admin" element={<CreateAdmin />} />
                     <Route path="/portal-funcionario" element={<PortalFuncionario />} />

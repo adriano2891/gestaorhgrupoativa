@@ -9,6 +9,7 @@ import { Clock, LogIn, Eye, EyeOff } from "lucide-react";
 import loginBackground from "@/assets/login-background.png";
 import logoPortal from "@/assets/logo-portal-funcionario-new.png";
 import { EsqueciSenhaDialog } from "./EsqueciSenhaDialog";
+import PWAInstallPrompt from "@/components/PWAInstallPrompt";
 
 export const LoginFuncionario = () => {
   const [cpf, setCpf] = useState("");
@@ -159,6 +160,10 @@ export const LoginFuncionario = () => {
         </Card>
 
         <EsqueciSenhaDialog open={esqueciSenhaOpen} onOpenChange={setEsqueciSenhaOpen} />
+
+        <div className="mt-6 flex justify-center">
+          <PWAInstallPrompt />
+        </div>
       </div>
     </div>
   );
