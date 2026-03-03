@@ -51,6 +51,7 @@ const PortalCursoPlayerLazy = lazy(() => import("./components/ponto/PortalCursoP
 // Eagerly loaded layout (used on most routes, no reason to lazy-load)
 import { Layout } from "./components/Layout";
 import { GlobalFooter } from "./components/GlobalFooter";
+import PWAInstallPrompt from "./components/PWAInstallPrompt";
 
 const queryClient = new QueryClient({
   defaultOptions: {
