@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Download, Share, Plus, X } from "lucide-react";
+import { Share, X } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -16,31 +16,27 @@ const PWAInstallPrompt = () => {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
   useEffect(() => {
-    const inStandaloneMode =
+    const inStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (navigator as any).standalone === true;
 
-    if (inStandaloneMode) {
+    if (inStandalone) {
       setIsInstalled(true);
       return;
     }
 
-    // Small delay for smooth entrance
-    const timer = setTimeout(() => setVisible(true), 1200);
+    const timer = setTimeout(() => setVisible(true), 1500);
 
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
     };
     window.addEventListener("beforeinstallprompt", handler);
-
-    const installedHandler = () => setIsInstalled(true);
-    window.addEventListener("appinstalled", installedHandler);
+    window.addEventListener("appinstalled", () => setIsInstalled(true));
 
     return () => {
       clearTimeout(timer);
       window.removeEventListener("beforeinstallprompt", handler);
-      window.removeEventListener("appinstalled", installedHandler);
     };
   }, []);
 
@@ -55,55 +51,126 @@ const PWAInstallPrompt = () => {
 
   const handleDismiss = () => {
     setVisible(false);
-    setTimeout(() => setDismissed(true), 300);
+    setTimeout(() => setDismissed(true), 400);
   };
 
   if (isInstalled || dismissed) return null;
-
-  const showPrompt = deferredPrompt || isIOS;
-  if (!showPrompt) return null;
+  if (!deferredPrompt && !isIOS) return null;
 
   const banner = (
     <div
-      className={`fixed top-0 inset-x-0 z-[120] transition-all duration-300 ease-out ${
-        visible ? "translate-y-0 opacity-100" : "-translate-y-full opacity-0"
-      }`}
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 99999,
+        transition: "transform 0.4s cubic-bezier(.4,0,.2,1), opacity 0.4s ease",
+        transform: visible ? "translateY(0)" : "translateY(-100%)",
+        opacity: visible ? 1 : 0,
+        pointerEvents: visible ? "auto" : "none",
+      }}
     >
-      <div className="bg-card/95 backdrop-blur-md border-b border-border shadow-sm px-4 py-2.5 safe-top">
-        <div className="max-w-lg mx-auto flex items-center gap-3">
+      <div
+        style={{
+          background: "rgba(15, 23, 42, 0.95)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          borderBottom: "1px solid rgba(255,255,255,0.08)",
+          padding: "10px 16px",
+          paddingTop: "max(10px, env(safe-area-inset-top))",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: 480,
+            margin: "0 auto",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
           <img
             src="/pwa-icon.png"
             alt="AtivaRH"
-            className="w-9 h-9 rounded-xl shrink-0"
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 10,
+              flexShrink: 0,
+            }}
           />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-foreground leading-tight truncate">
-              Instale o AtivaRH
+
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 13,
+                fontWeight: 600,
+                color: "#f1f5f9",
+                lineHeight: 1.3,
+              }}
+            >
+              Instale o app para uma melhor experiência.
             </p>
-            {isIOS ? (
-              <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
-                Toque em <Share className="w-3 h-3 inline -mt-0.5" /> → <strong>Adicionar à Tela de Início</strong>
-              </p>
-            ) : (
-              <p className="text-[11px] text-muted-foreground leading-tight mt-0.5">
-                Acesso rápido direto da sua tela inicial
+            {isIOS && (
+              <p
+                style={{
+                  margin: "2px 0 0",
+                  fontSize: 11,
+                  color: "#94a3b8",
+                  lineHeight: 1.3,
+                }}
+              >
+                Toque em{" "}
+                <Share
+                  style={{
+                    width: 12,
+                    height: 12,
+                    display: "inline",
+                    verticalAlign: "-1px",
+                  }}
+                />{" "}
+                → <strong>Adicionar à Tela de Início</strong>
               </p>
             )}
           </div>
+
           {deferredPrompt && (
             <button
               onClick={handleInstall}
-              className="px-4 py-1.5 bg-primary text-primary-foreground text-xs font-semibold rounded-lg hover:opacity-90 transition-opacity shrink-0"
+              style={{
+                padding: "6px 16px",
+                background: "linear-gradient(135deg, #3b82f6, #2563eb)",
+                color: "#fff",
+                fontSize: 12,
+                fontWeight: 700,
+                border: "none",
+                borderRadius: 8,
+                cursor: "pointer",
+                flexShrink: 0,
+                letterSpacing: 0.3,
+              }}
             >
               Instalar
             </button>
           )}
+
           <button
             onClick={handleDismiss}
-            className="text-muted-foreground hover:text-foreground shrink-0 p-1"
             aria-label="Fechar"
+            style={{
+              background: "none",
+              border: "none",
+              color: "#64748b",
+              cursor: "pointer",
+              padding: 4,
+              flexShrink: 0,
+              display: "flex",
+              alignItems: "center",
+            }}
           >
-            <X className="w-4 h-4" />
+            <X style={{ width: 16, height: 16 }} />
           </button>
         </div>
       </div>
