@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Download, Share, Plus, X } from "lucide-react";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -11,13 +12,18 @@ const PWAInstallPrompt = () => {
   const [isInstalled, setIsInstalled] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [showIOSGuide, setShowIOSGuide] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const isInStandaloneMode = window.matchMedia("(display-mode: standalone)").matches
-    || (navigator as any).standalone === true;
 
   useEffect(() => {
-    if (isInStandaloneMode) {
+    setMounted(true);
+
+    const inStandaloneMode =
+      window.matchMedia("(display-mode: standalone)").matches ||
+      (navigator as any).standalone === true;
+
+    if (inStandaloneMode) {
       setIsInstalled(true);
       return;
     }
@@ -46,13 +52,13 @@ const PWAInstallPrompt = () => {
     }
   };
 
-  if (isInstalled || dismissed) return null;
+  if (!mounted || isInstalled || dismissed) return null;
 
   // Native install prompt available (Chrome/Android)
   if (deferredPrompt) {
-    return (
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-black/40 backdrop-blur-md flex justify-center safe-bottom">
-        <div className="flex items-center gap-3 bg-white rounded-2xl px-5 py-3 shadow-xl max-w-sm w-full">
+    return createPortal(
+      <div className="fixed inset-x-0 bottom-0 z-[120] p-4 flex justify-center safe-bottom pointer-events-none">
+        <div className="pointer-events-auto flex items-center gap-3 bg-white rounded-2xl px-5 py-3 shadow-xl max-w-sm w-full">
           <Download className="w-6 h-6 text-primary shrink-0" />
           <div className="flex-1">
             <p className="text-sm font-semibold text-foreground">Instalar App</p>
@@ -68,15 +74,16 @@ const PWAInstallPrompt = () => {
             <X className="w-4 h-4" />
           </button>
         </div>
-      </div>
+      </div>,
+      document.body,
     );
   }
 
   // iOS Safari — always show guide
   if (isIOS) {
-    return (
-      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-black/40 backdrop-blur-md flex justify-center safe-bottom">
-        <div className="bg-white rounded-2xl px-5 py-4 shadow-xl max-w-sm w-full relative">
+    return createPortal(
+      <div className="fixed inset-x-0 bottom-0 z-[120] p-4 flex justify-center safe-bottom pointer-events-none">
+        <div className="pointer-events-auto bg-white rounded-2xl px-5 py-4 shadow-xl max-w-sm w-full relative">
           <button onClick={() => setDismissed(true)} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground">
             <X className="w-4 h-4" />
           </button>
@@ -117,16 +124,17 @@ const PWAInstallPrompt = () => {
             </div>
           )}
         </div>
-      </div>
+      </div>,
+      document.body,
     );
   }
 
   // Desktop browsers — show install guide
   const isChromium = /Chrome|Chromium|Edg/.test(navigator.userAgent);
 
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-black/40 backdrop-blur-md flex justify-center safe-bottom">
-      <div className="bg-white rounded-2xl px-5 py-4 shadow-xl max-w-sm w-full relative">
+  return createPortal(
+    <div className="fixed inset-x-0 bottom-0 z-[120] p-4 flex justify-center safe-bottom pointer-events-none">
+      <div className="pointer-events-auto bg-white rounded-2xl px-5 py-4 shadow-xl max-w-sm w-full relative">
         <button onClick={() => setDismissed(true)} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground">
           <X className="w-4 h-4" />
         </button>
@@ -159,7 +167,8 @@ const PWAInstallPrompt = () => {
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 
