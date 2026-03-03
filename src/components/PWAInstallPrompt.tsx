@@ -9,8 +9,8 @@ interface BeforeInstallPromptEvent extends Event {
 const PWAInstallPrompt = () => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
-  const [showIOSGuide, setShowIOSGuide] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [showIOSGuide, setShowIOSGuide] = useState(false);
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isInStandaloneMode = window.matchMedia("(display-mode: standalone)").matches
@@ -48,64 +48,94 @@ const PWAInstallPrompt = () => {
 
   if (isInstalled || dismissed) return null;
 
-  // iOS Safari guide
-  if (isIOS && !deferredPrompt) {
-    return (
-      <>
-        {!showIOSGuide ? (
-          <button
-            onClick={() => setShowIOSGuide(true)}
-            className="flex items-center gap-2 px-5 py-3 bg-[#3EE0CF] text-gray-900 font-semibold rounded-xl hover:bg-[#3EE0CF]/90 transition-all hover:scale-105 animate-fade-in text-sm"
-          >
-            <Download className="w-5 h-5" />
-            Instalar App
-          </button>
-        ) : (
-          <div className="relative bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-5 max-w-xs animate-fade-in">
-            <button onClick={() => setDismissed(true)} className="absolute top-2 right-2 text-white/50 hover:text-white">
-              <X className="w-4 h-4" />
-            </button>
-            <p className="text-white font-bold text-sm mb-3">Para instalar no iPhone/iPad:</p>
-            <div className="space-y-3 text-white/80 text-xs">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-[#3EE0CF]/20 flex items-center justify-center shrink-0">
-                  <Share className="w-3.5 h-3.5 text-[#3EE0CF]" />
-                </div>
-                <span>Toque no botão <strong>Compartilhar</strong> na barra do Safari</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-[#3EE0CF]/20 flex items-center justify-center shrink-0">
-                  <Plus className="w-3.5 h-3.5 text-[#3EE0CF]" />
-                </div>
-                <span>Selecione <strong>"Adicionar à Tela de Início"</strong></span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-full bg-[#3EE0CF]/20 flex items-center justify-center shrink-0">
-                  <Download className="w-3.5 h-3.5 text-[#3EE0CF]" />
-                </div>
-                <span>Toque em <strong>"Adicionar"</strong> para confirmar</span>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
-  }
-
-  // Chrome/Android prompt
+  // Native install prompt available (Chrome/Android)
   if (deferredPrompt) {
     return (
-      <button
-        onClick={handleInstall}
-        className="flex items-center gap-2 px-5 py-3 bg-[#3EE0CF] text-gray-900 font-semibold rounded-xl hover:bg-[#3EE0CF]/90 transition-all hover:scale-105 animate-fade-in text-sm"
-      >
-        <Download className="w-5 h-5" />
-        Instalar App
-      </button>
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-black/40 backdrop-blur-md flex justify-center safe-bottom">
+        <div className="flex items-center gap-3 bg-white rounded-2xl px-5 py-3 shadow-xl max-w-sm w-full">
+          <Download className="w-6 h-6 text-primary shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-foreground">Instalar App</p>
+            <p className="text-xs text-muted-foreground">Acesse direto da tela inicial</p>
+          </div>
+          <button
+            onClick={handleInstall}
+            className="px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-xl hover:opacity-90 transition-opacity"
+          >
+            Instalar
+          </button>
+          <button onClick={() => setDismissed(true)} className="text-muted-foreground hover:text-foreground ml-1">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
     );
   }
 
-  return null;
+  // iOS Safari — always show guide
+  if (isIOS) {
+    return (
+      <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-black/40 backdrop-blur-md flex justify-center safe-bottom">
+        <div className="bg-white rounded-2xl px-5 py-4 shadow-xl max-w-sm w-full relative">
+          <button onClick={() => setDismissed(true)} className="absolute top-2 right-2 text-muted-foreground hover:text-foreground">
+            <X className="w-4 h-4" />
+          </button>
+          {!showIOSGuide ? (
+            <button
+              onClick={() => setShowIOSGuide(true)}
+              className="flex items-center gap-3 w-full"
+            >
+              <Download className="w-6 h-6 text-primary shrink-0" />
+              <div className="flex-1 text-left">
+                <p className="text-sm font-semibold text-foreground">Instalar App</p>
+                <p className="text-xs text-muted-foreground">Toque para ver como instalar</p>
+              </div>
+            </button>
+          ) : (
+            <div>
+              <p className="font-bold text-sm text-foreground mb-3">Para instalar no iPhone/iPad:</p>
+              <div className="space-y-3 text-muted-foreground text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                    <Share className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <span>Toque no botão <strong className="text-foreground">Compartilhar</strong> na barra do Safari</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                    <Plus className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <span>Selecione <strong className="text-foreground">"Adicionar à Tela de Início"</strong></span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
+                    <Download className="w-3.5 h-3.5 text-primary" />
+                  </div>
+                  <span>Toque em <strong className="text-foreground">"Adicionar"</strong> para confirmar</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Desktop/other browsers — show a subtle install hint
+  return (
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4 bg-black/40 backdrop-blur-md flex justify-center safe-bottom">
+      <div className="flex items-center gap-3 bg-white rounded-2xl px-5 py-3 shadow-xl max-w-sm w-full">
+        <Download className="w-6 h-6 text-primary shrink-0" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-foreground">Instalar App</p>
+          <p className="text-xs text-muted-foreground">Acesse pelo celular para instalar o app</p>
+        </div>
+        <button onClick={() => setDismissed(true)} className="text-muted-foreground hover:text-foreground">
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
 };
 
 export default PWAInstallPrompt;
