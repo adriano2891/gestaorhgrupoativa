@@ -499,18 +499,18 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
   };
 
   return (
-    <div className="flex flex-wrap gap-2">
-      <Button variant="outline" size="sm" onClick={() => void exportToPDF()}>
-        <FileText className="h-4 w-4 mr-2" />
-        Baixar PDF
+    <div className="grid grid-cols-3 sm:flex sm:flex-wrap gap-2">
+      <Button variant="outline" size="sm" onClick={() => void exportToPDF()} className="text-xs sm:text-sm px-2 sm:px-3">
+        <FileText className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+        <span className="truncate">PDF</span>
       </Button>
-      <Button variant="outline" size="sm" onClick={() => void exportToExcel()}>
-        <Sheet className="h-4 w-4 mr-2" />
-        Baixar Excel
+      <Button variant="outline" size="sm" onClick={() => void exportToExcel()} className="text-xs sm:text-sm px-2 sm:px-3">
+        <Sheet className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+        <span className="truncate">Excel</span>
       </Button>
-      <Button variant="outline" size="sm" onClick={exportToCSV}>
-        <FileSpreadsheet className="h-4 w-4 mr-2" />
-        Baixar CSV
+      <Button variant="outline" size="sm" onClick={exportToCSV} className="text-xs sm:text-sm px-2 sm:px-3">
+        <FileSpreadsheet className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+        <span className="truncate">CSV</span>
       </Button>
     </div>
   );

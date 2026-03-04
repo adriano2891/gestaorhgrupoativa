@@ -356,8 +356,8 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
+          <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <Table className="min-w-[600px]">
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
                   {columns.map(col => (
