@@ -136,10 +136,29 @@ export const LoginFuncionario = () => {
                 </div>
               </div>
 
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="termos"
+                  checked={aceitouTermos}
+                  onCheckedChange={(checked) => setAceitouTermos(checked === true)}
+                  className="mt-0.5"
+                />
+                <label htmlFor="termos" className="text-sm leading-snug text-muted-foreground cursor-pointer select-none">
+                  Li e aceito os{" "}
+                  <button
+                    type="button"
+                    className="text-primary font-medium hover:underline"
+                    onClick={(e) => { e.preventDefault(); setTermosOpen(true); }}
+                  >
+                    Termos de Uso da Plataforma
+                  </button>
+                </label>
+              </div>
+
               <Button 
                 type="submit" 
                 className="w-full text-lg h-12"
-                disabled={loading}
+                disabled={loading || !aceitouTermos}
               >
                 {loading ? (
                   "Entrando..."
@@ -165,6 +184,49 @@ export const LoginFuncionario = () => {
         </Card>
 
         <EsqueciSenhaDialog open={esqueciSenhaOpen} onOpenChange={setEsqueciSenhaOpen} />
+
+        {/* Modal Termos de Uso */}
+        <Dialog open={termosOpen} onOpenChange={setTermosOpen}>
+          <DialogContent className="w-[calc(100%-2rem)] max-w-2xl max-h-[90vh] p-0">
+            <DialogHeader className="p-4 sm:p-6 pb-0">
+              <DialogTitle className="text-lg sm:text-xl">Termos de Uso – Portal do Funcionário</DialogTitle>
+              <DialogDescription className="text-xs text-muted-foreground">Última atualização: 04/03/2026</DialogDescription>
+            </DialogHeader>
+            <ScrollArea className="max-h-[70vh] px-4 sm:px-6 pb-4 sm:pb-6">
+              <div className="space-y-4 text-sm leading-relaxed text-muted-foreground pr-2">
+                <section>
+                  <h3 className="font-semibold text-foreground mb-1">1. Aceitação dos Termos</h3>
+                  <p>Ao acessar e utilizar o Portal do Funcionário, o usuário declara ter lido, compreendido e concordado integralmente com estes Termos de Uso.</p>
+                </section>
+                <section>
+                  <h3 className="font-semibold text-foreground mb-1">2. Finalidade da Plataforma</h3>
+                  <p>O portal tem como objetivo disponibilizar ao colaborador acesso a informações funcionais, tais como:</p>
+                  <ul className="list-disc pl-5 mt-1 space-y-0.5">
+                    <li>Dados cadastrais</li>
+                    <li>Holerites</li>
+                    <li>Relatórios internos</li>
+                    <li>Comunicados</li>
+                    <li>Solicitações administrativas</li>
+                  </ul>
+                  <p className="mt-1">O uso é exclusivo para fins profissionais relacionados à empresa.</p>
+                </section>
+                <section>
+                  <h3 className="font-semibold text-foreground mb-1">3. Acesso e Credenciais</h3>
+                  <ul className="list-disc pl-5 space-y-0.5">
+                    <li>O acesso é individual e intransferível.</li>
+                    <li>O usuário é responsável pela confidencialidade de sua senha.</li>
+                    <li>É proibido compartilhar credenciais com terceiros.</li>
+                    <li>Em caso de suspeita de uso indevido, o colaborador deve comunicar imediatamente a administração.</li>
+                  </ul>
+                </section>
+                <section>
+                  <h3 className="font-semibold text-foreground mb-1">4. Proteção de Dados</h3>
+                  <p>Os dados pessoais tratados na plataforma seguem as diretrizes da Lei Geral de Proteção de Dados Pessoais (LGPD – Lei nº 13.709/2018). A empresa se compromete a tratar os dados de forma transparente, segura e para finalidades legítimas.</p>
+                </section>
+              </div>
+            </ScrollArea>
+          </DialogContent>
+        </Dialog>
 
       </div>
     </div>
