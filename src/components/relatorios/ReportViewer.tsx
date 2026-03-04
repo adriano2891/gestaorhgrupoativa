@@ -161,8 +161,8 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                 )}
               </CardHeader>
                 <CardContent className="p-3 sm:p-4 md:pt-6">
-                  <div id={`report-chart-${index}`} data-chart-index={index}>
-                    <ResponsiveContainer width="100%" height={280}>
+                  <div id={`report-chart-${index}`} data-chart-index={index} className="-mx-2 sm:mx-0">
+                    <ResponsiveContainer width="100%" height={240} minWidth={280}>
                       {chart.type === "line" ? (
                         <AreaChart data={chart.data}>
                           <defs>
