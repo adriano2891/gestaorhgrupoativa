@@ -53,18 +53,18 @@ export const AdminNotificationBell = () => {
       </button>
 
       {open && (
-        <div className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-80 max-h-[75vh] sm:max-h-96 overflow-y-auto bg-card border rounded-lg shadow-xl z-[100]">
-          <div className="p-3 border-b flex items-center justify-between">
+        <div className="fixed left-1/2 top-[calc(env(safe-area-inset-top)+3.75rem)] z-[120] w-[min(calc(100vw-1rem),24rem)] -translate-x-1/2 max-h-[calc(100dvh-env(safe-area-inset-top)-4.5rem)] overflow-y-auto overscroll-contain rounded-lg border bg-card shadow-xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 sm:max-h-96 sm:translate-x-0">
+          <div className="p-2.5 sm:p-3 border-b flex items-center justify-between gap-2">
             <div>
               <h3 className="font-semibold text-sm text-foreground">Notificações</h3>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] sm:text-xs text-muted-foreground">
                 {totalCount > 0 ? `${totalCount} pendente${totalCount > 1 ? "s" : ""}` : "Tudo em dia!"}
               </p>
             </div>
             <Button
               variant="outline"
               size="sm"
-              className="text-xs gap-1"
+              className="h-8 px-2.5 text-[11px] sm:text-xs gap-1"
               onClick={() => {
                 setOpen(false);
                 setEnviarDialogOpen(true);
@@ -76,7 +76,7 @@ export const AdminNotificationBell = () => {
           </div>
 
           {notifications.length === 0 ? (
-            <div className="p-6 text-center text-muted-foreground text-sm">
+            <div className="p-5 sm:p-6 text-center text-muted-foreground text-sm">
               Nenhuma notificação pendente 🎉
             </div>
           ) : (
@@ -85,15 +85,19 @@ export const AdminNotificationBell = () => {
                 <button
                   key={notif.id}
                   onClick={() => handleClick(notif)}
-                  className="w-full text-left p-3 hover:bg-muted/50 transition-colors flex gap-3 items-start"
+                  className="w-full text-left p-2.5 sm:p-3 hover:bg-muted/50 transition-colors flex gap-2.5 sm:gap-3 items-start"
                 >
                   <div className="mt-0.5 flex-shrink-0">
                     {ICON_MAP[notif.type] || <Bell className="h-4 w-4 text-muted-foreground" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{notif.title}</p>
-                    <p className="text-xs text-muted-foreground truncate">{notif.description}</p>
-                    <p className="text-[10px] text-muted-foreground/70 mt-0.5">
+                    <p className="text-[13px] sm:text-sm font-medium text-foreground break-words leading-snug">
+                      {notif.title}
+                    </p>
+                    <p className="text-[11px] sm:text-xs text-muted-foreground break-words leading-snug mt-0.5">
+                      {notif.description}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/70 mt-1">
                       {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: ptBR })}
                     </p>
                   </div>

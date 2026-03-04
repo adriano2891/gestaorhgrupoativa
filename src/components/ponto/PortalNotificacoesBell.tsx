@@ -52,11 +52,11 @@ export const PortalNotificacoesBell = () => {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 max-h-[70vh] overflow-y-auto bg-card border rounded-lg shadow-xl z-[100]">
-          <div className="p-3 border-b flex items-center justify-between">
+        <div className="fixed left-1/2 top-[calc(env(safe-area-inset-top)+4rem)] z-[120] w-[min(calc(100vw-1rem),26rem)] -translate-x-1/2 max-h-[calc(100dvh-env(safe-area-inset-top)-4.75rem)] overflow-y-auto overscroll-contain rounded-lg border bg-card shadow-xl sm:absolute sm:left-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96 sm:max-h-[70vh] sm:translate-x-0">
+          <div className="p-2.5 sm:p-3 border-b flex items-center justify-between gap-2">
             <div>
               <h3 className="font-semibold text-sm text-foreground">Notificações</h3>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[11px] sm:text-xs text-muted-foreground">
                 {totalNaoLidas > 0
                   ? `${totalNaoLidas} não lida${totalNaoLidas > 1 ? "s" : ""}`
                   : "Tudo em dia!"}
@@ -66,7 +66,7 @@ export const PortalNotificacoesBell = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-xs"
+                className="h-8 px-2.5 text-[11px] sm:text-xs"
                 onClick={() => marcarTodasComoLidas()}
               >
                 Marcar todas
@@ -75,7 +75,7 @@ export const PortalNotificacoesBell = () => {
           </div>
 
           {notificacoes.length === 0 ? (
-            <div className="p-6 text-center text-muted-foreground text-sm">
+            <div className="p-5 sm:p-6 text-center text-muted-foreground text-sm">
               Nenhuma notificação 🎉
             </div>
           ) : (
@@ -89,7 +89,7 @@ export const PortalNotificacoesBell = () => {
                       if (isUnread) marcarComoLida(notif.id);
                       setExpandedId(expandedId === notif.id ? null : notif.id);
                     }}
-                    className={`w-full text-left p-3 hover:bg-muted/50 transition-colors flex gap-3 items-start border-l-4 ${
+                    className={`w-full text-left p-2.5 sm:p-3 hover:bg-muted/50 transition-colors flex gap-2.5 sm:gap-3 items-start border-l-4 ${
                       PRIORIDADE_COLORS[notif.prioridade] || "border-l-transparent"
                     } ${isUnread ? "bg-primary/5" : ""}`}
                   >
@@ -98,7 +98,11 @@ export const PortalNotificacoesBell = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <p className={`text-sm font-medium truncate ${isUnread ? "text-foreground" : "text-muted-foreground"}`}>
+                        <p
+                          className={`text-[13px] sm:text-sm font-medium break-words leading-snug ${
+                            isUnread ? "text-foreground" : "text-muted-foreground"
+                          }`}
+                        >
                           {notif.titulo}
                         </p>
                         {isUnread && (
@@ -106,11 +110,11 @@ export const PortalNotificacoesBell = () => {
                         )}
                       </div>
                       {expandedId === notif.id ? (
-                        <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">
+                        <p className="text-[11px] sm:text-xs text-muted-foreground mt-1 whitespace-pre-wrap break-words leading-snug">
                           {notif.mensagem}
                         </p>
                       ) : (
-                        <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">
+                        <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2 break-words leading-snug mt-0.5">
                           {notif.mensagem}
                         </p>
                       )}
