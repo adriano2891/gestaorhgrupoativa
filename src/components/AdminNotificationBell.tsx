@@ -53,7 +53,7 @@ export const AdminNotificationBell = () => {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 max-h-96 overflow-y-auto bg-card border rounded-lg shadow-xl z-[100]">
+        <div className="fixed inset-x-3 top-16 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 w-auto sm:w-80 max-h-[75vh] sm:max-h-96 overflow-y-auto bg-card border rounded-lg shadow-xl z-[100]">
           <div className="p-3 border-b flex items-center justify-between">
             <div>
               <h3 className="font-semibold text-sm text-foreground">Notificações</h3>
