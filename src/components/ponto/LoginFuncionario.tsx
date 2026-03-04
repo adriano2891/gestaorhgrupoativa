@@ -20,6 +20,8 @@ export const LoginFuncionario = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [esqueciSenhaOpen, setEsqueciSenhaOpen] = useState(false);
+  const [aceitouTermos, setAceitouTermos] = useState(false);
+  const [termosOpen, setTermosOpen] = useState(false);
   const { signInWithCPF } = usePortalAuth();
 
   const formatCPF = (value: string) => {
