@@ -280,11 +280,12 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                       <XAxis 
                         dataKey={Object.keys(chart.data[0])[0]} 
-                        tick={{ fontSize: 14, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
+                        tick={{ fontSize: 10, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                         axisLine={{ stroke: 'hsl(var(--border))' }}
-                        angle={-20}
+                        angle={-30}
                         textAnchor="end"
-                        height={60}
+                        height={50}
+                        interval={0}
                       />
                       <YAxis 
                         tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
