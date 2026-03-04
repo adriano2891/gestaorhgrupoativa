@@ -34,11 +34,19 @@ const RealtimeSubscriptions = () => {
 };
 
 const PortalContent = () => {
-  const { user, profile, loading } = usePortalAuth();
+  const { user, profile, loading, refreshProfile } = usePortalAuth();
   const [currentSection, setCurrentSection] = useState<string>("dashboard");
   const [senhaAlterada, setSenhaAlterada] = useState(false);
   // Initialize theme on portal mount (applies dark class to <html>)
   usePortalTheme();
+
+  // If user is logged in but profile is null, retry loading the profile
+  useEffect(() => {
+    if (user && !profile && !loading) {
+      console.log("Portal: user logged in but profile is null, retrying...");
+      refreshProfile();
+    }
+  }, [user, profile, loading, refreshProfile]);
 
   if (loading) {
     return (
@@ -54,6 +62,18 @@ const PortalContent = () => {
   // Se não estiver logado, mostra tela de login
   if (!user) {
     return <LoginFuncionario />;
+  }
+
+  // If profile hasn't loaded yet, show loading (don't skip password check)
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-primary via-primary to-primary-dark flex items-center justify-center p-4">
+        <div className="space-y-4 w-full max-w-md">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </div>
+    );
   }
 
   // Troca de senha obrigatória no primeiro acesso ou após reset pelo admin
