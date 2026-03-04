@@ -146,7 +146,7 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
           <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           Análise Gráfica
         </h3>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {data.charts.filter((chart: any) => chart.data && chart.data.length > 0).map((chart: any, index: number) => (
             <Card key={index} className="overflow-hidden hover:shadow-lg transition-all duration-300">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b p-3 sm:p-4 md:p-6">
@@ -161,8 +161,8 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                 )}
               </CardHeader>
                 <CardContent className="p-3 sm:p-4 md:pt-6">
-                  <div id={`report-chart-${index}`} data-chart-index={index}>
-                    <ResponsiveContainer width="100%" height={280}>
+                  <div id={`report-chart-${index}`} data-chart-index={index} className="-mx-2 sm:mx-0">
+                    <ResponsiveContainer width="100%" height={240} minWidth={280}>
                       {chart.type === "line" ? (
                         <AreaChart data={chart.data}>
                           <defs>
@@ -280,11 +280,12 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                       <XAxis 
                         dataKey={Object.keys(chart.data[0])[0]} 
-                        tick={{ fontSize: 14, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
+                        tick={{ fontSize: 10, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                         axisLine={{ stroke: 'hsl(var(--border))' }}
-                        angle={-20}
+                        angle={-30}
                         textAnchor="end"
-                        height={60}
+                        height={50}
+                        interval={0}
                       />
                       <YAxis 
                         tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
@@ -356,8 +357,8 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
+          <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <Table className="min-w-[600px]">
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
                   {columns.map(col => (
