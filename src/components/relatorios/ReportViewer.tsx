@@ -146,7 +146,7 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
           <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           Análise Gráfica
         </h3>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           {data.charts.filter((chart: any) => chart.data && chart.data.length > 0).map((chart: any, index: number) => (
             <Card key={index} className="overflow-hidden hover:shadow-lg transition-all duration-300">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b p-3 sm:p-4 md:p-6">
