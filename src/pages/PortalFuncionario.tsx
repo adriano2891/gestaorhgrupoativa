@@ -1,4 +1,4 @@
-import { useState, lazy, Suspense } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { PortalAuthProvider, usePortalAuth } from "@/components/ponto/PortalAuthProvider";
 import { LoginFuncionario } from "@/components/ponto/LoginFuncionario";
 import { TrocarSenhaObrigatoria } from "@/components/ponto/TrocarSenhaObrigatoria";
