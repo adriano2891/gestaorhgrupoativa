@@ -56,7 +56,19 @@ const PortalContent = () => {
     return <LoginFuncionario />;
   }
 
-  // Troca de senha obrigatória desativada - fluxo via chamado de suporte
+  // Troca de senha obrigatória no primeiro acesso ou após reset pelo admin
+  if (profile?.deve_trocar_senha) {
+    return (
+      <TrocarSenhaObrigatoria
+        userId={user.id}
+        nomeUsuario={profile.nome || "Colaborador"}
+        onPasswordChanged={() => {
+          // Recarrega o perfil para atualizar o flag deve_trocar_senha
+          window.location.reload();
+        }}
+      />
+    );
+  }
 
   const handleNavigate = (section: string) => {
     setCurrentSection(section);
