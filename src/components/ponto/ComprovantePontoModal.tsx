@@ -11,6 +11,7 @@ import QRCode from "qrcode";
 interface ComprovantePontoModalProps {
   comprovante: any;
   onClose: () => void;
+  onViewHistory?: () => void;
 }
 
 const formatTime = (ts: string | null) => {
