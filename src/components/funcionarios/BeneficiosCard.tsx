@@ -26,6 +26,8 @@ const tipoLabels: Record<string, string> = {
   vale_transporte: "Vale-Transporte",
   vale_alimentacao: "Vale-Alimentação",
   vale_refeicao: "Vale-Refeição",
+  plano_saude: "Plano de Saúde",
+  plano_odontologico: "Plano Odontológico",
 };
 
 export const BeneficiosCard = ({ userId, userName }: { userId: string; userName: string }) => {
