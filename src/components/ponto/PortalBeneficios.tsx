@@ -1,19 +1,65 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, Gift } from "lucide-react";
 import { PortalBackground } from "./PortalBackground";
+import { usePortalAuth } from "./PortalAuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PortalBeneficiosProps {
   onBack: () => void;
 }
 
+const tipoLabels: Record<string, string> = {
+  vale_transporte: "Vale-Transporte",
+  vale_alimentacao: "Vale-Alimentação",
+  vale_refeicao: "Vale-Refeição",
+  plano_saude: "Plano de Saúde",
+  plano_odontologico: "Plano Odontológico",
+};
+
+const isPlanoType = (tipo: string) => tipo === "plano_saude" || tipo === "plano_odontologico";
+
+interface Beneficio {
+  id: string;
+  tipo: string;
+  valor: number;
+  desconto_percentual: number | null;
+  observacoes: string | null;
+  ativo: boolean;
+  data_inicio: string;
+}
+
 export const PortalBeneficios = ({ onBack }: PortalBeneficiosProps) => {
-  const beneficios = [
-    { nome: "Vale Transporte", status: "Ativo" },
-    { nome: "Vale Refeição", status: "Ativo" },
-    { nome: "Plano de Saúde", status: "Ativo" },
-    { nome: "Plano Odontológico", status: "Ativo" },
-  ];
+  const { user } = usePortalAuth();
+  const [beneficios, setBeneficios] = useState<Beneficio[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const load = async () => {
+      try {
+        const { data, error } = await (supabase as any)
+          .from("beneficios_funcionario")
+          .select("*")
+          .eq("user_id", user.id)
+          .eq("ativo", true)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        setBeneficios(data || []);
+      } catch (e) {
+        console.error("Erro ao carregar benefícios:", e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    load();
+  }, [user?.id]);
 
   return (
     <PortalBackground>
@@ -39,22 +85,49 @@ export const PortalBeneficios = ({ onBack }: PortalBeneficiosProps) => {
               <p className="text-muted-foreground mb-4">
                 Consulte seus benefícios ativos
               </p>
-              <div className="space-y-3">
-                {beneficios.map((beneficio, index) => (
-                  <Card key={index}>
-                    <CardContent className="pt-6">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium text-lg">{beneficio.nome}</p>
+
+              {loading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-20 w-full" />
+                  ))}
+                </div>
+              ) : beneficios.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-8">
+                  Nenhum benefício cadastrado.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {beneficios.map((b) => (
+                    <Card key={b.id}>
+                      <CardContent className="pt-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-lg">
+                              {tipoLabels[b.tipo] || b.tipo}
+                            </p>
+                            {isPlanoType(b.tipo) ? (
+                              b.observacoes && (
+                                <p className="text-sm text-muted-foreground">
+                                  Plano: {b.observacoes}
+                                </p>
+                              )
+                            ) : (
+                              <p className="text-sm text-muted-foreground">
+                                R$ {b.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+                                {b.desconto_percentual ? ` · Desconto: ${b.desconto_percentual}%` : ""}
+                              </p>
+                            )}
+                          </div>
+                          <Badge className="bg-green-500/10 text-green-600 dark:text-green-400 border-0">
+                            Ativo
+                          </Badge>
                         </div>
-                        <span className="text-xs font-medium px-3 py-1 rounded-full bg-green-500/10 text-green-600 dark:text-green-400">
-                          {beneficio.status}
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
