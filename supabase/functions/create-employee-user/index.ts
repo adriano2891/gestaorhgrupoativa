@@ -30,6 +30,8 @@ const CreateEmployeeSchema = z.object({
   numero_pis: z.string().max(30).nullish(),
   escala_trabalho: z.string().max(50).nullish(),
   turno: z.string().max(50).nullish(),
+  ctps_numero: z.string().max(50).nullish(),
+  ctps_serie: z.string().max(50).nullish(),
 });
 
 Deno.serve(async (req) => {
