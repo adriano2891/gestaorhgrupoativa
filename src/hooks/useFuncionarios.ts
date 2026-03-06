@@ -14,6 +14,7 @@ export interface Funcionario {
   escala_trabalho?: string;
   turno?: string;
   status?: string;
+  matricula?: string;
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;

@@ -64,6 +64,7 @@ interface Employee {
   status: EmployeeStatus;
   admissionDate: string;
   foto_url?: string;
+  matricula?: string;
 }
 
 const employeeSchema = z.object({
