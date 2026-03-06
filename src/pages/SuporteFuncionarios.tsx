@@ -57,7 +57,9 @@ const SuporteFuncionarios = () => {
   const enviarMensagem = useEnviarMensagem();
   const atualizarStatus = useAtualizarStatusChamado();
 
-  // Realtime: escuta novas mensagens e mudanças nos chamados
+  const [ajustesPendentes, setAjustesPendentes] = useState(0);
+
+  // Realtime: escuta novas mensagens, mudanças nos chamados e ajustes de ponto
   useEffect(() => {
     const channel = supabase
       .channel('admin-suporte')
@@ -79,12 +81,42 @@ const SuporteFuncionarios = () => {
           queryClient.invalidateQueries({ queryKey: ["todos-chamados"] });
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'solicitacoes_ajuste_ponto' },
+        () => {
+          toast.info("Nova solicitação de ajuste de ponto recebida!", {
+            description: "Um funcionário enviou uma solicitação de ajuste.",
+          });
+          loadAjustesPendentes();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'solicitacoes_ajuste_ponto' },
+        () => { loadAjustesPendentes(); }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, [user?.id, queryClient]);
+
+  // Load pending adjustments count
+  const loadAjustesPendentes = async () => {
+    try {
+      const { count } = await supabase
+        .from('solicitacoes_ajuste_ponto' as any)
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pendente');
+      setAjustesPendentes(count || 0);
+    } catch {}
+  };
+
+  useEffect(() => {
+    loadAjustesPendentes();
+  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
