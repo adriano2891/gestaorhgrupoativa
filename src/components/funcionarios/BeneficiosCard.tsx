@@ -30,6 +30,8 @@ const tipoLabels: Record<string, string> = {
   plano_odontologico: "Plano Odontológico",
 };
 
+const isPlanoType = (tipo: string) => tipo === "plano_saude" || tipo === "plano_odontologico";
+
 export const BeneficiosCard = ({ userId, userName }: { userId: string; userName: string }) => {
   const [beneficios, setBeneficios] = useState<Beneficio[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,6 +39,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
   const [tipo, setTipo] = useState("vale_transporte");
   const [valor, setValor] = useState("");
   const [desconto, setDesconto] = useState("6");
+  const [nomePlano, setNomePlano] = useState("");
 
   const loadBeneficios = async () => {
     try {
@@ -59,26 +62,39 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
   useEffect(() => { loadBeneficios(); }, [userId]);
 
   const handleAdd = async () => {
-    const valorNum = parseFloat(valor.replace(",", "."));
-    if (!valorNum || valorNum <= 0) {
-      toast.error("Informe um valor válido");
-      return;
+    const isPlano = isPlanoType(tipo);
+
+    if (isPlano) {
+      if (!nomePlano.trim()) {
+        toast.error("Informe o nome do plano");
+        return;
+      }
+    } else {
+      const valorNum = parseFloat(valor.replace(",", "."));
+      if (!valorNum || valorNum <= 0) {
+        toast.error("Informe um valor válido");
+        return;
+      }
     }
 
     try {
+      const insertData: any = {
+        user_id: userId,
+        tipo,
+        valor: isPlano ? 0 : parseFloat(valor.replace(",", ".")),
+        desconto_percentual: isPlano ? 0 : (parseFloat(desconto) || 0),
+        observacoes: isPlano ? nomePlano.trim() : null,
+      };
+
       const { error } = await (supabase as any)
         .from("beneficios_funcionario")
-        .insert({
-          user_id: userId,
-          tipo,
-          valor: valorNum,
-          desconto_percentual: parseFloat(desconto) || 0,
-        });
+        .insert(insertData);
 
       if (error) throw error;
       toast.success("Benefício adicionado");
       setDialogOpen(false);
       setValor("");
+      setNomePlano("");
       loadBeneficios();
     } catch (e: any) {
       toast.error("Erro ao adicionar benefício", { description: e.message });
@@ -100,6 +116,14 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
     }
   };
 
+  const handleOpenDialog = () => {
+    setTipo("vale_transporte");
+    setValor("");
+    setDesconto("6");
+    setNomePlano("");
+    setDialogOpen(true);
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -108,7 +132,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
             <Gift className="h-5 w-5 text-primary" />
             <CardTitle className="text-base">Benefícios — {userName}</CardTitle>
           </div>
-          <Button size="sm" onClick={() => setDialogOpen(true)}>
+          <Button size="sm" onClick={handleOpenDialog}>
             <Plus className="h-4 w-4 mr-1" /> Adicionar
           </Button>
         </div>
@@ -123,7 +147,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
             <TableHeader>
               <TableRow>
                 <TableHead>Tipo</TableHead>
-                <TableHead>Valor (R$)</TableHead>
+                <TableHead>Valor / Plano</TableHead>
                 <TableHead>Desconto (%)</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
@@ -134,8 +158,16 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                   <TableCell>
                     <Badge variant="outline">{tipoLabels[b.tipo] || b.tipo}</Badge>
                   </TableCell>
-                  <TableCell>R$ {b.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</TableCell>
-                  <TableCell>{b.desconto_percentual}%</TableCell>
+                  <TableCell>
+                    {isPlanoType(b.tipo) ? (
+                      <span className="text-sm font-medium">{b.observacoes || "—"}</span>
+                    ) : (
+                      <>R$ {b.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {isPlanoType(b.tipo) ? "—" : `${b.desconto_percentual}%`}
+                  </TableCell>
                   <TableCell>
                     <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleRemove(b.id)}>
                       <Trash2 className="h-4 w-4" />
@@ -156,7 +188,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
           <div className="space-y-3">
             <div className="space-y-1.5">
               <Label>Tipo</Label>
-              <Select value={tipo} onValueChange={setTipo}>
+              <Select value={tipo} onValueChange={(v) => { setTipo(v); setNomePlano(""); setValor(""); }}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="vale_transporte">Vale-Transporte</SelectItem>
@@ -167,15 +199,32 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-1.5">
-              <Label>Valor Mensal (R$)</Label>
-              <Input value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0,00" />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Desconto no salário (%)</Label>
-              <Input value={desconto} onChange={(e) => setDesconto(e.target.value)} placeholder="6" />
-              <p className="text-xs text-muted-foreground">VT: máx 6% do salário (CLT Art. 4º Lei 7.418/85)</p>
-            </div>
+
+            {isPlanoType(tipo) ? (
+              <div className="space-y-1.5">
+                <Label>Nome do Plano</Label>
+                <Input
+                  value={nomePlano}
+                  onChange={(e) => setNomePlano(e.target.value)}
+                  placeholder="Ex: Unimed, Amil, OdontoPrev..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  Informe o nome do plano contratado
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <Label>Valor Mensal (R$)</Label>
+                  <Input value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Desconto no salário (%)</Label>
+                  <Input value={desconto} onChange={(e) => setDesconto(e.target.value)} placeholder="6" />
+                  <p className="text-xs text-muted-foreground">VT: máx 6% do salário (CLT Art. 4º Lei 7.418/85)</p>
+                </div>
+              </>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
