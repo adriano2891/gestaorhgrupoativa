@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   MessageCircle, Search, ArrowLeft, Send, Paperclip, Download, Clock, 
-  Filter, User, CheckCircle, Lock
+  Filter, User, CheckCircle, Lock, ClipboardList
 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { GerenciarAjustesPontoCard } from "@/components/ponto/GerenciarAjustesPontoCard";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   aberto: { label: "Aberto", variant: "default" },
@@ -55,7 +57,9 @@ const SuporteFuncionarios = () => {
   const enviarMensagem = useEnviarMensagem();
   const atualizarStatus = useAtualizarStatusChamado();
 
-  // Realtime: escuta novas mensagens e mudanças nos chamados
+  const [ajustesPendentes, setAjustesPendentes] = useState(0);
+
+  // Realtime: escuta novas mensagens, mudanças nos chamados e ajustes de ponto
   useEffect(() => {
     const channel = supabase
       .channel('admin-suporte')
@@ -77,12 +81,42 @@ const SuporteFuncionarios = () => {
           queryClient.invalidateQueries({ queryKey: ["todos-chamados"] });
         }
       )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'solicitacoes_ajuste_ponto' },
+        () => {
+          toast.info("Nova solicitação de ajuste de ponto recebida!", {
+            description: "Um funcionário enviou uma solicitação de ajuste.",
+          });
+          loadAjustesPendentes();
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'solicitacoes_ajuste_ponto' },
+        () => { loadAjustesPendentes(); }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, [user?.id, queryClient]);
+
+  // Load pending adjustments count
+  const loadAjustesPendentes = async () => {
+    try {
+      const { count } = await supabase
+        .from('solicitacoes_ajuste_ponto' as any)
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'pendente');
+      setAjustesPendentes(count || 0);
+    } catch {}
+  };
+
+  useEffect(() => {
+    loadAjustesPendentes();
+  }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -273,108 +307,136 @@ const SuporteFuncionarios = () => {
           <MessageCircle className="h-8 w-8 text-primary" />
           <div>
             <h1 className="text-2xl font-bold">Suporte ao Funcionário</h1>
-            <p className="text-muted-foreground text-sm">Gerencie todos os chamados de suporte</p>
+            <p className="text-muted-foreground text-sm">Gerencie chamados e solicitações de ajuste de ponto</p>
           </div>
         </div>
 
-        {/* Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold">{contadores.total}</p>
-              <p className="text-xs text-muted-foreground">Total</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-primary">{contadores.aberto}</p>
-              <p className="text-xs text-muted-foreground">Abertos</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <p className="text-2xl font-bold text-muted-foreground">{contadores.fechado}</p>
-              <p className="text-xs text-muted-foreground">Fechados</p>
-            </CardContent>
-          </Card>
-        </div>
+        <Tabs defaultValue="chamados" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="chamados" className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4" />
+              Chamados
+              {contadores.aberto > 0 && (
+                <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">{contadores.aberto}</Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="ajustes" className="flex items-center gap-2">
+              <ClipboardList className="h-4 w-4" />
+              Ajustes de Ponto
+              {ajustesPendentes > 0 && (
+                <Badge variant="destructive" className="ml-1 h-5 px-1.5 text-[10px]">{ajustesPendentes}</Badge>
+              )}
+            </TabsTrigger>
+          </TabsList>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-3">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por funcionário ou assunto..." className="pl-10" />
-          </div>
-          <Select value={filtroStatus} onValueChange={setFiltroStatus}>
-            <SelectTrigger className="w-[160px]"><Filter className="h-4 w-4 mr-1" /><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos Status</SelectItem>
-              <SelectItem value="aberto">Aberto</SelectItem>
-              <SelectItem value="fechado">Fechado</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
-            <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todas Categorias</SelectItem>
-              {CATEGORIAS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
+          <TabsContent value="chamados" className="space-y-6 mt-4">
+            {/* Metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold">{contadores.total}</p>
+                  <p className="text-xs text-muted-foreground">Total</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-primary">{contadores.aberto}</p>
+                  <p className="text-xs text-muted-foreground">Abertos</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-muted-foreground">{contadores.fechado}</p>
+                  <p className="text-xs text-muted-foreground">Fechados</p>
+                </CardContent>
+              </Card>
+            </div>
 
-        {/* List */}
-        {isLoading ? (
-          <p className="text-center text-muted-foreground py-8">Carregando chamados...</p>
-        ) : error ? (
-          <Card>
-            <CardContent className="py-12 text-center space-y-3">
-              <p className="text-destructive">Erro ao carregar chamados.</p>
-              <Button variant="outline" onClick={() => refetch()}>Tentar novamente</Button>
-            </CardContent>
-          </Card>
-        ) : chamadosFiltrados.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
-              <p className="text-muted-foreground">Nenhum chamado encontrado.</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-3">
-            {chamadosFiltrados.map((chamado) => {
-              const isFechado = chamado.status === "fechado";
-              const si = getStatusDisplay(chamado.status);
-              return (
-                <Card 
-                  key={chamado.id} 
-                  className={`cursor-pointer hover:shadow-md transition-shadow ${isFechado ? "border-muted bg-muted/30 opacity-70" : ""}`} 
-                  onClick={() => setChamadoSelecionado(chamado)}
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1 min-w-0">
-                        <h3 className={`font-semibold truncate ${isFechado ? "line-through text-muted-foreground" : ""}`}>{chamado.assunto}</h3>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
-                          <User className="h-3 w-3" />
-                          <span>{chamado.profiles?.nome || "Funcionário"}</span>
-                          {chamado.profiles?.departamento && <span>• {chamado.profiles.departamento}</span>}
-                          <span>• {CATEGORIAS.find(c => c.value === chamado.categoria)?.label || chamado.categoria}</span>
+            {/* Filters */}
+            <div className="flex flex-wrap gap-3">
+              <div className="relative flex-1 min-w-[200px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar por funcionário ou assunto..." className="pl-10" />
+              </div>
+              <Select value={filtroStatus} onValueChange={setFiltroStatus}>
+                <SelectTrigger className="w-[160px]"><Filter className="h-4 w-4 mr-1" /><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos Status</SelectItem>
+                  <SelectItem value="aberto">Aberto</SelectItem>
+                  <SelectItem value="fechado">Fechado</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={filtroCategoria} onValueChange={setFiltroCategoria}>
+                <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todas Categorias</SelectItem>
+                  {CATEGORIAS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* List */}
+            {isLoading ? (
+              <p className="text-center text-muted-foreground py-8">Carregando chamados...</p>
+            ) : error ? (
+              <Card>
+                <CardContent className="py-12 text-center space-y-3">
+                  <p className="text-destructive">Erro ao carregar chamados.</p>
+                  <Button variant="outline" onClick={() => refetch()}>Tentar novamente</Button>
+                </CardContent>
+              </Card>
+            ) : chamadosFiltrados.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <MessageCircle className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
+                  <p className="text-muted-foreground">Nenhum chamado encontrado.</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-3">
+                {chamadosFiltrados.map((chamado) => {
+                  const isFechado = chamado.status === "fechado";
+                  const si = getStatusDisplay(chamado.status);
+                  return (
+                    <Card 
+                      key={chamado.id} 
+                      className={`cursor-pointer hover:shadow-md transition-shadow ${isFechado ? "border-muted bg-muted/30 opacity-70" : ""}`} 
+                      onClick={() => setChamadoSelecionado(chamado)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <h3 className={`font-semibold truncate ${isFechado ? "line-through text-muted-foreground" : ""}`}>{chamado.assunto}</h3>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
+                              <User className="h-3 w-3" />
+                              <span>{chamado.profiles?.nome || "Funcionário"}</span>
+                              {chamado.profiles?.departamento && <span>• {chamado.profiles.departamento}</span>}
+                              <span>• {CATEGORIAS.find(c => c.value === chamado.categoria)?.label || chamado.categoria}</span>
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <Badge variant={si.variant} className={isFechado ? "bg-gray-400 text-white" : ""}>{si.label}</Badge>
+                            <span className="text-xs text-muted-foreground flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {format(new Date(chamado.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex flex-col items-end gap-1">
-                        <Badge variant={si.variant} className={isFechado ? "bg-gray-400 text-white" : ""}>{si.label}</Badge>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {format(new Date(chamado.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="ajustes" className="mt-4">
+            <GerenciarAjustesPontoCard 
+              adminId={user?.id || ''} 
+              adminName={user?.email?.split('@')[0] || 'Admin'} 
+            />
+          </TabsContent>
+        </Tabs>
       </div>
     </Layout>
   );
