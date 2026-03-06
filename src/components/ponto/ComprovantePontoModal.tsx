@@ -82,7 +82,7 @@ export const ComprovantePontoModal = ({ comprovante, onClose, onViewHistory }: C
       doc.setFont("helvetica", "normal");
       doc.text("Sistema REP-A | Portaria MTP nº 671/2021", 105, y, { align: "center" });
       y += 6;
-      doc.text(empresa?.razao_social || "Grupo Ativa Administradora", 105, y, { align: "center" });
+      doc.text(empresa?.razao_social || "Grupo Ativa Tec", 105, y, { align: "center" });
       y += 5;
       doc.text(`CNPJ: ${empresa?.cnpj || '42.523.488/0001-81'}`, 105, y, { align: "center" });
       y += 10;
