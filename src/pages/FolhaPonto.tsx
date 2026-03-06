@@ -73,6 +73,7 @@ interface DayRecord {
 interface EmployeeMonthRecord {
   employee_id: string;
   employee_name: string;
+  matricula?: string;
   departamento?: string;
   escala_trabalho?: string;
   turno?: string;
@@ -238,6 +239,7 @@ const FolhaPonto = () => {
         employeeMap.set(emp.id, {
           employee_id: emp.id,
           employee_name: emp.nome,
+          matricula: (emp as any).matricula || undefined,
           departamento: emp.departamento,
           escala_trabalho: (emp as any).escala_trabalho || '8h',
           turno: (emp as any).turno || 'diurno',
@@ -419,11 +421,11 @@ const FolhaPonto = () => {
       
       // Cabeçalho do funcionário
       doc.setFontSize(16);
-      doc.text(`${record.employee_name}`, 14, yPos);
+      doc.text(`${record.matricula ? `[${record.matricula}] ` : ''}${record.employee_name}`, 14, yPos);
       yPos += 6;
       
       doc.setFontSize(10);
-      doc.text(`Departamento: ${record.departamento || '-'} | Período: ${selectedMonth}/${selectedYear}`, 14, yPos);
+      doc.text(`Departamento: ${record.departamento || '-'} | Matrícula: ${record.matricula || '-'} | Período: ${selectedMonth}/${selectedYear}`, 14, yPos);
       yPos += 8;
       
       // Resumo do funcionário
@@ -977,7 +979,10 @@ const FolhaPonto = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle className="text-lg">{record.employee_name}</CardTitle>
+                        <CardTitle className="text-lg">
+                          {record.matricula && <span className="text-primary font-mono text-sm mr-2">[{record.matricula}]</span>}
+                          {record.employee_name}
+                        </CardTitle>
                         <CardDescription>
                           {record.departamento || "Sem departamento"}
                           {record.escala_trabalho === '12x36' && (
@@ -1168,7 +1173,10 @@ const FolhaPonto = () => {
                                 {getInitials(record.employee_name)}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="font-medium">{record.employee_name}</span>
+                            <div>
+                              <span className="font-medium">{record.employee_name}</span>
+                              {record.matricula && <span className="text-xs text-muted-foreground ml-1 font-mono">({record.matricula})</span>}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>{record.departamento || "-"}</TableCell>

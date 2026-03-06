@@ -64,6 +64,7 @@ interface Employee {
   status: EmployeeStatus;
   admissionDate: string;
   foto_url?: string;
+  matricula?: string;
 }
 
 const employeeSchema = z.object({
@@ -365,7 +366,7 @@ const Funcionarios = () => {
         const inFilter = targetIds.map(id => `"${id}"`).join(',');
         const profilesData = await restFetch(
           'profiles',
-          `?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by&id=in.(${inFilter})&tipo_perfil=eq.funcionario&order=nome.asc`
+          `?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula&id=in.(${inFilter})&tipo_perfil=eq.funcionario&order=nome.asc`
         );
 
         console.log("fetchEmployees: Profiles retornados:", profilesData?.length || 0);
@@ -382,6 +383,7 @@ const Funcionarios = () => {
           status: (profile.status || "ativo") as EmployeeStatus,
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
           foto_url: await resolveFotoUrl(profile.foto_url),
+          matricula: profile.matricula || null,
         })));
 
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
@@ -402,7 +404,7 @@ const Funcionarios = () => {
         console.log("fetchEmployees: Fallback - buscando profiles diretamente...");
         const fallbackProfiles = await restFetch(
           'profiles',
-          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by&tipo_perfil=eq.funcionario&order=nome.asc'
+          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula&tipo_perfil=eq.funcionario&order=nome.asc'
         );
 
         const allProfiles = fallbackProfiles || [];
@@ -417,6 +419,7 @@ const Funcionarios = () => {
           status: (profile.status || "ativo") as EmployeeStatus,
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
           foto_url: await resolveFotoUrl(profile.foto_url),
+          matricula: profile.matricula || null,
         })));
 
         const updates: Record<string, { updated_at: string }> = {};
@@ -610,7 +613,8 @@ const Funcionarios = () => {
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
       emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.email.toLowerCase().includes(searchTerm.toLowerCase());
+      emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (emp.matricula && emp.matricula.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesDepartment =
       selectedDepartment === "Todos" || emp.department === selectedDepartment;
     return matchesSearch && matchesDepartment;
@@ -645,7 +649,7 @@ const Funcionarios = () => {
       const token = getAccessToken();
       if (token) {
         const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by&id=eq.${employeeId}&limit=1`,
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by,matricula&id=eq.${employeeId}&limit=1`,
           {
             headers: {
               'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -668,6 +672,7 @@ const Funcionarios = () => {
               status: (profileData.status || prev.status) as EmployeeStatus,
               admissionDate: profileData.data_admissao || prev.admissionDate,
               foto_url: prev.foto_url,
+              matricula: profileData.matricula || prev.matricula,
             }) : prev);
             setEditCpf(profileData.cpf || "");
             setEditEndereco(profileData.endereco || "");
@@ -1159,6 +1164,7 @@ const Funcionarios = () => {
             <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
+                <TableHead className="text-xs sm:text-sm w-[80px]">ID</TableHead>
                   <TableHead className="text-xs sm:text-sm">Funcionário</TableHead>
                   <TableHead className="text-xs sm:text-sm hidden md:table-cell">Cargo</TableHead>
                   <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Depto</TableHead>
@@ -1172,6 +1178,9 @@ const Funcionarios = () => {
               <TableBody>
                 {filteredEmployees.map((employee) => (
                   <TableRow key={employee.id}>
+                    <TableCell className="text-xs sm:text-sm font-mono text-primary font-semibold">
+                      {employee.matricula || '-'}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 sm:gap-3">
                         <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
@@ -1310,7 +1319,15 @@ const Funcionarios = () => {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">ID (Matrícula)</Label>
+                  <Input
+                    value={editingEmployee.matricula || '-'}
+                    readOnly
+                    className="bg-muted cursor-not-allowed h-9 text-foreground opacity-100 font-mono font-semibold"
+                  />
+                </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="name" className="text-sm">Nome</Label>
                   <Input
