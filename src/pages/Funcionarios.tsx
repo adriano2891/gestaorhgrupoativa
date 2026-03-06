@@ -649,7 +649,7 @@ const Funcionarios = () => {
       const token = getAccessToken();
       if (token) {
         const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by&id=eq.${employeeId}&limit=1`,
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by,matricula&id=eq.${employeeId}&limit=1`,
           {
             headers: {
               'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
