@@ -239,6 +239,7 @@ const FolhaPonto = () => {
         employeeMap.set(emp.id, {
           employee_id: emp.id,
           employee_name: emp.nome,
+          matricula: (emp as any).matricula || undefined,
           departamento: emp.departamento,
           escala_trabalho: (emp as any).escala_trabalho || '8h',
           turno: (emp as any).turno || 'diurno',
