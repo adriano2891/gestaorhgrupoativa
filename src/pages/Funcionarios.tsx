@@ -1178,7 +1178,7 @@ const Funcionarios = () => {
               <TableBody>
                 {filteredEmployees.map((employee) => (
                   <TableRow key={employee.id}>
-                    <TableCell className="text-xs sm:text-sm font-mono text-primary font-semibold">
+                    <TableCell className="text-xs sm:text-sm font-mono text-primary font-semibold whitespace-nowrap">
                       {employee.matricula || '-'}
                     </TableCell>
                     <TableCell>
