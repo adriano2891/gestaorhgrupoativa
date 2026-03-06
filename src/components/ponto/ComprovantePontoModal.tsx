@@ -84,7 +84,7 @@ export const ComprovantePontoModal = ({ comprovante, onClose, onViewHistory }: C
       y += 6;
       doc.text(empresa?.razao_social || "Grupo Ativa Administradora", 105, y, { align: "center" });
       y += 5;
-      doc.text(`CNPJ: ${empresa?.cnpj || '00.000.000/0001-00'}`, 105, y, { align: "center" });
+      doc.text(`CNPJ: ${empresa?.cnpj || '42.523.488/0001-81'}`, 105, y, { align: "center" });
       y += 10;
       
       doc.setDrawColor(0, 150, 136);
