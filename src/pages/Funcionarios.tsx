@@ -162,6 +162,10 @@ const Funcionarios = () => {
   const [editAdmissionDate, setEditAdmissionDate] = useState("");
   const [editEscala, setEditEscala] = useState("8h");
   const [editTurno, setEditTurno] = useState("diurno");
+  const [editRg, setEditRg] = useState("");
+  const [editPis, setEditPis] = useState("");
+  const [editCtps, setEditCtps] = useState("");
+  const [editCtpsSerie, setEditCtpsSerie] = useState("");
   
   const [newEscala, setNewEscala] = useState("8h");
   const [newTurno, setNewTurno] = useState("diurno");
