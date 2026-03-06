@@ -366,7 +366,7 @@ const Funcionarios = () => {
         const inFilter = targetIds.map(id => `"${id}"`).join(',');
         const profilesData = await restFetch(
           'profiles',
-          `?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by&id=in.(${inFilter})&tipo_perfil=eq.funcionario&order=nome.asc`
+          `?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula&id=in.(${inFilter})&tipo_perfil=eq.funcionario&order=nome.asc`
         );
 
         console.log("fetchEmployees: Profiles retornados:", profilesData?.length || 0);
