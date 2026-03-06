@@ -100,6 +100,7 @@ export const ComprovantePontoModal = ({ comprovante, onClose, onViewHistory }: C
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
       doc.text(`Nome: ${prof?.nome || '-'}`, 20, y); y += 5;
+      doc.text(`Matrícula: ${prof?.matricula || prof?.id?.substring(0, 8) || '-'}`, 20, y); y += 5;
       doc.text(`Cargo: ${prof?.cargo || '-'}`, 20, y); y += 5;
       doc.text(`Departamento: ${prof?.departamento || '-'}`, 20, y); y += 10;
 
