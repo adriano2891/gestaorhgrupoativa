@@ -48,6 +48,8 @@ import { SuperAdminAuthDialog } from "@/components/ponto/SuperAdminAuthDialog";
 import { HistoricoAcoesPonto } from "@/components/ponto/HistoricoAcoesPonto";
 import { AutorizacaoFolgaDialog } from "@/components/ponto/AutorizacaoFolgaDialog";
 import { OcorrenciasPontoCard } from "@/components/ponto/OcorrenciasPontoCard";
+import { GerenciarAjustesPontoCard } from "@/components/ponto/GerenciarAjustesPontoCard";
+import { AuditTrailCard } from "@/components/ponto/AuditTrailCard";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 interface DayRecord {
