@@ -779,6 +779,10 @@ const Funcionarios = () => {
           escala_trabalho: editEscala,
           turno: editTurno,
           data_admissao: editAdmissionDate || null,
+          rg: editRg.trim() || null,
+          numero_pis: editPis.trim() || null,
+          ctps_numero: editCtps.trim() || null,
+          ctps_serie: editCtpsSerie.trim() || null,
         };
 
         // Converter salário formatado para número
