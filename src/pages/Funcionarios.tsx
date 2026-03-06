@@ -1011,6 +1011,8 @@ const Funcionarios = () => {
             endereco: newEmployee.endereco || null,
             rg: newEmployee.rg || null,
             numero_pis: newEmployee.numero_pis || null,
+            ctps_numero: newEmployee.ctps_numero || null,
+            ctps_serie: newEmployee.ctps_serie || null,
             escala_trabalho: newEscala,
             turno: newTurno,
             dependentes: dependentesPayload,
