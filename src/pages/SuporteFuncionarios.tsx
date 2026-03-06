@@ -6,9 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   MessageCircle, Search, ArrowLeft, Send, Paperclip, Download, Clock, 
-  Filter, User, CheckCircle, Lock
+  Filter, User, CheckCircle, Lock, ClipboardList
 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,6 +25,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { GerenciarAjustesPontoCard } from "@/components/ponto/GerenciarAjustesPontoCard";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   aberto: { label: "Aberto", variant: "default" },
