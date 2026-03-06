@@ -153,7 +153,7 @@ const Funcionarios = () => {
   const [selectedDepartment, setSelectedDepartment] = useState("Todos");
   const [employees, setEmployees] = useState<Employee[]>([]);
   const employeesRef = useRef<Employee[]>([]);
-  const [pendingEditId, setPendingEditId] = useState<string | null>(null);
+  
   const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }>>({});
   const [employeeUpdates, setEmployeeUpdates] = useState<Record<string, { updated_at: string }>>({});
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -219,14 +219,6 @@ const Funcionarios = () => {
   const newPhotoRef = useRef<HTMLInputElement>(null);
   const editPhotoRef = useRef<HTMLInputElement>(null);
 
-  // Auto-open edit dialog after creating employee (2-step flow)
-  useEffect(() => {
-    if (pendingEditId && employeesRef.current.find(emp => emp.id === pendingEditId)) {
-      const id = pendingEditId;
-      setPendingEditId(null);
-      handleEdit(id);
-    }
-  }, [employees, pendingEditId]);
 
   const handlePhotoSelect = (file: File | null, type: 'new' | 'edit') => {
     if (!file) return;
@@ -1095,12 +1087,9 @@ const Funcionarios = () => {
         ctps_serie: "",
       });
       
-      const createdName = newEmployee.name;
-      const createdUserId = (createData as any)?.user?.id;
-      
       toast({
         title: "Funcionário adicionado com sucesso!",
-        description: `${createdName} foi cadastrado. Abrindo configuração de benefícios...`,
+        description: `${newEmployee.name} foi cadastrado.`,
       });
 
       setValidationErrors({});
@@ -1110,10 +1099,6 @@ const Funcionarios = () => {
       
       // Atualizar lista de funcionários imediatamente
       await fetchEmployees();
-
-      if (createdUserId) {
-        setPendingEditId(createdUserId);
-      }
     } catch (error: any) {
       console.error("Erro ao adicionar funcionário:", error);
       
