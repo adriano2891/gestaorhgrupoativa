@@ -686,6 +686,10 @@ const Funcionarios = () => {
             setEditEndereco(profileData.endereco || "");
             setEditEscala(profileData.escala_trabalho || "8h");
             setEditTurno(profileData.turno || "diurno");
+            setEditRg(profileData.rg || "");
+            setEditPis(profileData.numero_pis || "");
+            setEditCtps(profileData.ctps_numero || "");
+            setEditCtpsSerie(profileData.ctps_serie || "");
             if (profileData.perfil_updated_by === 'funcionario' && profileData.perfil_updated_at) {
               setEmployeeUpdates(prev => ({ ...prev, [employeeId]: { updated_at: profileData.perfil_updated_at } }));
             }
