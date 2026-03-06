@@ -212,6 +212,22 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
       const agora = new Date().toISOString();
       const hoje = new Date().toISOString().split('T')[0];
 
+      // Capture audit metadata (Portaria 671/2021)
+      const [clientIP, geoLocation] = await Promise.all([
+        getClientIP(),
+        getGeolocation(),
+      ]);
+      const hashData = `${userId}|${campo}|${agora}|${hoje}`;
+      const hashRegistro = await generateHash(hashData);
+
+      const auditMetadata = {
+        ip_address: clientIP,
+        user_agent: navigator.userAgent,
+        geolocation: geoLocation,
+        hash_registro: hashRegistro,
+        origem: 'web',
+      };
+
       // Detect rest day for 12x36
       let isRegistroFolga = false;
       if (campo === "entrada") {
@@ -242,7 +258,10 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
         );
 
         if (existentes?.[0]) {
-          await restPatch(`registros_ponto?id=eq.${existentes[0].id}`, { [campo]: agora });
+          await restPatch(`registros_ponto?id=eq.${existentes[0].id}`, { 
+            [campo]: agora,
+            ...auditMetadata,
+          });
         } else {
           await restPost('registros_ponto', {
             user_id: userId,
@@ -250,11 +269,24 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
             [campo]: agora,
             registro_folga: isRegistroFolga,
             status_validacao: isRegistroFolga ? "pendente" : "validado",
+            ...auditMetadata,
           });
         }
       } else {
-        await restPatch(`registros_ponto?id=eq.${registroHoje.id}`, { [campo]: agora });
+        await restPatch(`registros_ponto?id=eq.${registroHoje.id}`, { 
+          [campo]: agora,
+          ...auditMetadata,
+        });
       }
+
+      // Log audit event
+      logAuditEvent(userId, `registro_ponto_${campo}`, {
+        campo,
+        horario: agora,
+        data: hoje,
+        registro_folga: isRegistroFolga,
+        geolocation: geoLocation,
+      }, clientIP);
 
       const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       if (campo === "entrada") {
