@@ -444,6 +444,7 @@ const Funcionarios = () => {
 
         console.log("fetchEmployees: Fallback retornou", formatted.length, "funcionários");
         setEmployees(formatted);
+        employeesRef.current = formatted;
         setEmployeeUpdates(updates);
       }
     } catch (error: any) {
