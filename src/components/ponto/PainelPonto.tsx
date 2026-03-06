@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, FileEdit } from "lucide-react";
 import { BotoesPonto } from "./BotoesPonto";
 import { TabelaPontoDia } from "./TabelaPontoDia";
 import { HistoricoPonto } from "./HistoricoPonto";
@@ -10,6 +10,7 @@ import { RelogioTurno } from "./RelogioTurno";
 import { CronometroPausa } from "./CronometroPausa";
 import { FolhasPontoCard } from "./FolhasPontoCard";
 import { PortalBackground } from "./PortalBackground";
+import { SolicitarAjustePontoDialog } from "./SolicitarAjustePontoDialog";
 import { supabase } from "@/integrations/supabase/client";
 
 const getRestHeaders = () => {
