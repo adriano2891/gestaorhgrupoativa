@@ -1579,6 +1579,22 @@ const Funcionarios = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Benefícios e Banco de Horas */}
+              <div className="border-t pt-3 mt-2">
+                <Tabs defaultValue="beneficios" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="beneficios">Benefícios (VT/VA/VR)</TabsTrigger>
+                    <TabsTrigger value="banco_horas">Banco de Horas</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="beneficios">
+                    <BeneficiosCard userId={editingEmployee.id} userName={editingEmployee.name} />
+                  </TabsContent>
+                  <TabsContent value="banco_horas">
+                    <BancoHorasCard userId={editingEmployee.id} userName={editingEmployee.name} />
+                  </TabsContent>
+                </Tabs>
+              </div>
             </div>
           )}
           <DialogFooter className="flex-shrink-0 mt-4">
