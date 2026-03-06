@@ -421,11 +421,11 @@ const FolhaPonto = () => {
       
       // Cabeçalho do funcionário
       doc.setFontSize(16);
-      doc.text(`${record.employee_name}`, 14, yPos);
+      doc.text(`${record.matricula ? `[${record.matricula}] ` : ''}${record.employee_name}`, 14, yPos);
       yPos += 6;
       
       doc.setFontSize(10);
-      doc.text(`Departamento: ${record.departamento || '-'} | Período: ${selectedMonth}/${selectedYear}`, 14, yPos);
+      doc.text(`Departamento: ${record.departamento || '-'} | Matrícula: ${record.matricula || '-'} | Período: ${selectedMonth}/${selectedYear}`, 14, yPos);
       yPos += 8;
       
       // Resumo do funcionário
