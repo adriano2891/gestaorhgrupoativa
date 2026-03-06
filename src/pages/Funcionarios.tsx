@@ -1178,7 +1178,7 @@ const Funcionarios = () => {
               <TableBody>
                 {filteredEmployees.map((employee) => (
                   <TableRow key={employee.id}>
-                    <TableCell className="text-xs sm:text-sm font-mono text-primary font-semibold whitespace-nowrap">
+                    <TableCell className="text-xs sm:text-sm font-semibold whitespace-nowrap text-foreground" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
                       {employee.matricula || '-'}
                     </TableCell>
                     <TableCell>
@@ -1325,7 +1325,7 @@ const Funcionarios = () => {
                   <Input
                     value={editingEmployee.matricula || '-'}
                     readOnly
-                    className="bg-muted cursor-not-allowed h-9 text-foreground opacity-100 font-mono font-semibold"
+                    className="bg-muted cursor-not-allowed h-9 text-foreground opacity-100 font-semibold" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
                   />
                 </div>
                 <div className="space-y-1.5">
