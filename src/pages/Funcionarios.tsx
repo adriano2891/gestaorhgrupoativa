@@ -647,6 +647,10 @@ const Funcionarios = () => {
     setEditAdmissionDate(employee.admissionDate);
     setEditPhotoFile(null);
     setEditPhotoPreview(employee.foto_url || null);
+    setEditRg("");
+    setEditPis("");
+    setEditCtps("");
+    setEditCtpsSerie("");
     setIsEditDialogOpen(true);
     
     try {
