@@ -26,6 +26,8 @@ const tipoLabels: Record<string, string> = {
   vale_transporte: "Vale-Transporte",
   vale_alimentacao: "Vale-Alimentação",
   vale_refeicao: "Vale-Refeição",
+  plano_saude: "Plano de Saúde",
+  plano_odontologico: "Plano Odontológico",
 };
 
 export const BeneficiosCard = ({ userId, userName }: { userId: string; userName: string }) => {
@@ -160,6 +162,8 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                   <SelectItem value="vale_transporte">Vale-Transporte</SelectItem>
                   <SelectItem value="vale_alimentacao">Vale-Alimentação</SelectItem>
                   <SelectItem value="vale_refeicao">Vale-Refeição</SelectItem>
+                  <SelectItem value="plano_saude">Plano de Saúde</SelectItem>
+                  <SelectItem value="plano_odontologico">Plano Odontológico</SelectItem>
                 </SelectContent>
               </Select>
             </div>

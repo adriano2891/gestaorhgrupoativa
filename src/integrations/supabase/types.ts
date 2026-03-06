@@ -151,6 +151,101 @@ export type Database = {
           },
         ]
       }
+      banco_horas: {
+        Row: {
+          aprovado_em: string | null
+          aprovado_por: string | null
+          created_at: string
+          data: string
+          horas: string
+          id: string
+          motivo: string | null
+          registro_ponto_id: string | null
+          status: string
+          tipo: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          created_at?: string
+          data: string
+          horas?: string
+          id?: string
+          motivo?: string | null
+          registro_ponto_id?: string | null
+          status?: string
+          tipo: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aprovado_em?: string | null
+          aprovado_por?: string | null
+          created_at?: string
+          data?: string
+          horas?: string
+          id?: string
+          motivo?: string | null
+          registro_ponto_id?: string | null
+          status?: string
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      beneficios_funcionario: {
+        Row: {
+          ativo: boolean
+          created_at: string
+          data_fim: string | null
+          data_inicio: string
+          desconto_percentual: number | null
+          id: string
+          observacoes: string | null
+          tipo: string
+          updated_at: string
+          user_id: string
+          valor: number
+        }
+        Insert: {
+          ativo?: boolean
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          desconto_percentual?: number | null
+          id?: string
+          observacoes?: string | null
+          tipo: string
+          updated_at?: string
+          user_id: string
+          valor?: number
+        }
+        Update: {
+          ativo?: boolean
+          created_at?: string
+          data_fim?: string | null
+          data_inicio?: string
+          desconto_percentual?: number | null
+          id?: string
+          observacoes?: string | null
+          tipo?: string
+          updated_at?: string
+          user_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "beneficios_funcionario_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       candidates: {
         Row: {
           applied_date: string
@@ -2510,6 +2605,8 @@ export type Database = {
           cargo: string | null
           cpf: string | null
           created_at: string | null
+          ctps_numero: string | null
+          ctps_serie: string | null
           data_admissao: string | null
           data_nascimento: string | null
           departamento: string | null
@@ -2537,6 +2634,8 @@ export type Database = {
           cargo?: string | null
           cpf?: string | null
           created_at?: string | null
+          ctps_numero?: string | null
+          ctps_serie?: string | null
           data_admissao?: string | null
           data_nascimento?: string | null
           departamento?: string | null
@@ -2564,6 +2663,8 @@ export type Database = {
           cargo?: string | null
           cpf?: string | null
           created_at?: string | null
+          ctps_numero?: string | null
+          ctps_serie?: string | null
           data_admissao?: string | null
           data_nascimento?: string | null
           departamento?: string | null
@@ -2837,6 +2938,86 @@ export type Database = {
           {
             foreignKeyName: "relatorios_gerados_gerado_por_fkey"
             columns: ["gerado_por"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rescisoes: {
+        Row: {
+          aviso_previo_dias: number | null
+          aviso_previo_trabalhado: boolean | null
+          aviso_previo_valor: number | null
+          calculado_por: string | null
+          created_at: string
+          data_demissao: string
+          decimo_terceiro_proporcional: number | null
+          ferias_proporcionais: number | null
+          ferias_vencidas: number | null
+          finalizado_por: string | null
+          id: string
+          motivo: string | null
+          multa_fgts: number | null
+          salario_base: number
+          saldo_salario: number | null
+          status: string
+          terco_ferias: number | null
+          tipo_rescisao: string
+          total_rescisao: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          aviso_previo_dias?: number | null
+          aviso_previo_trabalhado?: boolean | null
+          aviso_previo_valor?: number | null
+          calculado_por?: string | null
+          created_at?: string
+          data_demissao: string
+          decimo_terceiro_proporcional?: number | null
+          ferias_proporcionais?: number | null
+          ferias_vencidas?: number | null
+          finalizado_por?: string | null
+          id?: string
+          motivo?: string | null
+          multa_fgts?: number | null
+          salario_base: number
+          saldo_salario?: number | null
+          status?: string
+          terco_ferias?: number | null
+          tipo_rescisao: string
+          total_rescisao?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          aviso_previo_dias?: number | null
+          aviso_previo_trabalhado?: boolean | null
+          aviso_previo_valor?: number | null
+          calculado_por?: string | null
+          created_at?: string
+          data_demissao?: string
+          decimo_terceiro_proporcional?: number | null
+          ferias_proporcionais?: number | null
+          ferias_vencidas?: number | null
+          finalizado_por?: string | null
+          id?: string
+          motivo?: string | null
+          multa_fgts?: number | null
+          salario_base?: number
+          saldo_salario?: number | null
+          status?: string
+          terco_ferias?: number | null
+          tipo_rescisao?: string
+          total_rescisao?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rescisoes_user_id_fkey"
+            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
