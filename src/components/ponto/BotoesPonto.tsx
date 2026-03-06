@@ -412,17 +412,54 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
     }
   };
 
+  // Sequential enforcement: each marking requires the previous one to be completed.
+  // Exception: "Saída" is always available after "Entrada" (end-of-shift).
+  const hasPendingPause1 = !!registroHoje?.saida_pausa_1 && !registroHoje?.retorno_pausa_1;
+  const hasPendingAlmoco = !!registroHoje?.saida_almoco && !registroHoje?.retorno_almoco;
+  const hasPendingPause2 = !!registroHoje?.saida_pausa_2 && !registroHoje?.retorno_pausa_2;
+  const hasAnyPendingPause = hasPendingPause1 || hasPendingAlmoco || hasPendingPause2;
+
+  // Determine the current "step" — only the next sequential action is enabled
+  const getSequentialDisabled = () => {
+    const r = registroHoje;
+    if (!r) return { canOnlyEntrada: true };
+
+    // If a pause is open, only the matching return is allowed (+ saída as exception)
+    if (hasPendingPause1) return { onlyAllow: ["retorno_pausa_1", "saida"] };
+    if (hasPendingAlmoco) return { onlyAllow: ["retorno_almoco", "saida"] };
+    if (hasPendingPause2) return { onlyAllow: ["retorno_pausa_2", "saida"] };
+
+    // Determine next step in sequence
+    if (!r.entrada) return { onlyAllow: ["entrada"] };
+    if (r.entrada && !r.saida) {
+      // After entrada, allow next departure or saída (end shift)
+      const allowed: string[] = ["saida"]; // saída always available
+      if (!r.saida_pausa_1) allowed.push("saida_pausa_1");
+      else if (r.retorno_pausa_1 && !r.saida_almoco) allowed.push("saida_almoco");
+      else if (r.retorno_almoco && !r.saida_pausa_2) allowed.push("saida_pausa_2");
+      return { onlyAllow: allowed };
+    }
+    if (r.saida && !r.inicio_he) return { onlyAllow: ["inicio_he"] };
+    if (r.inicio_he && !r.fim_he) return { onlyAllow: ["fim_he"] };
+
+    return { onlyAllow: [] as string[] }; // All done
+  };
+
+  const seqState = getSequentialDisabled();
+  const allowedFields = 'onlyAllow' in seqState ? seqState.onlyAllow : [];
+  const onlyEntrada = 'canOnlyEntrada' in seqState;
+
   const botoes = [
-    { campo: "entrada", label: "Entrada", icon: LogIn, variant: "default" as const, disabled: !!registroHoje?.entrada },
-    { campo: "saida_pausa_1", label: "Saída Pausa 1", icon: Coffee, variant: "outline" as const, disabled: !registroHoje?.entrada || !!registroHoje?.saida_pausa_1 },
-    { campo: "retorno_pausa_1", label: "Retorno Pausa 1", icon: CornerDownLeft, variant: "outline" as const, disabled: !registroHoje?.saida_pausa_1 || !!registroHoje?.retorno_pausa_1 },
-    { campo: "saida_almoco", label: "Saída Almoço", icon: Utensils, variant: "secondary" as const, disabled: !registroHoje?.entrada || !!registroHoje?.saida_almoco },
-    { campo: "retorno_almoco", label: "Retorno Almoço", icon: CornerDownLeft, variant: "secondary" as const, disabled: !registroHoje?.saida_almoco || !!registroHoje?.retorno_almoco },
-    { campo: "saida_pausa_2", label: "Saída Pausa 2", icon: Coffee, variant: "outline" as const, disabled: !registroHoje?.retorno_almoco || !!registroHoje?.saida_pausa_2 },
-    { campo: "retorno_pausa_2", label: "Retorno Pausa 2", icon: CornerDownLeft, variant: "outline" as const, disabled: !registroHoje?.saida_pausa_2 || !!registroHoje?.retorno_pausa_2 },
-    { campo: "saida", label: "Saída", icon: LogOut, variant: "destructive" as const, disabled: !registroHoje?.entrada || !!registroHoje?.saida },
-    { campo: "inicio_he", label: "Início HE", icon: Clock, variant: "outline" as const, disabled: !registroHoje?.saida || !!registroHoje?.inicio_he },
-    { campo: "fim_he", label: "Fim HE", icon: Clock, variant: "outline" as const, disabled: !registroHoje?.inicio_he || !!registroHoje?.fim_he },
+    { campo: "entrada", label: "Entrada", icon: LogIn, variant: "default" as const, disabled: onlyEntrada ? false : !allowedFields.includes("entrada") || !!registroHoje?.entrada },
+    { campo: "saida_pausa_1", label: "Saída Pausa 1", icon: Coffee, variant: "outline" as const, disabled: !allowedFields.includes("saida_pausa_1") || !!registroHoje?.saida_pausa_1 },
+    { campo: "retorno_pausa_1", label: "Retorno Pausa 1", icon: CornerDownLeft, variant: "outline" as const, disabled: !allowedFields.includes("retorno_pausa_1") || !!registroHoje?.retorno_pausa_1 },
+    { campo: "saida_almoco", label: "Saída Almoço", icon: Utensils, variant: "secondary" as const, disabled: !allowedFields.includes("saida_almoco") || !!registroHoje?.saida_almoco },
+    { campo: "retorno_almoco", label: "Retorno Almoço", icon: CornerDownLeft, variant: "secondary" as const, disabled: !allowedFields.includes("retorno_almoco") || !!registroHoje?.retorno_almoco },
+    { campo: "saida_pausa_2", label: "Saída Pausa 2", icon: Coffee, variant: "outline" as const, disabled: !allowedFields.includes("saida_pausa_2") || !!registroHoje?.saida_pausa_2 },
+    { campo: "retorno_pausa_2", label: "Retorno Pausa 2", icon: CornerDownLeft, variant: "outline" as const, disabled: !allowedFields.includes("retorno_pausa_2") || !!registroHoje?.retorno_pausa_2 },
+    { campo: "saida", label: "Saída", icon: LogOut, variant: "destructive" as const, disabled: !allowedFields.includes("saida") || !!registroHoje?.saida },
+    { campo: "inicio_he", label: "Início HE", icon: Clock, variant: "outline" as const, disabled: !allowedFields.includes("inicio_he") || !!registroHoje?.inicio_he },
+    { campo: "fim_he", label: "Fim HE", icon: Clock, variant: "outline" as const, disabled: !allowedFields.includes("fim_he") || !!registroHoje?.fim_he },
   ];
 
   return (
