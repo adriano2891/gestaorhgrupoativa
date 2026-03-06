@@ -1173,7 +1173,10 @@ const FolhaPonto = () => {
                                 {getInitials(record.employee_name)}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="font-medium">{record.employee_name}</span>
+                            <div>
+                              <span className="font-medium">{record.employee_name}</span>
+                              {record.matricula && <span className="text-xs text-muted-foreground ml-1 font-mono">({record.matricula})</span>}
+                            </div>
                           </div>
                         </TableCell>
                         <TableCell>{record.departamento || "-"}</TableCell>
