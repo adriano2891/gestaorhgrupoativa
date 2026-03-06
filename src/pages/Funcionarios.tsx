@@ -1102,11 +1102,8 @@ const Funcionarios = () => {
       // Atualizar lista de funcionários imediatamente
       await fetchEmployees();
 
-      // Abrir diálogo de edição automaticamente para configurar benefícios
       if (createdUserId) {
-        setTimeout(() => {
-          handleEdit(createdUserId);
-        }, 800);
+        setPendingEditId(createdUserId);
       }
     } catch (error: any) {
       console.error("Erro ao adicionar funcionário:", error);
