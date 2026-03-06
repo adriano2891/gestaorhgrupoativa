@@ -130,6 +130,7 @@ export const HistoricoPonto = () => {
                 <TableHead>Saída</TableHead>
                 <TableHead>Total Horas</TableHead>
                 <TableHead>HE</TableHead>
+                <TableHead>Hash</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -152,6 +153,15 @@ export const HistoricoPonto = () => {
                       <Badge variant="secondary">
                         {formatInterval(registro.horas_extras)}
                       </Badge>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {registro.hash_registro ? (
+                      <span className="text-xs font-mono text-muted-foreground" title={registro.hash_registro}>
+                        {registro.hash_registro.substring(0, 8)}...
+                      </span>
                     ) : (
                       <span className="text-muted-foreground">-</span>
                     )}
