@@ -1200,8 +1200,19 @@ const FolhaPonto = () => {
         </TabsContent>
       </Tabs>
 
+      {/* Solicitações de Ajuste de Ponto */}
+      {canEditFolha && authorizedAdmin && (
+        <GerenciarAjustesPontoCard adminId={authorizedAdmin.id} adminName={authorizedAdmin.name} />
+      )}
+      {canEditFolha && !authorizedAdmin && (
+        <GerenciarAjustesPontoCard adminId="" adminName="" />
+      )}
+
       {/* Histórico de Ações */}
       <HistoricoAcoesPonto selectedMonth={selectedMonth} selectedYear={selectedYear} />
+
+      {/* Trilha de Auditoria - Portaria 671/2021 */}
+      {canEditFolha && <AuditTrailCard />}
 
       {/* Ocorrências CLT */}
       <OcorrenciasPontoCard mes={selectedMonth} ano={selectedYear} />
