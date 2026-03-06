@@ -47,6 +47,7 @@ const Documentacoes = lazy(() => import("./pages/Documentacoes"));
 const CursosAdmin = lazy(() => import("./pages/CursosAdmin"));
 const SuporteFuncionarios = lazy(() => import("./pages/SuporteFuncionarios"));
 const PortalCursoPlayerLazy = lazy(() => import("./components/ponto/PortalCursoPlayer").then(m => ({ default: m.PortalCursoPlayer })));
+const VerificarComprovante = lazy(() => import("./pages/VerificarComprovante"));
 
 // Eagerly loaded layout (used on most routes, no reason to lazy-load)
 import { Layout } from "./components/Layout";
