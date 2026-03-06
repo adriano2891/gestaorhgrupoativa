@@ -1163,6 +1163,7 @@ const Funcionarios = () => {
             <Table className="min-w-[700px]">
               <TableHeader>
                 <TableRow>
+                <TableHead className="text-xs sm:text-sm w-[80px]">ID</TableHead>
                   <TableHead className="text-xs sm:text-sm">Funcionário</TableHead>
                   <TableHead className="text-xs sm:text-sm hidden md:table-cell">Cargo</TableHead>
                   <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Depto</TableHead>
