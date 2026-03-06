@@ -228,6 +228,7 @@ const Funcionarios = () => {
     }
   }, [employees, pendingEditId]);
 
+  const handlePhotoSelect = (file: File | null, type: 'new' | 'edit') => {
     if (!file) return;
     
     // Validate file type
