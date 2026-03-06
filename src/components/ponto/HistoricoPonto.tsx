@@ -157,6 +157,15 @@ export const HistoricoPonto = () => {
                       <span className="text-muted-foreground">-</span>
                     )}
                   </TableCell>
+                  <TableCell>
+                    {registro.hash_registro ? (
+                      <span className="text-xs font-mono text-muted-foreground" title={registro.hash_registro}>
+                        {registro.hash_registro.substring(0, 8)}...
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">-</span>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
