@@ -419,6 +419,7 @@ const Funcionarios = () => {
           status: (profile.status || "ativo") as EmployeeStatus,
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
           foto_url: await resolveFotoUrl(profile.foto_url),
+          matricula: profile.matricula || null,
         })));
 
         const updates: Record<string, { updated_at: string }> = {};
