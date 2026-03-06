@@ -613,7 +613,8 @@ const Funcionarios = () => {
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
       emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.email.toLowerCase().includes(searchTerm.toLowerCase());
+      emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (emp.matricula && emp.matricula.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesDepartment =
       selectedDepartment === "Todos" || emp.department === selectedDepartment;
     return matchesSearch && matchesDepartment;
