@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_trail_ponto: {
+        Row: {
+          acao: string
+          created_at: string
+          detalhes: Json | null
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          detalhes?: Json | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       aulas: {
         Row: {
           created_at: string | null
@@ -1820,6 +1850,8 @@ export type Database = {
           employee_id: string
           employee_name: string
           id: string
+          ip_address: string | null
+          user_agent: string | null
           valor_anterior: string | null
           valor_novo: string | null
         }
@@ -1832,6 +1864,8 @@ export type Database = {
           employee_id: string
           employee_name: string
           id?: string
+          ip_address?: string | null
+          user_agent?: string | null
           valor_anterior?: string | null
           valor_novo?: string | null
         }
@@ -1844,6 +1878,8 @@ export type Database = {
           employee_id?: string
           employee_name?: string
           id?: string
+          ip_address?: string | null
+          user_agent?: string | null
           valor_anterior?: string | null
           valor_novo?: string | null
         }
@@ -2527,12 +2563,16 @@ export type Database = {
           data: string
           entrada: string | null
           fim_he: string | null
+          geolocation: string | null
+          hash_registro: string | null
           horas_extras: string | null
           horas_noturnas: string | null
           horas_noturnas_fictas: string | null
           id: string
           inicio_he: string | null
+          ip_address: string | null
           justificativa_folga: string | null
+          origem: string | null
           percentual_he: number | null
           registro_folga: boolean
           retorno_almoco: string | null
@@ -2547,6 +2587,7 @@ export type Database = {
           tipo_dia: string | null
           total_horas: string | null
           updated_at: string
+          user_agent: string | null
           user_id: string
         }
         Insert: {
@@ -2555,12 +2596,16 @@ export type Database = {
           data?: string
           entrada?: string | null
           fim_he?: string | null
+          geolocation?: string | null
+          hash_registro?: string | null
           horas_extras?: string | null
           horas_noturnas?: string | null
           horas_noturnas_fictas?: string | null
           id?: string
           inicio_he?: string | null
+          ip_address?: string | null
           justificativa_folga?: string | null
+          origem?: string | null
           percentual_he?: number | null
           registro_folga?: boolean
           retorno_almoco?: string | null
@@ -2575,6 +2620,7 @@ export type Database = {
           tipo_dia?: string | null
           total_horas?: string | null
           updated_at?: string
+          user_agent?: string | null
           user_id: string
         }
         Update: {
@@ -2583,12 +2629,16 @@ export type Database = {
           data?: string
           entrada?: string | null
           fim_he?: string | null
+          geolocation?: string | null
+          hash_registro?: string | null
           horas_extras?: string | null
           horas_noturnas?: string | null
           horas_noturnas_fictas?: string | null
           id?: string
           inicio_he?: string | null
+          ip_address?: string | null
           justificativa_folga?: string | null
+          origem?: string | null
           percentual_he?: number | null
           registro_folga?: boolean
           retorno_almoco?: string | null
@@ -2603,6 +2653,7 @@ export type Database = {
           tipo_dia?: string | null
           total_horas?: string | null
           updated_at?: string
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: [
@@ -2691,6 +2742,68 @@ export type Database = {
             columns: ["gerado_por"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      solicitacoes_ajuste_ponto: {
+        Row: {
+          aprovado_por: string | null
+          aprovado_por_nome: string | null
+          campo: string
+          created_at: string
+          data_aprovacao: string | null
+          data_registro: string
+          id: string
+          motivo: string
+          motivo_rejeicao: string | null
+          registro_ponto_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          valor_original: string | null
+          valor_solicitado: string
+        }
+        Insert: {
+          aprovado_por?: string | null
+          aprovado_por_nome?: string | null
+          campo: string
+          created_at?: string
+          data_aprovacao?: string | null
+          data_registro: string
+          id?: string
+          motivo: string
+          motivo_rejeicao?: string | null
+          registro_ponto_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          valor_original?: string | null
+          valor_solicitado: string
+        }
+        Update: {
+          aprovado_por?: string | null
+          aprovado_por_nome?: string | null
+          campo?: string
+          created_at?: string
+          data_aprovacao?: string | null
+          data_registro?: string
+          id?: string
+          motivo?: string
+          motivo_rejeicao?: string | null
+          registro_ponto_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          valor_original?: string | null
+          valor_solicitado?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "solicitacoes_ajuste_ponto_registro_ponto_id_fkey"
+            columns: ["registro_ponto_id"]
+            isOneToOne: false
+            referencedRelation: "registros_ponto"
             referencedColumns: ["id"]
           },
         ]
