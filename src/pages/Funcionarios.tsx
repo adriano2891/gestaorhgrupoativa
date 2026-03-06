@@ -1075,6 +1075,8 @@ const Funcionarios = () => {
         endereco: "",
         rg: "",
         numero_pis: "",
+        ctps_numero: "",
+        ctps_serie: "",
       });
       
       toast({
