@@ -1014,6 +1014,30 @@ export type Database = {
           },
         ]
       }
+      empresas: {
+        Row: {
+          cnpj: string
+          created_at: string
+          id: string
+          razao_social: string
+          updated_at: string
+        }
+        Insert: {
+          cnpj: string
+          created_at?: string
+          id?: string
+          razao_social: string
+          updated_at?: string
+        }
+        Update: {
+          cnpj?: string
+          created_at?: string
+          id?: string
+          razao_social?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       enderecos_fornecedor: {
         Row: {
           bairro: string | null
@@ -2495,6 +2519,7 @@ export type Database = {
           escala_trabalho: string | null
           foto_url: string | null
           id: string
+          matricula: string | null
           nome: string
           numero_pis: string | null
           perfil_updated_at: string | null
@@ -2521,6 +2546,7 @@ export type Database = {
           escala_trabalho?: string | null
           foto_url?: string | null
           id: string
+          matricula?: string | null
           nome: string
           numero_pis?: string | null
           perfil_updated_at?: string | null
@@ -2547,6 +2573,7 @@ export type Database = {
           escala_trabalho?: string | null
           foto_url?: string | null
           id?: string
+          matricula?: string | null
           nome?: string
           numero_pis?: string | null
           perfil_updated_at?: string | null
