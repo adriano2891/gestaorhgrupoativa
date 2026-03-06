@@ -2522,14 +2522,14 @@ export type Database = {
       }
       registros_ponto: {
         Row: {
-          adicional_noturno: unknown
+          adicional_noturno: string | null
           created_at: string
           data: string
           entrada: string | null
           fim_he: string | null
-          horas_extras: unknown
-          horas_noturnas: unknown
-          horas_noturnas_fictas: unknown
+          horas_extras: string | null
+          horas_noturnas: string | null
+          horas_noturnas_fictas: string | null
           id: string
           inicio_he: string | null
           justificativa_folga: string | null
@@ -2545,19 +2545,19 @@ export type Database = {
           status_admin: string | null
           status_validacao: string
           tipo_dia: string | null
-          total_horas: unknown
+          total_horas: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
-          adicional_noturno?: unknown
+          adicional_noturno?: string | null
           created_at?: string
           data?: string
           entrada?: string | null
           fim_he?: string | null
-          horas_extras?: unknown
-          horas_noturnas?: unknown
-          horas_noturnas_fictas?: unknown
+          horas_extras?: string | null
+          horas_noturnas?: string | null
+          horas_noturnas_fictas?: string | null
           id?: string
           inicio_he?: string | null
           justificativa_folga?: string | null
@@ -2573,19 +2573,19 @@ export type Database = {
           status_admin?: string | null
           status_validacao?: string
           tipo_dia?: string | null
-          total_horas?: unknown
+          total_horas?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
-          adicional_noturno?: unknown
+          adicional_noturno?: string | null
           created_at?: string
           data?: string
           entrada?: string | null
           fim_he?: string | null
-          horas_extras?: unknown
-          horas_noturnas?: unknown
-          horas_noturnas_fictas?: unknown
+          horas_extras?: string | null
+          horas_noturnas?: string | null
+          horas_noturnas_fictas?: string | null
           id?: string
           inicio_he?: string | null
           justificativa_folga?: string | null
@@ -2601,7 +2601,7 @@ export type Database = {
           status_admin?: string | null
           status_validacao?: string
           tipo_dia?: string | null
-          total_horas?: unknown
+          total_horas?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -2944,7 +2944,7 @@ export type Database = {
     Functions: {
       calcular_horas_noturnas: {
         Args: { p_entrada: string; p_saida: string }
-        Returns: unknown
+        Returns: string
       }
       calcular_horas_trabalhadas: {
         Args: {
@@ -2957,7 +2957,7 @@ export type Database = {
           p_saida_pausa_1: string
           p_saida_pausa_2: string
         }
-        Returns: unknown
+        Returns: string
       }
       get_email_by_cpf: {
         Args: { cpf_input: string }
