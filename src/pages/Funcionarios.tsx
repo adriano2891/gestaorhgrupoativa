@@ -51,6 +51,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BeneficiosCard } from "@/components/funcionarios/BeneficiosCard";
+import { RescisaoCard } from "@/components/funcionarios/RescisaoCard";
+import { BancoHorasCard } from "@/components/funcionarios/BancoHorasCard";
 
 type EmployeeStatus = "ativo" | "afastado" | "demitido" | "em_ferias" | "pediu_demissao";
 
@@ -162,6 +166,10 @@ const Funcionarios = () => {
   const [editAdmissionDate, setEditAdmissionDate] = useState("");
   const [editEscala, setEditEscala] = useState("8h");
   const [editTurno, setEditTurno] = useState("diurno");
+  const [editRg, setEditRg] = useState("");
+  const [editPis, setEditPis] = useState("");
+  const [editCtps, setEditCtps] = useState("");
+  const [editCtpsSerie, setEditCtpsSerie] = useState("");
   
   const [newEscala, setNewEscala] = useState("8h");
   const [newTurno, setNewTurno] = useState("diurno");
@@ -643,13 +651,17 @@ const Funcionarios = () => {
     setEditAdmissionDate(employee.admissionDate);
     setEditPhotoFile(null);
     setEditPhotoPreview(employee.foto_url || null);
+    setEditRg("");
+    setEditPis("");
+    setEditCtps("");
+    setEditCtpsSerie("");
     setIsEditDialogOpen(true);
     
     try {
       const token = getAccessToken();
       if (token) {
         const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by,matricula&id=eq.${employeeId}&limit=1`,
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by,matricula,rg,numero_pis,ctps_numero,ctps_serie&id=eq.${employeeId}&limit=1`,
           {
             headers: {
               'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -678,6 +690,10 @@ const Funcionarios = () => {
             setEditEndereco(profileData.endereco || "");
             setEditEscala(profileData.escala_trabalho || "8h");
             setEditTurno(profileData.turno || "diurno");
+            setEditRg(profileData.rg || "");
+            setEditPis(profileData.numero_pis || "");
+            setEditCtps(profileData.ctps_numero || "");
+            setEditCtpsSerie(profileData.ctps_serie || "");
             if (profileData.perfil_updated_by === 'funcionario' && profileData.perfil_updated_at) {
               setEmployeeUpdates(prev => ({ ...prev, [employeeId]: { updated_at: profileData.perfil_updated_at } }));
             }
@@ -767,6 +783,10 @@ const Funcionarios = () => {
           escala_trabalho: editEscala,
           turno: editTurno,
           data_admissao: editAdmissionDate || null,
+          rg: editRg.trim() || null,
+          numero_pis: editPis.trim() || null,
+          ctps_numero: editCtps.trim() || null,
+          ctps_serie: editCtpsSerie.trim() || null,
         };
 
         // Converter salário formatado para número
@@ -1245,6 +1265,12 @@ const Funcionarios = () => {
                         <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => handleEdit(employee.id)}>
                           <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
+                        <RescisaoCard
+                          userId={employee.id}
+                          userName={employee.name}
+                          salarioBase={employeeSalaries[employee.id]?.salario || 0}
+                          dataAdmissao={employee.admissionDate}
+                        />
                         <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => handleDelete(employee.id)}>
                           <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                         </Button>
@@ -1529,6 +1555,45 @@ const Funcionarios = () => {
                   onChange={(e) => setEditAdmissionDate(e.target.value)}
                   className="h-9"
                 />
+              </div>
+
+              {/* Documentos CLT */}
+              <div className="border-t pt-3 mt-2">
+                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Documentos CLT</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">RG</Label>
+                    <Input value={editRg} onChange={(e) => setEditRg(e.target.value)} placeholder="00.000.000-0" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">PIS/PASEP</Label>
+                    <Input value={editPis} onChange={(e) => setEditPis(e.target.value)} placeholder="000.00000.00-0" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">CTPS Nº</Label>
+                    <Input value={editCtps} onChange={(e) => setEditCtps(e.target.value)} placeholder="0000000" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">CTPS Série</Label>
+                    <Input value={editCtpsSerie} onChange={(e) => setEditCtpsSerie(e.target.value)} placeholder="0000" className="h-9" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Benefícios e Banco de Horas */}
+              <div className="border-t pt-3 mt-2">
+                <Tabs defaultValue="beneficios" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="beneficios">Benefícios (VT/VA/VR)</TabsTrigger>
+                    <TabsTrigger value="banco_horas">Banco de Horas</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="beneficios">
+                    <BeneficiosCard userId={editingEmployee.id} userName={editingEmployee.name} />
+                  </TabsContent>
+                  <TabsContent value="banco_horas">
+                    <BancoHorasCard userId={editingEmployee.id} userName={editingEmployee.name} />
+                  </TabsContent>
+                </Tabs>
               </div>
             </div>
           )}
