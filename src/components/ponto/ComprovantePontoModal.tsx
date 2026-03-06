@@ -26,9 +26,28 @@ const formatInterval = (interval: string | null) => {
   return "0h 0min";
 };
 
-export const ComprovantePontoModal = ({ comprovante, onClose }: ComprovantePontoModalProps) => {
+export const ComprovantePontoModal = ({ comprovante, onClose, onViewHistory }: ComprovantePontoModalProps) => {
   const [qrCodeUrl, setQrCodeUrl] = useState<string>("");
+  const [empresa, setEmpresa] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Load empresa data
+  useEffect(() => {
+    const loadEmpresa = async () => {
+      try {
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+        const res = await fetch(`${supabaseUrl}/rest/v1/empresas?select=*&limit=1`, {
+          headers: { 'apikey': anonKey, 'Authorization': `Bearer ${anonKey}` },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.[0]) setEmpresa(data[0]);
+        }
+      } catch {}
+    };
+    loadEmpresa();
+  }, []);
 
   useEffect(() => {
     if (comprovante?.qr_code_data) {
