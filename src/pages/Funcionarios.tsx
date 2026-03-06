@@ -1818,26 +1818,50 @@ const Funcionarios = () => {
                 </Select>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="grid gap-1.5">
-                <Label htmlFor="new-rg" className="text-sm">RG</Label>
-                <Input
-                  id="new-rg"
-                  value={newEmployee.rg}
-                  onChange={(e) => updateNewEmployee('rg', e.target.value)}
-                  placeholder="00.000.000-0"
-                  className="h-9"
-                />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="new-numero_pis" className="text-sm">Número PIS</Label>
-                <Input
-                  id="new-numero_pis"
-                  value={newEmployee.numero_pis}
-                  onChange={(e) => updateNewEmployee('numero_pis', e.target.value)}
-                  placeholder="000.00000.00-0"
-                  className="h-9"
-                />
+            {/* Documentos CLT */}
+            <div className="border-t pt-3 mt-2">
+              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Documentos CLT</p>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="new-rg" className="text-sm">RG</Label>
+                  <Input
+                    id="new-rg"
+                    value={newEmployee.rg}
+                    onChange={(e) => updateNewEmployee('rg', e.target.value)}
+                    placeholder="00.000.000-0"
+                    className="h-9"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="new-numero_pis" className="text-sm">PIS/PASEP</Label>
+                  <Input
+                    id="new-numero_pis"
+                    value={newEmployee.numero_pis}
+                    onChange={(e) => updateNewEmployee('numero_pis', e.target.value)}
+                    placeholder="000.00000.00-0"
+                    className="h-9"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="new-ctps_numero" className="text-sm">CTPS Nº</Label>
+                  <Input
+                    id="new-ctps_numero"
+                    value={newEmployee.ctps_numero}
+                    onChange={(e) => updateNewEmployee('ctps_numero', e.target.value)}
+                    placeholder="0000000"
+                    className="h-9"
+                  />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label htmlFor="new-ctps_serie" className="text-sm">CTPS Série</Label>
+                  <Input
+                    id="new-ctps_serie"
+                    value={newEmployee.ctps_serie}
+                    onChange={(e) => updateNewEmployee('ctps_serie', e.target.value)}
+                    placeholder="0000"
+                    className="h-9"
+                  />
+                </div>
               </div>
             </div>
             <div className="grid gap-1.5">
