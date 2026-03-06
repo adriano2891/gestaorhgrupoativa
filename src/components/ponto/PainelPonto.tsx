@@ -39,6 +39,7 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
   const [registroHoje, setRegistroHoje] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showAjusteDialog, setShowAjusteDialog] = useState(false);
 
   const loadRegistroHoje = useCallback(async () => {
     try {
