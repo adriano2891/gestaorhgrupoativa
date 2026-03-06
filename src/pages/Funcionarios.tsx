@@ -152,6 +152,8 @@ const Funcionarios = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("Todos");
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const employeesRef = useRef<Employee[]>([]);
+  const [pendingEditId, setPendingEditId] = useState<string | null>(null);
   const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }>>({});
   const [employeeUpdates, setEmployeeUpdates] = useState<Record<string, { updated_at: string }>>({});
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
