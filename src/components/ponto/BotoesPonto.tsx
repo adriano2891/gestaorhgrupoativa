@@ -289,12 +289,20 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
           });
           savedRecord = results?.[0];
         } else {
+          // Fetch empresa_id for the record (Portaria 671/2021 - empresa identification)
+          let empresaId: string | undefined;
+          try {
+            const empresas = await restGet('empresas?select=id&limit=1');
+            empresaId = empresas?.[0]?.id;
+          } catch { /* uses DB default */ }
+
           const results = await restPost('registros_ponto', {
             user_id: userId,
             data: hoje,
             [campo]: agora,
             registro_folga: isRegistroFolga,
             status_validacao: isRegistroFolga ? "pendente" : "validado",
+            ...(empresaId ? { empresa_id: empresaId } : {}),
             ...auditMetadata,
           });
           savedRecord = results?.[0];
