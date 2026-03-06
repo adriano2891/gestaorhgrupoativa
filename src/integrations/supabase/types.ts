@@ -2645,6 +2645,7 @@ export type Database = {
           adicional_noturno: string | null
           created_at: string
           data: string
+          empresa_id: string | null
           entrada: string | null
           fim_he: string | null
           geolocation: string | null
@@ -2679,6 +2680,7 @@ export type Database = {
           adicional_noturno?: string | null
           created_at?: string
           data?: string
+          empresa_id?: string | null
           entrada?: string | null
           fim_he?: string | null
           geolocation?: string | null
@@ -2713,6 +2715,7 @@ export type Database = {
           adicional_noturno?: string | null
           created_at?: string
           data?: string
+          empresa_id?: string | null
           entrada?: string | null
           fim_he?: string | null
           geolocation?: string | null
@@ -2744,6 +2747,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "registros_ponto_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "registros_ponto_user_id_fkey"
             columns: ["user_id"]
