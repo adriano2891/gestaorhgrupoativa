@@ -979,7 +979,10 @@ const FolhaPonto = () => {
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle className="text-lg">{record.employee_name}</CardTitle>
+                        <CardTitle className="text-lg">
+                          {record.matricula && <span className="text-primary font-mono text-sm mr-2">[{record.matricula}]</span>}
+                          {record.employee_name}
+                        </CardTitle>
                         <CardDescription>
                           {record.departamento || "Sem departamento"}
                           {record.escala_trabalho === '12x36' && (
