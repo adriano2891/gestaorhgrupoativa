@@ -114,6 +114,7 @@ Deno.serve(async (req) => {
       data_admissao: data_admissao ?? null,
       endereco: endereco ?? null, rg: rg ?? null, numero_pis: numero_pis ?? null,
       escala_trabalho: escala_trabalho ?? '8h', turno: turno ?? 'diurno',
+      ctps_numero: ctps_numero ?? null, ctps_serie: ctps_serie ?? null,
       deve_trocar_senha: true,
     });
 
