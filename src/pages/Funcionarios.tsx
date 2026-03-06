@@ -672,6 +672,7 @@ const Funcionarios = () => {
               status: (profileData.status || prev.status) as EmployeeStatus,
               admissionDate: profileData.data_admissao || prev.admissionDate,
               foto_url: prev.foto_url,
+              matricula: profileData.matricula || prev.matricula,
             }) : prev);
             setEditCpf(profileData.cpf || "");
             setEditEndereco(profileData.endereco || "");
