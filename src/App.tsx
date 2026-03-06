@@ -106,6 +106,7 @@ const App = () => {
                     <Route path="/portal-funcionario" element={<PortalFuncionario />} />
                     <Route path="/portal-funcionario/cursos/:cursoId" element={<PortalCursoPlayerLazy />} />
                     <Route path="/public/:publicId" element={<OrcamentosPublic />} />
+                    <Route path="/verificar-comprovante/:id" element={<VerificarComprovante />} />
                     <Route path="/" element={<Navigate to="/login" replace />} />
                     <Route
                       path="/dashboard"
