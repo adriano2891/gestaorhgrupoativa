@@ -219,14 +219,6 @@ const Funcionarios = () => {
   const newPhotoRef = useRef<HTMLInputElement>(null);
   const editPhotoRef = useRef<HTMLInputElement>(null);
 
-  // Auto-open edit dialog after creating employee (2-step flow)
-  useEffect(() => {
-    if (pendingEditId && employeesRef.current.find(emp => emp.id === pendingEditId)) {
-      const id = pendingEditId;
-      setPendingEditId(null);
-      handleEdit(id);
-    }
-  }, [employees, pendingEditId]);
 
   const handlePhotoSelect = (file: File | null, type: 'new' | 'edit') => {
     if (!file) return;
