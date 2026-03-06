@@ -20,52 +20,43 @@ export const GerenciarAjustesPontoCard = ({ adminId, adminName }: GerenciarAjust
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [motivoRejeicao, setMotivoRejeicao] = useState<Record<string, string>>({});
 
-  const getAccessToken = (): string | null => {
-    try {
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'rzcjwfxmogfsmfbwtwfc';
-      const storageKey = `sb-${projectId}-auth-token`;
-      const raw = localStorage.getItem(storageKey);
-      if (!raw) return null;
-      return JSON.parse(raw)?.access_token || null;
-    } catch { return null; }
-  };
-
   const loadAjustes = async () => {
     try {
       setLoading(true);
-      const token = getAccessToken();
-      if (!token) return;
 
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/solicitacoes_ajuste_ponto?select=*&order=created_at.desc&limit=50`,
-        {
-          headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!res.ok) throw new Error(`${res.status}`);
-      const data = await res.json();
+      const { data, error } = await (supabase as any)
+        .from("solicitacoes_ajuste_ponto")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50);
 
-      // Fetch employee names
-      const userIds = [...new Set(data.map((a: any) => a.user_id))];
-      if (userIds.length > 0) {
-        const profilesRes = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?id=in.(${userIds.join(',')})&select=id,nome`,
-          {
-            headers: {
-              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const profiles = profilesRes.ok ? await profilesRes.json() : [];
-        const nameMap = new Map(profiles.map((p: any) => [p.id, p.nome]));
-        data.forEach((a: any) => { a.employee_name = nameMap.get(a.user_id) || 'Desconhecido'; });
+      if (error) {
+        console.error("Erro ao carregar ajustes:", error);
+        return;
       }
 
-      setAjustes(data || []);
+      if (!data || data.length === 0) {
+        setAjustes([]);
+        return;
+      }
+
+      // Fetch employee names separately
+      try {
+        const userIds = [...new Set(data.map((a: any) => a.user_id))] as string[];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, nome")
+          .in("id", userIds);
+
+        const nameMap = new Map((profiles || []).map((p: any) => [p.id, p.nome]));
+        data.forEach((a: any) => {
+          a.employee_name = nameMap.get(a.user_id) || "Desconhecido";
+        });
+      } catch (e) {
+        console.warn("Failed to fetch profiles for ajustes:", e);
+      }
+
+      setAjustes(data);
     } catch (e) {
       console.error("Erro ao carregar ajustes:", e);
     } finally {
@@ -90,9 +81,6 @@ export const GerenciarAjustesPontoCard = ({ adminId, adminName }: GerenciarAjust
 
     setActionLoading(ajusteId);
     try {
-      const token = getAccessToken();
-      if (!token) throw new Error("Sessão expirada");
-
       const body: any = {
         status: action,
         aprovado_por: adminId,
@@ -104,20 +92,12 @@ export const GerenciarAjustesPontoCard = ({ adminId, adminName }: GerenciarAjust
         body.motivo_rejeicao = motivoRejeicao[ajusteId].trim();
       }
 
-      const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/solicitacoes_ajuste_ponto?id=eq.${ajusteId}`,
-        {
-          method: 'PATCH',
-          headers: {
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            Prefer: 'return=minimal',
-          },
-          body: JSON.stringify(body),
-        }
-      );
-      if (!res.ok) throw new Error(`${res.status}`);
+      const { error } = await (supabase as any)
+        .from("solicitacoes_ajuste_ponto")
+        .update(body)
+        .eq("id", ajusteId);
+
+      if (error) throw error;
 
       toast.success(action === 'aprovado' ? "Ajuste aprovado" : "Ajuste rejeitado");
       loadAjustes();
