@@ -1546,6 +1546,29 @@ const Funcionarios = () => {
                   className="h-9"
                 />
               </div>
+
+              {/* Documentos CLT */}
+              <div className="border-t pt-3 mt-2">
+                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Documentos CLT</p>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">RG</Label>
+                    <Input value={editRg} onChange={(e) => setEditRg(e.target.value)} placeholder="00.000.000-0" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">PIS/PASEP</Label>
+                    <Input value={editPis} onChange={(e) => setEditPis(e.target.value)} placeholder="000.00000.00-0" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">CTPS Nº</Label>
+                    <Input value={editCtps} onChange={(e) => setEditCtps(e.target.value)} placeholder="0000000" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">CTPS Série</Label>
+                    <Input value={editCtpsSerie} onChange={(e) => setEditCtpsSerie(e.target.value)} placeholder="0000" className="h-9" />
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter className="flex-shrink-0 mt-4">
