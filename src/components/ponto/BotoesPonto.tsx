@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { ConfirmacaoPontoPopup } from "./ConfirmacaoPontoPopup";
+import { ComprovantePontoModal } from "./ComprovantePontoModal";
 
 // Generate SHA-256 hash for record integrity (Portaria 671/2021)
 const generateHash = async (data: string): Promise<string> => {
@@ -85,40 +86,59 @@ const restPost = async (path: string, body: any) => {
   const { url, headers } = getRestConfig();
   const res = await fetch(`${url}/rest/v1/${path}`, {
     method: 'POST',
-    headers: { ...headers, 'Prefer': 'return=minimal' },
+    headers: { ...headers, 'Prefer': 'return=representation' },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`REST POST failed: ${res.status} ${text}`);
   }
+  return res.json();
 };
 
 const restPatch = async (path: string, body: any) => {
   const { url, headers } = getRestConfig();
   const res = await fetch(`${url}/rest/v1/${path}`, {
     method: 'PATCH',
-    headers: { ...headers, 'Prefer': 'return=minimal' },
+    headers: { ...headers, 'Prefer': 'return=representation' },
     body: JSON.stringify(body),
   });
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`REST PATCH failed: ${res.status} ${text}`);
   }
+  return res.json();
 };
 
 // Log audit event
 const logAuditEvent = async (userId: string, acao: string, detalhes: any, ip: string) => {
   try {
-    await restPost('audit_trail_ponto', {
-      user_id: userId,
-      acao,
-      detalhes,
-      ip_address: ip,
-      user_agent: navigator.userAgent,
+    const { url, headers } = getRestConfig();
+    await fetch(`${url}/rest/v1/audit_trail_ponto`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({
+        user_id: userId,
+        acao,
+        detalhes,
+        ip_address: ip,
+        user_agent: navigator.userAgent,
+      }),
     });
   } catch (e) {
     console.warn('Audit log failed (non-blocking):', e);
+  }
+};
+
+// Get the last hash for chained integrity
+const getLastHash = async (userId: string): Promise<string> => {
+  try {
+    const results = await restGet(
+      `registros_ponto?user_id=eq.${userId}&hash_registro=not.is.null&select=hash_registro&order=created_at.desc&limit=1`
+    );
+    return results?.[0]?.hash_registro || 'GENESIS';
+  } catch {
+    return 'GENESIS';
   }
 };
 
@@ -132,6 +152,7 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
   const [loading, setLoading] = useState<string | null>(null);
   const [confirmAction, setConfirmAction] = useState<{ campo: string; label: string } | null>(null);
   const [popup, setPopup] = useState<{ message: string; description: string } | null>(null);
+  const [comprovante, setComprovante] = useState<any>(null);
 
   const registrarPonto = async (campo: string, label: string) => {
     setLoading(campo);
@@ -175,7 +196,6 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
           }
         }
 
-        // Turno warnings
         if (profileData?.escala_trabalho === "12x36") {
           const horaAtual = new Date().getHours();
           if (profileData.turno === "diurno" && (horaAtual < 5 || horaAtual >= 21)) {
@@ -213,11 +233,14 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
       const hoje = new Date().toISOString().split('T')[0];
 
       // Capture audit metadata (Portaria 671/2021)
-      const [clientIP, geoLocation] = await Promise.all([
+      const [clientIP, geoLocation, previousHash] = await Promise.all([
         getClientIP(),
         getGeolocation(),
+        getLastHash(userId),
       ]);
-      const hashData = `${userId}|${campo}|${agora}|${hoje}`;
+
+      // Build chained hash: SHA256(data + previous_hash)
+      const hashData = `${userId}|${campo}|${agora}|${hoje}|${clientIP}|${navigator.userAgent}|${geoLocation}|${previousHash}`;
       const hashRegistro = await generateHash(hashData);
 
       const auditMetadata = {
@@ -225,6 +248,7 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
         user_agent: navigator.userAgent,
         geolocation: geoLocation,
         hash_registro: hashRegistro,
+        hash_anterior: previousHash,
         origem: 'web',
       };
 
@@ -251,19 +275,21 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
         }
       }
 
+      let savedRecord: any = null;
+
       if (!registroHoje) {
-        // Check if record already exists
         const existentes = await restGet(
           `registros_ponto?user_id=eq.${userId}&data=eq.${hoje}&select=id&limit=1`
         );
 
         if (existentes?.[0]) {
-          await restPatch(`registros_ponto?id=eq.${existentes[0].id}`, { 
+          const results = await restPatch(`registros_ponto?id=eq.${existentes[0].id}`, { 
             [campo]: agora,
             ...auditMetadata,
           });
+          savedRecord = results?.[0];
         } else {
-          await restPost('registros_ponto', {
+          const results = await restPost('registros_ponto', {
             user_id: userId,
             data: hoje,
             [campo]: agora,
@@ -271,12 +297,14 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
             status_validacao: isRegistroFolga ? "pendente" : "validado",
             ...auditMetadata,
           });
+          savedRecord = results?.[0];
         }
       } else {
-        await restPatch(`registros_ponto?id=eq.${registroHoje.id}`, { 
+        const results = await restPatch(`registros_ponto?id=eq.${registroHoje.id}`, { 
           [campo]: agora,
           ...auditMetadata,
         });
+        savedRecord = results?.[0];
       }
 
       // Log audit event
@@ -286,23 +314,35 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
         data: hoje,
         registro_folga: isRegistroFolga,
         geolocation: geoLocation,
+        hash_registro: hashRegistro,
+        hash_anterior: previousHash,
       }, clientIP);
 
       const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+
+      // Generate comprovante for saida (end of shift) - auto-generate receipt
+      if (campo === "saida" && savedRecord) {
+        try {
+          await generateComprovante(userId, hoje, savedRecord, clientIP, geoLocation);
+        } catch (e) {
+          console.warn("Erro ao gerar comprovante (non-blocking):", e);
+        }
+      }
+
       if (campo === "entrada") {
         setPopup({
           message: "Entrada registrada com sucesso. Bom trabalho!",
-          description: `Registrado às ${hora}`,
+          description: `Registrado às ${hora} | Hash: ${hashRegistro.substring(0, 12)}...`,
         });
       } else if (campo === "saida") {
         setPopup({
           message: "Ponto de saída confirmado com sucesso. Tenha um ótimo descanso!",
-          description: `Registrado às ${hora}`,
+          description: `Registrado às ${hora} | Comprovante gerado`,
         });
       } else {
         setPopup({
           message: `${label} registrado com sucesso!`,
-          description: `Registrado às ${hora}`,
+          description: `Registrado às ${hora} | Hash: ${hashRegistro.substring(0, 12)}...`,
         });
       }
 
@@ -315,6 +355,60 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
       });
     } finally {
       setLoading(null);
+    }
+  };
+
+  const generateComprovante = async (userId: string, data: string, registro: any, ip: string, geo: string) => {
+    const pausas: any[] = [];
+    if (registro.saida_pausa_1) pausas.push({ tipo: 'Pausa 1', saida: registro.saida_pausa_1, retorno: registro.retorno_pausa_1 });
+    if (registro.saida_almoco) pausas.push({ tipo: 'Almoço', saida: registro.saida_almoco, retorno: registro.retorno_almoco });
+    if (registro.saida_pausa_2) pausas.push({ tipo: 'Pausa 2', saida: registro.saida_pausa_2, retorno: registro.retorno_pausa_2 });
+
+    const comprovanteData = `${registro.id}|${userId}|${data}|${registro.entrada}|${registro.saida}|${registro.total_horas}|${registro.horas_extras}|${Date.now()}`;
+    const hashComprovante = await generateHash(comprovanteData);
+    const assinaturaDigital = await generateHash(`ASSINATURA|${hashComprovante}|${registro.hash_registro}|GRUPO_ATIVA_REP_A`);
+
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'rzcjwfxmogfsmfbwtwfc';
+    
+    const comprovanteBody = {
+      user_id: userId,
+      data_jornada: data,
+      horario_entrada: registro.entrada,
+      horario_saida: registro.saida,
+      pausas,
+      total_horas: registro.total_horas,
+      total_horas_extras: registro.horas_extras,
+      hash_comprovante: hashComprovante,
+      assinatura_digital: assinaturaDigital,
+      ip_address: ip,
+      user_agent: navigator.userAgent,
+      geolocation: geo,
+      origem: 'web',
+    };
+
+    const results = await restPost('comprovantes_ponto', comprovanteBody);
+    const saved = results?.[0];
+    
+    if (saved) {
+      // Build QR code data with verification URL
+      const verificationUrl = `${window.location.origin}/verificar-comprovante/${saved.id}`;
+      const qrData = JSON.stringify({
+        id: saved.id,
+        hash: hashComprovante,
+        url: verificationUrl,
+      });
+
+      // Update with qr_code_data
+      await restPatch(`comprovantes_ponto?id=eq.${saved.id}`, {
+        qr_code_data: qrData,
+      });
+
+      setComprovante({
+        ...saved,
+        qr_code_data: qrData,
+        registro,
+        profile,
+      });
     }
   };
 
@@ -389,6 +483,13 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
           description={popup.description}
           duration={3000}
           onClose={() => setPopup(null)}
+        />
+      )}
+
+      {comprovante && (
+        <ComprovantePontoModal
+          comprovante={comprovante}
+          onClose={() => setComprovante(null)}
         />
       )}
     </Card>
