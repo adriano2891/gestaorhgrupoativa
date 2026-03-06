@@ -130,6 +130,7 @@ export const HistoricoPonto = () => {
                 <TableHead>Saída</TableHead>
                 <TableHead>Total Horas</TableHead>
                 <TableHead>HE</TableHead>
+                <TableHead>Hash</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
