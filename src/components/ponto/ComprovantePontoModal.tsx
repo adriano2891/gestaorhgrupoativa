@@ -187,7 +187,10 @@ export const ComprovantePontoModal = ({ comprovante, onClose, onViewHistory }: C
           <div>
             <h4 className="text-xs font-semibold text-muted-foreground uppercase mb-1">Funcionário</h4>
             <p className="font-medium">{prof?.nome || '-'}</p>
-            <p className="text-sm text-muted-foreground">{prof?.cargo || '-'} • {prof?.departamento || '-'}</p>
+            <p className="text-sm text-muted-foreground">
+              {prof?.matricula ? `Matrícula: ${prof.matricula} • ` : `ID: ${prof?.id?.substring(0, 8)}... • `}
+              {prof?.cargo || '-'} • {prof?.departamento || '-'}
+            </p>
           </div>
 
           <Separator />
