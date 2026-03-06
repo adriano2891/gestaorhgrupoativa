@@ -84,7 +84,7 @@ export const ComprovantePontoModal = ({ comprovante, onClose, onViewHistory }: C
       y += 6;
       doc.text(empresa?.razao_social || "Grupo Ativa Administradora", 105, y, { align: "center" });
       y += 5;
-      doc.text(`CNPJ: ${empresa?.cnpj || '00.000.000/0001-00'}`, 105, y, { align: "center" });
+      doc.text(`CNPJ: ${empresa?.cnpj || '42.523.488/0001-81'}`, 105, y, { align: "center" });
       y += 10;
       
       doc.setDrawColor(0, 150, 136);
@@ -182,7 +182,7 @@ export const ComprovantePontoModal = ({ comprovante, onClose, onViewHistory }: C
           {/* Company */}
           <div className="bg-muted/50 rounded-lg p-3">
             <p className="font-semibold text-sm">{empresa?.razao_social || 'Grupo Ativa Administradora'}</p>
-            <p className="text-xs text-muted-foreground">CNPJ: {empresa?.cnpj || '00.000.000/0001-00'}</p>
+            <p className="text-xs text-muted-foreground">CNPJ: {empresa?.cnpj || '42.523.488/0001-81'}</p>
             <p className="text-xs text-muted-foreground">Sistema REP-A | Portaria 671/2021</p>
           </div>
 
