@@ -51,6 +51,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BeneficiosCard } from "@/components/funcionarios/BeneficiosCard";
+import { RescisaoCard } from "@/components/funcionarios/RescisaoCard";
+import { BancoHorasCard } from "@/components/funcionarios/BancoHorasCard";
 
 type EmployeeStatus = "ativo" | "afastado" | "demitido" | "em_ferias" | "pediu_demissao";
 
