@@ -152,6 +152,8 @@ const Funcionarios = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("Todos");
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const employeesRef = useRef<Employee[]>([]);
+  const [pendingEditId, setPendingEditId] = useState<string | null>(null);
   const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }>>({});
   const [employeeUpdates, setEmployeeUpdates] = useState<Record<string, { updated_at: string }>>({});
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -216,6 +218,15 @@ const Funcionarios = () => {
   const [editPhotoPreview, setEditPhotoPreview] = useState<string | null>(null);
   const newPhotoRef = useRef<HTMLInputElement>(null);
   const editPhotoRef = useRef<HTMLInputElement>(null);
+
+  // Auto-open edit dialog after creating employee (2-step flow)
+  useEffect(() => {
+    if (pendingEditId && employeesRef.current.find(emp => emp.id === pendingEditId)) {
+      const id = pendingEditId;
+      setPendingEditId(null);
+      handleEdit(id);
+    }
+  }, [employees, pendingEditId]);
 
   const handlePhotoSelect = (file: File | null, type: 'new' | 'edit') => {
     if (!file) return;
@@ -368,6 +379,7 @@ const Funcionarios = () => {
         if (targetIds.length === 0) {
           console.warn("fetchEmployees: Nenhum funcionário puro encontrado");
           setEmployees([]);
+          employeesRef.current = [];
           setEmployeeSalaries({});
           return;
         }
@@ -398,6 +410,7 @@ const Funcionarios = () => {
 
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
         setEmployees(formattedEmployees);
+        employeesRef.current = formattedEmployees;
 
         const salaries: Record<string, { salario: number | null; ultimaAlteracao?: { valor: number; data: string } }> = {};
         const updates: Record<string, { updated_at: string }> = {};
@@ -441,6 +454,7 @@ const Funcionarios = () => {
 
         console.log("fetchEmployees: Fallback retornou", formatted.length, "funcionários");
         setEmployees(formatted);
+        employeesRef.current = formatted;
         setEmployeeUpdates(updates);
       }
     } catch (error: any) {
@@ -640,7 +654,7 @@ const Funcionarios = () => {
   };
 
   const handleEdit = async (employeeId: string) => {
-    const employee = employees.find(emp => emp.id === employeeId);
+    const employee = employeesRef.current.find(emp => emp.id === employeeId) || employees.find(emp => emp.id === employeeId);
     if (!employee) return;
     
     setEditingEmployee({ ...employee });
@@ -1097,11 +1111,8 @@ const Funcionarios = () => {
       // Atualizar lista de funcionários imediatamente
       await fetchEmployees();
 
-      // Abrir diálogo de edição automaticamente para configurar benefícios
       if (createdUserId) {
-        setTimeout(() => {
-          handleEdit(createdUserId);
-        }, 800);
+        setPendingEditId(createdUserId);
       }
     } catch (error: any) {
       console.error("Erro ao adicionar funcionário:", error);
