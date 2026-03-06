@@ -205,6 +205,8 @@ const Funcionarios = () => {
     endereco: "",
     rg: "",
     numero_pis: "",
+    ctps_numero: "",
+    ctps_serie: "",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
