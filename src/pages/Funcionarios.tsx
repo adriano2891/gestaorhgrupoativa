@@ -645,7 +645,7 @@ const Funcionarios = () => {
   };
 
   const handleEdit = async (employeeId: string) => {
-    const employee = employees.find(emp => emp.id === employeeId);
+    const employee = employeesRef.current.find(emp => emp.id === employeeId) || employees.find(emp => emp.id === employeeId);
     if (!employee) return;
     
     setEditingEmployee({ ...employee });
