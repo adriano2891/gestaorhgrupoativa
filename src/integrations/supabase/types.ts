@@ -388,6 +388,63 @@ export type Database = {
         }
         Relationships: []
       }
+      comprovantes_ponto: {
+        Row: {
+          assinatura_digital: string
+          created_at: string
+          data_jornada: string
+          geolocation: string | null
+          hash_comprovante: string
+          horario_entrada: string | null
+          horario_saida: string | null
+          id: string
+          ip_address: string | null
+          origem: string | null
+          pausas: Json | null
+          qr_code_data: string | null
+          total_horas: string | null
+          total_horas_extras: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          assinatura_digital: string
+          created_at?: string
+          data_jornada: string
+          geolocation?: string | null
+          hash_comprovante: string
+          horario_entrada?: string | null
+          horario_saida?: string | null
+          id?: string
+          ip_address?: string | null
+          origem?: string | null
+          pausas?: Json | null
+          qr_code_data?: string | null
+          total_horas?: string | null
+          total_horas_extras?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          assinatura_digital?: string
+          created_at?: string
+          data_jornada?: string
+          geolocation?: string | null
+          hash_comprovante?: string
+          horario_entrada?: string | null
+          horario_saida?: string | null
+          id?: string
+          ip_address?: string | null
+          origem?: string | null
+          pausas?: Json | null
+          qr_code_data?: string | null
+          total_horas?: string | null
+          total_horas_extras?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       comunicados: {
         Row: {
           ativo: boolean
@@ -2564,6 +2621,7 @@ export type Database = {
           entrada: string | null
           fim_he: string | null
           geolocation: string | null
+          hash_anterior: string | null
           hash_registro: string | null
           horas_extras: string | null
           horas_noturnas: string | null
@@ -2597,6 +2655,7 @@ export type Database = {
           entrada?: string | null
           fim_he?: string | null
           geolocation?: string | null
+          hash_anterior?: string | null
           hash_registro?: string | null
           horas_extras?: string | null
           horas_noturnas?: string | null
@@ -2630,6 +2689,7 @@ export type Database = {
           entrada?: string | null
           fim_he?: string | null
           geolocation?: string | null
+          hash_anterior?: string | null
           hash_registro?: string | null
           horas_extras?: string | null
           horas_noturnas?: string | null
