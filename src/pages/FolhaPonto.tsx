@@ -48,6 +48,8 @@ import { SuperAdminAuthDialog } from "@/components/ponto/SuperAdminAuthDialog";
 import { HistoricoAcoesPonto } from "@/components/ponto/HistoricoAcoesPonto";
 import { AutorizacaoFolgaDialog } from "@/components/ponto/AutorizacaoFolgaDialog";
 import { OcorrenciasPontoCard } from "@/components/ponto/OcorrenciasPontoCard";
+import { GerenciarAjustesPontoCard } from "@/components/ponto/GerenciarAjustesPontoCard";
+import { AuditTrailCard } from "@/components/ponto/AuditTrailCard";
 import { useAuth } from "@/components/auth/AuthProvider";
 
 interface DayRecord {
@@ -1198,8 +1200,19 @@ const FolhaPonto = () => {
         </TabsContent>
       </Tabs>
 
+      {/* Solicitações de Ajuste de Ponto */}
+      {canEditFolha && authorizedAdmin && (
+        <GerenciarAjustesPontoCard adminId={authorizedAdmin.id} adminName={authorizedAdmin.name} />
+      )}
+      {canEditFolha && !authorizedAdmin && (
+        <GerenciarAjustesPontoCard adminId="" adminName="" />
+      )}
+
       {/* Histórico de Ações */}
       <HistoricoAcoesPonto selectedMonth={selectedMonth} selectedYear={selectedYear} />
+
+      {/* Trilha de Auditoria - Portaria 671/2021 */}
+      {canEditFolha && <AuditTrailCard />}
 
       {/* Ocorrências CLT */}
       <OcorrenciasPontoCard mes={selectedMonth} ano={selectedYear} />

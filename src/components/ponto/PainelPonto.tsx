@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock } from "lucide-react";
+import { ArrowLeft, Clock, FileEdit } from "lucide-react";
 import { BotoesPonto } from "./BotoesPonto";
 import { TabelaPontoDia } from "./TabelaPontoDia";
 import { HistoricoPonto } from "./HistoricoPonto";
@@ -10,6 +10,7 @@ import { RelogioTurno } from "./RelogioTurno";
 import { CronometroPausa } from "./CronometroPausa";
 import { FolhasPontoCard } from "./FolhasPontoCard";
 import { PortalBackground } from "./PortalBackground";
+import { SolicitarAjustePontoDialog } from "./SolicitarAjustePontoDialog";
 import { supabase } from "@/integrations/supabase/client";
 
 const getRestHeaders = () => {
@@ -38,6 +39,7 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
   const [registroHoje, setRegistroHoje] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showAjusteDialog, setShowAjusteDialog] = useState(false);
 
   const loadRegistroHoje = useCallback(async () => {
     try {
@@ -128,14 +130,20 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
         <div className="max-w-6xl mx-auto space-y-6">
           <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-transparent">
             <CardHeader>
-              <div className="flex items-center gap-3">
-                <Clock className="h-8 w-8 text-primary" />
-                <div>
-                  <CardTitle className="text-2xl">Registro de Ponto</CardTitle>
-                  <p className="text-muted-foreground mt-1">
-                    Registre seus horários de entrada, pausas e saída
-                  </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Clock className="h-8 w-8 text-primary" />
+                  <div>
+                    <CardTitle className="text-2xl">Registro de Ponto</CardTitle>
+                    <p className="text-muted-foreground mt-1">
+                      Registre seus horários de entrada, pausas e saída
+                    </p>
+                  </div>
                 </div>
+                <Button variant="outline" size="sm" onClick={() => setShowAjusteDialog(true)}>
+                  <FileEdit className="h-4 w-4 mr-2" />
+                  Solicitar Ajuste
+                </Button>
               </div>
             </CardHeader>
           </Card>
@@ -160,6 +168,11 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
           <FolhasPontoCard />
         </div>
       </main>
+
+      <SolicitarAjustePontoDialog
+        open={showAjusteDialog}
+        onOpenChange={setShowAjusteDialog}
+      />
     </PortalBackground>
   );
 };

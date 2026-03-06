@@ -18,6 +18,42 @@ import { toast } from "sonner";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { ConfirmacaoPontoPopup } from "./ConfirmacaoPontoPopup";
 
+// Generate SHA-256 hash for record integrity (Portaria 671/2021)
+const generateHash = async (data: string): Promise<string> => {
+  const encoder = new TextEncoder();
+  const dataBuffer = encoder.encode(data);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', dataBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+};
+
+// Get client IP address
+const getClientIP = async (): Promise<string> => {
+  try {
+    const res = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      const data = await res.json();
+      return data.ip || 'unknown';
+    }
+  } catch {}
+  return 'unknown';
+};
+
+// Get geolocation if available
+const getGeolocation = (): Promise<string> => {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve('unavailable');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve(`${pos.coords.latitude},${pos.coords.longitude}`),
+      () => resolve('denied'),
+      { timeout: 5000, maximumAge: 60000 }
+    );
+  });
+};
+
 const getRestConfig = () => {
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
   const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
@@ -68,6 +104,21 @@ const restPatch = async (path: string, body: any) => {
   if (!res.ok) {
     const text = await res.text();
     throw new Error(`REST PATCH failed: ${res.status} ${text}`);
+  }
+};
+
+// Log audit event
+const logAuditEvent = async (userId: string, acao: string, detalhes: any, ip: string) => {
+  try {
+    await restPost('audit_trail_ponto', {
+      user_id: userId,
+      acao,
+      detalhes,
+      ip_address: ip,
+      user_agent: navigator.userAgent,
+    });
+  } catch (e) {
+    console.warn('Audit log failed (non-blocking):', e);
   }
 };
 
@@ -161,6 +212,22 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
       const agora = new Date().toISOString();
       const hoje = new Date().toISOString().split('T')[0];
 
+      // Capture audit metadata (Portaria 671/2021)
+      const [clientIP, geoLocation] = await Promise.all([
+        getClientIP(),
+        getGeolocation(),
+      ]);
+      const hashData = `${userId}|${campo}|${agora}|${hoje}`;
+      const hashRegistro = await generateHash(hashData);
+
+      const auditMetadata = {
+        ip_address: clientIP,
+        user_agent: navigator.userAgent,
+        geolocation: geoLocation,
+        hash_registro: hashRegistro,
+        origem: 'web',
+      };
+
       // Detect rest day for 12x36
       let isRegistroFolga = false;
       if (campo === "entrada") {
@@ -191,7 +258,10 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
         );
 
         if (existentes?.[0]) {
-          await restPatch(`registros_ponto?id=eq.${existentes[0].id}`, { [campo]: agora });
+          await restPatch(`registros_ponto?id=eq.${existentes[0].id}`, { 
+            [campo]: agora,
+            ...auditMetadata,
+          });
         } else {
           await restPost('registros_ponto', {
             user_id: userId,
@@ -199,11 +269,24 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
             [campo]: agora,
             registro_folga: isRegistroFolga,
             status_validacao: isRegistroFolga ? "pendente" : "validado",
+            ...auditMetadata,
           });
         }
       } else {
-        await restPatch(`registros_ponto?id=eq.${registroHoje.id}`, { [campo]: agora });
+        await restPatch(`registros_ponto?id=eq.${registroHoje.id}`, { 
+          [campo]: agora,
+          ...auditMetadata,
+        });
       }
+
+      // Log audit event
+      logAuditEvent(userId, `registro_ponto_${campo}`, {
+        campo,
+        horario: agora,
+        data: hoje,
+        registro_folga: isRegistroFolga,
+        geolocation: geoLocation,
+      }, clientIP);
 
       const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
       if (campo === "entrada") {

@@ -1,0 +1,211 @@
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Shield, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+
+export const AuditTrailCard = () => {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState(false);
+
+  const getAccessToken = (): string | null => {
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'rzcjwfxmogfsmfbwtwfc';
+      const storageKey = `sb-${projectId}-auth-token`;
+      const raw = localStorage.getItem(storageKey);
+      if (!raw) return null;
+      return JSON.parse(raw)?.access_token || null;
+    } catch { return null; }
+  };
+
+  const loadLogs = async () => {
+    try {
+      setLoading(true);
+      const token = getAccessToken();
+      if (!token) return;
+
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/audit_trail_ponto?select=*&order=created_at.desc&limit=100`,
+        {
+          headers: {
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (!res.ok) throw new Error(`${res.status}`);
+      setLogs(await res.json() || []);
+    } catch (e) {
+      console.error("Erro ao carregar audit trail:", e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadLogs();
+    const channel = supabase
+      .channel('audit-trail-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'audit_trail_ponto' }, () => loadLogs())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
+  const exportAuditCSV = () => {
+    if (logs.length === 0) { toast.error("Sem dados para exportar"); return; }
+
+    const headers = ['Data/Hora', 'Usuário', 'Ação', 'IP', 'Dispositivo', 'Detalhes'];
+    const rows = logs.map(log => [
+      new Date(log.created_at).toLocaleString("pt-BR"),
+      log.user_id,
+      log.acao,
+      log.ip_address || '-',
+      (log.user_agent || '-').substring(0, 80),
+      JSON.stringify(log.detalhes || {}),
+    ]);
+
+    const csv = [headers.join(';'), ...rows.map(r => r.map(v => `"${v}"`).join(';'))].join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `audit-trail-ponto-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast.success("Trilha de auditoria exportada");
+  };
+
+  const exportFiscalizacaoJSON = async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) throw new Error("Sessão expirada");
+
+      // Fetch comprehensive data for fiscal export
+      const [registrosRes, ajustesRes, logsEdicaoRes] = await Promise.all([
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/registros_ponto?select=*&order=data.desc&limit=5000`, {
+          headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/solicitacoes_ajuste_ponto?select=*&order=created_at.desc`, {
+          headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${token}` },
+        }),
+        fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/logs_edicao_ponto?select=*&order=created_at.desc`, {
+          headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${token}` },
+        }),
+      ]);
+
+      const [registros, ajustes, logsEdicao] = await Promise.all([
+        registrosRes.json(), ajustesRes.json(), logsEdicaoRes.json(),
+      ]);
+
+      const exportData = {
+        exportado_em: new Date().toISOString(),
+        sistema: "REP-A - Grupo Ativa",
+        conformidade: "Portaria MTP nº 671/2021",
+        registros_ponto: registros,
+        solicitacoes_ajuste: ajustes,
+        logs_edicao: logsEdicao,
+        audit_trail: logs,
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `exportacao-fiscalizacao-${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      toast.success("Dados exportados para fiscalização (JSON)");
+    } catch (e: any) {
+      toast.error("Erro ao exportar", { description: e.message });
+    }
+  };
+
+  const displayedLogs = expanded ? logs : logs.slice(0, 10);
+
+  const getActionBadge = (acao: string) => {
+    if (acao.includes('entrada')) return <Badge className="bg-green-500/10 text-green-700 border-green-300" variant="outline">Entrada</Badge>;
+    if (acao.includes('saida')) return <Badge className="bg-red-500/10 text-red-700 border-red-300" variant="outline">Saída</Badge>;
+    if (acao.includes('almoco') || acao.includes('pausa')) return <Badge className="bg-blue-500/10 text-blue-700 border-blue-300" variant="outline">Intervalo</Badge>;
+    if (acao.includes('login')) return <Badge className="bg-purple-500/10 text-purple-700 border-purple-300" variant="outline">Login</Badge>;
+    return <Badge variant="outline">{acao}</Badge>;
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader><Skeleton className="h-6 w-64" /></CardHeader>
+        <CardContent><Skeleton className="h-48 w-full" /></CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
+            <div>
+              <CardTitle>Trilha de Auditoria</CardTitle>
+              <CardDescription>Registro imutável de todas as ações - Portaria 671/2021</CardDescription>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={exportAuditCSV}>
+              <Download className="h-4 w-4 mr-1" /> CSV
+            </Button>
+            <Button size="sm" variant="default" onClick={exportFiscalizacaoJSON}>
+              <Download className="h-4 w-4 mr-1" /> Fiscalização
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {logs.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            Nenhum evento registrado na trilha de auditoria.
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data/Hora</TableHead>
+                    <TableHead>Ação</TableHead>
+                    <TableHead>IP</TableHead>
+                    <TableHead>Detalhes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {displayedLogs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell className="whitespace-nowrap text-sm">
+                        {new Date(log.created_at).toLocaleString("pt-BR")}
+                      </TableCell>
+                      <TableCell>{getActionBadge(log.acao)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{log.ip_address || '-'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate">
+                        {log.detalhes ? JSON.stringify(log.detalhes).substring(0, 100) : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            {logs.length > 10 && (
+              <div className="flex justify-center mt-3">
+                <Button variant="ghost" size="sm" onClick={() => setExpanded(!expanded)} className="gap-1">
+                  {expanded ? <><ChevronUp className="h-4 w-4" /> Menos</> : <><ChevronDown className="h-4 w-4" /> Ver todos ({logs.length})</>}
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
