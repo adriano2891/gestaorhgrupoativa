@@ -196,3 +196,43 @@ export const downloadTextFile = (content: string, filename: string) => {
   link.click();
   URL.revokeObjectURL(link.href);
 };
+
+/**
+ * Log export event to audit trail
+ */
+export const logExportAudit = async (
+  userId: string,
+  tipo: 'AFD' | 'ACJEF' | 'PDF',
+  detalhes: Record<string, any>
+) => {
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+    const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
+    const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID || supabaseUrl.match(/\/\/([^.]+)/)?.[1];
+    const storageKey = `sb-${projectRef}-auth-token`;
+    let token = anonKey;
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) token = JSON.parse(raw).access_token || anonKey;
+    } catch {}
+
+    await fetch(`${supabaseUrl}/rest/v1/audit_trail_ponto`, {
+      method: 'POST',
+      headers: {
+        'apikey': anonKey,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=minimal',
+      },
+      body: JSON.stringify({
+        user_id: userId,
+        acao: `exportacao_${tipo.toLowerCase()}`,
+        detalhes: { tipo, ...detalhes, exported_at: new Date().toISOString() },
+        ip_address: null,
+        user_agent: navigator.userAgent,
+      }),
+    });
+  } catch (e) {
+    console.warn('Audit log for export failed (non-blocking):', e);
+  }
+};
