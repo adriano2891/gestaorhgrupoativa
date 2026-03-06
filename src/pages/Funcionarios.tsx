@@ -1081,9 +1081,12 @@ const Funcionarios = () => {
         ctps_serie: "",
       });
       
+      const createdName = newEmployee.name;
+      const createdUserId = (createData as any)?.user?.id;
+      
       toast({
         title: "Funcionário adicionado com sucesso!",
-        description: `${newEmployee.name} foi cadastrado e pode acessar o Portal do Funcionário com CPF e senha.`,
+        description: `${createdName} foi cadastrado. Abrindo configuração de benefícios...`,
       });
 
       setValidationErrors({});
@@ -1093,6 +1096,13 @@ const Funcionarios = () => {
       
       // Atualizar lista de funcionários imediatamente
       await fetchEmployees();
+
+      // Abrir diálogo de edição automaticamente para configurar benefícios
+      if (createdUserId) {
+        setTimeout(() => {
+          handleEdit(createdUserId);
+        }, 800);
+      }
     } catch (error: any) {
       console.error("Erro ao adicionar funcionário:", error);
       
