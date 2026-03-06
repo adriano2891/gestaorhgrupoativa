@@ -1318,7 +1318,15 @@ const Funcionarios = () => {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">ID (Matrícula)</Label>
+                  <Input
+                    value={editingEmployee.matricula || '-'}
+                    readOnly
+                    className="bg-muted cursor-not-allowed h-9 text-foreground opacity-100 font-mono font-semibold"
+                  />
+                </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="name" className="text-sm">Nome</Label>
                   <Input
