@@ -267,6 +267,11 @@ export const ComprovantePontoModal = ({ comprovante, onClose, onViewHistory }: C
               <Share2 className="h-4 w-4" /> Compartilhar
             </Button>
           </div>
+          {onViewHistory && (
+            <Button variant="secondary" onClick={() => { onClose(); onViewHistory(); }} className="w-full gap-2">
+              <History className="h-4 w-4" /> Ver histórico de registros
+            </Button>
+          )}
           <Button variant="ghost" onClick={onClose} className="w-full">
             Fechar
           </Button>

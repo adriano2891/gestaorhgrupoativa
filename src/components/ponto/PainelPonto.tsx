@@ -166,6 +166,8 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
 
           <HistoricoPonto key={refreshKey} />
 
+          <HistoricoComprovantes />
+
           <FolhasPontoCard />
         </div>
       </main>
