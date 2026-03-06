@@ -370,6 +370,7 @@ const Funcionarios = () => {
         if (targetIds.length === 0) {
           console.warn("fetchEmployees: Nenhum funcionário puro encontrado");
           setEmployees([]);
+          employeesRef.current = [];
           setEmployeeSalaries({});
           return;
         }
