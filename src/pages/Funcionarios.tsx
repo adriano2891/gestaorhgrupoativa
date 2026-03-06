@@ -1177,6 +1177,9 @@ const Funcionarios = () => {
               <TableBody>
                 {filteredEmployees.map((employee) => (
                   <TableRow key={employee.id}>
+                    <TableCell className="text-xs sm:text-sm font-mono text-primary font-semibold">
+                      {employee.matricula || '-'}
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 sm:gap-3">
                         <Avatar className="h-8 w-8 sm:h-10 sm:w-10">
