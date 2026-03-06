@@ -9,6 +9,7 @@ import { HistoricoPonto } from "./HistoricoPonto";
 import { RelogioTurno } from "./RelogioTurno";
 import { CronometroPausa } from "./CronometroPausa";
 import { FolhasPontoCard } from "./FolhasPontoCard";
+import { HistoricoComprovantes } from "./HistoricoComprovantes";
 import { PortalBackground } from "./PortalBackground";
 import { SolicitarAjustePontoDialog } from "./SolicitarAjustePontoDialog";
 import { supabase } from "@/integrations/supabase/client";
