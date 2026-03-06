@@ -400,6 +400,7 @@ const Funcionarios = () => {
 
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
         setEmployees(formattedEmployees);
+        employeesRef.current = formattedEmployees;
 
         const salaries: Record<string, { salario: number | null; ultimaAlteracao?: { valor: number; data: string } }> = {};
         const updates: Record<string, { updated_at: string }> = {};
