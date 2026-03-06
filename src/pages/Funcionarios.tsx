@@ -1087,6 +1087,27 @@ const Funcionarios = () => {
         ctps_serie: "",
       });
       
+      // Optimistic update: add employee to list immediately
+      if (newUserId) {
+        const optimisticEmployee: Employee = {
+          id: newUserId,
+          name: newEmployee.name,
+          email: newEmployee.email,
+          phone: newEmployee.phone || "Não informado",
+          position: newEmployee.position || "Não informado",
+          department: newEmployee.department || "Não informado",
+          status: (newEmployee.status || "ativo") as EmployeeStatus,
+          admissionDate: newEmployee.dataAdmissao || new Date().toISOString().split('T')[0],
+          foto_url: newPhotoPreview || undefined,
+          matricula: undefined,
+        };
+        setEmployees(prev => {
+          const updated = [...prev, optimisticEmployee].sort((a, b) => a.name.localeCompare(b.name));
+          employeesRef.current = updated;
+          return updated;
+        });
+      }
+
       toast({
         title: "Funcionário adicionado com sucesso!",
         description: `${newEmployee.name} foi cadastrado.`,
@@ -1097,8 +1118,8 @@ const Funcionarios = () => {
       setNewPhotoPreview(null);
       setIsAddDialogOpen(false);
       
-      // Atualizar lista de funcionários imediatamente
-      await fetchEmployees();
+      // Background refresh to sync all data (non-blocking)
+      fetchEmployees().catch(console.error);
     } catch (error: any) {
       console.error("Erro ao adicionar funcionário:", error);
       
