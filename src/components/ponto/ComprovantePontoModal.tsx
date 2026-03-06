@@ -181,7 +181,7 @@ export const ComprovantePontoModal = ({ comprovante, onClose, onViewHistory }: C
         <div className="space-y-4">
           {/* Company */}
           <div className="bg-muted/50 rounded-lg p-3">
-            <p className="font-semibold text-sm">{empresa?.razao_social || 'Grupo Ativa Administradora'}</p>
+            <p className="font-semibold text-sm">{empresa?.razao_social || 'Grupo Ativa Tec'}</p>
             <p className="text-xs text-muted-foreground">CNPJ: {empresa?.cnpj || '42.523.488/0001-81'}</p>
             <p className="text-xs text-muted-foreground">Sistema REP-A | Portaria 671/2021</p>
           </div>
