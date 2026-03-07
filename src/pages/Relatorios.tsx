@@ -784,71 +784,106 @@ const Relatorios = () => {
         };
       }
 
-      case "beneficios":
-        const beneficiosLista = [
-          { nome: "Vale Transporte", valor: "R$ 200,00/mês", status: "Ativo" },
-          { nome: "Vale Refeição", valor: "R$ 30,00/dia", status: "Ativo" },
-          { nome: "Plano de Saúde", valor: "Unimed", status: "Ativo" },
-          { nome: "Plano Odontológico", valor: "Odontoprev", status: "Ativo" },
-        ];
+      case "beneficios": {
         const totalFuncionariosBen = funcList?.length || 0;
 
-        // Gera detalhes por funcionário com seus benefícios
+        // Fetch real benefits from beneficios_funcionario table
+        let beneficiosReais: any[] = [];
+        try {
+          beneficiosReais = await fetchDirectREST("beneficios_funcionario", "select=*&ativo=eq.true");
+        } catch (e) {
+          console.error("Error fetching beneficios:", e);
+        }
+
+        // Index benefits by user_id
+        const beneficiosPorUser: Record<string, any[]> = {};
+        beneficiosReais.forEach((b: any) => {
+          if (!beneficiosPorUser[b.user_id]) beneficiosPorUser[b.user_id] = [];
+          beneficiosPorUser[b.user_id].push(b);
+        });
+
+        // Generate details per employee with their real benefits
         const detailsBeneficios: any[] = [];
+        const tipoCount: Record<string, number> = {};
+        let totalValorBeneficios = 0;
+        let funcionariosComBeneficio = 0;
+
         funcList?.forEach(f => {
-          beneficiosLista.forEach(b => {
+          const benefs = beneficiosPorUser[f.id] || [];
+          if (benefs.length > 0) funcionariosComBeneficio++;
+          benefs.forEach(b => {
+            const tipo = b.tipo || "Outro";
+            tipoCount[tipo] = (tipoCount[tipo] || 0) + 1;
+            totalValorBeneficios += b.valor || 0;
             detailsBeneficios.push({
               funcionario: f.nome,
               departamento: f.departamento || "Não informado",
-              beneficio: b.nome,
-              valor: b.valor,
-              status: b.status,
+              beneficio: tipo,
+              valor: b.valor ? `R$ ${Number(b.valor).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}` : "-",
+              desconto: b.desconto_percentual ? `${b.desconto_percentual}%` : "-",
+              inicio: b.data_inicio || "-",
+              status: b.ativo ? "Ativo" : "Inativo",
             });
           });
+          if (benefs.length === 0) {
+            detailsBeneficios.push({
+              funcionario: f.nome,
+              departamento: f.departamento || "Não informado",
+              beneficio: "Nenhum cadastrado",
+              valor: "-",
+              desconto: "-",
+              inicio: "-",
+              status: "-",
+            });
+          }
         });
 
-        // Contagem de benefícios ativos
-        const beneficiosAtivos = beneficiosLista.filter(b => b.status === "Ativo").length;
-        const beneficiosInativos = beneficiosLista.filter(b => b.status === "Inativo").length;
+        const totalBeneficiosAtivos = beneficiosReais.length;
+        const tiposUnicos = Object.keys(tipoCount).length;
 
         return {
           ...baseData,
           summary: {
             "Total Funcionários": totalFuncionariosBen,
-            "Benefícios Cadastrados": beneficiosLista.length,
-            "Benefícios Ativos": beneficiosAtivos,
-            "Benefícios Inativos": beneficiosInativos,
+            "Com Benefício": funcionariosComBeneficio,
+            "Benefícios Ativos": totalBeneficiosAtivos,
+            "Tipos Diferentes": tiposUnicos,
+            "Valor Total Mensal": `R$ ${totalValorBeneficios.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
           },
           details: detailsBeneficios.length > 0 ? detailsBeneficios : [{
             funcionario: "Nenhum funcionário cadastrado",
             departamento: "-",
             beneficio: "-",
             valor: "-",
+            desconto: "-",
+            inicio: "-",
             status: "-",
           }],
           charts: [
             {
               type: "pie",
-              title: "Status dos Benefícios",
-              description: "Proporção entre benefícios ativos e inativos",
-              data: [
-                { status: "Ativos", valor: beneficiosAtivos },
-                ...(beneficiosInativos > 0 ? [{ status: "Inativos", valor: beneficiosInativos }] : []),
-              ],
+              title: "Distribuição por Tipo de Benefício",
+              description: "Proporção dos benefícios cadastrados por tipo",
+              data: Object.entries(tipoCount).length > 0
+                ? Object.entries(tipoCount).map(([tipo, count]) => ({ tipo, valor: count }))
+                : [{ tipo: "Sem dados", valor: 1 }],
             },
             {
               type: "bar",
               title: "Benefícios por Funcionário",
               description: "Quantidade de benefícios ativos por colaborador",
               dataName: "Benefícios",
-              insight: `Cada funcionário possui ${beneficiosAtivos} benefício(s) ativo(s).`,
-              data: funcList?.slice(0, 10).map(f => ({
+              insight: totalBeneficiosAtivos > 0
+                ? `Média de ${(totalBeneficiosAtivos / Math.max(funcionariosComBeneficio, 1)).toFixed(1)} benefício(s) por funcionário com cobertura.`
+                : "Nenhum benefício cadastrado na base de dados.",
+              data: funcList?.filter(f => (beneficiosPorUser[f.id] || []).length > 0).slice(0, 10).map(f => ({
                 funcionario: f.nome.length > 15 ? f.nome.substring(0, 15) + "..." : f.nome,
-                valor: beneficiosAtivos,
+                valor: (beneficiosPorUser[f.id] || []).length,
               })) || [],
             },
           ],
         };
+      }
 
       case "produtividade":
         const metricaProd = metricasList?.[0];
