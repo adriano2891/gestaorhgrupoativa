@@ -496,6 +496,12 @@ const SuporteFuncionarios = () => {
                   <p className="text-xs text-muted-foreground">Fechados</p>
                 </CardContent>
               </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-blue-500">{tempoMedioResolucao}</p>
+                  <p className="text-xs text-muted-foreground">Tempo Médio</p>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Filters */}
