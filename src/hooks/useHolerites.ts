@@ -11,6 +11,19 @@ export interface Holerite {
   arquivo_url: string | null;
   created_at: string;
   updated_at?: string;
+  // Campos CLT (Art. 464 + Portaria 3.626/91)
+  inss?: number;
+  irrf?: number;
+  fgts?: number;
+  base_calculo_inss?: number;
+  base_calculo_irrf?: number;
+  horas_extras_valor?: number;
+  adicional_noturno_valor?: number;
+  dsr_valor?: number;
+  vale_transporte?: number;
+  outros_proventos?: number;
+  outros_descontos?: number;
+  observacoes?: string | null;
 }
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;

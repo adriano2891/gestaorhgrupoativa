@@ -24,6 +24,16 @@ interface PayslipData {
   inss: number;
   irrf: number;
   netSalary: number;
+  // CLT fields
+  baseCalculoInss: number;
+  baseCalculoIrrf: number;
+  horasExtrasValor: number;
+  adicionalNoturnoValor: number;
+  dsrValor: number;
+  valeTransporte: number;
+  outrosProventos: number;
+  outrosDescontos: number;
+  observacoes?: string | null;
 }
 
 interface HoleriteViewerProps {
@@ -85,7 +95,6 @@ export const HoleriteViewer = ({
     }
   };
 
-  // Auto-load PDF when dialog opens with arquivoUrl
   useEffect(() => {
     if (open && arquivoUrl && !pdfBlobUrl && !isLoadingPdf) {
       loadPdf();
@@ -178,7 +187,10 @@ export const HoleriteViewer = ({
     );
   }
 
-  // Fallback: show summary data
+  // Fallback: show CLT-compliant summary
+  const totalProventos = data.salary + (data.horasExtrasValor || 0) + (data.adicionalNoturnoValor || 0) + (data.dsrValor || 0) + (data.outrosProventos || 0);
+  const totalDescontos = (data.inss || 0) + (data.irrf || 0) + (data.valeTransporte || 0) + (data.outrosDescontos || 0) + (data.deductions || 0);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -189,9 +201,10 @@ export const HoleriteViewer = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-5">
+          {/* Dados do Funcionário */}
           <div className="bg-secondary/50 p-4 rounded-lg">
-            <h3 className="font-semibold mb-2">Informações do Funcionário</h3>
+            <h3 className="font-semibold mb-2">Dados do Colaborador</h3>
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
                 <span className="text-muted-foreground">Nome:</span>
@@ -206,62 +219,95 @@ export const HoleriteViewer = ({
                 <p className="font-medium">{data.department}</p>
               </div>
               <div>
-                <span className="text-muted-foreground">Período:</span>
+                <span className="text-muted-foreground">Competência:</span>
                 <p className="font-medium">{data.month}/{data.year}</p>
               </div>
             </div>
           </div>
 
+          {/* PROVENTOS */}
           <div>
-            <h3 className="font-semibold mb-3">Proventos</h3>
+            <h3 className="font-semibold mb-3 text-primary">Proventos</h3>
             <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span>Salário Base</span>
                 <span className="font-medium">{formatCurrency(data.salary)}</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span>Benefícios</span>
-                <span className="font-medium">{formatCurrency(data.benefits)}</span>
-              </div>
+              {(data.horasExtrasValor || 0) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>Horas Extras</span>
+                  <span className="font-medium">{formatCurrency(data.horasExtrasValor)}</span>
+                </div>
+              )}
+              {(data.adicionalNoturnoValor || 0) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>Adicional Noturno</span>
+                  <span className="font-medium">{formatCurrency(data.adicionalNoturnoValor)}</span>
+                </div>
+              )}
+              {(data.dsrValor || 0) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>DSR s/ HE</span>
+                  <span className="font-medium">{formatCurrency(data.dsrValor)}</span>
+                </div>
+              )}
+              {(data.outrosProventos || 0) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>Outros Proventos</span>
+                  <span className="font-medium">{formatCurrency(data.outrosProventos)}</span>
+                </div>
+              )}
               <Separator />
               <div className="flex justify-between font-semibold">
                 <span>Total de Proventos</span>
-                <span className="text-primary">
-                  {formatCurrency(data.salary + data.benefits)}
-                </span>
+                <span className="text-primary">{formatCurrency(totalProventos)}</span>
               </div>
             </div>
           </div>
 
+          {/* DESCONTOS */}
           <div>
-            <h3 className="font-semibold mb-3">Descontos</h3>
+            <h3 className="font-semibold mb-3 text-destructive">Descontos</h3>
             <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>INSS</span>
-                <span className="font-medium text-destructive">-{formatCurrency(data.inss)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>IRRF</span>
-                <span className="font-medium text-destructive">-{formatCurrency(data.irrf)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>FGTS</span>
-                <span className="font-medium text-destructive">-{formatCurrency(data.fgts)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span>Outros Descontos</span>
-                <span className="font-medium text-destructive">-{formatCurrency(data.deductions)}</span>
-              </div>
+              {(data.inss || 0) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>INSS {(data.baseCalculoInss || 0) > 0 && <span className="text-muted-foreground text-xs">(Base: {formatCurrency(data.baseCalculoInss)})</span>}</span>
+                  <span className="font-medium text-destructive">-{formatCurrency(data.inss)}</span>
+                </div>
+              )}
+              {(data.irrf || 0) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>IRRF {(data.baseCalculoIrrf || 0) > 0 && <span className="text-muted-foreground text-xs">(Base: {formatCurrency(data.baseCalculoIrrf)})</span>}</span>
+                  <span className="font-medium text-destructive">-{formatCurrency(data.irrf)}</span>
+                </div>
+              )}
+              {(data.valeTransporte || 0) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>Vale Transporte (6%)</span>
+                  <span className="font-medium text-destructive">-{formatCurrency(data.valeTransporte)}</span>
+                </div>
+              )}
+              {(data.outrosDescontos || 0) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span>Outros Descontos</span>
+                  <span className="font-medium text-destructive">-{formatCurrency(data.outrosDescontos)}</span>
+                </div>
+              )}
+              {(data.deductions || 0) > 0 && !(data.inss || data.irrf || data.valeTransporte || data.outrosDescontos) && (
+                <div className="flex justify-between text-sm">
+                  <span>Descontos (não discriminados)</span>
+                  <span className="font-medium text-destructive">-{formatCurrency(data.deductions)}</span>
+                </div>
+              )}
               <Separator />
               <div className="flex justify-between font-semibold">
                 <span>Total de Descontos</span>
-                <span className="text-destructive">
-                  -{formatCurrency(data.inss + data.irrf + data.fgts + data.deductions)}
-                </span>
+                <span className="text-destructive">-{formatCurrency(totalDescontos)}</span>
               </div>
             </div>
           </div>
 
+          {/* VALOR LÍQUIDO */}
           <div className="bg-primary/10 p-4 rounded-lg">
             <div className="flex justify-between items-center">
               <span className="text-lg font-semibold">Valor Líquido</span>
@@ -270,6 +316,27 @@ export const HoleriteViewer = ({
               </span>
             </div>
           </div>
+
+          {/* FGTS INFORMATIVO (Lei 8.036/90 - não é desconto) */}
+          {(data.fgts || 0) > 0 && (
+            <div className="bg-muted/50 p-3 rounded-lg border border-border">
+              <div className="flex justify-between items-center text-sm">
+                <span className="font-medium">FGTS (depósito informativo - 8%)</span>
+                <span className="font-semibold">{formatCurrency(data.fgts)}</span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Conforme Lei 8.036/90 — valor depositado pelo empregador, não constitui desconto.
+              </p>
+            </div>
+          )}
+
+          {/* Observações */}
+          {data.observacoes && (
+            <div className="bg-muted/30 p-3 rounded-lg text-sm">
+              <span className="font-medium">Observações: </span>
+              <span className="text-muted-foreground">{data.observacoes}</span>
+            </div>
+          )}
 
           <div className="flex gap-2">
             <Button onClick={onDownload} className="flex-1">
