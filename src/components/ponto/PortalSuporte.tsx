@@ -29,6 +29,7 @@ interface PortalSuporteProps {
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   aberto: { label: "Aberto", variant: "default" },
+  em_andamento: { label: "Em Andamento", variant: "outline" },
   fechado: { label: "Fechado", variant: "secondary" },
 };
 
