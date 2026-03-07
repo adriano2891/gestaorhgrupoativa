@@ -430,13 +430,18 @@ export const useUpdateDocumento = () => {
   });
 };
 
-// Deletar documento
+// Deletar documento (soft-delete para conformidade CLT Art. 11 - prescrição 5 anos)
 export const useDeleteDocumento = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await restDelete('documentos', `?id=eq.${id}`);
+      const userId = getUserIdFromToken();
+      await restPatch('documentos', `?id=eq.${id}`, {
+        excluido: true,
+        excluido_por: userId,
+        excluido_em: new Date().toISOString(),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documentos"] });
