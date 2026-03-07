@@ -557,3 +557,36 @@ export const useUploadVersao = () => {
     },
   });
 };
+
+// Registrar acesso ao documento (CLT Art. 74 - rastreabilidade)
+export async function registrarAcessoDocumento(documentoId: string, acao: string) {
+  try {
+    const userId = getUserIdFromToken();
+    if (!userId) return;
+    await restPost('documentos_acessos', {
+      documento_id: documentoId,
+      user_id: userId,
+      acao,
+    });
+  } catch (e) {
+    console.warn('Falha ao registrar acesso:', e);
+  }
+}
+
+// Fetch auditoria de um documento
+export const useDocumentoAuditoria = (documentoId: string | undefined) => {
+  return useQuery({
+    queryKey: ["documento-auditoria", documentoId],
+    queryFn: async () => {
+      if (!documentoId) return [];
+      try {
+        const data = await restGet('documentos_auditoria', `?select=*&documento_id=eq.${documentoId}&order=created_at.desc`);
+        return data ?? [];
+      } catch (e) {
+        console.error('Erro ao buscar auditoria:', e);
+        return [];
+      }
+    },
+    enabled: !!documentoId,
+  });
+};
