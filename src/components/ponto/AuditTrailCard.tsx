@@ -224,7 +224,52 @@ export const AuditTrailCard = () => {
             Nenhum evento registrado na trilha de auditoria.
           </div>
         ) : (
-          <>
+            {/* Filtros */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Data início</label>
+                <Input type="date" value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)} className="h-9 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Data fim</label>
+                <Input type="date" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} className="h-9 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Ação</label>
+                <Select value={filterAction} onValueChange={setFilterAction}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Todas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="entrada">Entrada</SelectItem>
+                    <SelectItem value="saida">Saída</SelectItem>
+                    <SelectItem value="intervalo">Intervalo</SelectItem>
+                    <SelectItem value="login">Login</SelectItem>
+                    <SelectItem value="outro">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">IP</label>
+                <Input placeholder="Filtrar por IP" value={filterIP} onChange={e => setFilterIP(e.target.value)} className="h-9 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Detalhes</label>
+                <Input placeholder="Buscar nos detalhes" value={filterDetails} onChange={e => setFilterDetails(e.target.value)} className="h-9 text-sm" />
+              </div>
+            </div>
+            {hasFilters && (
+              <div className="flex items-center gap-2 mb-3">
+                <Badge variant="secondary" className="gap-1">
+                  <Filter className="h-3 w-3" />
+                  {filteredLogs.length} resultado(s)
+                </Badge>
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
+                  <X className="h-3 w-3" /> Limpar filtros
+                </Button>
+              </div>
+            )}
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
