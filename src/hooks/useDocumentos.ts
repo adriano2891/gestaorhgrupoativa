@@ -252,7 +252,7 @@ export const useDocumentos = (filters?: {
     queryFn: async () => {
       try {
         // Build query params
-        let params = '?select=*,categoria:documentos_categorias(id,nome,cor)&order=created_at.desc';
+        let params = '?select=*,categoria:documentos_categorias(id,nome,cor)&excluido=eq.false&order=created_at.desc';
         
         if (filters?.categoriaId) {
           params += `&categoria_id=eq.${filters.categoriaId}`;
@@ -430,13 +430,18 @@ export const useUpdateDocumento = () => {
   });
 };
 
-// Deletar documento
+// Deletar documento (soft-delete para conformidade CLT Art. 11 - prescrição 5 anos)
 export const useDeleteDocumento = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await restDelete('documentos', `?id=eq.${id}`);
+      const userId = getUserIdFromToken();
+      await restPatch('documentos', `?id=eq.${id}`, {
+        excluido: true,
+        excluido_por: userId,
+        excluido_em: new Date().toISOString(),
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["documentos"] });
@@ -550,5 +555,38 @@ export const useUploadVersao = () => {
     onError: (error: Error) => {
       toast({ title: "Erro ao enviar versão", description: error.message, variant: "destructive" });
     },
+  });
+};
+
+// Registrar acesso ao documento (CLT Art. 74 - rastreabilidade)
+export async function registrarAcessoDocumento(documentoId: string, acao: string) {
+  try {
+    const userId = getUserIdFromToken();
+    if (!userId) return;
+    await restPost('documentos_acessos', {
+      documento_id: documentoId,
+      user_id: userId,
+      acao,
+    });
+  } catch (e) {
+    console.warn('Falha ao registrar acesso:', e);
+  }
+}
+
+// Fetch auditoria de um documento
+export const useDocumentoAuditoria = (documentoId: string | undefined) => {
+  return useQuery({
+    queryKey: ["documento-auditoria", documentoId],
+    queryFn: async () => {
+      if (!documentoId) return [];
+      try {
+        const data = await restGet('documentos_auditoria', `?select=*&documento_id=eq.${documentoId}&order=created_at.desc`);
+        return data ?? [];
+      } catch (e) {
+        console.error('Erro ao buscar auditoria:', e);
+        return [];
+      }
+    },
+    enabled: !!documentoId,
   });
 };

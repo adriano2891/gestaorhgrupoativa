@@ -30,7 +30,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDocumentos, useDocumentosCategorias, useMeusFavoritos, useDeleteDocumento, useToggleFavorito, getDocumentoAccessUrl } from "@/hooks/useDocumentos";
+import { useDocumentos, useDocumentosCategorias, useMeusFavoritos, useDeleteDocumento, useToggleFavorito, getDocumentoAccessUrl, registrarAcessoDocumento } from "@/hooks/useDocumentos";
+import { gerarPdfRelatorioDocumentos } from "@/utils/documentosPdfAuditoria";
 import { UploadDocumentoDialog } from "@/components/documentos/UploadDocumentoDialog";
 import { CriarCategoriaDialog } from "@/components/documentos/CriarCategoriaDialog";
 import { DocumentoDetalhesDialog } from "@/components/documentos/DocumentoDetalhesDialog";
@@ -142,7 +143,7 @@ const Documentacoes = () => {
   const handleDownload = async (doc: Documento) => {
     try {
       const url = await getDocumentoAccessUrl(doc.arquivo_url);
-
+      registrarAcessoDocumento(doc.id, 'download');
       const { downloadFileFromUrl } = await import("@/utils/downloadFile");
       await downloadFileFromUrl(url, {
         filename: doc.arquivo_nome,
@@ -160,6 +161,7 @@ const Documentacoes = () => {
       const url = await getDocumentoAccessUrl(doc.arquivo_url);
       console.log('[Documentos] Preview - signed URL obtained:', url?.substring(0, 80));
       if (!url) throw new Error("URL de acesso não gerada");
+      registrarAcessoDocumento(doc.id, 'visualizacao');
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('[Documentos] Preview error:', error);
@@ -192,6 +194,12 @@ const Documentacoes = () => {
               </div>
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
+              <Button variant="ghost" size="sm" onClick={() => {
+                if (documentos) gerarPdfRelatorioDocumentos(documentos);
+              }} className="h-8 px-2 sm:px-3 text-xs sm:text-sm text-black hover:bg-black/10">
+                <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Relatório PDF</span>
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => setShowCategoriaDialog(true)} className="h-8 px-2 sm:px-3 text-xs sm:text-sm text-black hover:bg-black/10">
                 <FolderOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Nova Categoria</span>

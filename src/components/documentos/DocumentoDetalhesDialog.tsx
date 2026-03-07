@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
   Download, Star, ExternalLink, Clock, User, FileText, 
-  MessageSquare, History, Send, Upload, Loader2, Tag
+  MessageSquare, History, Send, Upload, Loader2, Tag, Shield
 } from "lucide-react";
 import {
   Dialog,
@@ -17,7 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { useDocumentoComentarios, useDocumentoVersoes, useAddComentario, useUploadVersao, getDocumentoAccessUrl } from "@/hooks/useDocumentos";
+import { useDocumentoComentarios, useDocumentoVersoes, useAddComentario, useUploadVersao, getDocumentoAccessUrl, useDocumentoAuditoria, registrarAcessoDocumento } from "@/hooks/useDocumentos";
+import { gerarPdfDocumentoAuditoria } from "@/utils/documentosPdfAuditoria";
 import { TIPO_LABELS, type Documento } from "@/types/documentos";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
@@ -39,6 +40,7 @@ export const DocumentoDetalhesDialog = ({
 }: DocumentoDetalhesDialogProps) => {
   const { data: comentarios } = useDocumentoComentarios(documento.id);
   const { data: versoes } = useDocumentoVersoes(documento.id);
+  const { data: auditoria } = useDocumentoAuditoria(documento.id);
   const addComentario = useAddComentario();
   const uploadVersao = useUploadVersao();
   
@@ -134,15 +136,19 @@ export const DocumentoDetalhesDialog = ({
 
         <div className="flex-1 overflow-hidden">
           <Tabs defaultValue="info" className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="info">Informações</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="info">Info</TabsTrigger>
               <TabsTrigger value="versoes" className="gap-1">
                 <History className="h-4 w-4" />
-                Versões ({versoes?.length || 0})
+                ({versoes?.length || 0})
               </TabsTrigger>
               <TabsTrigger value="comentarios" className="gap-1">
                 <MessageSquare className="h-4 w-4" />
-                Comentários ({comentarios?.length || 0})
+                ({comentarios?.length || 0})
+              </TabsTrigger>
+              <TabsTrigger value="auditoria" className="gap-1">
+                <Shield className="h-4 w-4" />
+                Auditoria
               </TabsTrigger>
             </TabsList>
 
@@ -315,6 +321,31 @@ export const DocumentoDetalhesDialog = ({
                           </p>
                         </div>
                         <p className="text-sm">{comentario.conteudo}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="auditoria" className="mt-0">
+                <div className="flex justify-end mb-3">
+                  <Button variant="outline" size="sm" onClick={() => gerarPdfDocumentoAuditoria(documento, auditoria || [])}>
+                    <FileText className="h-4 w-4 mr-1" /> PDF Auditoria
+                  </Button>
+                </div>
+                {!auditoria || auditoria.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    Nenhum registro de auditoria
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {auditoria.map((a: any) => (
+                      <div key={a.id} className="flex items-start gap-3 text-xs border-l-2 border-muted pl-3 py-1.5">
+                        <span className="text-muted-foreground whitespace-nowrap">
+                          {format(new Date(a.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                        </span>
+                        <span className="font-medium">{a.acao}</span>
+                        <span className="text-muted-foreground flex-1">{a.detalhes || ""}</span>
                       </div>
                     ))}
                   </div>
