@@ -200,7 +200,8 @@ const SuporteFuncionarios = () => {
   };
 
   const contadores = {
-    aberto: chamados.filter(c => c.status !== "fechado").length,
+    aberto: chamados.filter(c => c.status === "aberto").length,
+    em_andamento: chamados.filter(c => c.status === "em_andamento").length,
     fechado: chamados.filter(c => c.status === "fechado").length,
     total: chamados.length,
   };
