@@ -489,6 +489,7 @@ const SuporteFuncionarios = () => {
                 <SelectContent>
                   <SelectItem value="todos">Todos Status</SelectItem>
                   <SelectItem value="aberto">Aberto</SelectItem>
+                  <SelectItem value="em_andamento">Em Andamento</SelectItem>
                   <SelectItem value="fechado">Fechado</SelectItem>
                 </SelectContent>
               </Select>
