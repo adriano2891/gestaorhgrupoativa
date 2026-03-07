@@ -885,12 +885,38 @@ const BancoTalentos = () => {
                 Formatos aceitos: PDF, DOC, DOCX
               </p>
             </div>
+
+            {/* Seção LGPD - Consentimento e Finalidade */}
+            <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                <Label className="font-semibold text-sm">Conformidade LGPD</Label>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                <strong>Finalidade do tratamento:</strong> Os dados coletados serão utilizados exclusivamente para fins de processo seletivo e recrutamento, conforme Art. 7º, I da Lei nº 13.709/2018 (LGPD). Os dados serão armazenados por até 2 anos e poderão ser excluídos ou exportados a pedido do titular.
+              </p>
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="consentimento-lgpd"
+                  checked={consentimentoLGPD}
+                  onCheckedChange={(checked) => setConsentimentoLGPD(checked === true)}
+                />
+                <label
+                  htmlFor="consentimento-lgpd"
+                  className="text-xs leading-relaxed cursor-pointer"
+                >
+                  O candidato declara que <strong>consente com o tratamento dos seus dados pessoais</strong> para a finalidade descrita acima, em conformidade com a LGPD. *
+                </label>
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveNewCandidate}>Adicionar Candidato</Button>
+            <Button onClick={handleSaveNewCandidate} disabled={!consentimentoLGPD}>
+              Adicionar Candidato
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
