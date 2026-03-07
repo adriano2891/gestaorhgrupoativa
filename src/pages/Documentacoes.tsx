@@ -161,6 +161,7 @@ const Documentacoes = () => {
       const url = await getDocumentoAccessUrl(doc.arquivo_url);
       console.log('[Documentos] Preview - signed URL obtained:', url?.substring(0, 80));
       if (!url) throw new Error("URL de acesso não gerada");
+      registrarAcessoDocumento(doc.id, 'visualizacao');
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.error('[Documentos] Preview error:', error);
