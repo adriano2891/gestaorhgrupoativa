@@ -117,6 +117,7 @@ const FolhaPonto = () => {
   const [showFolgaDialog, setShowFolgaDialog] = useState(false);
   const [registrosFolga, setRegistrosFolga] = useState<any[]>([]);
   const [countFolga, setCountFolga] = useState(0);
+  const [assinaturasMap, setAssinaturasMap] = useState<Record<string, any>>({});
 
   const getAccessToken = (): string | null => {
     try {
