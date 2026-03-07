@@ -48,6 +48,17 @@ export const useUploadHolerite = () => {
       salarioBruto = 0,
       descontos = 0,
       salarioLiquido = 0,
+      inss,
+      irrf,
+      fgts,
+      baseCalculoInss,
+      baseCalculoIrrf,
+      horasExtrasValor,
+      adicionalNoturnoValor,
+      valeTransporte,
+      outrosProventos,
+      outrosDescontos,
+      observacoes,
     }: UploadHoleriteParams) => {
       // 1. Verificar se já existe holerite para este funcionário/mês/ano
       const { data: existingHolerite } = await supabase
