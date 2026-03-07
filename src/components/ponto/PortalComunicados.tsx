@@ -1,13 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Bell } from "lucide-react";
+import { ArrowLeft, Bell, Paperclip, Download, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { usePortalAuth } from "./PortalAuthProvider";
-import { useComunicados, useMarcarComunicadoLido } from "@/hooks/useComunicados";
+import { useComunicados, useMarcarComunicadoLido, useConfirmarComunicado } from "@/hooks/useComunicados";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PortalBackground } from "./PortalBackground";
+import { toast } from "sonner";
 
 interface PortalComunicadosProps {
   onBack: () => void;
@@ -17,6 +18,7 @@ export const PortalComunicados = ({ onBack }: PortalComunicadosProps) => {
   const { user } = usePortalAuth();
   const { data: comunicados, isLoading } = useComunicados(user?.id);
   const marcarLido = useMarcarComunicadoLido();
+  const confirmar = useConfirmarComunicado();
 
   const handleComunicadoClick = (comunicado: any) => {
     if (!comunicado.lido && user?.id) {
@@ -25,6 +27,17 @@ export const PortalComunicados = ({ onBack }: PortalComunicadosProps) => {
         userId: user.id,
       });
     }
+  };
+
+  const handleConfirmar = (comunicadoId: string) => {
+    if (!user?.id) return;
+    confirmar.mutate(
+      { comunicadoId, userId: user.id },
+      {
+        onSuccess: () => toast.success("Comunicado confirmado com sucesso"),
+        onError: () => toast.error("Erro ao confirmar comunicado"),
+      }
+    );
   };
 
   return (
@@ -79,15 +92,57 @@ export const PortalComunicados = ({ onBack }: PortalComunicadosProps) => {
                           <div className="flex items-center gap-2 mb-1">
                             <p className="font-medium text-lg">{comunicado.titulo}</p>
                             {!comunicado.lido && (
-                              <Badge variant="default" className="text-xs">
-                                Novo
-                              </Badge>
+                              <Badge variant="default" className="text-xs">Novo</Badge>
                             )}
                           </div>
                           <p className="text-base text-muted-foreground mb-2">
                             {format(new Date(comunicado.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                           </p>
                           <p className="text-base">{comunicado.conteudo}</p>
+
+                          {/* Anexos */}
+                          {comunicado.anexos && comunicado.anexos.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-3">
+                              {comunicado.anexos.map((anexo: any, i: number) => (
+                                <a
+                                  key={i}
+                                  href={anexo.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="inline-flex items-center gap-1 text-xs bg-muted rounded px-2 py-1 hover:bg-muted/80"
+                                >
+                                  <Paperclip className="h-3 w-3" />
+                                  {anexo.nome}
+                                  <Download className="h-3 w-3 ml-1" />
+                                </a>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Botão de confirmação formal */}
+                          {comunicado.lido && !comunicado.confirmado && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="mt-3 gap-1 border-green-500 text-green-600 hover:bg-green-50"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleConfirmar(comunicado.id);
+                              }}
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                              Li e estou ciente
+                            </Button>
+                          )}
+                          {comunicado.confirmado && (
+                            <Badge className="mt-3 bg-green-500 text-white gap-1">
+                              <CheckCircle className="h-3 w-3" />
+                              Confirmado em {comunicado.confirmado_em
+                                ? format(new Date(comunicado.confirmado_em), "dd/MM/yyyy HH:mm", { locale: ptBR })
+                                : ""}
+                            </Badge>
+                          )}
                         </div>
                         <Badge variant="outline">{comunicado.tipo}</Badge>
                       </div>

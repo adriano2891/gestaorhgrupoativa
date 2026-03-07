@@ -11,16 +11,22 @@ import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Paperclip, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 interface CriarComunicadoDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+}
+
+interface Anexo {
+  file: File;
+  nome: string;
 }
 
 export const CriarComunicadoDialog = ({
@@ -35,6 +41,8 @@ export const CriarComunicadoDialog = ({
   const [departamentosSelecionados, setDepartamentosSelecionados] = useState<string[]>([]);
   const [funcionariosSelecionados, setFuncionariosSelecionados] = useState<string[]>([]);
   const [dataExpiracao, setDataExpiracao] = useState<Date | undefined>();
+  const [anexos, setAnexos] = useState<Anexo[]>([]);
+  const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: departamentos } = useQuery({
@@ -44,12 +52,8 @@ export const CriarComunicadoDialog = ({
         .from("profiles")
         .select("departamento")
         .not("departamento", "is", null);
-
       if (error) throw error;
-
-      const uniqueDepts = Array.from(
-        new Set(data.map((p) => p.departamento).filter(Boolean))
-      );
+      const uniqueDepts = Array.from(new Set(data.map((p) => p.departamento).filter(Boolean)));
       return uniqueDepts as string[];
     },
   });
@@ -63,16 +67,45 @@ export const CriarComunicadoDialog = ({
         .eq("user_roles.role", "funcionario")
         .not("status", "in", '("demitido","pediu_demissao")')
         .order("nome", { ascending: true });
-
       if (error) throw error;
       return data;
     },
   });
 
+  const uploadAnexos = async (): Promise<any[]> => {
+    if (anexos.length === 0) return [];
+    const uploaded: any[] = [];
+
+    for (const anexo of anexos) {
+      const ext = anexo.file.name.split('.').pop();
+      const path = `comunicados/${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+
+      const { error } = await supabase.storage
+        .from("comunicados-anexos")
+        .upload(path, anexo.file);
+
+      if (error) {
+        console.error("Erro upload anexo:", error);
+        throw error;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("comunicados-anexos")
+        .getPublicUrl(path);
+
+      uploaded.push({
+        nome: anexo.file.name,
+        url: urlData.publicUrl,
+        tamanho: anexo.file.size,
+        tipo: anexo.file.type,
+      });
+    }
+    return uploaded;
+  };
+
   const createMutation = useMutation({
     mutationFn: async () => {
       let destinatarios: string[] = [];
-      
       if (tipoDestinatario === "todos") {
         destinatarios = ["todos"];
       } else if (tipoDestinatario === "departamentos") {
@@ -82,21 +115,15 @@ export const CriarComunicadoDialog = ({
       }
 
       const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        throw new Error("Usuário não autenticado");
-      }
+      if (!user) throw new Error("Usuário não autenticado");
 
-      console.log("Criando comunicado com dados:", {
-        titulo,
-        conteudo,
-        tipo,
-        prioridade,
-        destinatarios,
-        criado_por: user.id,
-        data_expiracao: dataExpiracao?.toISOString() || null,
-        ativo: true,
-      });
+      setUploading(true);
+      let anexosData: any[] = [];
+      try {
+        anexosData = await uploadAnexos();
+      } finally {
+        setUploading(false);
+      }
 
       const { data, error } = await supabase.from("comunicados").insert({
         titulo,
@@ -107,14 +134,10 @@ export const CriarComunicadoDialog = ({
         criado_por: user.id,
         data_expiracao: dataExpiracao?.toISOString() || null,
         ativo: true,
+        anexos: anexosData.length > 0 ? anexosData : null,
       }).select();
 
-      if (error) {
-        console.error("Erro ao criar comunicado:", error);
-        throw error;
-      }
-      
-      console.log("Comunicado criado com sucesso:", data);
+      if (error) throw error;
       return data;
     },
     onSuccess: () => {
@@ -123,7 +146,6 @@ export const CriarComunicadoDialog = ({
       handleClose();
     },
     onError: (error: any) => {
-      console.error("Erro na mutation:", error);
       toast.error(error.message || "Erro ao criar comunicado");
     },
   });
@@ -137,6 +159,7 @@ export const CriarComunicadoDialog = ({
     setDepartamentosSelecionados([]);
     setFuncionariosSelecionados([]);
     setDataExpiracao(undefined);
+    setAnexos([]);
     onOpenChange(false);
   };
 
@@ -147,6 +170,26 @@ export const CriarComunicadoDialog = ({
       return;
     }
     createMutation.mutate();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    const maxSize = 20 * 1024 * 1024; // 20MB
+    const newAnexos: Anexo[] = [];
+    for (let i = 0; i < files.length; i++) {
+      if (files[i].size > maxSize) {
+        toast.error(`Arquivo "${files[i].name}" excede 20MB`);
+        continue;
+      }
+      newAnexos.push({ file: files[i], nome: files[i].name });
+    }
+    setAnexos(prev => [...prev, ...newAnexos]);
+    e.target.value = "";
+  };
+
+  const removeAnexo = (index: number) => {
+    setAnexos(prev => prev.filter((_, i) => i !== index));
   };
 
   const toggleDepartamento = (dept: string) => {
@@ -196,9 +239,7 @@ export const CriarComunicadoDialog = ({
             <div className="space-y-2">
               <Label htmlFor="tipo">Tipo</Label>
               <Select value={tipo} onValueChange={setTipo}>
-                <SelectTrigger id="tipo">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger id="tipo"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="informativo">Informativo</SelectItem>
                   <SelectItem value="urgente">Urgente</SelectItem>
@@ -207,13 +248,10 @@ export const CriarComunicadoDialog = ({
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="prioridade">Prioridade</Label>
               <Select value={prioridade} onValueChange={setPrioridade}>
-                <SelectTrigger id="prioridade">
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger id="prioridade"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="alta">Alta</SelectItem>
                   <SelectItem value="media">Média</SelectItem>
@@ -230,17 +268,10 @@ export const CriarComunicadoDialog = ({
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !dataExpiracao && "text-muted-foreground"
-                  )}
+                  className={cn("w-full justify-start text-left font-normal", !dataExpiracao && "text-muted-foreground")}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dataExpiracao ? (
-                    format(dataExpiracao, "dd/MM/yyyy", { locale: ptBR })
-                  ) : (
-                    "Selecione uma data"
-                  )}
+                  {dataExpiracao ? format(dataExpiracao, "dd/MM/yyyy", { locale: ptBR }) : "Selecione uma data"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -255,6 +286,32 @@ export const CriarComunicadoDialog = ({
             </Popover>
           </div>
 
+          {/* Anexos - CLT Art. 74 §2º, NR-1 */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Paperclip className="h-4 w-4" />
+              Anexos (máx. 20MB por arquivo)
+            </Label>
+            <Input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+            />
+            {anexos.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {anexos.map((a, i) => (
+                  <Badge key={i} variant="secondary" className="gap-1 pr-1">
+                    {a.nome}
+                    <button type="button" onClick={() => removeAnexo(i)} className="ml-1 hover:text-destructive">
+                      <X className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="space-y-3">
             <Label>Destinatários</Label>
             <RadioGroup value={tipoDestinatario} onValueChange={(value: any) => {
@@ -264,40 +321,21 @@ export const CriarComunicadoDialog = ({
             }}>
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="todos" id="todos" />
-                <label
-                  htmlFor="todos"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Enviar para todos os funcionários
-                </label>
+                <label htmlFor="todos" className="text-sm font-medium leading-none">Enviar para todos os funcionários</label>
               </div>
-              
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="departamentos" id="departamentos" />
-                <label
-                  htmlFor="departamentos"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Enviar para departamentos específicos
-                </label>
+                <label htmlFor="departamentos" className="text-sm font-medium leading-none">Enviar para departamentos específicos</label>
               </div>
-
               <div className="flex items-center space-x-2">
                 <RadioGroupItem value="funcionarios" id="funcionarios" />
-                <label
-                  htmlFor="funcionarios"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Enviar para funcionários específicos
-                </label>
+                <label htmlFor="funcionarios" className="text-sm font-medium leading-none">Enviar para funcionários específicos</label>
               </div>
             </RadioGroup>
 
             {tipoDestinatario === "departamentos" && departamentos && (
               <div className="space-y-2 pl-6 border-l-2 border-border">
-                <Label className="text-sm text-muted-foreground">
-                  Selecione os departamentos:
-                </Label>
+                <Label className="text-sm text-muted-foreground">Selecione os departamentos:</Label>
                 <div className="grid grid-cols-2 gap-2">
                   {departamentos.map((dept) => (
                     <div key={dept} className="flex items-center space-x-2">
@@ -306,12 +344,7 @@ export const CriarComunicadoDialog = ({
                         checked={departamentosSelecionados.includes(dept)}
                         onCheckedChange={() => toggleDepartamento(dept)}
                       />
-                      <label
-                        htmlFor={dept}
-                        className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        {dept}
-                      </label>
+                      <label htmlFor={dept} className="text-sm leading-none">{dept}</label>
                     </div>
                   ))}
                 </div>
@@ -332,10 +365,7 @@ export const CriarComunicadoDialog = ({
                           checked={funcionariosSelecionados.includes(func.id)}
                           onCheckedChange={() => toggleFuncionario(func.id)}
                         />
-                        <label
-                          htmlFor={func.id}
-                          className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 flex-1"
-                        >
+                        <label htmlFor={func.id} className="text-sm leading-none flex-1">
                           <div className="flex flex-col">
                             <span className="font-medium">{func.nome}</span>
                             <span className="text-xs text-muted-foreground">{func.email} • {func.departamento || "Sem departamento"}</span>
@@ -350,11 +380,9 @@ export const CriarComunicadoDialog = ({
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={handleClose}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending ? "Criando..." : "Criar Comunicado"}
+            <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
+            <Button type="submit" disabled={createMutation.isPending || uploading}>
+              {uploading ? "Enviando anexos..." : createMutation.isPending ? "Criando..." : "Criar Comunicado"}
             </Button>
           </div>
         </form>
