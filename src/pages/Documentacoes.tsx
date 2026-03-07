@@ -60,6 +60,8 @@ const Documentacoes = () => {
   const [activeTab, setActiveTab] = useState("todos");
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [editingCategoria, setEditingCategoria] = useState<import("@/types/documentos").DocumentoCategoria | null>(null);
+  const [deleteCatId, setDeleteCatId] = useState<string | null>(null);
   const { data: documentos, isLoading } = useDocumentos({
     categoriaId: selectedCategoria,
     search: searchTerm,
