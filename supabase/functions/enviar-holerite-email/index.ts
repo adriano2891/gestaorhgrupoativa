@@ -26,61 +26,188 @@ const getMesNome = (mes: number): string => {
   return meses[mes - 1];
 };
 
-const gerarPDFProtegido = async (holerite: any, profile: any): Promise<Uint8Array> => {
+const formatCurrency = (val: number): string =>
+  val.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const gerarPDFProtegido = async (holerite: any, profile: any, empresa: any): Promise<Uint8Array> => {
   const { default: jsPDF } = await import("https://esm.sh/jspdf@2.5.2");
   const doc = new jsPDF();
-  
-  doc.setFontSize(20);
-  doc.text("HOLERITE - CONTRACHEQUE", 105, 20, { align: "center" });
-  doc.setFontSize(10);
-  doc.text(`Referência: ${getMesNome(holerite.mes)}/${holerite.ano}`, 105, 30, { align: "center" });
-  doc.line(20, 35, 190, 35);
-  
-  doc.setFontSize(12);
+  let y = 15;
+
+  // CABEÇALHO - DADOS DO EMPREGADOR (Art. 464 CLT)
+  doc.setFontSize(16);
   doc.setFont(undefined, "bold");
-  doc.text("DADOS DO COLABORADOR", 20, 45);
-  doc.setFont(undefined, "normal");
+  doc.text("DEMONSTRATIVO DE PAGAMENTO", 105, y, { align: "center" });
+  y += 8;
   doc.setFontSize(10);
-  doc.text(`Nome: ${profile.nome}`, 20, 55);
-  doc.text(`CPF: ${profile.cpf || "Não informado"}`, 20, 62);
-  doc.text(`Cargo: ${profile.cargo || "Não informado"}`, 20, 69);
-  doc.text(`Departamento: ${profile.departamento || "Não informado"}`, 20, 76);
-  doc.line(20, 82, 190, 82);
-  
-  doc.setFontSize(12);
-  doc.setFont(undefined, "bold");
-  doc.text("PROVENTOS", 20, 92);
   doc.setFont(undefined, "normal");
-  doc.setFontSize(10);
-  doc.text("Salário Base", 20, 102);
-  doc.text(`R$ ${holerite.salario_bruto.toFixed(2)}`, 160, 102, { align: "right" });
+  doc.text(`${empresa?.razao_social || "Empresa não informada"}`, 105, y, { align: "center" });
+  y += 5;
+  doc.text(`CNPJ: ${empresa?.cnpj || "Não informado"}`, 105, y, { align: "center" });
+  y += 5;
+  doc.text(`Competência: ${getMesNome(holerite.mes)}/${holerite.ano}`, 105, y, { align: "center" });
+  y += 3;
+  doc.line(14, y, 196, y);
+  y += 8;
+
+  // DADOS DO COLABORADOR (Portaria 3.626/91)
+  doc.setFontSize(11);
   doc.setFont(undefined, "bold");
-  doc.text("Total Proventos:", 20, 112);
-  doc.text(`R$ ${holerite.salario_bruto.toFixed(2)}`, 160, 112, { align: "right" });
-  doc.line(20, 118, 190, 118);
-  
-  doc.setFontSize(12);
-  doc.text("DESCONTOS", 20, 128);
-  doc.setFont(undefined, "normal");
-  doc.setFontSize(10);
-  doc.text("Total Descontos", 20, 138);
-  doc.text(`R$ ${(holerite.descontos || 0).toFixed(2)}`, 160, 138, { align: "right" });
-  doc.line(20, 144, 190, 144);
-  
-  doc.setFontSize(14);
-  doc.setFont(undefined, "bold");
-  doc.text("VALOR LÍQUIDO", 20, 154);
-  doc.text(`R$ ${holerite.salario_liquido.toFixed(2)}`, 160, 154, { align: "right" });
-  
-  doc.setFontSize(8);
-  doc.setFont(undefined, "normal");
-  doc.text("Documento gerado automaticamente pelo sistema de RH", 105, 280, { align: "center" });
-  doc.text(`Data de emissão: ${new Date().toLocaleDateString("pt-BR")}`, 105, 285, { align: "center" });
-  
+  doc.text("DADOS DO COLABORADOR", 14, y);
+  y += 7;
   doc.setFontSize(9);
+  doc.setFont(undefined, "normal");
+  doc.text(`Nome: ${profile.nome}`, 14, y);
+  doc.text(`CPF: ${profile.cpf || "Não informado"}`, 120, y);
+  y += 5;
+  doc.text(`Cargo: ${profile.cargo || "Não informado"}`, 14, y);
+  doc.text(`Departamento: ${profile.departamento || "Não informado"}`, 120, y);
+  y += 5;
+  doc.text(`Matrícula: ${profile.matricula || "N/A"}`, 14, y);
+  doc.text(`Data Admissão: ${profile.data_admissao || "N/A"}`, 120, y);
+  y += 3;
+  doc.line(14, y, 196, y);
+  y += 8;
+
+  // PROVENTOS
+  doc.setFontSize(11);
   doc.setFont(undefined, "bold");
-  doc.text("IMPORTANTE: Este documento está protegido por senha (primeiros 6 dígitos do CPF)", 105, 270, { align: "center" });
-  
+  doc.text("PROVENTOS", 14, y);
+  doc.text("VALOR (R$)", 175, y, { align: "right" });
+  y += 2;
+  doc.line(14, y, 196, y);
+  y += 6;
+
+  doc.setFontSize(9);
+  doc.setFont(undefined, "normal");
+
+  let totalProventos = holerite.salario_bruto || 0;
+  doc.text("Salário Base", 14, y);
+  doc.text(formatCurrency(holerite.salario_bruto || 0), 175, y, { align: "right" });
+  y += 5;
+
+  if ((holerite.horas_extras_valor || 0) > 0) {
+    doc.text("Horas Extras", 14, y);
+    doc.text(formatCurrency(holerite.horas_extras_valor), 175, y, { align: "right" });
+    totalProventos += holerite.horas_extras_valor;
+    y += 5;
+  }
+  if ((holerite.adicional_noturno_valor || 0) > 0) {
+    doc.text("Adicional Noturno", 14, y);
+    doc.text(formatCurrency(holerite.adicional_noturno_valor), 175, y, { align: "right" });
+    totalProventos += holerite.adicional_noturno_valor;
+    y += 5;
+  }
+  if ((holerite.dsr_valor || 0) > 0) {
+    doc.text("DSR s/ Horas Extras", 14, y);
+    doc.text(formatCurrency(holerite.dsr_valor), 175, y, { align: "right" });
+    totalProventos += holerite.dsr_valor;
+    y += 5;
+  }
+  if ((holerite.outros_proventos || 0) > 0) {
+    doc.text("Outros Proventos", 14, y);
+    doc.text(formatCurrency(holerite.outros_proventos), 175, y, { align: "right" });
+    totalProventos += holerite.outros_proventos;
+    y += 5;
+  }
+
+  doc.setFont(undefined, "bold");
+  doc.text("TOTAL PROVENTOS", 14, y);
+  doc.text(formatCurrency(totalProventos), 175, y, { align: "right" });
+  y += 3;
+  doc.line(14, y, 196, y);
+  y += 8;
+
+  // DESCONTOS
+  doc.setFontSize(11);
+  doc.text("DESCONTOS", 14, y);
+  doc.text("VALOR (R$)", 175, y, { align: "right" });
+  y += 2;
+  doc.line(14, y, 196, y);
+  y += 6;
+
+  doc.setFontSize(9);
+  doc.setFont(undefined, "normal");
+
+  let totalDescontos = 0;
+  if ((holerite.inss || 0) > 0) {
+    const baseInfo = (holerite.base_calculo_inss || 0) > 0
+      ? ` (Base: R$ ${formatCurrency(holerite.base_calculo_inss)})`
+      : "";
+    doc.text(`INSS${baseInfo}`, 14, y);
+    doc.text(formatCurrency(holerite.inss), 175, y, { align: "right" });
+    totalDescontos += holerite.inss;
+    y += 5;
+  }
+  if ((holerite.irrf || 0) > 0) {
+    const baseInfo = (holerite.base_calculo_irrf || 0) > 0
+      ? ` (Base: R$ ${formatCurrency(holerite.base_calculo_irrf)})`
+      : "";
+    doc.text(`IRRF${baseInfo}`, 14, y);
+    doc.text(formatCurrency(holerite.irrf), 175, y, { align: "right" });
+    totalDescontos += holerite.irrf;
+    y += 5;
+  }
+  if ((holerite.vale_transporte || 0) > 0) {
+    doc.text("Vale Transporte (6%)", 14, y);
+    doc.text(formatCurrency(holerite.vale_transporte), 175, y, { align: "right" });
+    totalDescontos += holerite.vale_transporte;
+    y += 5;
+  }
+  if ((holerite.outros_descontos || 0) > 0) {
+    doc.text("Outros Descontos", 14, y);
+    doc.text(formatCurrency(holerite.outros_descontos), 175, y, { align: "right" });
+    totalDescontos += holerite.outros_descontos;
+    y += 5;
+  }
+  // Fallback for legacy "descontos" field
+  if (totalDescontos === 0 && (holerite.descontos || 0) > 0) {
+    doc.text("Descontos", 14, y);
+    doc.text(formatCurrency(holerite.descontos), 175, y, { align: "right" });
+    totalDescontos = holerite.descontos;
+    y += 5;
+  }
+
+  doc.setFont(undefined, "bold");
+  doc.text("TOTAL DESCONTOS", 14, y);
+  doc.text(formatCurrency(totalDescontos), 175, y, { align: "right" });
+  y += 3;
+  doc.line(14, y, 196, y);
+  y += 10;
+
+  // VALOR LÍQUIDO
+  doc.setFontSize(14);
+  doc.text("VALOR LÍQUIDO", 14, y);
+  doc.text(`R$ ${formatCurrency(holerite.salario_liquido || 0)}`, 175, y, { align: "right" });
+  y += 3;
+  doc.line(14, y, 196, y);
+  y += 8;
+
+  // FGTS INFORMATIVO (Lei 8.036/90)
+  if ((holerite.fgts || 0) > 0) {
+    doc.setFontSize(9);
+    doc.setFont(undefined, "normal");
+    doc.text(`FGTS (Depósito Informativo - Lei 8.036/90): R$ ${formatCurrency(holerite.fgts)}`, 14, y);
+    y += 7;
+  }
+
+  // Observações
+  if (holerite.observacoes) {
+    doc.setFontSize(8);
+    doc.text(`Observações: ${holerite.observacoes}`, 14, y);
+    y += 7;
+  }
+
+  // Rodapé legal
+  doc.setFontSize(7);
+  doc.setFont(undefined, "normal");
+  doc.text("Documento gerado automaticamente pelo sistema de RH — Art. 464 CLT / Portaria MTE 3.626/91", 105, 275, { align: "center" });
+  doc.text(`Data de emissão: ${new Date().toLocaleDateString("pt-BR")}`, 105, 280, { align: "center" });
+
+  doc.setFontSize(8);
+  doc.setFont(undefined, "bold");
+  doc.text("Este documento está protegido por senha (primeiros 6 dígitos do CPF)", 105, 270, { align: "center" });
+
   return new Uint8Array(doc.output("arraybuffer"));
 };
 
@@ -93,7 +220,6 @@ const handler = async (req: Request): Promise<Response> => {
   let requestBody: z.infer<typeof EnviarHoleriteSchema> | null = null;
 
   try {
-    // Validate input
     const rawBody = await req.json();
     const parseResult = EnviarHoleriteSchema.safeParse(rawBody);
     if (!parseResult.success) {
@@ -105,7 +231,6 @@ const handler = async (req: Request): Promise<Response> => {
     requestBody = parseResult.data;
     const { holerite_id, user_id } = requestBody;
 
-    // Verify auth
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
       return new Response(
@@ -166,7 +291,11 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const pdfBuffer = await gerarPDFProtegido(holerite, profile);
+    // Buscar dados da empresa para o PDF
+    const { data: empresa } = await supabase
+      .from("empresas").select("razao_social, cnpj").limit(1).single();
+
+    const pdfBuffer = await gerarPDFProtegido(holerite, profile, empresa);
     const nomeArquivo = `holerite_${profile.nome.replace(/\s+/g, "_")}_${getMesNome(holerite.mes)}_${holerite.ano}.pdf`;
     const pdfBase64 = btoa(String.fromCharCode(...pdfBuffer));
 
