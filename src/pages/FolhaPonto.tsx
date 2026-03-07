@@ -74,6 +74,7 @@ interface EmployeeMonthRecord {
   employee_id: string;
   employee_name: string;
   matricula?: string;
+  cpf?: string;
   departamento?: string;
   escala_trabalho?: string;
   turno?: string;
