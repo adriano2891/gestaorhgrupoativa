@@ -69,11 +69,56 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
         },
       });
       if (!res.ok) throw new Error(`REST ${res.status}`);
-      return await res.json() || [];
+      const data = await res.json() || [];
+
+      // Enrich with admin role labels
+      if (data.length > 0) {
+        const adminIds = [...new Set(data.map((d: any) => d.autorizado_por).filter(Boolean))];
+        if (adminIds.length > 0) {
+          const idsParam = adminIds.map(id => `"${id}"`).join(',');
+          try {
+            const [profilesRes, rolesRes] = await Promise.all([
+              fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome&id=in.(${idsParam})`, {
+                headers: { 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, 'Authorization': `Bearer ${token}` },
+              }),
+              fetch(`${import.meta.env.VITE_SUPABASE_URL}/rest/v1/user_roles?select=user_id,role&user_id=in.(${idsParam})`, {
+                headers: { 'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, 'Authorization': `Bearer ${token}` },
+              }),
+            ]);
+
+            const profiles = profilesRes.ok ? await profilesRes.json() : [];
+            const roles = rolesRes.ok ? await rolesRes.json() : [];
+
+            const nameMap: Record<string, string> = {};
+            profiles.forEach((p: any) => { nameMap[p.id] = p.nome; });
+
+            const roleMap: Record<string, string> = {};
+            const roleLabels: Record<string, string> = { admin: "Super Admin", rh: "Admin RH", gestor: "Gestor" };
+            roles.forEach((r: any) => {
+              const current = roleMap[r.user_id];
+              const priority = ["admin", "rh", "gestor"];
+              if (!current || priority.indexOf(r.role) < priority.indexOf(current)) {
+                roleMap[r.user_id] = r.role;
+              }
+            });
+
+            data.forEach((d: any) => {
+              const nome = nameMap[d.autorizado_por] || d.autorizado_por_nome || "Admin";
+              const role = roleMap[d.autorizado_por];
+              const roleLabel = role ? roleLabels[role] || role : "";
+              d._displayName = roleLabel ? `${roleLabel} - ${nome}` : nome;
+            });
+          } catch {
+            // fallback to stored name
+          }
+        }
+      }
+
+      return data;
     },
     retry: 2,
     staleTime: 1000 * 5,
-    refetchInterval: 10000, // Polling fallback every 10s
+    refetchInterval: 10000,
   });
 
   const displayedLogs = expanded ? logs : logs?.slice(0, 5);
