@@ -596,7 +596,7 @@ const SuporteFuncionarios = () => {
           <TabsContent value="ajustes" className="mt-4">
             <GerenciarAjustesPontoCard 
               adminId={user?.id || ''} 
-              adminName={user?.email?.split('@')[0] || 'Admin'} 
+              adminName={profile?.nome || user?.email?.split('@')[0] || 'Admin'} 
             />
           </TabsContent>
         </Tabs>
