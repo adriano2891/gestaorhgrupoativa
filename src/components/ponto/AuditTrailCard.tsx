@@ -88,10 +88,10 @@ export const AuditTrailCard = () => {
   const exportAuditCSV = () => {
     if (logs.length === 0) { toast.error("Sem dados para exportar"); return; }
 
-    const headers = ['Data/Hora', 'Usuário', 'Ação', 'IP', 'Dispositivo', 'Detalhes'];
+    const headers = ['Funcionário', 'Data/Hora', 'Ação', 'IP', 'Dispositivo', 'Detalhes'];
     const rows = logs.map(log => [
+      log._nome || log.user_id,
       new Date(log.created_at).toLocaleString("pt-BR"),
-      log.user_id,
       log.acao,
       log.ip_address || '-',
       (log.user_agent || '-').substring(0, 80),
