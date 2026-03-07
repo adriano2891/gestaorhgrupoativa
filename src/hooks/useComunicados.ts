@@ -13,11 +13,14 @@ export interface Comunicado {
   created_at: string;
   data_expiracao: string | null;
   ativo: boolean;
+  anexos: any[] | null;
 }
 
 export interface ComunicadoComLeitura extends Comunicado {
   lido: boolean;
   lido_em: string | null;
+  confirmado: boolean;
+  confirmado_em: string | null;
 }
 
 export const useComunicados = (userId?: string) => {
@@ -27,13 +30,14 @@ export const useComunicados = (userId?: string) => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         const activeUserId = session?.user?.id || userId;
-        
+
         if (!activeUserId) return [] as ComunicadoComLeitura[];
 
         const { data: comunicados, error: comunicadosError } = await supabase
           .from("comunicados")
           .select("*")
           .eq("ativo", true)
+          .eq("excluido", false)
           .order("created_at", { ascending: false });
 
         if (comunicadosError) {
@@ -43,18 +47,23 @@ export const useComunicados = (userId?: string) => {
 
         const { data: leituras } = await supabase
           .from("comunicados_lidos")
-          .select("comunicado_id, lido_em")
+          .select("comunicado_id, lido_em, confirmado, confirmado_em")
           .eq("user_id", activeUserId);
 
         const leiturasMap = new Map(
-          leituras?.map((l) => [l.comunicado_id, l.lido_em]) || []
+          leituras?.map((l) => [l.comunicado_id, l]) || []
         );
 
-        return (comunicados || []).map((c) => ({
-          ...c,
-          lido: leiturasMap.has(c.id),
-          lido_em: leiturasMap.get(c.id) || null,
-        })) as ComunicadoComLeitura[];
+        return (comunicados || []).map((c) => {
+          const leitura = leiturasMap.get(c.id);
+          return {
+            ...c,
+            lido: !!leitura,
+            lido_em: leitura?.lido_em || null,
+            confirmado: leitura?.confirmado || false,
+            confirmado_em: leitura?.confirmado_em || null,
+          };
+        }) as ComunicadoComLeitura[];
       } catch (error) {
         console.error("Erro inesperado em useComunicados:", error);
         return [] as ComunicadoComLeitura[];
@@ -91,6 +100,42 @@ export const useMarcarComunicadoLido = () => {
     },
     onError: (error) => {
       toast.error("Erro ao marcar comunicado como lido");
+      console.error("Erro:", error);
+    },
+  });
+};
+
+/**
+ * Confirmação formal de leitura (CLT - acuse de recebimento)
+ * Registra que o funcionário leu e está ciente do comunicado.
+ */
+export const useConfirmarComunicado = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      comunicadoId,
+      userId,
+    }: {
+      comunicadoId: string;
+      userId: string;
+    }) => {
+      const { error } = await supabase
+        .from("comunicados_lidos")
+        .update({
+          confirmado: true,
+          confirmado_em: new Date().toISOString(),
+        })
+        .eq("comunicado_id", comunicadoId)
+        .eq("user_id", userId);
+
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["comunicados", variables.userId] });
+    },
+    onError: (error) => {
+      toast.error("Erro ao confirmar comunicado");
       console.error("Erro:", error);
     },
   });
