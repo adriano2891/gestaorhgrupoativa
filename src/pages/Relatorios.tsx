@@ -1537,40 +1537,52 @@ const Relatorios = () => {
         };
       }
 
-      case "saude-seguranca":
+      case "saude-seguranca": {
         const totalFuncionariosSS = funcList?.length || 0;
+        
+        // Count afastados from real status
+        const afastados = funcList?.filter(f => {
+          const s = String(f.status || "").toLowerCase();
+          return s === "afastado" || s === "afastado_medico";
+        }) || [];
+        const totalAfastados = afastados.length;
+        const totalAtivos = totalFuncionariosSS - totalAfastados;
         
         return {
           ...baseData,
           summary: {
-            "Dias sem Acidentes": "120",
-            "Afastamentos Ativos": "3",
-            "Taxa de Incidentes": "0.5%",
             "Colaboradores Monitorados": totalFuncionariosSS,
+            "Ativos": totalAtivos,
+            "Afastamentos Ativos": totalAfastados,
+            "Taxa de Afastamento": `${totalFuncionariosSS > 0 ? ((totalAfastados / totalFuncionariosSS) * 100).toFixed(1) : 0}%`,
           },
-          details: funcList?.slice(0, 20).map(f => ({
-            nome: f.nome,
-            departamento: f.departamento || "Não informado",
-            cargo: f.cargo || "Não informado",
-            statusSaude: Math.random() > 0.95 ? "Afastado" : "Ativo",
-            ultimoExame: format(new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000), "dd/MM/yyyy"),
-          })) || [],
+          details: funcList?.slice(0, 30).map(f => {
+            const s = String(f.status || "ativo").toLowerCase();
+            const statusSaude = (s === "afastado" || s === "afastado_medico") ? "Afastado" : "Ativo";
+            return {
+              nome: f.nome,
+              departamento: f.departamento || "Não informado",
+              cargo: f.cargo || "Não informado",
+              statusSaude,
+              dataAdmissao: f.data_admissao ? format(new Date(f.data_admissao), "dd/MM/yyyy") : f.created_at ? format(new Date(f.created_at), "dd/MM/yyyy") : "N/I",
+            };
+          }) || [],
           charts: [
             {
               type: "pie",
               title: "Status de Saúde dos Colaboradores",
-              description: "Proporção de colaboradores ativos vs afastados",
+              description: "Proporção de colaboradores ativos vs afastados (dados reais)",
               data: [
-                { status: "Ativos", valor: Math.max(totalFuncionariosSS - 3, 0) },
-                { status: "Afastados", valor: 3 },
-              ],
+                { status: "Ativos", valor: totalAtivos },
+                ...(totalAfastados > 0 ? [{ status: "Afastados", valor: totalAfastados }] : []),
+              ].filter(d => d.valor > 0),
             },
             {
               type: "bar",
-              title: "Exames Periódicos por Departamento",
-              description: "Quantidade de exames realizados por área",
-              dataName: "Exames",
-              insight: "Exames periódicos são obrigatórios e devem ser realizados anualmente.",
+              title: "Colaboradores por Departamento",
+              description: "Distribuição dos colaboradores monitorados por área",
+              dataName: "Colaboradores",
+              insight: "Módulo de Saúde e Segurança em implementação. Dados baseados no status real dos funcionários.",
               data: funcDeptList?.slice(0, 6).map(d => ({
                 departamento: d.departamento || "Sem Dept.",
                 valor: d.funcionarios as number,
@@ -1578,50 +1590,58 @@ const Relatorios = () => {
             },
           ],
         };
+      }
 
-      case "clima":
+      case "clima": {
         const metricaClima = metricasList?.[0];
         
+        // Use only real metrics data - no random values
+        const satisfacaoInterna = metricaClima?.satisfacao_interna || 0;
+        const satisfacaoGestor = metricaClima?.satisfacao_gestor || 0;
+        const taxaRetClima = metricaClima?.taxa_retencao || 0;
+        const absenteismoClima = metricaClima?.indice_absenteismo || 0;
+        const hasMetricas = !!metricaClima;
+
         return {
           ...baseData,
           summary: {
-            "Satisfação Geral": `${metricaClima?.satisfacao_interna?.toFixed(1) || 0}/10`,
-            "Satisfação do Gestor": `${metricaClima?.satisfacao_gestor?.toFixed(1) || 0}/10`,
-            "Taxa de Retenção": `${metricaClima?.taxa_retencao?.toFixed(1) || 0}%`,
-            "Índice de Engajamento": `${((metricaClima?.satisfacao_interna || 0) * 10).toFixed(0)}%`,
+            "Satisfação Geral": hasMetricas ? `${satisfacaoInterna.toFixed(1)}/10` : "Sem dados",
+            "Satisfação do Gestor": hasMetricas ? `${satisfacaoGestor.toFixed(1)}/10` : "Sem dados",
+            "Taxa de Retenção": hasMetricas ? `${taxaRetClima.toFixed(1)}%` : "Sem dados",
+            "Índice de Engajamento": hasMetricas ? `${(satisfacaoInterna * 10).toFixed(0)}%` : "Sem dados",
           },
           details: funcDeptList?.map(d => ({
             departamento: d.departamento,
             funcionarios: d.funcionarios,
-            satisfacaoEstimada: (Math.random() * 2 + 7).toFixed(1),
-            engajamento: Math.floor(Math.random() * 20 + 75) + "%",
+            observacao: "Dados de clima requerem pesquisa interna",
           })) || [],
           charts: [
             {
               type: "radar",
               title: "Indicadores de Clima Organizacional",
-              description: "Visão geral das dimensões do clima organizacional",
+              description: hasMetricas ? "Visão geral das dimensões do clima organizacional" : "Sem dados de métricas cadastrados",
               data: [
-                { indicador: "Satisfação", valor: (metricaClima?.satisfacao_interna || 0) * 10 },
-                { indicador: "Liderança", valor: (metricaClima?.satisfacao_gestor || 0) * 10 },
-                { indicador: "Engajamento", valor: (metricaClima?.satisfacao_interna || 0) * 10 },
-                { indicador: "Retenção", valor: metricaClima?.taxa_retencao || 0 },
-                { indicador: "Bem-estar", valor: 100 - (metricaClima?.indice_absenteismo || 0) },
+                { indicador: "Satisfação", valor: satisfacaoInterna * 10 },
+                { indicador: "Liderança", valor: satisfacaoGestor * 10 },
+                { indicador: "Engajamento", valor: satisfacaoInterna * 10 },
+                { indicador: "Retenção", valor: taxaRetClima },
+                { indicador: "Bem-estar", valor: Math.max(100 - absenteismoClima, 0) },
               ],
             },
             {
               type: "bar",
-              title: "Satisfação por Departamento",
-              description: "Nível de satisfação estimado por área",
-              dataName: "Score",
-              insight: "Scores acima de 7 indicam bom clima organizacional.",
+              title: "Funcionários por Departamento",
+              description: "Distribuição de colaboradores por área (dados reais)",
+              dataName: "Funcionários",
+              insight: "Para dados detalhados de clima, realize pesquisas internas de satisfação.",
               data: funcDeptList?.slice(0, 6).map(d => ({
                 departamento: d.departamento || "Sem Dept.",
-                valor: parseFloat((Math.random() * 2 + 7).toFixed(1)),
+                valor: d.funcionarios as number,
               })) || [],
             },
           ],
         };
+      }
 
       default:
         return {
