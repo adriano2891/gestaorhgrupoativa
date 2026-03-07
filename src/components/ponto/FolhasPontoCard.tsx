@@ -157,7 +157,7 @@ export const FolhasPontoCard = () => {
       });
 
       autoTable(doc, {
-        startY: 46,
+        startY: yPos + 2,
         head: [[
           "Data", "Entrada", "Saída Almoço", "Ret. Almoço",
           "Saída P1", "Ret. P1", "Saída", "Total", "HE", "Noturno", "Tipo"
