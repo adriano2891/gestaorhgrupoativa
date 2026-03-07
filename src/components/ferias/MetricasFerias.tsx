@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, CheckCircle, Calendar, TrendingUp } from "lucide-react";
+import { Clock, CheckCircle, Calendar, TrendingUp, AlertTriangle } from "lucide-react";
 import { useMetricasFerias } from "@/hooks/useFerias";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,6 +66,13 @@ export const MetricasFerias = () => {
       bgColor: "bg-green-50 dark:bg-green-950",
     },
     {
+      title: "Férias Vencidas",
+      value: metricas?.vencidas || 0,
+      icon: AlertTriangle,
+      color: "text-red-500",
+      bgColor: "bg-red-50 dark:bg-red-950",
+    },
+    {
       title: "Saldo Médio (dias)",
       value: metricas?.saldoMedio || 0,
       icon: TrendingUp,
@@ -75,7 +82,7 @@ export const MetricasFerias = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {cards.map((card) => (
         <Card key={card.title} className="hover:shadow-lg transition-shadow">
           <CardContent className="pt-6">

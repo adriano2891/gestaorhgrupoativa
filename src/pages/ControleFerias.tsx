@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Download, FileText } from "lucide-react";
+import { Calendar, Download, FileText, ShieldCheck } from "lucide-react";
 import { MetricasFerias } from "@/components/ferias/MetricasFerias";
 import { FiltrosFerias } from "@/components/ferias/FiltrosFerias";
 import { TabelaFerias } from "@/components/ferias/TabelaFerias";
@@ -10,6 +10,7 @@ import { CardControleFeriasCLT, useFuncionariosFerias } from "@/components/feria
 import { useSolicitacoesFerias } from "@/hooks/useFerias";
 import { Skeleton } from "@/components/ui/skeleton";
 import { exportarFeriasPDF, exportarFeriasExcel } from "@/utils/feriasPdfExcel";
+import { exportarRelatorioFeriasAuditoria } from "@/utils/feriasPdfAuditoria";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -105,7 +106,7 @@ const ControleFerias = () => {
               </p>
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               <Button variant="outline" onClick={() => handleExportar("pdf")}>
                 <FileText className="h-4 w-4 mr-2" />
                 Exportar PDF
@@ -113,6 +114,34 @@ const ControleFerias = () => {
               <Button variant="outline" onClick={() => handleExportar("excel")}>
                 <Download className="h-4 w-4 mr-2" />
                 Exportar Excel
+              </Button>
+              <Button variant="outline" onClick={() => {
+                if (!solicitacoesFiltradas || solicitacoesFiltradas.length === 0) {
+                  toast.error("Nenhuma solicitação para exportar.");
+                  return;
+                }
+                const formatDate = (d: string) => {
+                  const [y, m, day] = d.split('-');
+                  return `${day}/${m}/${y}`;
+                };
+                exportarRelatorioFeriasAuditoria(
+                  solicitacoesFiltradas.map(s => ({
+                    funcionario: s.profiles?.nome || "-",
+                    cargo: s.profiles?.cargo,
+                    departamento: s.profiles?.departamento,
+                    periodo: `${formatDate(s.data_inicio)} - ${formatDate(s.data_fim)}`,
+                    dias: s.dias_solicitados,
+                    tipo: s.tipo,
+                    status: s.status,
+                    data_solicitacao: formatDate(s.created_at.split('T')[0]),
+                    data_aprovacao: s.data_aprovacao ? formatDate(s.data_aprovacao.split('T')[0]) : undefined,
+                    observacao: s.observacao,
+                  }))
+                );
+                toast.success("Relatório de auditoria exportado!");
+              }}>
+                <ShieldCheck className="h-4 w-4 mr-2" />
+                Relatório Auditoria
               </Button>
             </div>
           </div>

@@ -317,7 +317,14 @@ export const PortalFerias = ({ onBack }: PortalFeriasProps) => {
 
                   
                   
-                  <SolicitarFeriasDialog periodos={periodos || []} />
+                  <SolicitarFeriasDialog
+                    periodos={periodos || []}
+                    solicitacoesExistentes={(solicitacoes || []).map((s: any) => ({
+                      dias_solicitados: s.dias_solicitados,
+                      status: s.status,
+                      periodo_aquisitivo_id: s.periodo_aquisitivo_id,
+                    }))}
+                  />
 
                   {/* Solicitações Pendentes - destaque */}
                   {solicitacoes && solicitacoes.filter(s => s.status === "pendente").length > 0 && (
