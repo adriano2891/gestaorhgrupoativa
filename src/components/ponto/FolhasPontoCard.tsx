@@ -407,7 +407,7 @@ export const FolhasPontoCard = () => {
                         </Badge>
                       )}
 
-                      {!isSigned && item.status === "Fechada" && (
+                      {!isSigned && (
                         <Button
                           size="sm"
                           variant="default"
