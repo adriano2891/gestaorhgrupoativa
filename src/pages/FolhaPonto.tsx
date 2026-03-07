@@ -241,6 +241,7 @@ const FolhaPonto = () => {
           employee_id: emp.id,
           employee_name: emp.nome,
           matricula: (emp as any).matricula || undefined,
+          cpf: (emp as any).cpf || undefined,
           departamento: emp.departamento,
           escala_trabalho: (emp as any).escala_trabalho || '8h',
           turno: (emp as any).turno || 'diurno',
