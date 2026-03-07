@@ -230,13 +230,15 @@ const GerenciarAdmins = () => {
                     <div className="flex justify-end gap-2">
                       {isSuperAdmin && (
                         <>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleEditAdmin(admin)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          {!admin.roles.includes("admin") && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditAdmin(admin)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          )}
                           {admin.email !== "admin@sistema.com" && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
