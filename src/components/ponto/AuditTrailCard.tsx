@@ -6,9 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, Download, ChevronDown, ChevronUp, Filter, X } from "lucide-react";
+import { Shield, Download, ChevronDown, ChevronUp, Filter, X, FileSpreadsheet, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import ExcelJS from "exceljs";
 
 export const AuditTrailCard = () => {
   const [logs, setLogs] = useState<any[]>([]);
