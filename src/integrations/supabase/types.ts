@@ -3496,6 +3496,7 @@ export type Database = {
           data_aprovacao: string | null
           data_fim: string
           data_inicio: string
+          data_pagamento: string | null
           dias_solicitados: number
           id: string
           motivo_reprovacao: string | null
@@ -3514,6 +3515,7 @@ export type Database = {
           data_aprovacao?: string | null
           data_fim: string
           data_inicio: string
+          data_pagamento?: string | null
           dias_solicitados: number
           id?: string
           motivo_reprovacao?: string | null
@@ -3532,6 +3534,7 @@ export type Database = {
           data_aprovacao?: string | null
           data_fim?: string
           data_inicio?: string
+          data_pagamento?: string | null
           dias_solicitados?: number
           id?: string
           motivo_reprovacao?: string | null
