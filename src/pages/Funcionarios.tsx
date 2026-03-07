@@ -1740,7 +1740,7 @@ const Funcionarios = () => {
 
       {/* Dialog de Adicionar Funcionário */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-[95vw] sm:max-w-[450px] max-h-[85vh] overflow-hidden flex flex-col">
+        <DialogContent className="max-w-[95vw] sm:max-w-[600px] md:max-w-[700px] lg:max-w-[800px] max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle>Adicionar Funcionário</DialogTitle>
             <DialogDescription>
