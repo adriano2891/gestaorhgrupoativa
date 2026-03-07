@@ -55,9 +55,15 @@ import { useAuth } from "@/components/auth/AuthProvider";
 interface DayRecord {
   day: number;
   entrada?: string;
-  saida?: string;
+  saida_pausa_1?: string;
+  retorno_pausa_1?: string;
   saida_almoco?: string;
   retorno_almoco?: string;
+  saida_pausa_2?: string;
+  retorno_pausa_2?: string;
+  saida?: string;
+  inicio_he?: string;
+  fim_he?: string;
   total_horas?: string;
   horas_extras?: string;
   horas_noturnas?: string;
