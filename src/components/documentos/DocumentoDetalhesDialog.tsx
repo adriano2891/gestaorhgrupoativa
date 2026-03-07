@@ -146,6 +146,10 @@ export const DocumentoDetalhesDialog = ({
                 <MessageSquare className="h-4 w-4" />
                 ({comentarios?.length || 0})
               </TabsTrigger>
+              <TabsTrigger value="auditoria" className="gap-1">
+                <Shield className="h-4 w-4" />
+                Auditoria
+              </TabsTrigger>
             </TabsList>
 
             <ScrollArea className="flex-1 mt-4">
