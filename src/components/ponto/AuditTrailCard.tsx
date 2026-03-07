@@ -233,9 +233,15 @@ export const AuditTrailCard = () => {
               <CardDescription>Registro imutável de todas as ações - Portaria 671/2021</CardDescription>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
             <Button size="sm" variant="outline" onClick={exportAuditCSV}>
               <Download className="h-4 w-4 mr-1" /> CSV
+            </Button>
+            <Button size="sm" variant="outline" onClick={exportAuditExcel}>
+              <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
+            </Button>
+            <Button size="sm" variant="outline" onClick={exportAuditPDF}>
+              <FileText className="h-4 w-4 mr-1" /> PDF
             </Button>
             <Button size="sm" variant="default" onClick={exportFiscalizacaoJSON}>
               <Download className="h-4 w-4 mr-1" /> Fiscalização
