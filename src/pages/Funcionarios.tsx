@@ -1060,6 +1060,12 @@ const Funcionarios = () => {
             escala_trabalho: newEscala,
             turno: newTurno,
             dependentes: dependentesPayload,
+            nacionalidade: newEmployee.nacionalidade || 'Brasileira',
+            estado_civil: newEmployee.estado_civil || null,
+            sexo: newEmployee.sexo || null,
+            nome_mae: newEmployee.nome_mae || null,
+            cbo: newEmployee.cbo || null,
+            tipo_contrato: newEmployee.tipo_contrato || 'CLT',
           }),
           signal: controller.signal,
         }
