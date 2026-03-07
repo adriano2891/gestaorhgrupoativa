@@ -32,6 +32,13 @@ const CreateEmployeeSchema = z.object({
   turno: z.string().max(50).nullish(),
   ctps_numero: z.string().max(50).nullish(),
   ctps_serie: z.string().max(50).nullish(),
+  // Campos CLT obrigatórios
+  nacionalidade: z.string().max(100).nullish(),
+  estado_civil: z.string().max(50).nullish(),
+  sexo: z.string().max(20).nullish(),
+  nome_mae: z.string().max(255).nullish(),
+  cbo: z.string().max(20).nullish(),
+  tipo_contrato: z.string().max(50).nullish(),
 });
 
 Deno.serve(async (req) => {
@@ -87,7 +94,7 @@ Deno.serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
-    const { email, password, nome, cpf, telefone, cargo, departamento, status, salario, data_nascimento, data_admissao, dependentes, endereco, rg, numero_pis, escala_trabalho, turno, ctps_numero, ctps_serie } = parseResult.data;
+    const { email, password, nome, cpf, telefone, cargo, departamento, status, salario, data_nascimento, data_admissao, dependentes, endereco, rg, numero_pis, escala_trabalho, turno, ctps_numero, ctps_serie, nacionalidade, estado_civil, sexo, nome_mae, cbo, tipo_contrato } = parseResult.data;
 
     const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email, password, email_confirm: true,
@@ -116,6 +123,12 @@ Deno.serve(async (req) => {
       escala_trabalho: escala_trabalho ?? '8h', turno: turno ?? 'diurno',
       ctps_numero: ctps_numero ?? null, ctps_serie: ctps_serie ?? null,
       deve_trocar_senha: true,
+      nacionalidade: nacionalidade ?? 'Brasileira',
+      estado_civil: estado_civil ?? null,
+      sexo: sexo ?? null,
+      nome_mae: nome_mae ?? null,
+      cbo: cbo ?? null,
+      tipo_contrato: tipo_contrato ?? 'CLT',
     });
 
     if (profileErr) {
