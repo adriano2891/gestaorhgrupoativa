@@ -675,13 +675,19 @@ const Funcionarios = () => {
     setEditPis("");
     setEditCtps("");
     setEditCtpsSerie("");
+    setEditNacionalidade("Brasileira");
+    setEditEstadoCivil("");
+    setEditSexo("");
+    setEditNomeMae("");
+    setEditCbo("");
+    setEditTipoContrato("CLT");
     setIsEditDialogOpen(true);
     
     try {
       const token = getAccessToken();
       if (token) {
         const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by,matricula,rg,numero_pis,ctps_numero,ctps_serie&id=eq.${employeeId}&limit=1`,
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by,matricula,rg,numero_pis,ctps_numero,ctps_serie,nacionalidade,estado_civil,sexo,nome_mae,cbo,tipo_contrato&id=eq.${employeeId}&limit=1`,
           {
             headers: {
               'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
