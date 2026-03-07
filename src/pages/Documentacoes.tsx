@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   Plus, Upload, Search, Filter, Grid, List, Star, 
   FileText, FolderOpen, Download, MoreVertical, Eye, Trash2, 
-  Edit, Clock, Tag, ArrowUpDown, ArrowUp, ArrowDown
+  Edit, Clock, Tag, ArrowUpDown, ArrowUp, ArrowDown, Pencil
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
