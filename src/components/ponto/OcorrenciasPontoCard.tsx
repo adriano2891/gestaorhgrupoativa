@@ -229,13 +229,20 @@ export const OcorrenciasPontoCard = ({ mes, ano }: OcorrenciasPontoCardProps) =>
                 )}
               </CardTitle>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowResolved(!showResolved)}
-            >
-              {showResolved ? "Apenas pendentes" : `Ver todas (${ocorrencias.length})`}
-            </Button>
+            <div className="flex items-center gap-1">
+              {ocorrencias.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={exportarPDF}>
+                  <Download className="h-4 w-4 mr-1" /> PDF
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowResolved(!showResolved)}
+              >
+                {showResolved ? "Apenas pendentes" : `Ver todas (${ocorrencias.length})`}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
