@@ -105,7 +105,7 @@ export const CampoFormulario = ({ campo, onDelete }: CampoFormularioProps) => {
           </div>
 
           <CollapsibleContent className="pt-4 space-y-4">
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
               <div>
                 <Label>Placeholder</Label>
                 <Input

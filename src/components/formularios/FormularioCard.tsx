@@ -172,13 +172,13 @@ export const FormularioCard = ({ formulario, isTemplate }: FormularioCardProps) 
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleView}>
-              <Eye className="h-4 w-4 mr-1" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button variant="outline" size="sm" className="text-xs h-8" onClick={handleView}>
+              <Eye className="h-3.5 w-3.5 mr-1" />
               Ver
             </Button>
-            <Button variant="outline" size="sm" onClick={handleEdit}>
-              <Edit className="h-4 w-4 mr-1" />
+            <Button variant="outline" size="sm" className="text-xs h-8" onClick={handleEdit}>
+              <Edit className="h-3.5 w-3.5 mr-1" />
               Editar
             </Button>
           </div>

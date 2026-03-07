@@ -60,8 +60,8 @@ const FormulariosRH = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <div className="relative sm:col-span-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar formulários..."
@@ -71,7 +71,7 @@ const FormulariosRH = () => {
             />
           </div>
           <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as FormCategory | "todos")}>
-            <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectTrigger className="w-full">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Categoria" />
             </SelectTrigger>
@@ -83,7 +83,7 @@ const FormulariosRH = () => {
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as FormStatus | "todos")}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>

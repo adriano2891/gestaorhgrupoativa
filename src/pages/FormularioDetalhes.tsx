@@ -218,17 +218,17 @@ const FormularioDetalhes = () => {
                 ) : (
                   <div className="divide-y">
                     {atribuicoes?.map((atribuicao) => (
-                      <div key={atribuicao.id} className="py-3 flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{atribuicao.profiles?.nome}</p>
-                          <p className="text-sm text-muted-foreground">{atribuicao.profiles?.email}</p>
+                      <div key={atribuicao.id} className="py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-medium text-sm sm:text-base truncate">{atribuicao.profiles?.nome}</p>
+                          <p className="text-xs sm:text-sm text-muted-foreground truncate">{atribuicao.profiles?.email}</p>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <Badge variant={atribuicao.status === 'concluido' ? 'default' : 'secondary'}>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <Badge variant={atribuicao.status === 'concluido' ? 'default' : 'secondary'} className="text-xs">
                             {atribuicao.status}
                           </Badge>
                           {atribuicao.assinado && (
-                            <Badge variant="outline" className="bg-green-500/10 text-green-600">
+                            <Badge variant="outline" className="bg-green-500/10 text-green-600 text-xs">
                               Assinado
                             </Badge>
                           )}
