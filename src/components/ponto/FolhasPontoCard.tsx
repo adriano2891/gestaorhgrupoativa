@@ -103,37 +103,33 @@ export const FolhasPontoCard = () => {
       const nome = profile?.nome || "Funcionário";
       const depto = profile?.departamento || "Sede Principal";
 
-      // === Cabeçalho da Empresa (Portaria 671/2021 & Art. 74 CLT) ===
-      let yPos = 12;
-      doc.setFontSize(12);
+      // === Cabeçalho compacto (Portaria 671/2021) ===
+      let yPos = 8;
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.text('GRUPO ATIVA TEC', 14, yPos);
-      doc.setFontSize(8);
+      doc.text('GRUPO ATIVA TEC', 10, yPos);
+      doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
-      doc.text('CNPJ: 42.523.488/0001-81', 14, yPos + 5);
-      doc.text('Endereço: R. Bela Cintra, 299, 3º Andar – Consolação, São Paulo – SP, 01415-001', 14, yPos + 9);
-      doc.text(`Setor/Estabelecimento: ${depto}`, 14, yPos + 13);
+      doc.text('CNPJ: 42.523.488/0001-81 | R. Bela Cintra, 299, 3º Andar – Consolação, São Paulo – SP, 01415-001', 55, yPos);
+      yPos += 4;
+      doc.text(`Setor: ${depto}`, 10, yPos);
 
-      // Linha separadora
       doc.setDrawColor(17, 188, 183);
-      doc.setLineWidth(0.5);
-      doc.line(14, yPos + 16, 283, yPos + 16);
-      yPos += 22;
+      doc.setLineWidth(0.4);
+      doc.line(10, yPos + 2, 287, yPos + 2);
+      yPos += 6;
 
-      // Título
-      doc.setFontSize(13);
+      // Título + dados compactos
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.text(`ESPELHO DE PONTO – ${item.label}`, 14, yPos);
-      yPos += 7;
+      doc.text(`ESPELHO DE PONTO – ${item.label}`, 10, yPos);
+      yPos += 5;
 
-      doc.setFontSize(10);
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Funcionário: ${nome}`, 14, yPos);
-      yPos += 5;
-      doc.setFontSize(9);
-      doc.text(`Status: ${item.status} | Gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 14, yPos);
-      yPos += 5;
+      doc.text(`Funcionário: ${nome} | Status: ${item.status} | Gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 10, yPos);
+      yPos += 4;
 
       const sorted = [...item.registros].sort(
         (a, b) => new Date(a.data).getTime() - new Date(b.data).getTime()
@@ -156,19 +152,20 @@ export const FolhasPontoCard = () => {
           formatInterval(r.total_horas),
           formatInterval(r.horas_extras),
           formatInterval(r.horas_noturnas),
-          r.registro_folga ? "Folga" : r.tipo_dia === "dsr" ? "DSR" : r.tipo_dia === "feriado" ? "Feriado" : "Útil",
+          r.registro_folga ? "Folga" : r.tipo_dia === "dsr" ? "DSR" : r.tipo_dia === "feriado" ? "FER" : "",
         ];
       });
 
       autoTable(doc, {
-        startY: yPos + 2,
+        startY: yPos,
+        margin: { left: 10, right: 10 },
         head: [[
           "Data", "Entrada", "S.P1", "R.P1", "S.Alm", "R.Alm",
-          "S.P2", "R.P2", "Saída", "HE Ini", "HE Fim", "Total", "HE", "Noturno", "Tipo"
+          "S.P2", "R.P2", "Saída", "HE Ini", "HE Fim", "Total", "HE", "H.Not", "Tp"
         ]],
         body: tableData,
-        styles: { fontSize: 5.5, cellPadding: 1.5 },
-        headStyles: { fillColor: [17, 188, 183], fontSize: 5.5 },
+        styles: { fontSize: 4.5, cellPadding: 0.8, lineWidth: 0.1 },
+        headStyles: { fillColor: [17, 188, 183], fontSize: 4.5, cellPadding: 1, fontStyle: 'bold' },
         alternateRowStyles: { fillColor: [245, 247, 250] },
       });
 
