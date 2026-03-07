@@ -720,6 +720,12 @@ const Funcionarios = () => {
             setEditPis(profileData.numero_pis || "");
             setEditCtps(profileData.ctps_numero || "");
             setEditCtpsSerie(profileData.ctps_serie || "");
+            setEditNacionalidade(profileData.nacionalidade || "Brasileira");
+            setEditEstadoCivil(profileData.estado_civil || "");
+            setEditSexo(profileData.sexo || "");
+            setEditNomeMae(profileData.nome_mae || "");
+            setEditCbo(profileData.cbo || "");
+            setEditTipoContrato(profileData.tipo_contrato || "CLT");
             if (profileData.perfil_updated_by === 'funcionario' && profileData.perfil_updated_at) {
               setEmployeeUpdates(prev => ({ ...prev, [employeeId]: { updated_at: profileData.perfil_updated_at } }));
             }
