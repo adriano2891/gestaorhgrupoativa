@@ -319,6 +319,31 @@ const SuporteFuncionarios = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Audit Trail */}
+          {auditoria.length > 0 && (
+            <Card className="mt-4">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Shield className="h-4 w-4" /> Trilha de Auditoria (CLT Art. 41)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {auditoria.map((a: any) => (
+                    <div key={a.id} className="flex items-start gap-3 text-xs border-l-2 border-muted pl-3 py-1">
+                      <span className="text-muted-foreground whitespace-nowrap">
+                        {format(new Date(a.created_at), "dd/MM/yy HH:mm:ss", { locale: ptBR })}
+                      </span>
+                      <span className="font-medium">{a.profiles?.nome || "Sistema"}</span>
+                      <span className="text-muted-foreground">{a.detalhes || a.acao}</span>
+                      {a.ip_address && <span className="text-muted-foreground/60">IP: {a.ip_address}</span>}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </Layout>
     );
