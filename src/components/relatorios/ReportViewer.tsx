@@ -73,10 +73,6 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
     if (!data.summary || Object.keys(data.summary).length === 0) return null;
 
     const summaryItems = Object.entries(data.summary);
-    const gridCols = summaryItems.length <= 2 ? "grid-cols-1 sm:grid-cols-2" :
-                     summaryItems.length <= 3 ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3" : 
-                     summaryItems.length <= 4 ? "grid-cols-2 lg:grid-cols-4" : 
-                     "grid-cols-2 md:grid-cols-3 xl:grid-cols-6";
 
     return (
       <div className="mb-6 sm:mb-8">
@@ -84,31 +80,29 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
           <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           Resumo Executivo
         </h3>
-        <div className={`grid ${gridCols} gap-2 sm:gap-3 md:gap-4`}>
-          {summaryItems.map(([key, value], index) => {
-            const colorClass = getStatusColor(key, String(value));
-            return (
-              <Card key={key} className="overflow-hidden border-l-4 border-l-primary hover:shadow-lg transition-all duration-300 group">
-                <CardContent className="p-3 sm:p-4">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-0.5 sm:space-y-1 min-w-0 flex-1">
-                      <p className="text-[10px] sm:text-xs font-medium text-muted-foreground uppercase tracking-wider break-words">
-                        {key.replace(/([A-Z])/g, " $1").trim()}
-                      </p>
-                      <p className={`text-base sm:text-lg md:text-xl font-bold ${colorClass.split(' ')[0]} group-hover:scale-105 transition-transform break-words`}>
-                        {value as string}
-                      </p>
-                    </div>
-                    <div className={`p-1.5 sm:p-2 rounded-full ${colorClass} flex-shrink-0`}>
-                      {index === 0 ? <Users className="w-3 h-3 sm:w-4 sm:h-4" /> :
-                       index === 1 ? <Clock className="w-3 h-3 sm:w-4 sm:h-4" /> :
-                       <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4" />}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+          {summaryItems.map(([key, value], index) => (
+            <div
+              key={key}
+              className="bg-card rounded-lg border-l-[3px] border-l-primary border border-border px-3 py-3 sm:px-4 sm:py-4 flex items-start justify-between gap-1 hover:shadow-md transition-shadow group"
+            >
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="text-[9px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest leading-tight break-words">
+                  {key.replace(/([A-Z])/g, " $1").trim()}
+                </p>
+                <p className="text-sm sm:text-base md:text-lg font-bold text-primary break-words group-hover:scale-[1.03] transition-transform origin-left">
+                  {value as string}
+                </p>
+              </div>
+              <div className="flex-shrink-0 mt-0.5">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-primary/30 flex items-center justify-center">
+                  {index === 0 ? <Users className="w-3 h-3 text-primary/60" /> :
+                   index === 1 ? <Clock className="w-3 h-3 text-primary/60" /> :
+                   <CheckCircle2 className="w-3 h-3 text-primary/60" />}
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     );
