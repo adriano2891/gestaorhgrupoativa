@@ -30,10 +30,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDocumentos, useDocumentosCategorias, useMeusFavoritos, useDeleteDocumento, useToggleFavorito, getDocumentoAccessUrl, registrarAcessoDocumento } from "@/hooks/useDocumentos";
+import { useDocumentos, useDocumentosCategorias, useMeusFavoritos, useDeleteDocumento, useToggleFavorito, useDeleteCategoria, getDocumentoAccessUrl, registrarAcessoDocumento } from "@/hooks/useDocumentos";
 import { gerarPdfRelatorioDocumentos } from "@/utils/documentosPdfAuditoria";
 import { UploadDocumentoDialog } from "@/components/documentos/UploadDocumentoDialog";
 import { CriarCategoriaDialog } from "@/components/documentos/CriarCategoriaDialog";
+import { EditarCategoriaDialog } from "@/components/documentos/EditarCategoriaDialog";
 import { DocumentoDetalhesDialog } from "@/components/documentos/DocumentoDetalhesDialog";
 import { EditarDocumentoDialog } from "@/components/documentos/EditarDocumentoDialog";
 import { TIPO_LABELS, type Documento, type DocumentoTipo } from "@/types/documentos";
