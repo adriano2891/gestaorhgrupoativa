@@ -58,6 +58,7 @@ export const RelatoriosCursosDialog = ({
   const [selectedCurso, setSelectedCurso] = useState<string>("all");
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingLegal, setIsExportingLegal] = useState(false);
 
   const { data: cursos } = useCursos();
   const { data: stats } = useCursosStats();
