@@ -819,6 +819,12 @@ const Funcionarios = () => {
           numero_pis: editPis.trim() || null,
           ctps_numero: editCtps.trim() || null,
           ctps_serie: editCtpsSerie.trim() || null,
+          nacionalidade: editNacionalidade.trim() || 'Brasileira',
+          estado_civil: editEstadoCivil.trim() || null,
+          sexo: editSexo.trim() || null,
+          nome_mae: editNomeMae.trim() || null,
+          cbo: editCbo.trim() || null,
+          tipo_contrato: editTipoContrato.trim() || 'CLT',
         };
 
         // Converter salário formatado para número
