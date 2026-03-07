@@ -131,13 +131,12 @@ const SuporteFuncionarios = () => {
   }, [mensagens]);
 
   const chamadosFiltrados = chamados.filter((c) => {
-    const status = c.status === "fechado" ? "fechado" : "aberto";
-    if (filtroStatus !== "todos" && status !== filtroStatus) return false;
+    if (filtroStatus !== "todos" && c.status !== filtroStatus) return false;
     if (filtroCategoria !== "todos" && c.categoria !== filtroCategoria) return false;
     if (busca) {
       const term = busca.toLowerCase();
       const nome = c.profiles?.nome?.toLowerCase() || "";
-      return nome.includes(term) || c.assunto.toLowerCase().includes(term);
+      return nome.includes(term) || c.assunto.toLowerCase().includes(term) || ((c as any).numero_protocolo || "").toLowerCase().includes(term);
     }
     return true;
   });
