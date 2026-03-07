@@ -40,6 +40,7 @@ export const DocumentoDetalhesDialog = ({
 }: DocumentoDetalhesDialogProps) => {
   const { data: comentarios } = useDocumentoComentarios(documento.id);
   const { data: versoes } = useDocumentoVersoes(documento.id);
+  const { data: auditoria } = useDocumentoAuditoria(documento.id);
   const addComentario = useAddComentario();
   const uploadVersao = useUploadVersao();
   
