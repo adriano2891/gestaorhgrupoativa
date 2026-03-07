@@ -5,7 +5,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { History, ChevronDown, ChevronUp } from "lucide-react";
+import { History, ChevronDown, ChevronUp, Download } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -76,6 +78,39 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
 
   const displayedLogs = expanded ? logs : logs?.slice(0, 5);
 
+  const exportarPDF = () => {
+    if (!logs || logs.length === 0) return;
+    const doc = new jsPDF({ orientation: "landscape" });
+    const titulo = `Histórico de Ações – ${selectedMonth}/${selectedYear}`;
+    doc.setFontSize(16);
+    doc.text(titulo, 14, 18);
+    doc.setFontSize(9);
+    doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, 14, 25);
+
+    const rows = logs.map((log: any) => {
+      const { data, hora } = formatDateTime(log.created_at);
+      const campo = log.campo_editado?.toLowerCase() || "";
+      const tipo = campo.includes("status") ? "Ajuste" : "Edição";
+      return [
+        data,
+        hora,
+        log.autorizado_por_nome || "-",
+        tipo,
+        `${log.employee_name || "-"} — ${log.campo_editado}: ${log.valor_anterior || "—"} → ${log.valor_novo || "—"} (dia ${new Date(log.data_registro).getDate().toString().padStart(2, "0")})`,
+      ];
+    });
+
+    autoTable(doc, {
+      startY: 32,
+      head: [["Data", "Hora", "Responsável", "Tipo", "Descrição"]],
+      body: rows,
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [17, 188, 183] },
+    });
+
+    doc.save(`historico-acoes-ponto-${selectedMonth}-${selectedYear}.pdf`);
+  };
+
   const formatDateTime = (isoString: string) => {
     const d = new Date(isoString);
     return {
@@ -98,9 +133,16 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
           <History className="h-5 w-5 text-primary" />
           <CardTitle className="text-lg">Histórico de Ações</CardTitle>
         </div>
-        <CardDescription>
-          Log de todas as alterações realizadas na folha de ponto
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <CardDescription>
+            Log de todas as alterações realizadas na folha de ponto
+          </CardDescription>
+          {logs && logs.length > 0 && (
+            <Button variant="outline" size="sm" onClick={exportarPDF} className="gap-1">
+              <Download className="h-4 w-4" /> PDF
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
