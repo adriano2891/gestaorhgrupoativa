@@ -467,6 +467,31 @@ const FolhaPonto = () => {
           9: { cellWidth: 15 }
         }
       });
+
+      // Signature section (Art. 74 CLT - employee acknowledgment)
+      const finalY = (doc as any).lastAutoTable?.finalY || 180;
+      const sigY = finalY + 15;
+      
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text('Declaro que os horários acima registrados correspondem fielmente à minha jornada de trabalho no período indicado.', 14, sigY);
+      doc.text(`Documento gerado eletronicamente em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} — Sistema REP-A (Portaria 671/2021)`, 14, sigY + 4);
+
+      const sigLineY = sigY + 18;
+      doc.setDrawColor(0, 0, 0);
+      doc.setLineWidth(0.3);
+
+      // Employee signature
+      doc.line(14, sigLineY, 120, sigLineY);
+      doc.setFontSize(7);
+      doc.setTextColor(0, 0, 0);
+      doc.text(`Assinatura do(a) Funcionário(a): ${record.employee_name}`, 14, sigLineY + 4);
+      doc.text(`Matrícula: ${record.matricula || '-'}`, 14, sigLineY + 8);
+
+      // Employer/Manager signature
+      doc.line(160, sigLineY, 280, sigLineY);
+      doc.text('Assinatura do Responsável / Empregador', 160, sigLineY + 4);
+      doc.text('Grupo Ativa Tec — CNPJ: 42.523.488/0001-81', 160, sigLineY + 8);
     });
     
     const fileName = `folha-ponto-detalhada-${selectedMonth}-${selectedYear}.pdf`;
