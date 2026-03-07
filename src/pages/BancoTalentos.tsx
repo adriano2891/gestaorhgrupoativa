@@ -206,6 +206,16 @@ const BancoTalentos = () => {
 
   const handleSaveNewCandidate = async () => {
     try {
+      // Validar consentimento LGPD
+      if (!consentimentoLGPD) {
+        toast({
+          title: "Consentimento obrigatório",
+          description: "O candidato deve consentir com o tratamento dos dados conforme a LGPD.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Validar dados
       const result = candidateSchema.safeParse(newCandidate);
       if (!result.success) {
