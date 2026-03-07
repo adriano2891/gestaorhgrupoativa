@@ -457,7 +457,7 @@ const SuporteFuncionarios = () => {
               </Button>
             </div>
             {/* Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold">{contadores.total}</p>
@@ -468,6 +468,12 @@ const SuporteFuncionarios = () => {
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold text-primary">{contadores.aberto}</p>
                   <p className="text-xs text-muted-foreground">Abertos</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-amber-500">{contadores.em_andamento}</p>
+                  <p className="text-xs text-muted-foreground">Em Andamento</p>
                 </CardContent>
               </Card>
               <Card>
