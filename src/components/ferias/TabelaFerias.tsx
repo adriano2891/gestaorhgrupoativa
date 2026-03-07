@@ -124,6 +124,7 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
               <TableHead>Período</TableHead>
               <TableHead>Dias</TableHead>
               <TableHead>Status</TableHead>
+              <TableHead>Prazo Pgto (Art. 145)</TableHead>
               <TableHead className="text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
