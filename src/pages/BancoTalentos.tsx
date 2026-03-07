@@ -690,7 +690,26 @@ const BancoTalentos = () => {
                       </div>
                     )}
 
-                    <div className="flex gap-2 pt-2">
+                    {/* LGPD Status */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {candidate.consentimento_lgpd && (
+                        <Badge variant="outline" className="text-xs gap-1 text-green-700 border-green-300 bg-green-50">
+                          <ShieldCheck className="h-3 w-3" /> LGPD
+                        </Badge>
+                      )}
+                      {isDataExpired(candidate.data_validade_dados) && (
+                        <Badge variant="destructive" className="text-xs gap-1">
+                          <AlertTriangle className="h-3 w-3" /> Dados expirados
+                        </Badge>
+                      )}
+                      {isDataExpiring(candidate.data_validade_dados) && !isDataExpired(candidate.data_validade_dados) && (
+                        <Badge variant="secondary" className="text-xs gap-1 text-yellow-700 bg-yellow-50 border-yellow-300">
+                          <AlertTriangle className="h-3 w-3" /> Expira em breve
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-2">
                       <Button 
                         variant="default" 
                         size="sm" 
@@ -710,6 +729,14 @@ const BancoTalentos = () => {
                         title={!candidate.resume_url ? "Currículo não cadastrado" : "Baixar currículo"}
                       >
                         <Download className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleExportCandidateData(candidate)}
+                        title="Exportar dados (Portabilidade LGPD)"
+                      >
+                        <FileDown className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
