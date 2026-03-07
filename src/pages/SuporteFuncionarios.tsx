@@ -266,6 +266,19 @@ const SuporteFuncionarios = () => {
                     {" • "}
                     {format(new Date(chamadoSelecionado.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                   </div>
+                  {/* SLA Indicator */}
+                  {!isFechado && (chamadoSelecionado as any).prazo_resposta && (() => {
+                    const prazo = new Date((chamadoSelecionado as any).prazo_resposta);
+                    const now = new Date();
+                    const isVencido = now > prazo;
+                    const horasRestantes = Math.round((prazo.getTime() - now.getTime()) / (1000 * 60 * 60));
+                    return (
+                      <Badge variant={isVencido ? "destructive" : horasRestantes < 8 ? "outline" : "secondary"} className="text-[10px] mt-1">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        {isVencido ? "SLA VENCIDO" : `SLA: ${horasRestantes}h restantes`}
+                      </Badge>
+                    );
+                  })()}
                 </div>
                 <Badge variant={si.variant} className={isFechado ? "bg-gray-400 text-white" : ""}>{si.label}</Badge>
               </div>
