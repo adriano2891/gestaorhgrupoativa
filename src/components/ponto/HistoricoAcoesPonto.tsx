@@ -137,17 +137,18 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
       const campo = log.campo_editado?.toLowerCase() || "";
       const tipo = campo.includes("status") ? "Ajuste" : "Edição";
       return [
+        log.employee_name || "-",
         data,
         hora,
         log._displayName || log.autorizado_por_nome || "-",
         tipo,
-        `${log.employee_name || "-"} — ${log.campo_editado}: ${log.valor_anterior || "—"} → ${log.valor_novo || "—"} (dia ${new Date(log.data_registro).getDate().toString().padStart(2, "0")})`,
+        `${log.campo_editado}: ${log.valor_anterior || "—"} → ${log.valor_novo || "—"} (dia ${new Date(log.data_registro).getDate().toString().padStart(2, "0")})`,
       ];
     });
 
     autoTable(doc, {
       startY: 32,
-      head: [["Data", "Hora", "Responsável", "Tipo", "Descrição"]],
+      head: [["Funcionário", "Data", "Hora", "Responsável", "Tipo", "Descrição"]],
       body: rows,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [17, 188, 183] },
@@ -205,19 +206,21 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
             <div className={`overflow-x-auto overflow-y-auto ${expanded ? "max-h-[400px]" : ""}`} style={{ WebkitOverflowScrolling: "touch" }}>
               <Table className="min-w-[700px]">
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="whitespace-nowrap">Data</TableHead>
-                    <TableHead className="whitespace-nowrap">Hora</TableHead>
-                    <TableHead className="whitespace-nowrap">Responsável</TableHead>
-                    <TableHead className="whitespace-nowrap">Tipo</TableHead>
-                    <TableHead className="whitespace-nowrap">Descrição</TableHead>
-                  </TableRow>
+                   <TableRow>
+                     <TableHead className="whitespace-nowrap">Funcionário</TableHead>
+                     <TableHead className="whitespace-nowrap">Data</TableHead>
+                     <TableHead className="whitespace-nowrap">Hora</TableHead>
+                     <TableHead className="whitespace-nowrap">Responsável</TableHead>
+                     <TableHead className="whitespace-nowrap">Tipo</TableHead>
+                     <TableHead className="whitespace-nowrap">Descrição</TableHead>
+                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {displayedLogs?.map((log: any) => {
                     const { data, hora } = formatDateTime(log.created_at);
                     return (
                       <TableRow key={log.id}>
+                        <TableCell className="text-sm font-medium whitespace-nowrap">{log.employee_name || "—"}</TableCell>
                         <TableCell className="text-sm whitespace-nowrap">{data}</TableCell>
                         <TableCell className="text-sm whitespace-nowrap">{hora}</TableCell>
                         <TableCell className="text-sm font-medium whitespace-nowrap">{log._displayName || log.autorizado_por_nome}</TableCell>
