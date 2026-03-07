@@ -396,21 +396,19 @@ export const FolhasPontoCard = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-2 flex-wrap">
-                      {isSigned ? (
-                        <Badge className="bg-green-600 hover:bg-green-700 text-white">
-                          <ShieldCheck className="h-3 w-3 mr-1" />
-                          Assinado
-                        </Badge>
-                      ) : (
-                        <Badge variant={item.status === "Fechada" ? "default" : "secondary"}>
-                          {item.status}
-                        </Badge>
-                      )}
+                      <Badge variant={isSigned ? "default" : item.status === "Fechada" ? "default" : "secondary"}
+                        className={isSigned ? "bg-green-600 hover:bg-green-700 text-white" : ""}>
+                        {isSigned ? (
+                          <>
+                            <ShieldCheck className="h-3 w-3 mr-1" />
+                            Assinado
+                          </>
+                        ) : item.status}
+                      </Badge>
 
                       {!isSigned && (
                         <Button
                           size="sm"
-                          variant="default"
                           onClick={() => setConfirmSign(item)}
                           disabled={isSigning}
                           className="gap-1"
