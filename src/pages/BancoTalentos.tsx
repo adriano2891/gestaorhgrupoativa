@@ -709,11 +709,11 @@ const BancoTalentos = () => {
                       )}
                     </div>
 
-                    <div className="flex flex-wrap gap-2 pt-2">
+                    <div className="flex items-center gap-2 pt-2">
                       <Button 
                         variant="default" 
                         size="sm" 
-                        className="flex-1"
+                        className="flex-1 min-w-0"
                         onClick={() => handleViewResume(candidate.resume_url)}
                         disabled={!candidate.resume_url}
                         title={!candidate.resume_url ? "Currículo não cadastrado" : "Visualizar currículo"}
