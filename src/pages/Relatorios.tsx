@@ -977,50 +977,111 @@ const Relatorios = () => {
           ],
         };
 
-      case "desempenho":
+      case "desempenho": {
         const metricaDesemp = metricasList?.[0];
         
+        // Calculate real presence rate per employee from ponto data
+        const profileMapDesemp = new Map((profilesList || []).map(p => [p.id, p]));
+        const pontosDesemp = filterRegistros(pontosList || [], filters);
+        const presencaPorFunc: Record<string, { nome: string; dept: string; cargo: string; totalDias: number; diasPresente: number; horasTrab: number; horasEsperadas: number }> = {};
+        
+        pontosDesemp.forEach(r => {
+          const prof = profileMapDesemp.get(r.user_id);
+          const nome = r.profiles?.nome || prof?.nome || "N/I";
+          const dept = r.profiles?.departamento || prof?.departamento || "N/I";
+          const cargo = prof?.cargo || "N/I";
+          const jornada = getJornadaHoras(prof?.escala_trabalho);
+          
+          if (!presencaPorFunc[r.user_id]) {
+            presencaPorFunc[r.user_id] = { nome, dept, cargo, totalDias: 0, diasPresente: 0, horasTrab: 0, horasEsperadas: 0 };
+          }
+          presencaPorFunc[r.user_id].totalDias++;
+          presencaPorFunc[r.user_id].horasEsperadas += jornada;
+          if (r.entrada) {
+            presencaPorFunc[r.user_id].diasPresente++;
+            const trabH = (() => {
+              const s = String(r.total_horas || "");
+              const m = s.match(/(\d+):(\d+)/);
+              return m ? parseInt(m[1]) + parseInt(m[2]) / 60 : 0;
+            })();
+            presencaPorFunc[r.user_id].horasTrab += trabH;
+          }
+        });
+
+        const funcDesempEntries = Object.values(presencaPorFunc).map(f => {
+          const taxaPresenca = f.totalDias > 0 ? ((f.diasPresente / f.totalDias) * 100) : 0;
+          const eficiencia = f.horasEsperadas > 0 ? ((f.horasTrab / f.horasEsperadas) * 100) : 0;
+          return {
+            nome: f.nome,
+            departamento: f.dept,
+            cargo: f.cargo,
+            diasRegistrados: f.totalDias,
+            diasPresente: f.diasPresente,
+            taxaPresenca: `${taxaPresenca.toFixed(1)}%`,
+            horasTrabalhadas: `${f.horasTrab.toFixed(1)}h`,
+            eficiencia: `${Math.min(eficiencia, 100).toFixed(1)}%`,
+          };
+        });
+
+        // Aggregate by department
+        const deptDesemp: Record<string, { totalDias: number; presentes: number; horasTrab: number; horasEsp: number }> = {};
+        Object.values(presencaPorFunc).forEach(f => {
+          if (!deptDesemp[f.dept]) deptDesemp[f.dept] = { totalDias: 0, presentes: 0, horasTrab: 0, horasEsp: 0 };
+          deptDesemp[f.dept].totalDias += f.totalDias;
+          deptDesemp[f.dept].presentes += f.diasPresente;
+          deptDesemp[f.dept].horasTrab += f.horasTrab;
+          deptDesemp[f.dept].horasEsp += f.horasEsperadas;
+        });
+
+        const totalPresGeral = Object.values(presencaPorFunc).reduce((a, f) => a + f.diasPresente, 0);
+        const totalDiasGeral = Object.values(presencaPorFunc).reduce((a, f) => a + f.totalDias, 0);
+        const taxaPresGeral = totalDiasGeral > 0 ? (totalPresGeral / totalDiasGeral) * 100 : 0;
+        const totalHTrab = Object.values(presencaPorFunc).reduce((a, f) => a + f.horasTrab, 0);
+        const totalHEsp = Object.values(presencaPorFunc).reduce((a, f) => a + f.horasEsperadas, 0);
+        const eficienciaGeral = totalHEsp > 0 ? (totalHTrab / totalHEsp) * 100 : 0;
+
         return {
           ...baseData,
           summary: {
-            "Índice de Eficiência": `${metricaDesemp?.indice_eficiencia?.toFixed(1) || 0}%`,
-            "Produtividade Geral": `${metricaDesemp?.produtividade_equipe?.toFixed(1) || 0}%`,
-            "Satisfação Gestor": `${metricaDesemp?.satisfacao_gestor?.toFixed(1) || 0}/10`,
-            "Taxa de Presença": `${metricaDesemp?.taxa_presenca?.toFixed(1) || 0}%`,
+            "Taxa de Presença": `${taxaPresGeral.toFixed(1)}%`,
+            "Eficiência Geral": `${Math.min(eficienciaGeral, 100).toFixed(1)}%`,
+            "Funcionários Analisados": Object.keys(presencaPorFunc).length,
+            "Total Dias Registrados": totalDiasGeral,
+            "Horas Trabalhadas": `${totalHTrab.toFixed(0)}h`,
+            "Satisfação Gestor": metricaDesemp?.satisfacao_gestor ? `${metricaDesemp.satisfacao_gestor.toFixed(1)}/10` : "Sem dados",
           },
-          details: funcList?.slice(0, 30).map(f => ({
-            nome: f.nome,
-            departamento: f.departamento || "Não informado",
-            cargo: f.cargo || "Não informado",
-            avaliacaoEstimada: Math.floor(Math.random() * 3) + 3, // Simulado 3-5
-            status: "Em avaliação",
-          })) || [],
+          details: funcDesempEntries.length > 0 ? funcDesempEntries : [{
+            nome: "Sem registros de ponto no período",
+            departamento: "-", cargo: "-", diasRegistrados: 0,
+            diasPresente: 0, taxaPresenca: "-", horasTrabalhadas: "-", eficiencia: "-",
+          }],
           charts: [
             {
               type: "radar",
               title: "Indicadores de Desempenho",
-              description: "Visão geral das métricas de desempenho da equipe",
+              description: "Visão geral das métricas reais de desempenho da equipe",
               data: [
-                { indicador: "Eficiência", valor: metricaDesemp?.indice_eficiencia || 0 },
+                { indicador: "Presença", valor: parseFloat(taxaPresGeral.toFixed(1)) },
+                { indicador: "Eficiência", valor: parseFloat(Math.min(eficienciaGeral, 100).toFixed(1)) },
                 { indicador: "Produtividade", valor: metricaDesemp?.produtividade_equipe || 0 },
-                { indicador: "Presença", valor: metricaDesemp?.taxa_presenca || 0 },
                 { indicador: "Satisfação", valor: (metricaDesemp?.satisfacao_interna || 0) * 10 },
                 { indicador: "Retenção", valor: metricaDesemp?.taxa_retencao || 0 },
               ],
             },
             {
               type: "bar",
-              title: "Desempenho por Departamento",
-              description: "Comparativo de desempenho entre departamentos",
-              dataName: "Score",
-              insight: "Scores baseados na combinação de eficiência e produtividade.",
-              data: funcDeptList?.slice(0, 6).map(d => ({
-                departamento: d.departamento || "Sem Dept.",
-                valor: Math.floor(Math.random() * 30) + 70, // Simulado 70-100
-              })) || [],
+              title: "Eficiência por Departamento",
+              description: "Horas trabalhadas ÷ Horas esperadas × 100 (dados reais do ponto)",
+              dataName: "Eficiência %",
+              insight: `Eficiência geral: ${Math.min(eficienciaGeral, 100).toFixed(1)}%. Baseado em registros reais de ponto.`,
+              data: Object.entries(deptDesemp).slice(0, 8).map(([dept, s]) => ({
+                departamento: dept.length > 15 ? dept.substring(0, 15) + "..." : dept,
+                valor: parseFloat((s.horasEsp > 0 ? Math.min((s.horasTrab / s.horasEsp) * 100, 100) : 0).toFixed(1)),
+              })),
             },
           ],
         };
+      }
 
       case "treinamentos":
         const cursosPublicados = cursos?.filter(c => c.status === 'publicado') || [];
