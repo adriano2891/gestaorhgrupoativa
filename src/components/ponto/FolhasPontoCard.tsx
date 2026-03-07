@@ -101,13 +101,39 @@ export const FolhasPontoCard = () => {
     try {
       const doc = new jsPDF({ orientation: "landscape" });
       const nome = profile?.nome || "Funcionário";
+      const depto = profile?.departamento || "Sede Principal";
 
-      doc.setFontSize(16);
-      doc.text(`Folha de Ponto - ${item.label}`, 14, 20);
+      // === Cabeçalho da Empresa (Portaria 671/2021 & Art. 74 CLT) ===
+      let yPos = 12;
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('GRUPO ATIVA TEC', 14, yPos);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text('CNPJ: 42.523.488/0001-81', 14, yPos + 5);
+      doc.text('Endereço: Rua Exemplo, 123 – Centro – São Paulo/SP – CEP 01001-000', 14, yPos + 9);
+      doc.text(`Setor/Estabelecimento: ${depto}`, 14, yPos + 13);
+
+      // Linha separadora
+      doc.setDrawColor(17, 188, 183);
+      doc.setLineWidth(0.5);
+      doc.line(14, yPos + 16, 283, yPos + 16);
+      yPos += 22;
+
+      // Título
+      doc.setFontSize(13);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(`ESPELHO DE PONTO – ${item.label}`, 14, yPos);
+      yPos += 7;
+
       doc.setFontSize(10);
-      doc.text(`Funcionário: ${nome}`, 14, 28);
-      doc.text(`Status: ${item.status}`, 14, 34);
-      doc.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 14, 40);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Funcionário: ${nome}`, 14, yPos);
+      yPos += 5;
+      doc.setFontSize(9);
+      doc.text(`Status: ${item.status} | Gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 14, yPos);
+      yPos += 5;
 
       const sorted = [...item.registros].sort(
         (a, b) => new Date(a.data).getTime() - new Date(b.data).getTime()
@@ -131,7 +157,7 @@ export const FolhasPontoCard = () => {
       });
 
       autoTable(doc, {
-        startY: 46,
+        startY: yPos + 2,
         head: [[
           "Data", "Entrada", "Saída Almoço", "Ret. Almoço",
           "Saída P1", "Ret. P1", "Saída", "Total", "HE", "Noturno", "Tipo"

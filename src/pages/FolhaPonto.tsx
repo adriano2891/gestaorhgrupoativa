@@ -411,22 +411,45 @@ const FolhaPonto = () => {
 
   const exportToPDF = () => {
     const doc = new jsPDF('l', 'mm', 'a4'); // landscape
-    let yPos = 20;
+    let yPos = 12;
     
     monthRecords.forEach((record, index) => {
       if (index > 0) {
         doc.addPage();
-        yPos = 20;
+        yPos = 12;
       }
       
-      // Cabeçalho do funcionário
-      doc.setFontSize(16);
-      doc.text(`${record.matricula ? `[${record.matricula}] ` : ''}${record.employee_name}`, 14, yPos);
-      yPos += 6;
+      // === Cabeçalho da Empresa (Portaria 671/2021 & Art. 74 CLT) ===
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('GRUPO ATIVA TEC', 14, yPos);
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'normal');
+      doc.text('CNPJ: 42.523.488/0001-81', 14, yPos + 5);
+      doc.text('Endereço: Rua Exemplo, 123 – Centro – São Paulo/SP – CEP 01001-000', 14, yPos + 9);
+      doc.text(`Setor/Estabelecimento: ${record.departamento || 'Sede Principal'}`, 14, yPos + 13);
       
+      // Linha separadora
+      doc.setDrawColor(17, 188, 183);
+      doc.setLineWidth(0.5);
+      doc.line(14, yPos + 16, 283, yPos + 16);
+      yPos += 22;
+
+      // Título do documento
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text(`ESPELHO DE PONTO – ${selectedMonth}/${selectedYear}`, 14, yPos);
+      yPos += 7;
+
+      // Cabeçalho do funcionário
       doc.setFontSize(10);
-      doc.text(`Departamento: ${record.departamento || '-'} | Matrícula: ${record.matricula || '-'} | Período: ${selectedMonth}/${selectedYear}`, 14, yPos);
-      yPos += 8;
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Funcionário: ${record.matricula ? `[${record.matricula}] ` : ''}${record.employee_name}`, 14, yPos);
+      yPos += 5;
+      doc.setFontSize(9);
+      doc.text(`Departamento: ${record.departamento || '-'} | Matrícula: ${record.matricula || '-'} | Escala: ${record.escala_trabalho || '-'}`, 14, yPos);
+      yPos += 7;
       
       // Resumo do funcionário
       doc.setFontSize(9);
