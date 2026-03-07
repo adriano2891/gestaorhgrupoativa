@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   MessageCircle, Search, ArrowLeft, Send, Paperclip, Download, Clock, 
-  Filter, User, CheckCircle, Lock, ClipboardList
+  Filter, User, CheckCircle, Lock, ClipboardList, FileText, Shield
 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,7 @@ import {
   useMensagensChamado,
   useEnviarMensagem,
   useAtualizarStatusChamado,
+  useAuditoriaChamado,
   type ChamadoSuporte,
 } from "@/hooks/useChamadosSuporte";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -26,6 +27,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { GerenciarAjustesPontoCard } from "@/components/ponto/GerenciarAjustesPontoCard";
+import { gerarPdfChamadoAuditoria, gerarPdfRelatorioGeral } from "@/utils/chamadosPdfAuditoria";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   aberto: { label: "Aberto", variant: "default" },
