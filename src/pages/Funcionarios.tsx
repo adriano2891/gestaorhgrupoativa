@@ -1642,8 +1642,57 @@ const Funcionarios = () => {
 
               {/* Documentos CLT */}
               <div className="border-t pt-3 mt-2">
-                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Documentos CLT</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Dados CLT / eSocial</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Sexo *</Label>
+                    <Select value={editSexo} onValueChange={setEditSexo}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Masculino">Masculino</SelectItem>
+                        <SelectItem value="Feminino">Feminino</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Estado Civil *</Label>
+                    <Select value={editEstadoCivil} onValueChange={setEditEstadoCivil}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Solteiro(a)">Solteiro(a)</SelectItem>
+                        <SelectItem value="Casado(a)">Casado(a)</SelectItem>
+                        <SelectItem value="Divorciado(a)">Divorciado(a)</SelectItem>
+                        <SelectItem value="Viúvo(a)">Viúvo(a)</SelectItem>
+                        <SelectItem value="União Estável">União Estável</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Nacionalidade</Label>
+                    <Input value={editNacionalidade} onChange={(e) => setEditNacionalidade(e.target.value)} placeholder="Brasileira" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Nome da Mãe *</Label>
+                    <Input value={editNomeMae} onChange={(e) => setEditNomeMae(e.target.value)} placeholder="Nome completo da mãe" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">CBO (Código Ocupação)</Label>
+                    <Input value={editCbo} onChange={(e) => setEditCbo(e.target.value)} placeholder="Ex: 2521-05" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Tipo de Contrato</Label>
+                    <Select value={editTipoContrato} onValueChange={setEditTipoContrato}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CLT">CLT</SelectItem>
+                        <SelectItem value="Temporário">Temporário</SelectItem>
+                        <SelectItem value="Experiência">Experiência</SelectItem>
+                        <SelectItem value="Intermitente">Intermitente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
                   <div className="space-y-1.5">
                     <Label className="text-sm">RG</Label>
                     <Input value={editRg} onChange={(e) => setEditRg(e.target.value)} placeholder="00.000.000-0" className="h-9" />
