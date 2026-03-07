@@ -341,32 +341,50 @@ export type Database = {
       }
       certificados: {
         Row: {
+          carga_horaria_real: number | null
+          cnpj_empresa: string | null
           codigo_validacao: string
+          cpf_funcionario: string | null
           created_at: string | null
           curso_id: string
           data_emissao: string | null
           id: string
+          instrutor_nome: string | null
+          instrutor_qualificacao: string | null
           matricula_id: string
+          norma_regulamentadora: string | null
           url_certificado: string | null
           user_id: string
         }
         Insert: {
+          carga_horaria_real?: number | null
+          cnpj_empresa?: string | null
           codigo_validacao: string
+          cpf_funcionario?: string | null
           created_at?: string | null
           curso_id: string
           data_emissao?: string | null
           id?: string
+          instrutor_nome?: string | null
+          instrutor_qualificacao?: string | null
           matricula_id: string
+          norma_regulamentadora?: string | null
           url_certificado?: string | null
           user_id: string
         }
         Update: {
+          carga_horaria_real?: number | null
+          cnpj_empresa?: string | null
           codigo_validacao?: string
+          cpf_funcionario?: string | null
           created_at?: string | null
           curso_id?: string
           data_emissao?: string | null
           id?: string
+          instrutor_nome?: string | null
+          instrutor_qualificacao?: string | null
           matricula_id?: string
+          norma_regulamentadora?: string | null
           url_certificado?: string | null
           user_id?: string
         }
@@ -695,10 +713,14 @@ export type Database = {
           criado_por: string | null
           departamentos_permitidos: string[] | null
           descricao: string | null
+          excluido: boolean
+          excluido_em: string | null
+          excluido_por: string | null
           id: string
           instrutor: string | null
           meses_recorrencia: number | null
           nivel: Database["public"]["Enums"]["curso_nivel"] | null
+          norma_regulamentadora: string | null
           nota_minima: number | null
           obrigatorio: boolean | null
           recorrente: boolean | null
@@ -715,10 +737,14 @@ export type Database = {
           criado_por?: string | null
           departamentos_permitidos?: string[] | null
           descricao?: string | null
+          excluido?: boolean
+          excluido_em?: string | null
+          excluido_por?: string | null
           id?: string
           instrutor?: string | null
           meses_recorrencia?: number | null
           nivel?: Database["public"]["Enums"]["curso_nivel"] | null
+          norma_regulamentadora?: string | null
           nota_minima?: number | null
           obrigatorio?: boolean | null
           recorrente?: boolean | null
@@ -735,10 +761,14 @@ export type Database = {
           criado_por?: string | null
           departamentos_permitidos?: string[] | null
           descricao?: string | null
+          excluido?: boolean
+          excluido_em?: string | null
+          excluido_por?: string | null
           id?: string
           instrutor?: string | null
           meses_recorrencia?: number | null
           nivel?: Database["public"]["Enums"]["curso_nivel"] | null
+          norma_regulamentadora?: string | null
           nota_minima?: number | null
           obrigatorio?: boolean | null
           recorrente?: boolean | null
@@ -759,6 +789,44 @@ export type Database = {
             columns: ["criado_por"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cursos_auditoria: {
+        Row: {
+          acao: string
+          created_at: string
+          curso_id: string | null
+          detalhes: string | null
+          id: string
+          ip_address: string | null
+          user_id: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          curso_id?: string | null
+          detalhes?: string | null
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          curso_id?: string | null
+          detalhes?: string | null
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cursos_auditoria_curso_id_fkey"
+            columns: ["curso_id"]
+            isOneToOne: false
+            referencedRelation: "cursos"
             referencedColumns: ["id"]
           },
         ]
@@ -2259,39 +2327,54 @@ export type Database = {
       }
       matriculas: {
         Row: {
+          carga_horaria_real: number | null
+          confirmado: boolean
+          confirmado_em: string | null
           created_at: string | null
           curso_id: string
           data_conclusao: string | null
           data_inicio: string | null
           id: string
+          ip_confirmacao: string | null
           nota_final: number | null
           progresso: number | null
           status: string | null
           updated_at: string | null
+          user_agent_confirmacao: string | null
           user_id: string
         }
         Insert: {
+          carga_horaria_real?: number | null
+          confirmado?: boolean
+          confirmado_em?: string | null
           created_at?: string | null
           curso_id: string
           data_conclusao?: string | null
           data_inicio?: string | null
           id?: string
+          ip_confirmacao?: string | null
           nota_final?: number | null
           progresso?: number | null
           status?: string | null
           updated_at?: string | null
+          user_agent_confirmacao?: string | null
           user_id: string
         }
         Update: {
+          carga_horaria_real?: number | null
+          confirmado?: boolean
+          confirmado_em?: string | null
           created_at?: string | null
           curso_id?: string
           data_conclusao?: string | null
           data_inicio?: string | null
           id?: string
+          ip_confirmacao?: string | null
           nota_final?: number | null
           progresso?: number | null
           status?: string | null
           updated_at?: string | null
+          user_agent_confirmacao?: string | null
           user_id?: string
         }
         Relationships: [
