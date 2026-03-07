@@ -536,7 +536,7 @@ const FolhaPonto = () => {
 
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Funcionário: ${record.matricula ? `[${record.matricula}] ` : ''}${record.employee_name} | Depto: ${record.departamento || '-'} | Matrícula: ${record.matricula || '-'} | Escala: ${record.escala_trabalho || '-'}`, 10, yPos);
+      doc.text(`Funcionário: ${record.matricula ? `[${record.matricula}] ` : ''}${record.employee_name} | Depto: ${record.departamento || '-'} | Escala: ${record.escala_trabalho || '-'}`, 10, yPos);
       yPos += 4;
       doc.text(`Total Horas: ${record.total_horas_mes.toFixed(1)}h | Horas Extras: ${record.total_horas_extras.toFixed(1)}h | H. Noturnas: ${record.total_horas_noturnas.toFixed(1)}h | Faltas: ${record.total_faltas}`, 10, yPos);
       yPos += 4;
