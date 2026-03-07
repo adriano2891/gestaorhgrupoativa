@@ -63,13 +63,13 @@ export const FolhasPontoCard = () => {
   const loadAssinaturas = useCallback(async () => {
     const userId = profile?.id;
     if (!userId) return;
-    const { data } = await supabase
+    const { data } = await (supabase as any)
       .from("assinaturas_espelho_ponto")
       .select("*")
       .eq("funcionario_id", userId);
     if (data) {
       const map: Record<string, Assinatura> = {};
-      data.forEach((a: any) => {
+      (data as any[]).forEach((a: any) => {
         map[`${a.ano_referencia}-${a.mes_referencia}`] = a as Assinatura;
       });
       setAssinaturas(map);
