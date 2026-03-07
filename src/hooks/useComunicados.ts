@@ -23,6 +23,9 @@ export interface ComunicadoComLeitura extends Comunicado {
   confirmado_em: string | null;
 }
 
+/**
+ * Hook for active comunicados (portal view - current/active only)
+ */
 export const useComunicados = (userId?: string) => {
   return useQuery({
     queryKey: ["comunicados", userId],
@@ -37,7 +40,7 @@ export const useComunicados = (userId?: string) => {
           .from("comunicados")
           .select("*")
           .eq("ativo", true)
-          .eq("excluido" as any, false)
+          .eq("excluido", false)
           .order("created_at", { ascending: false });
 
         if (comunicadosError) {
@@ -45,25 +48,7 @@ export const useComunicados = (userId?: string) => {
           return [] as ComunicadoComLeitura[];
         }
 
-        const { data: leituras } = await supabase
-          .from("comunicados_lidos")
-          .select("comunicado_id, lido_em, confirmado, confirmado_em" as any)
-          .eq("user_id", activeUserId);
-
-        const leiturasMap = new Map(
-          (leituras as any[])?.map((l: any) => [l.comunicado_id, l]) || []
-        );
-
-        return (comunicados || []).map((c: any) => {
-          const leitura = leiturasMap.get(c.id);
-          return {
-            ...c,
-            lido: !!leitura,
-            lido_em: leitura?.lido_em || null,
-            confirmado: leitura?.confirmado || false,
-            confirmado_em: leitura?.confirmado_em || null,
-          };
-        }) as ComunicadoComLeitura[];
+        return await enrichWithLeituras(comunicados || [], activeUserId);
       } catch (error) {
         console.error("Erro inesperado em useComunicados:", error);
         return [] as ComunicadoComLeitura[];
@@ -74,6 +59,73 @@ export const useComunicados = (userId?: string) => {
     staleTime: 1000 * 30,
   });
 };
+
+/**
+ * Hook for expired/inactive comunicados (portal history view)
+ * Shows comunicados that are expired or inactive but not deleted - CLT Art. 11
+ */
+export const useComunicadosHistorico = (userId?: string) => {
+  return useQuery({
+    queryKey: ["comunicados-historico", userId],
+    queryFn: async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const activeUserId = session?.user?.id || userId;
+
+        if (!activeUserId) return [] as ComunicadoComLeitura[];
+
+        // Get expired or inactive comunicados (not deleted)
+        const { data: comunicados, error } = await (supabase as any)
+          .from("comunicados")
+          .select("*")
+          .eq("excluido", false)
+          .or("ativo.eq.false,data_expiracao.lt." + new Date().toISOString())
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Erro ao buscar histórico:", error);
+          return [] as ComunicadoComLeitura[];
+        }
+
+        // Filter out ones that are still active and not expired
+        const filtered = (comunicados || []).filter((c: any) => {
+          const isExpired = c.data_expiracao && new Date(c.data_expiracao) < new Date();
+          return !c.ativo || isExpired;
+        });
+
+        return await enrichWithLeituras(filtered, activeUserId);
+      } catch (error) {
+        console.error("Erro inesperado em useComunicadosHistorico:", error);
+        return [] as ComunicadoComLeitura[];
+      }
+    },
+    enabled: !!userId,
+    retry: 2,
+    staleTime: 1000 * 60,
+  });
+};
+
+async function enrichWithLeituras(comunicados: any[], userId: string): Promise<ComunicadoComLeitura[]> {
+  const { data: leituras } = await supabase
+    .from("comunicados_lidos")
+    .select("comunicado_id, lido_em, confirmado, confirmado_em" as any)
+    .eq("user_id", userId);
+
+  const leiturasMap = new Map(
+    (leituras as any[])?.map((l: any) => [l.comunicado_id, l]) || []
+  );
+
+  return comunicados.map((c: any) => {
+    const leitura = leiturasMap.get(c.id);
+    return {
+      ...c,
+      lido: !!leitura,
+      lido_em: leitura?.lido_em || null,
+      confirmado: leitura?.confirmado || false,
+      confirmado_em: leitura?.confirmado_em || null,
+    };
+  }) as ComunicadoComLeitura[];
+}
 
 export const useMarcarComunicadoLido = () => {
   const queryClient = useQueryClient();
@@ -97,6 +149,7 @@ export const useMarcarComunicadoLido = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["comunicados", variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ["comunicados-historico", variables.userId] });
     },
     onError: (error) => {
       toast.error("Erro ao marcar comunicado como lido");
@@ -133,6 +186,7 @@ export const useConfirmarComunicado = () => {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ["comunicados", variables.userId] });
+      queryClient.invalidateQueries({ queryKey: ["comunicados-historico", variables.userId] });
     },
     onError: (error) => {
       toast.error("Erro ao confirmar comunicado");

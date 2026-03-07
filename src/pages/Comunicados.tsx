@@ -14,6 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CriarComunicadoDialog } from "@/components/comunicados/CriarComunicadoDialog";
 import { AuditoriaComunicadoDialog } from "@/components/comunicados/AuditoriaComunicadoDialog";
 import { ConfirmacoesLeituraDialog } from "@/components/comunicados/ConfirmacoesLeituraDialog";
+import { gerarPdfComunicado } from "@/utils/comunicadoPdfGenerator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -62,7 +63,6 @@ const Comunicados = () => {
   const [mostrarExcluidos, setMostrarExcluidos] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch comunicados with emissor name
   const { data: comunicados, isLoading, error, refetch } = useQuery({
     queryKey: ["comunicados-admin", mostrarExcluidos],
     queryFn: async () => {
@@ -87,7 +87,6 @@ const Comunicados = () => {
     staleTime: 1000 * 30,
   });
 
-  // Soft-delete mutation (replaces hard DELETE)
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -100,7 +99,7 @@ const Comunicados = () => {
           excluido_por: user.id,
           excluido_em: new Date().toISOString(),
           ativo: false,
-        })
+        } as any)
         .eq("id", id);
 
       if (error) throw error;
@@ -155,6 +154,20 @@ const Comunicados = () => {
     setConfirmacoesOpen(true);
   };
 
+  const handleExportPdf = async (comunicado: Comunicado) => {
+    try {
+      toast.info("Gerando PDF...");
+      await gerarPdfComunicado({
+        ...comunicado,
+        emissor_nome: comunicado.emissor_nome || "Sistema",
+      });
+      toast.success("PDF gerado com sucesso");
+    } catch (err) {
+      console.error("Erro ao gerar PDF:", err);
+      toast.error("Erro ao gerar PDF");
+    }
+  };
+
   const getTipoBadge = (tipo: string) => {
     const tipos: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
       informativo: { label: "Informativo", variant: "default" },
@@ -167,10 +180,10 @@ const Comunicados = () => {
 
   const getPrioridadeBadge = (prioridade: string) => {
     const prioridades: Record<string, { label: string; className: string }> = {
-      alta: { label: "Alta", className: "bg-red-500 text-white" },
+      alta: { label: "Alta", className: "bg-destructive text-destructive-foreground" },
       media: { label: "Média", className: "bg-yellow-500 text-white" },
       baixa: { label: "Baixa", className: "bg-green-500 text-white" },
-      normal: { label: "Normal", className: "bg-blue-500 text-white" },
+      normal: { label: "Normal", className: "bg-primary text-primary-foreground" },
     };
     return prioridades[prioridade] || { label: prioridade, className: "" };
   };
@@ -250,7 +263,7 @@ const Comunicados = () => {
                             {getPrioridadeBadge(comunicado.prioridade).label}
                           </Badge>
                           {!comunicado.ativo && !comunicado.excluido && (
-                            <Badge variant="outline" className="border-red-500 text-red-500">Inativo</Badge>
+                            <Badge variant="outline" className="border-destructive text-destructive">Inativo</Badge>
                           )}
                           {comunicado.excluido && (
                             <Badge variant="outline" className="border-destructive text-destructive">Arquivado</Badge>
@@ -290,67 +303,81 @@ const Comunicados = () => {
                         </div>
                       </div>
 
-                      {!comunicado.excluido && (
-                        <TooltipProvider>
-                          <div className="flex gap-1">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleViewConfirmacoes(comunicado.id)}
-                                >
-                                  <FileText className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Confirmações de Leitura</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleViewAuditoria(comunicado.id)}
-                                >
-                                  <History className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Histórico de Auditoria</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() =>
-                                    toggleAtivoMutation.mutate({
-                                      id: comunicado.id,
-                                      ativo: !comunicado.ativo,
-                                    })
-                                  }
-                                  title={comunicado.ativo ? "Desativar" : "Ativar"}
-                                >
-                                  {comunicado.ativo ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>{comunicado.ativo ? "Desativar" : "Ativar"}</TooltipContent>
-                            </Tooltip>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="icon"
-                                  onClick={() => handleDelete(comunicado.id)}
-                                  className="text-destructive hover:text-destructive"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Arquivar</TooltipContent>
-                            </Tooltip>
-                          </div>
-                        </TooltipProvider>
-                      )}
+                      <TooltipProvider>
+                        <div className="flex gap-1">
+                          {/* PDF Export - always available for audit */}
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => handleExportPdf(comunicado)}
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Exportar PDF (Auditoria)</TooltipContent>
+                          </Tooltip>
+                          {!comunicado.excluido && (
+                            <>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleViewConfirmacoes(comunicado.id)}
+                                  >
+                                    <FileText className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Confirmações de Leitura</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleViewAuditoria(comunicado.id)}
+                                  >
+                                    <History className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Histórico de Auditoria</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() =>
+                                      toggleAtivoMutation.mutate({
+                                        id: comunicado.id,
+                                        ativo: !comunicado.ativo,
+                                      })
+                                    }
+                                  >
+                                    {comunicado.ativo ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>{comunicado.ativo ? "Desativar" : "Ativar"}</TooltipContent>
+                              </Tooltip>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    onClick={() => handleDelete(comunicado.id)}
+                                    className="text-destructive hover:text-destructive"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Arquivar</TooltipContent>
+                              </Tooltip>
+                            </>
+                          )}
+                        </div>
+                      </TooltipProvider>
                     </div>
                   </CardContent>
                 </Card>
