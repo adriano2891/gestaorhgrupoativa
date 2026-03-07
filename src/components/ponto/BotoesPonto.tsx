@@ -229,6 +229,53 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
         }
       }
 
+      // HE limit validation (Art. 59 §1º CLT - max 2h extras/day)
+      if (campo === "inicio_he") {
+        // Calculate hours already worked today
+        if (registroHoje?.entrada && registroHoje?.saida) {
+          const entrada = new Date(registroHoje.entrada).getTime();
+          const saida = new Date(registroHoje.saida).getTime();
+          let trabalhadas = (saida - entrada) / (1000 * 60 * 60);
+          
+          // Subtract completed pauses
+          if (registroHoje.saida_almoco && registroHoje.retorno_almoco) {
+            trabalhadas -= (new Date(registroHoje.retorno_almoco).getTime() - new Date(registroHoje.saida_almoco).getTime()) / (1000 * 60 * 60);
+          }
+          if (registroHoje.saida_pausa_1 && registroHoje.retorno_pausa_1) {
+            trabalhadas -= (new Date(registroHoje.retorno_pausa_1).getTime() - new Date(registroHoje.saida_pausa_1).getTime()) / (1000 * 60 * 60);
+          }
+          if (registroHoje.saida_pausa_2 && registroHoje.retorno_pausa_2) {
+            trabalhadas -= (new Date(registroHoje.retorno_pausa_2).getTime() - new Date(registroHoje.saida_pausa_2).getTime()) / (1000 * 60 * 60);
+          }
+
+          const jornadaPadrao = 8; // TODO: check escala_trabalho
+          const heJaFeitas = Math.max(0, trabalhadas - jornadaPadrao);
+          
+          if (heJaFeitas >= 2) {
+            toast.warning("⚠️ Limite de Horas Extras atingido", {
+              description: `Você já tem ${heJaFeitas.toFixed(1)}h extras hoje. O limite legal é de 2h/dia (CLT Art. 59 §1º). Uma ocorrência será gerada automaticamente.`,
+              duration: 8000,
+            });
+          } else if (heJaFeitas >= 1.5) {
+            toast.info("Atenção: próximo do limite de HE", {
+              description: `${heJaFeitas.toFixed(1)}h extras acumuladas. Limite: 2h/dia (CLT Art. 59 §1º).`,
+              duration: 5000,
+            });
+          }
+        }
+      }
+
+      // Warn when finishing HE if exceeded 2h
+      if (campo === "fim_he" && registroHoje?.inicio_he) {
+        const heMinutos = (Date.now() - new Date(registroHoje.inicio_he).getTime()) / (1000 * 60);
+        if (heMinutos > 120) {
+          toast.warning("Horas extras excederam 2h", {
+            description: `Período de HE: ${Math.round(heMinutos)}min. Ocorrência CLT será gerada (Art. 59 §1º).`,
+            duration: 6000,
+          });
+        }
+      }
+
       const agora = new Date().toISOString();
       const hoje = new Date().toISOString().split('T')[0];
 
