@@ -538,6 +538,8 @@ const Relatorios = () => {
               cargaPrevista: `${jornadaPrevista}h`,
               horasTrabalhadas: r.total_horas ? String(r.total_horas).substring(0, 5) : "0:00",
               horasExtras: r.horas_extras ? String(r.horas_extras).substring(0, 5) : "0:00",
+              horasNoturnas: r.horas_noturnas ? String(r.horas_noturnas).substring(0, 5) : "0:00",
+              adicNoturno: r.adicional_noturno ? String(r.adicional_noturno).substring(0, 5) : "0:00",
               estouroPausa: estouros.length > 0 ? estouros.join(", ") : "—",
             };
           }) : [{ nome: "Nenhum registro", departamento: "-", data: "-", entrada: "-", saidaAlmoco: "-", retornoAlmoco: "-", saida: "-", cargaPrevista: "-", horasTrabalhadas: "-", horasExtras: "-", estouroPausa: "-" }],
