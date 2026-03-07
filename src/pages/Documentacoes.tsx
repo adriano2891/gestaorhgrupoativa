@@ -240,14 +240,42 @@ const Documentacoes = () => {
                   <SelectItem value="todas">Todas Categorias</SelectItem>
                   {categorias?.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
-                      <span className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.cor }} />
-                        {cat.nome}
+                      <span className="flex items-center gap-2 w-full">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.cor }} />
+                        <span className="truncate">{cat.nome}</span>
                       </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {/* Category management buttons */}
+              {categorias && categorias.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-10 w-10 flex-shrink-0" title="Gerenciar categorias">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    {categorias.map((cat) => (
+                      <div key={cat.id} className="flex items-center justify-between px-2 py-1.5 hover:bg-accent rounded-sm">
+                        <span className="flex items-center gap-2 text-sm truncate flex-1 min-w-0">
+                          <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.cor }} />
+                          <span className="truncate">{cat.nome}</span>
+                        </span>
+                        <div className="flex items-center gap-0.5 flex-shrink-0 ml-2">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingCategoria(cat)}>
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteCatId(cat.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <Select value={selectedTipo || "todos"} onValueChange={(v) => setSelectedTipo(v === "todos" ? undefined : v as DocumentoTipo)}>
                 <SelectTrigger className="flex-1 sm:w-[160px]">
                   <Filter className="h-4 w-4 mr-2 hidden sm:block" />
