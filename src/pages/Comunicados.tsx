@@ -66,7 +66,7 @@ const Comunicados = () => {
   const { data: comunicados, isLoading, error, refetch } = useQuery({
     queryKey: ["comunicados-admin", mostrarExcluidos],
     queryFn: async () => {
-      const query = (supabase as any)
+      let query = (supabase as any)
         .from("comunicados")
         .select("*, profiles:criado_por(nome)")
         .order("created_at", { ascending: false });
