@@ -66,6 +66,13 @@ export const MetricasFerias = () => {
       bgColor: "bg-green-50 dark:bg-green-950",
     },
     {
+      title: "Férias Vencidas",
+      value: metricas?.vencidas || 0,
+      icon: AlertTriangle,
+      color: "text-red-500",
+      bgColor: "bg-red-50 dark:bg-red-950",
+    },
+    {
       title: "Saldo Médio (dias)",
       value: metricas?.saldoMedio || 0,
       icon: TrendingUp,
