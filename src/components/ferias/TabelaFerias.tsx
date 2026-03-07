@@ -175,6 +175,29 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
                   </TableCell>
                   <TableCell>{solicitacao.dias_solicitados}</TableCell>
                   <TableCell>{getStatusBadge(solicitacao.status)}</TableCell>
+                  <TableCell>
+                    {solicitacao.status === "aprovado" ? (() => {
+                      const prazo = verificarPrazoPagamento(solicitacao.data_inicio);
+                      return (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Badge variant={prazo.dentroDosPrazos ? "outline" : "destructive"} className="text-xs">
+                                {prazo.dentroDosPrazos ? (
+                                  <>{format(new Date(prazo.dataLimite), "dd/MM/yyyy", { locale: ptBR })} ({prazo.diasRestantes}d)</>
+                                ) : (
+                                  <span className="flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Atrasado</span>
+                                )}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>CLT Art. 145: Pagamento até 2 dias antes do início das férias</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      );
+                    })() : <span className="text-xs text-muted-foreground">-</span>}
+                  </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <TooltipProvider>
