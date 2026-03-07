@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Clock, Download, Filter, AlertTriangle, CheckCircle, XCircle, FileText, Eye, FileSpreadsheet, Pencil } from "lucide-react";
+import { Calendar, Clock, Download, Filter, AlertTriangle, CheckCircle, XCircle, FileText, Eye, FileSpreadsheet, Pencil, ShieldCheck } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { usePontoRealtime, useFuncionariosRealtime } from "@/hooks/useRealtimeUpdates";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
