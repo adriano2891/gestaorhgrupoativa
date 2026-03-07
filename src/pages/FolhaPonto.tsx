@@ -512,6 +512,7 @@ const FolhaPonto = () => {
       doc.setTextColor(0, 0, 0);
       doc.text(`Assinatura do(a) Funcionário(a): ${record.employee_name}`, 14, sigLineY + 4);
       doc.text(`Matrícula: ${record.matricula || '-'}`, 14, sigLineY + 8);
+      doc.text(`CPF: ${record.cpf || '-'}`, 14, sigLineY + 12);
 
       // Employer/Manager signature
       doc.line(160, sigLineY, 280, sigLineY);
