@@ -192,6 +192,7 @@ const BancoTalentos = () => {
     });
     setSkillsInput("");
     setResumeFile(null);
+    setConsentimentoLGPD(false);
     setValidationErrors({});
     setIsAddDialogOpen(true);
   };
