@@ -130,7 +130,55 @@ export const AuditTrailCard = () => {
     }
   };
 
-  const displayedLogs = expanded ? logs : logs.slice(0, 10);
+  const actionTypes = useMemo(() => {
+    const actions = new Set(logs.map(l => {
+      if (l.acao.includes('entrada')) return 'entrada';
+      if (l.acao.includes('saida')) return 'saida';
+      if (l.acao.includes('almoco') || l.acao.includes('pausa')) return 'intervalo';
+      if (l.acao.includes('login')) return 'login';
+      return 'outro';
+    }));
+    return Array.from(actions);
+  }, [logs]);
+
+  const filteredLogs = useMemo(() => {
+    return logs.filter(log => {
+      if (filterDateFrom) {
+        const logDate = new Date(log.created_at).toISOString().split('T')[0];
+        if (logDate < filterDateFrom) return false;
+      }
+      if (filterDateTo) {
+        const logDate = new Date(log.created_at).toISOString().split('T')[0];
+        if (logDate > filterDateTo) return false;
+      }
+      if (filterAction && filterAction !== 'all') {
+        const acao = log.acao;
+        if (filterAction === 'entrada' && !acao.includes('entrada')) return false;
+        if (filterAction === 'saida' && !acao.includes('saida')) return false;
+        if (filterAction === 'intervalo' && !acao.includes('almoco') && !acao.includes('pausa')) return false;
+        if (filterAction === 'login' && !acao.includes('login')) return false;
+        if (filterAction === 'outro' && (acao.includes('entrada') || acao.includes('saida') || acao.includes('almoco') || acao.includes('pausa') || acao.includes('login'))) return false;
+      }
+      if (filterIP && !(log.ip_address || '').includes(filterIP)) return false;
+      if (filterDetails) {
+        const details = JSON.stringify(log.detalhes || {}).toLowerCase();
+        if (!details.includes(filterDetails.toLowerCase())) return false;
+      }
+      return true;
+    });
+  }, [logs, filterDateFrom, filterDateTo, filterAction, filterIP, filterDetails]);
+
+  const displayedLogs = expanded ? filteredLogs : filteredLogs.slice(0, 10);
+
+  const hasFilters = filterDateFrom || filterDateTo || (filterAction && filterAction !== 'all') || filterIP || filterDetails;
+
+  const clearFilters = () => {
+    setFilterDateFrom("");
+    setFilterDateTo("");
+    setFilterAction("all");
+    setFilterIP("");
+    setFilterDetails("");
+  };
 
   const getActionBadge = (acao: string) => {
     if (acao.includes('entrada')) return <Badge className="bg-green-500/10 text-green-700 border-green-300" variant="outline">Entrada</Badge>;
