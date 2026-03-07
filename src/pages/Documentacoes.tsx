@@ -607,6 +607,38 @@ const Documentacoes = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Category Dialog */}
+      <EditarCategoriaDialog
+        open={!!editingCategoria}
+        onOpenChange={(open) => !open && setEditingCategoria(null)}
+        categoria={editingCategoria}
+        categorias={categorias || []}
+      />
+
+      {/* Delete Category Dialog */}
+      <AlertDialog open={!!deleteCatId} onOpenChange={() => setDeleteCatId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir categoria?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Documentos nesta categoria ficarão sem categoria.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              if (deleteCatId) {
+                await deleteCategoria.mutateAsync(deleteCatId);
+                setDeleteCatId(null);
+                if (selectedCategoria === deleteCatId) setSelectedCategoria(undefined);
+              }
+            }} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
