@@ -252,7 +252,7 @@ export const useDocumentos = (filters?: {
     queryFn: async () => {
       try {
         // Build query params
-        let params = '?select=*,categoria:documentos_categorias(id,nome,cor)&order=created_at.desc';
+        let params = '?select=*,categoria:documentos_categorias(id,nome,cor)&excluido=eq.false&order=created_at.desc';
         
         if (filters?.categoriaId) {
           params += `&categoria_id=eq.${filters.categoriaId}`;
