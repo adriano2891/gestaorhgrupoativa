@@ -463,7 +463,17 @@ const SuporteFuncionarios = () => {
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <h3 className={`font-semibold truncate ${isFechado ? "line-through text-muted-foreground" : ""}`}>{chamado.assunto}</h3>
+                            <div className="flex items-center gap-2">
+                              <h3 className={`font-semibold truncate ${isFechado ? "line-through text-muted-foreground" : ""}`}>{chamado.assunto}</h3>
+                              {(chamado as any).numero_protocolo && (
+                                <Badge variant="outline" className="text-[9px] font-mono shrink-0">
+                                  {(chamado as any).numero_protocolo}
+                                </Badge>
+                              )}
+                              {(chamado as any).funcionario_desligado && (
+                                <Badge variant="destructive" className="text-[9px] shrink-0">Desligado</Badge>
+                              )}
+                            </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                               <User className="h-3 w-3" />
                               <span>{chamado.profiles?.nome || "Funcionário"}</span>
