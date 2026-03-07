@@ -391,7 +391,7 @@ const FolhaPonto = () => {
             status: finalStatus,
             registro_folga: reg.registro_folga,
             status_validacao: reg.status_validacao,
-            tipo_dia: reg.tipo_dia,
+            tipo_dia: reg.tipo_dia || empRecord.days[dayIndex]?.tipo_dia,
             percentual_he: reg.percentual_he,
             horas_noturnas_fictas: formatInterval(reg.horas_noturnas_fictas),
           };
