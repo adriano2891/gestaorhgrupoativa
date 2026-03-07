@@ -519,6 +519,53 @@ const BancoTalentos = () => {
     }
   };
 
+  const handleExportCandidateData = (candidate: Candidate) => {
+    const exportData = {
+      nome: candidate.name,
+      email: candidate.email,
+      telefone: candidate.phone,
+      cargo_desejado: candidate.position,
+      habilidades: candidate.skills,
+      experiencia: candidate.experience,
+      status: candidate.status,
+      data_candidatura: candidate.applied_date,
+      consentimento_lgpd: candidate.consentimento_lgpd,
+      data_consentimento: candidate.data_consentimento,
+      data_validade_dados: candidate.data_validade_dados,
+      finalidade_tratamento: candidate.finalidade_tratamento,
+      exportado_em: new Date().toISOString(),
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dados-candidato-${candidate.name.replace(/\s+/g, '-').toLowerCase()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    toast({
+      title: "Dados exportados",
+      description: "Os dados do candidato foram exportados com sucesso (portabilidade LGPD).",
+    });
+  };
+
+  const isDataExpiring = (dataValidade: string | null) => {
+    if (!dataValidade) return false;
+    const validade = new Date(dataValidade);
+    const agora = new Date();
+    const diff = validade.getTime() - agora.getTime();
+    const diasRestantes = diff / (1000 * 60 * 60 * 24);
+    return diasRestantes <= 90 && diasRestantes > 0;
+  };
+
+  const isDataExpired = (dataValidade: string | null) => {
+    if (!dataValidade) return false;
+    return new Date(dataValidade) < new Date();
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
       <BackButton to="/gestao-rh" variant="light" />
