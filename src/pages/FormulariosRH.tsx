@@ -39,22 +39,22 @@ const FormulariosRH = () => {
     <Layout>
       <div className="space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
             <BackButton to="/gestao-rh" />
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Formulários de RH</h1>
-              <p className="text-sm text-muted-foreground">Gerencie formulários de gestão de pessoas</p>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">Formulários de RH</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">Gerencie formulários de gestão de pessoas</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Externo
+          <div className="flex gap-2 shrink-0">
+            <Button variant="outline" size="sm" className="text-xs sm:text-sm" onClick={() => setShowUploadDialog(true)}>
+              <Upload className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Upload Externo</span>
             </Button>
-            <Button onClick={() => setShowCriarDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Formulário
+            <Button size="sm" className="text-xs sm:text-sm" onClick={() => setShowCriarDialog(true)}>
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Novo Formulário</span>
             </Button>
           </div>
         </div>
