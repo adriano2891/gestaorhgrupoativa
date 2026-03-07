@@ -520,35 +520,84 @@ const BancoTalentos = () => {
   };
 
   const handleExportCandidateData = (candidate: Candidate) => {
-    const exportData = {
-      nome: candidate.name,
-      email: candidate.email,
-      telefone: candidate.phone,
-      cargo_desejado: candidate.position,
-      habilidades: candidate.skills,
-      experiencia: candidate.experience,
-      status: candidate.status,
-      data_candidatura: candidate.applied_date,
-      consentimento_lgpd: candidate.consentimento_lgpd,
-      data_consentimento: candidate.data_consentimento,
-      data_validade_dados: candidate.data_validade_dados,
-      finalidade_tratamento: candidate.finalidade_tratamento,
-      exportado_em: new Date().toISOString(),
+    const { jsPDF } = require("jspdf");
+    const doc = new jsPDF();
+    const pw = doc.internal.pageSize.getWidth();
+    const margin = 14;
+
+    // Header
+    doc.setFillColor(17, 188, 183);
+    doc.rect(0, 0, pw, 32, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("EXPORTAÇÃO DE DADOS — PORTABILIDADE LGPD", pw / 2, 14, { align: "center" });
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw / 2, 22, { align: "center" });
+    doc.text("Lei nº 13.709/2018 — Art. 18, V — Direito à portabilidade dos dados", pw / 2, 28, { align: "center" });
+
+    doc.setTextColor(0, 0, 0);
+    let y = 42;
+
+    const statusMap: Record<string, string> = {
+      "disponivel": "Disponível",
+      "em-processo": "Em Processo",
+      "contratado": "Contratado",
     };
 
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `dados-candidato-${candidate.name.replace(/\s+/g, '-').toLowerCase()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    URL.revokeObjectURL(url);
-    document.body.removeChild(a);
+    const fields = [
+      ["Nome", candidate.name],
+      ["E-mail", candidate.email],
+      ["Telefone", candidate.phone],
+      ["Cargo Desejado", candidate.position],
+      ["Habilidades", (candidate.skills || []).join(", ") || "—"],
+      ["Experiência", candidate.experience],
+      ["Status", statusMap[candidate.status] || candidate.status],
+      ["Data da Candidatura", candidate.applied_date ? new Date(candidate.applied_date).toLocaleDateString("pt-BR") : "—"],
+      ["Consentimento LGPD", candidate.consentimento_lgpd ? "Sim" : "Não"],
+      ["Data do Consentimento", candidate.data_consentimento ? new Date(candidate.data_consentimento).toLocaleDateString("pt-BR") : "—"],
+      ["Validade dos Dados", candidate.data_validade_dados ? new Date(candidate.data_validade_dados).toLocaleDateString("pt-BR") : "—"],
+      ["Finalidade do Tratamento", candidate.finalidade_tratamento || "—"],
+    ];
+
+    doc.setFontSize(9);
+    fields.forEach(([label, value]) => {
+      doc.setFont("helvetica", "bold");
+      doc.text(`${label}:`, margin, y);
+      doc.setFont("helvetica", "normal");
+      const lines = doc.splitTextToSize(String(value), pw - 70);
+      doc.text(lines, 65, y);
+      y += lines.length * 5 + 2;
+    });
+
+    // Footer
+    y += 10;
+    doc.setDrawColor(17, 188, 183);
+    doc.setLineWidth(0.3);
+    doc.line(margin, y, pw - margin, y);
+    y += 6;
+    doc.setFontSize(7);
+    doc.setTextColor(120, 120, 120);
+    doc.text("Este documento foi gerado automaticamente para fins de portabilidade de dados conforme a LGPD.", margin, y);
+    y += 4;
+    doc.text(`Data/Hora da exportação: ${new Date().toLocaleString("pt-BR")}`, margin, y);
+
+    // Page footer
+    doc.setFontSize(7);
+    doc.setTextColor(150, 150, 150);
+    doc.text(
+      "Portabilidade LGPD — Banco de Talentos",
+      pw / 2,
+      doc.internal.pageSize.getHeight() - 8,
+      { align: "center" }
+    );
+
+    doc.save(`dados-candidato-${candidate.name.replace(/\s+/g, '-').toLowerCase()}.pdf`);
 
     toast({
-      title: "Dados exportados",
-      description: "Os dados do candidato foram exportados com sucesso (portabilidade LGPD).",
+      title: "PDF exportado com sucesso!",
+      description: "Os dados do candidato foram exportados em PDF (portabilidade LGPD).",
     });
   };
 
