@@ -73,33 +73,33 @@ const FormularioDetalhes = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0">
               <BackButton to="/formularios-rh" />
-              <div>
-                <h1 className="text-xl font-bold text-foreground">{formulario.titulo}</h1>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="outline">{CATEGORY_LABELS[formulario.categoria]}</Badge>
-                  <Badge variant="secondary">{STATUS_LABELS[formulario.status]}</Badge>
+              <div className="min-w-0">
+                <h1 className="text-base sm:text-xl font-bold text-foreground truncate">{formulario.titulo}</h1>
+                <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                  <Badge variant="outline" className="text-xs">{CATEGORY_LABELS[formulario.categoria]}</Badge>
+                  <Badge variant="secondary" className="text-xs">{STATUS_LABELS[formulario.status]}</Badge>
                 </div>
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 shrink-0">
               {formulario.status === 'rascunho' && (
-                <Button variant="outline" onClick={() => handleStatusChange('pendente_aprovacao')}>
-                  <Send className="h-4 w-4 mr-2" />
-                  Enviar para Aprovação
+                <Button variant="outline" size="sm" onClick={() => handleStatusChange('pendente_aprovacao')}>
+                  <Send className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Enviar para Aprovação</span>
                 </Button>
               )}
               {formulario.status === 'aprovado' && (
-                <Button onClick={() => handleStatusChange('publicado')}>
+                <Button size="sm" onClick={() => handleStatusChange('publicado')}>
                   Publicar
                 </Button>
               )}
               {formulario.status === 'publicado' && (
-                <Button onClick={() => setShowAtribuirDialog(true)}>
-                  <Users className="h-4 w-4 mr-2" />
-                  Atribuir
+                <Button size="sm" onClick={() => setShowAtribuirDialog(true)}>
+                  <Users className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Atribuir</span>
                 </Button>
               )}
             </div>
