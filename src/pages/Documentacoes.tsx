@@ -71,6 +71,7 @@ const Documentacoes = () => {
   const { data: favoritos } = useMeusFavoritos();
   const deleteDocumento = useDeleteDocumento();
   const toggleFavorito = useToggleFavorito();
+  const deleteCategoria = useDeleteCategoria();
 
   const filteredDocumentos = documentos
     ?.filter(doc => {
