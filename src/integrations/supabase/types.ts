@@ -1701,40 +1701,76 @@ export type Database = {
       }
       holerites: {
         Row: {
+          adicional_noturno_valor: number | null
           ano: number
           arquivo_url: string | null
+          base_calculo_inss: number | null
+          base_calculo_irrf: number | null
           created_at: string
           descontos: number | null
+          dsr_valor: number | null
+          fgts: number | null
+          horas_extras_valor: number | null
           id: string
+          inss: number | null
+          irrf: number | null
           mes: number
+          observacoes: string | null
+          outros_descontos: number | null
+          outros_proventos: number | null
           salario_bruto: number
           salario_liquido: number
           updated_at: string
           user_id: string
+          vale_transporte: number | null
         }
         Insert: {
+          adicional_noturno_valor?: number | null
           ano: number
           arquivo_url?: string | null
+          base_calculo_inss?: number | null
+          base_calculo_irrf?: number | null
           created_at?: string
           descontos?: number | null
+          dsr_valor?: number | null
+          fgts?: number | null
+          horas_extras_valor?: number | null
           id?: string
+          inss?: number | null
+          irrf?: number | null
           mes: number
+          observacoes?: string | null
+          outros_descontos?: number | null
+          outros_proventos?: number | null
           salario_bruto: number
           salario_liquido: number
           updated_at?: string
           user_id: string
+          vale_transporte?: number | null
         }
         Update: {
+          adicional_noturno_valor?: number | null
           ano?: number
           arquivo_url?: string | null
+          base_calculo_inss?: number | null
+          base_calculo_irrf?: number | null
           created_at?: string
           descontos?: number | null
+          dsr_valor?: number | null
+          fgts?: number | null
+          horas_extras_valor?: number | null
           id?: string
+          inss?: number | null
+          irrf?: number | null
           mes?: number
+          observacoes?: string | null
+          outros_descontos?: number | null
+          outros_proventos?: number | null
           salario_bruto?: number
           salario_liquido?: number
           updated_at?: string
           user_id?: string
+          vale_transporte?: number | null
         }
         Relationships: []
       }
