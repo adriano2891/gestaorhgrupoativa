@@ -312,6 +312,40 @@ const GerenciarAdmins = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Trilha de Auditoria */}
+      {isSuperAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Trilha de Auditoria — Gestão de Admins
+            </CardTitle>
+            <CardDescription>
+              Registro de todas as alterações em permissões administrativas (CLT Art. 41 — rastreabilidade obrigatória)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {auditoria.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">Nenhum registro de auditoria</p>
+            ) : (
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {auditoria.map((a: any) => (
+                  <div key={a.id} className="flex items-start gap-3 text-xs border-l-2 border-muted pl-3 py-1.5">
+                    <span className="text-muted-foreground whitespace-nowrap">
+                      {format(new Date(a.created_at), "dd/MM/yy HH:mm:ss", { locale: ptBR })}
+                    </span>
+                    <Badge variant={a.acao === "role_removido" ? "destructive" : "default"} className="text-[10px]">
+                      {a.acao === "role_atribuido" ? "Atribuído" : a.acao === "role_removido" ? "Removido" : a.acao}
+                    </Badge>
+                    <span className="text-muted-foreground flex-1">{a.detalhes || ""}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
