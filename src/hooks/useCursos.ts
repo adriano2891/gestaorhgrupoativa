@@ -56,7 +56,7 @@ export const useCategoriasCurso = () => {
   });
 };
 
-// Cursos
+// Cursos - exclui soft-deleted por padrão
 export const useCursos = (status?: 'rascunho' | 'publicado' | 'arquivado') => {
   return useQuery({
     queryKey: ["cursos", status],
@@ -65,7 +65,7 @@ export const useCursos = (status?: 'rascunho' | 'publicado' | 'arquivado') => {
     retry: 2,
     queryFn: async () => {
       try {
-        let path = 'cursos?select=*&order=created_at.desc';
+        let path = 'cursos?select=*&excluido=eq.false&order=created_at.desc';
         if (status) path += `&status=eq.${status}`;
 
         const data: Curso[] = await restGet(path);
