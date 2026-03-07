@@ -172,6 +172,12 @@ const Funcionarios = () => {
   const [editPis, setEditPis] = useState("");
   const [editCtps, setEditCtps] = useState("");
   const [editCtpsSerie, setEditCtpsSerie] = useState("");
+  const [editNacionalidade, setEditNacionalidade] = useState("Brasileira");
+  const [editEstadoCivil, setEditEstadoCivil] = useState("");
+  const [editSexo, setEditSexo] = useState("");
+  const [editNomeMae, setEditNomeMae] = useState("");
+  const [editCbo, setEditCbo] = useState("");
+  const [editTipoContrato, setEditTipoContrato] = useState("CLT");
   
   const [newEscala, setNewEscala] = useState("8h");
   const [newTurno, setNewTurno] = useState("diurno");
@@ -209,6 +215,12 @@ const Funcionarios = () => {
     numero_pis: "",
     ctps_numero: "",
     ctps_serie: "",
+    nacionalidade: "Brasileira",
+    estado_civil: "",
+    sexo: "",
+    nome_mae: "",
+    cbo: "",
+    tipo_contrato: "CLT",
   });
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -663,13 +675,19 @@ const Funcionarios = () => {
     setEditPis("");
     setEditCtps("");
     setEditCtpsSerie("");
+    setEditNacionalidade("Brasileira");
+    setEditEstadoCivil("");
+    setEditSexo("");
+    setEditNomeMae("");
+    setEditCbo("");
+    setEditTipoContrato("CLT");
     setIsEditDialogOpen(true);
     
     try {
       const token = getAccessToken();
       if (token) {
         const res = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by,matricula,rg,numero_pis,ctps_numero,ctps_serie&id=eq.${employeeId}&limit=1`,
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome,email,telefone,cargo,departamento,status,data_admissao,foto_url,cpf,salario,endereco,escala_trabalho,turno,perfil_updated_at,perfil_updated_by,matricula,rg,numero_pis,ctps_numero,ctps_serie,nacionalidade,estado_civil,sexo,nome_mae,cbo,tipo_contrato&id=eq.${employeeId}&limit=1`,
           {
             headers: {
               'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
@@ -702,6 +720,12 @@ const Funcionarios = () => {
             setEditPis(profileData.numero_pis || "");
             setEditCtps(profileData.ctps_numero || "");
             setEditCtpsSerie(profileData.ctps_serie || "");
+            setEditNacionalidade(profileData.nacionalidade || "Brasileira");
+            setEditEstadoCivil(profileData.estado_civil || "");
+            setEditSexo(profileData.sexo || "");
+            setEditNomeMae(profileData.nome_mae || "");
+            setEditCbo(profileData.cbo || "");
+            setEditTipoContrato(profileData.tipo_contrato || "CLT");
             if (profileData.perfil_updated_by === 'funcionario' && profileData.perfil_updated_at) {
               setEmployeeUpdates(prev => ({ ...prev, [employeeId]: { updated_at: profileData.perfil_updated_at } }));
             }
@@ -795,6 +819,12 @@ const Funcionarios = () => {
           numero_pis: editPis.trim() || null,
           ctps_numero: editCtps.trim() || null,
           ctps_serie: editCtpsSerie.trim() || null,
+          nacionalidade: editNacionalidade.trim() || 'Brasileira',
+          estado_civil: editEstadoCivil.trim() || null,
+          sexo: editSexo.trim() || null,
+          nome_mae: editNomeMae.trim() || null,
+          cbo: editCbo.trim() || null,
+          tipo_contrato: editTipoContrato.trim() || 'CLT',
         };
 
         // Converter salário formatado para número
@@ -918,6 +948,12 @@ const Funcionarios = () => {
       numero_pis: "",
       ctps_numero: "",
       ctps_serie: "",
+      nacionalidade: "Brasileira",
+      estado_civil: "",
+      sexo: "",
+      nome_mae: "",
+      cbo: "",
+      tipo_contrato: "CLT",
     });
     setValidationErrors({});
     setIsAddDialogOpen(true);
@@ -1024,6 +1060,12 @@ const Funcionarios = () => {
             escala_trabalho: newEscala,
             turno: newTurno,
             dependentes: dependentesPayload,
+            nacionalidade: newEmployee.nacionalidade || 'Brasileira',
+            estado_civil: newEmployee.estado_civil || null,
+            sexo: newEmployee.sexo || null,
+            nome_mae: newEmployee.nome_mae || null,
+            cbo: newEmployee.cbo || null,
+            tipo_contrato: newEmployee.tipo_contrato || 'CLT',
           }),
           signal: controller.signal,
         }
@@ -1085,6 +1127,12 @@ const Funcionarios = () => {
         numero_pis: "",
         ctps_numero: "",
         ctps_serie: "",
+        nacionalidade: "Brasileira",
+        estado_civil: "",
+        sexo: "",
+        nome_mae: "",
+        cbo: "",
+        tipo_contrato: "CLT",
       });
       
       // Optimistic update: add employee to list immediately
@@ -1594,8 +1642,57 @@ const Funcionarios = () => {
 
               {/* Documentos CLT */}
               <div className="border-t pt-3 mt-2">
-                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Documentos CLT</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Dados CLT / eSocial</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Sexo *</Label>
+                    <Select value={editSexo} onValueChange={setEditSexo}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Masculino">Masculino</SelectItem>
+                        <SelectItem value="Feminino">Feminino</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Estado Civil *</Label>
+                    <Select value={editEstadoCivil} onValueChange={setEditEstadoCivil}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Solteiro(a)">Solteiro(a)</SelectItem>
+                        <SelectItem value="Casado(a)">Casado(a)</SelectItem>
+                        <SelectItem value="Divorciado(a)">Divorciado(a)</SelectItem>
+                        <SelectItem value="Viúvo(a)">Viúvo(a)</SelectItem>
+                        <SelectItem value="União Estável">União Estável</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Nacionalidade</Label>
+                    <Input value={editNacionalidade} onChange={(e) => setEditNacionalidade(e.target.value)} placeholder="Brasileira" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Nome da Mãe *</Label>
+                    <Input value={editNomeMae} onChange={(e) => setEditNomeMae(e.target.value)} placeholder="Nome completo da mãe" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">CBO (Código Ocupação)</Label>
+                    <Input value={editCbo} onChange={(e) => setEditCbo(e.target.value)} placeholder="Ex: 2521-05" className="h-9" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">Tipo de Contrato</Label>
+                    <Select value={editTipoContrato} onValueChange={setEditTipoContrato}>
+                      <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="CLT">CLT</SelectItem>
+                        <SelectItem value="Temporário">Temporário</SelectItem>
+                        <SelectItem value="Experiência">Experiência</SelectItem>
+                        <SelectItem value="Intermitente">Intermitente</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
                   <div className="space-y-1.5">
                     <Label className="text-sm">RG</Label>
                     <Input value={editRg} onChange={(e) => setEditRg(e.target.value)} placeholder="00.000.000-0" className="h-9" />
@@ -1851,49 +1948,74 @@ const Funcionarios = () => {
                 </Select>
               </div>
             </div>
-            {/* Documentos CLT */}
+            {/* Dados CLT / eSocial */}
             <div className="border-t pt-3 mt-2">
-              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Documentos CLT</p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Dados CLT / eSocial</p>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                <div className="grid gap-1.5">
+                  <Label className="text-sm">Sexo *</Label>
+                  <Select value={newEmployee.sexo} onValueChange={(v) => updateNewEmployee('sexo', v)}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Masculino">Masculino</SelectItem>
+                      <SelectItem value="Feminino">Feminino</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label className="text-sm">Estado Civil *</Label>
+                  <Select value={newEmployee.estado_civil} onValueChange={(v) => updateNewEmployee('estado_civil', v)}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Solteiro(a)">Solteiro(a)</SelectItem>
+                      <SelectItem value="Casado(a)">Casado(a)</SelectItem>
+                      <SelectItem value="Divorciado(a)">Divorciado(a)</SelectItem>
+                      <SelectItem value="Viúvo(a)">Viúvo(a)</SelectItem>
+                      <SelectItem value="União Estável">União Estável</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label className="text-sm">Nacionalidade</Label>
+                  <Input value={newEmployee.nacionalidade} onChange={(e) => updateNewEmployee('nacionalidade', e.target.value)} placeholder="Brasileira" className="h-9" />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label className="text-sm">Nome da Mãe *</Label>
+                  <Input value={newEmployee.nome_mae} onChange={(e) => updateNewEmployee('nome_mae', e.target.value)} placeholder="Nome completo da mãe" className="h-9" />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label className="text-sm">CBO (Código Ocupação)</Label>
+                  <Input value={newEmployee.cbo} onChange={(e) => updateNewEmployee('cbo', e.target.value)} placeholder="Ex: 2521-05" className="h-9" />
+                </div>
+                <div className="grid gap-1.5">
+                  <Label className="text-sm">Tipo de Contrato</Label>
+                  <Select value={newEmployee.tipo_contrato} onValueChange={(v) => updateNewEmployee('tipo_contrato', v)}>
+                    <SelectTrigger className="h-9"><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CLT">CLT</SelectItem>
+                      <SelectItem value="Temporário">Temporário</SelectItem>
+                      <SelectItem value="Experiência">Experiência</SelectItem>
+                      <SelectItem value="Intermitente">Intermitente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
                 <div className="grid gap-1.5">
                   <Label htmlFor="new-rg" className="text-sm">RG</Label>
-                  <Input
-                    id="new-rg"
-                    value={newEmployee.rg}
-                    onChange={(e) => updateNewEmployee('rg', e.target.value)}
-                    placeholder="00.000.000-0"
-                    className="h-9"
-                  />
+                  <Input id="new-rg" value={newEmployee.rg} onChange={(e) => updateNewEmployee('rg', e.target.value)} placeholder="00.000.000-0" className="h-9" />
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="new-numero_pis" className="text-sm">PIS/PASEP</Label>
-                  <Input
-                    id="new-numero_pis"
-                    value={newEmployee.numero_pis}
-                    onChange={(e) => updateNewEmployee('numero_pis', e.target.value)}
-                    placeholder="000.00000.00-0"
-                    className="h-9"
-                  />
+                  <Input id="new-numero_pis" value={newEmployee.numero_pis} onChange={(e) => updateNewEmployee('numero_pis', e.target.value)} placeholder="000.00000.00-0" className="h-9" />
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="new-ctps_numero" className="text-sm">CTPS Nº</Label>
-                  <Input
-                    id="new-ctps_numero"
-                    value={newEmployee.ctps_numero}
-                    onChange={(e) => updateNewEmployee('ctps_numero', e.target.value)}
-                    placeholder="0000000"
-                    className="h-9"
-                  />
+                  <Input id="new-ctps_numero" value={newEmployee.ctps_numero} onChange={(e) => updateNewEmployee('ctps_numero', e.target.value)} placeholder="0000000" className="h-9" />
                 </div>
                 <div className="grid gap-1.5">
                   <Label htmlFor="new-ctps_serie" className="text-sm">CTPS Série</Label>
-                  <Input
-                    id="new-ctps_serie"
-                    value={newEmployee.ctps_serie}
-                    onChange={(e) => updateNewEmployee('ctps_serie', e.target.value)}
-                    placeholder="0000"
-                    className="h-9"
-                  />
+                  <Input id="new-ctps_serie" value={newEmployee.ctps_serie} onChange={(e) => updateNewEmployee('ctps_serie', e.target.value)} placeholder="0000" className="h-9" />
                 </div>
               </div>
             </div>
