@@ -52,6 +52,8 @@ const SuporteFuncionarios = () => {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroCategoria, setFiltroCategoria] = useState("todos");
   const [resposta, setResposta] = useState("");
+  const [motivoFechamento, setMotivoFechamento] = useState("");
+  const [showFechamentoDialog, setShowFechamentoDialog] = useState(false);
   const [arquivoResposta, setArquivoResposta] = useState<File | null>(null);
   const replyFileRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);

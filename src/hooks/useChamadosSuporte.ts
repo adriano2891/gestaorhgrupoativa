@@ -317,10 +317,25 @@ export const useEnviarMensagem = () => {
 export const useAtualizarStatusChamado = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { chamado_id: string; status: string }) => {
+    mutationFn: async (params: { chamado_id: string; status: string; motivo_fechamento?: string }) => {
+      const updateData: any = { status: params.status };
+      
+      if (params.status === "fechado") {
+        const { data: { session } } = await supabase.auth.getSession();
+        updateData.fechado_por = session?.user?.id;
+        updateData.fechado_em = new Date().toISOString();
+        updateData.motivo_fechamento = params.motivo_fechamento || null;
+        // Capture IP for audit
+        try {
+          const res = await fetch("https://api.ipify.org?format=json");
+          const ip = await res.json();
+          updateData.ip_fechamento = ip.ip;
+        } catch { /* ignore */ }
+      }
+      
       const { data, error } = await (supabase as any)
         .from("chamados_suporte")
-        .update({ status: params.status })
+        .update(updateData)
         .eq("id", params.chamado_id)
         .select()
         .single();
@@ -331,6 +346,7 @@ export const useAtualizarStatusChamado = () => {
       queryClient.invalidateQueries({ queryKey: ["meus-chamados"] });
       queryClient.invalidateQueries({ queryKey: ["todos-chamados"] });
       queryClient.invalidateQueries({ queryKey: ["admin-notif-chamados"] });
+      queryClient.invalidateQueries({ queryKey: ["auditoria-chamado"] });
       toast.success("Status atualizado!");
     },
     onError: (error: any) => {
