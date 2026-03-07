@@ -205,7 +205,7 @@ export const useCursoMutations = () => {
         excluido: true, 
         excluido_por: user.user?.id,
         excluido_em: new Date().toISOString()
-      }).eq("id", id);
+      } as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
