@@ -139,6 +139,10 @@ const GerenciarAdmins = () => {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => gerarPdfAdminsAuditoria(admins, auditoria)}>
+            <FileText className="h-4 w-4 mr-2" />
+            Relatório PDF
+          </Button>
           <Button variant="outline" onClick={handleRefresh} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
           </Button>
