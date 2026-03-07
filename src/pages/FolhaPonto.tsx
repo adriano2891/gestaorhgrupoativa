@@ -1341,6 +1341,7 @@ const FolhaPonto = () => {
                     <TableHead className="text-right">Horas Extras</TableHead>
                     <TableHead className="text-right">Faltas</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Assinatura</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
