@@ -10,6 +10,18 @@ interface UploadHoleriteParams {
   salarioBruto?: number;
   descontos?: number;
   salarioLiquido?: number;
+  // CLT fields
+  inss?: number;
+  irrf?: number;
+  fgts?: number;
+  baseCalculoInss?: number;
+  baseCalculoIrrf?: number;
+  horasExtrasValor?: number;
+  adicionalNoturnoValor?: number;
+  valeTransporte?: number;
+  outrosProventos?: number;
+  outrosDescontos?: number;
+  observacoes?: string;
 }
 
 interface CreateHoleriteParams {
