@@ -10,6 +10,7 @@ import { CardControleFeriasCLT, useFuncionariosFerias } from "@/components/feria
 import { useSolicitacoesFerias } from "@/hooks/useFerias";
 import { Skeleton } from "@/components/ui/skeleton";
 import { exportarFeriasPDF, exportarFeriasExcel } from "@/utils/feriasPdfExcel";
+import { exportarRelatorioFeriasAuditoria } from "@/utils/feriasPdfAuditoria";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
