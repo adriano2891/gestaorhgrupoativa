@@ -249,9 +249,13 @@ export type Database = {
       candidates: {
         Row: {
           applied_date: string
+          consentimento_lgpd: boolean
           created_at: string
+          data_consentimento: string | null
+          data_validade_dados: string | null
           email: string
           experience: string
+          finalidade_tratamento: string | null
           id: string
           name: string
           phone: string
@@ -263,9 +267,13 @@ export type Database = {
         }
         Insert: {
           applied_date?: string
+          consentimento_lgpd?: boolean
           created_at?: string
+          data_consentimento?: string | null
+          data_validade_dados?: string | null
           email: string
           experience: string
+          finalidade_tratamento?: string | null
           id?: string
           name: string
           phone: string
@@ -277,9 +285,13 @@ export type Database = {
         }
         Update: {
           applied_date?: string
+          consentimento_lgpd?: boolean
           created_at?: string
+          data_consentimento?: string | null
+          data_validade_dados?: string | null
           email?: string
           experience?: string
+          finalidade_tratamento?: string | null
           id?: string
           name?: string
           phone?: string
