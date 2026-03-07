@@ -230,8 +230,13 @@ const SuporteFuncionarios = () => {
               }}>
                 <FileText className="h-4 w-4 mr-1" /> PDF Auditoria
               </Button>
+              {!isFechado && chamadoSelecionado.status === "aberto" && (
+                <Button variant="outline" onClick={handleEmAndamento} disabled={atualizarStatus.isPending}>
+                  Em Andamento
+                </Button>
+              )}
               {!isFechado && (
-                <Button variant="destructive" onClick={handleFechar} disabled={atualizarStatus.isPending}>
+                <Button variant="destructive" onClick={() => setShowFechamentoDialog(true)} disabled={atualizarStatus.isPending}>
                   <Lock className="h-4 w-4 mr-1" /> Fechar Chamado
                 </Button>
               )}
