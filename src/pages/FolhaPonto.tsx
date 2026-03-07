@@ -55,9 +55,15 @@ import { useAuth } from "@/components/auth/AuthProvider";
 interface DayRecord {
   day: number;
   entrada?: string;
-  saida?: string;
+  saida_pausa_1?: string;
+  retorno_pausa_1?: string;
   saida_almoco?: string;
   retorno_almoco?: string;
+  saida_pausa_2?: string;
+  retorno_pausa_2?: string;
+  saida?: string;
+  inicio_he?: string;
+  fim_he?: string;
   total_horas?: string;
   horas_extras?: string;
   horas_noturnas?: string;
@@ -314,9 +320,15 @@ const FolhaPonto = () => {
           empRecord.days[dayIndex] = {
             day,
             entrada: formatTime(reg.entrada),
-            saida: formatTime(reg.saida),
+            saida_pausa_1: formatTime(reg.saida_pausa_1),
+            retorno_pausa_1: formatTime(reg.retorno_pausa_1),
             saida_almoco: formatTime(reg.saida_almoco),
             retorno_almoco: formatTime(reg.retorno_almoco),
+            saida_pausa_2: formatTime(reg.saida_pausa_2),
+            retorno_pausa_2: formatTime(reg.retorno_pausa_2),
+            saida: formatTime(reg.saida),
+            inicio_he: formatTime(reg.inicio_he),
+            fim_he: formatTime(reg.fim_he),
             total_horas: formatInterval(reg.total_horas),
             horas_extras: formatInterval(reg.horas_extras),
             horas_noturnas: formatInterval(reg.horas_noturnas),
@@ -463,9 +475,15 @@ const FolhaPonto = () => {
         day.day.toString().padStart(2, '0'),
         (day.tipo_dia === 'dsr' ? 'DSR' : day.tipo_dia === 'feriado' ? 'FER' : ''),
         day.entrada || '-',
+        day.saida_pausa_1 || '-',
+        day.retorno_pausa_1 || '-',
         day.saida_almoco || '-',
         day.retorno_almoco || '-',
+        day.saida_pausa_2 || '-',
+        day.retorno_pausa_2 || '-',
         day.saida || '-',
+        day.inicio_he || '-',
+        day.fim_he || '-',
         day.total_horas || '-',
         day.horas_extras ? `${day.horas_extras} (${day.percentual_he || 50}%)` : '-',
         day.horas_noturnas || '-',
@@ -474,22 +492,28 @@ const FolhaPonto = () => {
       
       autoTable(doc, {
         startY: yPos,
-        head: [['Dia', 'Tipo', 'Entrada', 'S.Almoço', 'R.Almoço', 'Saída', 'Total', 'HE (%)', 'H.Not.', 'Status']],
+        head: [['Dia', 'Tipo', 'Entrada', 'S.P1', 'R.P1', 'S.Alm', 'R.Alm', 'S.P2', 'R.P2', 'Saída', 'HE Ini', 'HE Fim', 'Total', 'HE (%)', 'H.Not.', 'Status']],
         body: tableData,
         theme: 'grid',
-        styles: { fontSize: 6 },
-        headStyles: { fillColor: [17, 188, 183] },
+        styles: { fontSize: 5, cellPadding: 1.5 },
+        headStyles: { fillColor: [17, 188, 183], fontSize: 5 },
         columnStyles: {
           0: { cellWidth: 10 },
-          1: { cellWidth: 12 },
-          2: { cellWidth: 18 },
-          3: { cellWidth: 18 },
-          4: { cellWidth: 18 },
-          5: { cellWidth: 18 },
-          6: { cellWidth: 20 },
-          7: { cellWidth: 25 },
-          8: { cellWidth: 18 },
-          9: { cellWidth: 15 }
+          1: { cellWidth: 10 },
+          2: { cellWidth: 14 },
+          3: { cellWidth: 14 },
+          4: { cellWidth: 14 },
+          5: { cellWidth: 14 },
+          6: { cellWidth: 14 },
+          7: { cellWidth: 14 },
+          8: { cellWidth: 14 },
+          9: { cellWidth: 14 },
+          10: { cellWidth: 14 },
+          11: { cellWidth: 14 },
+          12: { cellWidth: 16 },
+          13: { cellWidth: 22 },
+          14: { cellWidth: 14 },
+          15: { cellWidth: 14 }
         }
       });
 
@@ -537,9 +561,15 @@ const FolhaPonto = () => {
         { header: 'Dia', key: 'dia', width: 8 },
         { header: 'Tipo Dia', key: 'tipo_dia', width: 12 },
         { header: 'Entrada', key: 'entrada', width: 12 },
+        { header: 'S. Pausa 1', key: 'saida_pausa_1', width: 12 },
+        { header: 'R. Pausa 1', key: 'retorno_pausa_1', width: 12 },
         { header: 'Saída Almoço', key: 'saida_almoco', width: 14 },
         { header: 'Retorno Almoço', key: 'retorno_almoco', width: 16 },
+        { header: 'S. Pausa 2', key: 'saida_pausa_2', width: 12 },
+        { header: 'R. Pausa 2', key: 'retorno_pausa_2', width: 12 },
         { header: 'Saída', key: 'saida', width: 12 },
+        { header: 'HE Início', key: 'inicio_he', width: 12 },
+        { header: 'HE Fim', key: 'fim_he', width: 12 },
         { header: 'Total Horas', key: 'total_horas', width: 12 },
         { header: 'Horas Extras', key: 'horas_extras', width: 12 },
         { header: '% HE', key: 'percentual_he', width: 8 },
@@ -564,9 +594,15 @@ const FolhaPonto = () => {
           dia: day.day.toString().padStart(2, '0'),
           tipo_dia: day.tipo_dia === 'dsr' ? 'DSR' : day.tipo_dia === 'feriado' ? 'Feriado' : 'Útil',
           entrada: day.entrada || '-',
+          saida_pausa_1: day.saida_pausa_1 || '-',
+          retorno_pausa_1: day.retorno_pausa_1 || '-',
           saida_almoco: day.saida_almoco || '-',
           retorno_almoco: day.retorno_almoco || '-',
+          saida_pausa_2: day.saida_pausa_2 || '-',
+          retorno_pausa_2: day.retorno_pausa_2 || '-',
           saida: day.saida || '-',
+          inicio_he: day.inicio_he || '-',
+          fim_he: day.fim_he || '-',
           total_horas: day.total_horas || '-',
           horas_extras: day.horas_extras || '-',
           percentual_he: day.percentual_he || '-',
@@ -1069,13 +1105,19 @@ const FolhaPonto = () => {
                 <CardContent>
                   <div className="overflow-x-auto">
                     <Table>
-                       <TableHeader>
+                     <TableHeader>
                         <TableRow>
                           <TableHead className="w-16">Dia</TableHead>
                           <TableHead>Entrada</TableHead>
-                          <TableHead>Saída Almoço</TableHead>
-                          <TableHead>Retorno Almoço</TableHead>
+                          <TableHead>S. P1</TableHead>
+                          <TableHead>R. P1</TableHead>
+                          <TableHead>S. Almoço</TableHead>
+                          <TableHead>R. Almoço</TableHead>
+                          <TableHead>S. P2</TableHead>
+                          <TableHead>R. P2</TableHead>
                           <TableHead>Saída</TableHead>
+                          <TableHead>HE Ini</TableHead>
+                          <TableHead>HE Fim</TableHead>
                           <TableHead>Total</TableHead>
                           <TableHead>HE</TableHead>
                           <TableHead>Status</TableHead>
@@ -1087,9 +1129,15 @@ const FolhaPonto = () => {
                           <TableRow key={day.day} className={day.status === "falta" ? "bg-red-50 dark:bg-red-950/20" : ""}>
                             <TableCell className="font-medium">{day.day}</TableCell>
                             <TableCell className="text-sm">{day.entrada || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.saida_pausa_1 || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.retorno_pausa_1 || "-"}</TableCell>
                             <TableCell className="text-sm">{day.saida_almoco || "-"}</TableCell>
                             <TableCell className="text-sm">{day.retorno_almoco || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.saida_pausa_2 || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.retorno_pausa_2 || "-"}</TableCell>
                             <TableCell className="text-sm">{day.saida || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.inicio_he || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.fim_he || "-"}</TableCell>
                             <TableCell className="text-sm font-medium">{day.total_horas || "-"}</TableCell>
                             <TableCell className="text-sm">
                               {editingCell?.empId === record.employee_id && editingCell?.day === day.day && editingCell?.field === 'horas_extras' ? (
