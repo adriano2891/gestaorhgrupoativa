@@ -297,10 +297,10 @@ export const AuditTrailCard = () => {
                 </TableBody>
               </Table>
             </div>
-            {logs.length > 10 && (
+            {filteredLogs.length > 10 && (
               <div className="flex justify-center mt-3">
                 <Button variant="ghost" size="sm" onClick={() => setExpanded(!expanded)} className="gap-1">
-                  {expanded ? <><ChevronUp className="h-4 w-4" /> Menos</> : <><ChevronDown className="h-4 w-4" /> Ver todos ({logs.length})</>}
+                  {expanded ? <><ChevronUp className="h-4 w-4" /> Menos</> : <><ChevronDown className="h-4 w-4" /> Ver todos ({filteredLogs.length})</>}
                 </Button>
               </div>
             )}
