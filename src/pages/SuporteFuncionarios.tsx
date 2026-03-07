@@ -381,6 +381,12 @@ const SuporteFuncionarios = () => {
           </TabsList>
 
           <TabsContent value="chamados" className="space-y-6 mt-4">
+            {/* Export button */}
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={() => gerarPdfRelatorioGeral(chamados)}>
+                <FileText className="h-4 w-4 mr-1" /> Relatório Geral (PDF)
+              </Button>
+            </div>
             {/* Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <Card>
