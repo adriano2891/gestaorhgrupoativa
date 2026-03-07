@@ -105,7 +105,7 @@ const GestaoClientes = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#3EE0CF] shadow-md">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#3EE0CF] shadow-md">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-0 sm:h-16 gap-2 sm:gap-0">
             {/* Logo e Título */}
@@ -152,6 +152,7 @@ const GestaoClientes = () => {
           </div>
         </div>
       </header>
+      <div className="h-[56px] sm:h-[60px] md:h-[64px]" />
 
       {/* Conteúdo */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
