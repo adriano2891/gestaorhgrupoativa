@@ -1187,7 +1187,11 @@ const FolhaPonto = () => {
                       </TableHeader>
                       <TableBody>
                         {record.days.map((day) => (
-                          <TableRow key={day.day} className={day.status === "falta" ? "bg-red-50 dark:bg-red-950/20" : ""}>
+                          <TableRow key={day.day} className={
+                            day.tipo_dia === 'feriado' ? "bg-orange-50 dark:bg-orange-950/20" :
+                            day.tipo_dia === 'dsr' ? "bg-blue-50 dark:bg-blue-950/20" :
+                            day.status === "falta" ? "bg-red-50 dark:bg-red-950/20" : ""
+                          }>
                             <TableCell className="font-medium">{day.day}</TableCell>
                             <TableCell className="text-sm">{day.entrada || "-"}</TableCell>
                             <TableCell className="text-sm">{day.saida_pausa_1 || "-"}</TableCell>
