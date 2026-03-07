@@ -1,6 +1,10 @@
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   BarChart, 
   Bar, 
@@ -24,7 +28,7 @@ import {
   Radar,
   ComposedChart
 } from "recharts";
-import { TrendingUp, TrendingDown, Minus, Users, Clock, Target, AlertCircle, CheckCircle2, DollarSign, Percent, CreditCard, Building2, Receipt, Wallet, HeartPulse, Bus, UserMinus, FileText, Briefcase, CircleDollarSign, BadgeDollarSign, Landmark, ShieldCheck, CalendarDays, Banknote, PiggyBank } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Users, Clock, Target, AlertCircle, CheckCircle2, DollarSign, Percent, CreditCard, Building2, Receipt, Wallet, HeartPulse, Bus, UserMinus, FileText, Briefcase, CircleDollarSign, BadgeDollarSign, Landmark, ShieldCheck, CalendarDays, Banknote, PiggyBank, Filter, Search, X } from "lucide-react";
 
 interface ReportViewerProps {
   reportType: string;
@@ -48,6 +52,11 @@ const CHART_COLORS = [
 const PIE_COLORS = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
 
 export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
+  const [showTableFilters, setShowTableFilters] = useState(false);
+  const [tableSearch, setTableSearch] = useState("");
+  const [tableFilterCol, setTableFilterCol] = useState("todos");
+  const [tableFilterValue, setTableFilterValue] = useState("");
+
   const getTrendIcon = (value: number) => {
     if (value > 0) return <TrendingUp className="w-4 h-4 text-green-500" />;
     if (value < 0) return <TrendingDown className="w-4 h-4 text-red-500" />;
@@ -490,6 +499,24 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
 
     const columns = Object.keys(data.details[0]);
 
+    const filteredDetails = data.details.filter((row: any) => {
+      // Global search
+      if (tableSearch) {
+        const match = columns.some(col =>
+          String(row[col] ?? "").toLowerCase().includes(tableSearch.toLowerCase())
+        );
+        if (!match) return false;
+      }
+      // Column-specific filter
+      if (tableFilterCol !== "todos" && tableFilterValue) {
+        const cellVal = String(row[tableFilterCol] ?? "").toLowerCase();
+        if (!cellVal.includes(tableFilterValue.toLowerCase())) return false;
+      }
+      return true;
+    });
+
+    const activeFilters = (tableSearch ? 1 : 0) + (tableFilterCol !== "todos" && tableFilterValue ? 1 : 0);
+
     return (
       <Card className="overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b p-3 sm:p-4 md:p-6">
@@ -500,13 +527,82 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                 Dados Detalhados
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm">
-                {data.details.length} registro{data.details.length !== 1 ? 's' : ''} encontrado{data.details.length !== 1 ? 's' : ''}
+                {filteredDetails.length} de {data.details.length} registro{data.details.length !== 1 ? 's' : ''}
               </CardDescription>
             </div>
-            <Badge variant="secondary" className="text-[10px] sm:text-xs self-start sm:self-auto">
-              Atualizado agora
-            </Badge>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <Button
+                variant={showTableFilters ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowTableFilters(!showTableFilters)}
+                className="text-xs gap-1.5"
+              >
+                <Filter className="w-3.5 h-3.5" />
+                Filtros
+                {activeFilters > 0 && (
+                  <span className="ml-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
+                    {activeFilters}
+                  </span>
+                )}
+              </Button>
+              <Badge variant="secondary" className="text-[10px] sm:text-xs">
+                Atualizado agora
+              </Badge>
+            </div>
           </div>
+
+          {showTableFilters && (
+            <div className="mt-3 pt-3 border-t border-border flex flex-col sm:flex-row gap-2 sm:gap-3 items-end">
+              <div className="flex-1 w-full sm:w-auto">
+                <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Busca geral</label>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <Input
+                    placeholder="Buscar em todos os campos..."
+                    value={tableSearch}
+                    onChange={e => setTableSearch(e.target.value)}
+                    className="pl-8 h-8 text-xs"
+                  />
+                </div>
+              </div>
+              <div className="w-full sm:w-40">
+                <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Coluna</label>
+                <Select value={tableFilterCol} onValueChange={v => { setTableFilterCol(v); setTableFilterValue(""); }}>
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todas</SelectItem>
+                    {columns.map(col => (
+                      <SelectItem key={col} value={col}>{col}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {tableFilterCol !== "todos" && (
+                <div className="w-full sm:w-40">
+                  <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Valor</label>
+                  <Input
+                    placeholder="Filtrar valor..."
+                    value={tableFilterValue}
+                    onChange={e => setTableFilterValue(e.target.value)}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              )}
+              {activeFilters > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => { setTableSearch(""); setTableFilterCol("todos"); setTableFilterValue(""); }}
+                  className="text-xs gap-1 text-destructive hover:text-destructive h-8"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Limpar
+                </Button>
+              )}
+            </div>
+          )}
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
@@ -521,37 +617,35 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data.details.map((row: any, idx: number) => (
-                  <TableRow 
-                    key={idx} 
-                    className="hover:bg-muted/30 transition-colors"
-                  >
-                    {columns.map(col => (
-                      <TableCell key={col} className="py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">
-                        {col.toLowerCase().includes('status') ? (
-                          <Badge 
-                            variant={
-                              String(row[col]).toLowerCase().includes('ativo') ? 'default' : 
-                              String(row[col]).toLowerCase().includes('pendente') ? 'secondary' : 'outline'
-                            }
-                            className="text-[10px] sm:text-xs"
-                          >
-                            {row[col]}
-                          </Badge>
-                        ) : col.toLowerCase().includes('taxa') || col.toLowerCase().includes('percentual') ? (
-                          <span className={`font-medium ${
-                            parseFloat(row[col]) > 80 ? 'text-green-600' : 
-                            parseFloat(row[col]) > 50 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
-                            {row[col]}
-                          </span>
-                        ) : (
-                          <span className="text-foreground">{row[col]}</span>
-                        )}
-                      </TableCell>
-                    ))}
+                {filteredDetails.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="text-center py-8 text-sm text-muted-foreground">
+                      Nenhum registro encontrado com os filtros aplicados.
+                    </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  filteredDetails.map((row: any, idx: number) => (
+                    <TableRow key={idx} className="hover:bg-muted/30 transition-colors">
+                      {columns.map(col => (
+                        <TableCell key={col} className="py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">
+                          {col.toLowerCase().includes('status') ? (
+                            <Badge
+                              variant={
+                                String(row[col]).toLowerCase().includes('ativo') ? 'default' :
+                                String(row[col]).toLowerCase().includes('pendente') ? 'secondary' : 'outline'
+                              }
+                              className="text-[10px] sm:text-xs"
+                            >
+                              {row[col]}
+                            </Badge>
+                          ) : (
+                            <span className="text-foreground">{row[col]}</span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
