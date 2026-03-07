@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Download, FileText } from "lucide-react";
+import { Calendar, Download, FileText, ShieldCheck } from "lucide-react";
 import { MetricasFerias } from "@/components/ferias/MetricasFerias";
 import { FiltrosFerias } from "@/components/ferias/FiltrosFerias";
 import { TabelaFerias } from "@/components/ferias/TabelaFerias";
