@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { 
   Plus, Upload, Search, Filter, Grid, List, Star, 
   FileText, FolderOpen, Download, MoreVertical, Eye, Trash2, 
-  Edit, Clock, Tag, ArrowUpDown, ArrowUp, ArrowDown
+  Edit, Clock, Tag, ArrowUpDown, ArrowUp, ArrowDown, Pencil
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { BackButton } from "@/components/ui/back-button";
@@ -30,10 +30,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDocumentos, useDocumentosCategorias, useMeusFavoritos, useDeleteDocumento, useToggleFavorito, getDocumentoAccessUrl, registrarAcessoDocumento } from "@/hooks/useDocumentos";
+import { useDocumentos, useDocumentosCategorias, useMeusFavoritos, useDeleteDocumento, useToggleFavorito, useDeleteCategoria, getDocumentoAccessUrl, registrarAcessoDocumento } from "@/hooks/useDocumentos";
 import { gerarPdfRelatorioDocumentos } from "@/utils/documentosPdfAuditoria";
 import { UploadDocumentoDialog } from "@/components/documentos/UploadDocumentoDialog";
 import { CriarCategoriaDialog } from "@/components/documentos/CriarCategoriaDialog";
+import { EditarCategoriaDialog } from "@/components/documentos/EditarCategoriaDialog";
 import { DocumentoDetalhesDialog } from "@/components/documentos/DocumentoDetalhesDialog";
 import { EditarDocumentoDialog } from "@/components/documentos/EditarDocumentoDialog";
 import { TIPO_LABELS, type Documento, type DocumentoTipo } from "@/types/documentos";
@@ -59,6 +60,8 @@ const Documentacoes = () => {
   const [activeTab, setActiveTab] = useState("todos");
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [editingCategoria, setEditingCategoria] = useState<import("@/types/documentos").DocumentoCategoria | null>(null);
+  const [deleteCatId, setDeleteCatId] = useState<string | null>(null);
   const { data: documentos, isLoading } = useDocumentos({
     categoriaId: selectedCategoria,
     search: searchTerm,
@@ -68,6 +71,7 @@ const Documentacoes = () => {
   const { data: favoritos } = useMeusFavoritos();
   const deleteDocumento = useDeleteDocumento();
   const toggleFavorito = useToggleFavorito();
+  const deleteCategoria = useDeleteCategoria();
 
   const filteredDocumentos = documentos
     ?.filter(doc => {
@@ -236,14 +240,42 @@ const Documentacoes = () => {
                   <SelectItem value="todas">Todas Categorias</SelectItem>
                   {categorias?.map((cat) => (
                     <SelectItem key={cat.id} value={cat.id}>
-                      <span className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.cor }} />
-                        {cat.nome}
+                      <span className="flex items-center gap-2 w-full">
+                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.cor }} />
+                        <span className="truncate">{cat.nome}</span>
                       </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {/* Category management buttons */}
+              {categorias && categorias.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-10 w-10 flex-shrink-0" title="Gerenciar categorias">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    {categorias.map((cat) => (
+                      <div key={cat.id} className="flex items-center justify-between px-2 py-1.5 hover:bg-accent rounded-sm">
+                        <span className="flex items-center gap-2 text-sm truncate flex-1 min-w-0">
+                          <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: cat.cor }} />
+                          <span className="truncate">{cat.nome}</span>
+                        </span>
+                        <div className="flex items-center gap-0.5 flex-shrink-0 ml-2">
+                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingCategoria(cat)}>
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteCatId(cat.id)}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
               <Select value={selectedTipo || "todos"} onValueChange={(v) => setSelectedTipo(v === "todos" ? undefined : v as DocumentoTipo)}>
                 <SelectTrigger className="flex-1 sm:w-[160px]">
                   <Filter className="h-4 w-4 mr-2 hidden sm:block" />
@@ -570,6 +602,38 @@ const Documentacoes = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Category Dialog */}
+      <EditarCategoriaDialog
+        open={!!editingCategoria}
+        onOpenChange={(open) => !open && setEditingCategoria(null)}
+        categoria={editingCategoria}
+        categorias={categorias || []}
+      />
+
+      {/* Delete Category Dialog */}
+      <AlertDialog open={!!deleteCatId} onOpenChange={() => setDeleteCatId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir categoria?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Documentos nesta categoria ficarão sem categoria.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={async () => {
+              if (deleteCatId) {
+                await deleteCategoria.mutateAsync(deleteCatId);
+                setDeleteCatId(null);
+                if (selectedCategoria === deleteCatId) setSelectedCategoria(undefined);
+              }
+            }} className="bg-destructive hover:bg-destructive/90">
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
