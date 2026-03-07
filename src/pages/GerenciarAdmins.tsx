@@ -40,8 +40,11 @@ import {
 
 const GerenciarAdmins = () => {
   const { data: admins = [], isLoading, refetch, isFetching, error } = useAdmins();
+  const { data: auditoria = [] } = useAdminsAuditoria();
   const deleteAdmin = useDeleteAdmin();
   const { roles } = useAuth();
+  const isSuperAdmin = roles.includes("admin");
+  useAdminsRealtime();
   const isSuperAdmin = roles.includes("admin");
   useAdminsRealtime();
   const [dialogOpen, setDialogOpen] = useState(false);
