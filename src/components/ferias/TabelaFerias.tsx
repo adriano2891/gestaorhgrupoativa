@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, CheckCircle, XCircle, Trash2, Mail, AlertTriangle } from "lucide-react";
-import { SolicitacaoFerias, useAtualizarSolicitacao, useNotificarFuncionario, useMarcarComoVisualizada } from "@/hooks/useFerias";
+import { Bell, CheckCircle, XCircle, Trash2, Mail, AlertTriangle, DollarSign, Check } from "lucide-react";
+import { SolicitacaoFerias, useAtualizarSolicitacao, useNotificarFuncionario, useMarcarComoVisualizada, useRegistrarPagamentoFerias } from "@/hooks/useFerias";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -32,6 +32,7 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
   const atualizarMutation = useAtualizarSolicitacao();
   const notificarMutation = useNotificarFuncionario();
   const marcarVisualizadaMutation = useMarcarComoVisualizada();
+  const registrarPagamentoMutation = useRegistrarPagamentoFerias();
 
   const handleVisualizarDetalhes = (solicitacao: SolicitacaoFerias) => {
     if (!solicitacao.visualizada_admin) {
@@ -85,6 +86,8 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
       atualizarMutation.mutate({ id, status: "reprovado", motivo_reprovacao: motivoReprovacao });
     } else if (tipo === "cancelar") {
       atualizarMutation.mutate({ id, status: "cancelado" });
+    } else if (tipo === "registrar_pagamento") {
+      registrarPagamentoMutation.mutate(id);
     }
 
     setDialogAberto(false);
@@ -98,6 +101,7 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
       aprovar: "Aprovar Solicitação",
       reprovar: "Reprovar Solicitação",
       cancelar: "Cancelar Solicitação",
+      registrar_pagamento: "Registrar Pagamento de Férias",
     };
     return titulos[acaoSelecionada.tipo] || "";
   };
@@ -109,8 +113,79 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
       aprovar: "Tem certeza que deseja aprovar esta solicitação de férias?",
       reprovar: "Por favor, informe o motivo da reprovação:",
       cancelar: "Tem certeza que deseja cancelar esta solicitação?",
+      registrar_pagamento: "Confirma o registro do pagamento das férias? A data atual será registrada como data de pagamento (CLT Art. 145).",
     };
     return descricoes[acaoSelecionada.tipo] || "";
+  };
+
+  const renderPrazoPagamento = (solicitacao: SolicitacaoFerias) => {
+    if (solicitacao.status !== "aprovado" && solicitacao.status !== "em_andamento" && solicitacao.status !== "concluido") {
+      return <span className="text-xs text-muted-foreground">-</span>;
+    }
+
+    // If payment was already registered
+    if (solicitacao.data_pagamento) {
+      const dataPgto = new Date(solicitacao.data_pagamento);
+      const prazo = verificarPrazoPagamento(solicitacao.data_inicio);
+      const pagoNoPrazo = dataPgto.toISOString().split('T')[0] <= prazo.dataLimite;
+
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge variant="outline" className={pagoNoPrazo ? "border-green-500 text-green-600" : "border-amber-500 text-amber-600"}>
+                <Check className="h-3 w-3 mr-1" />
+                Pago {format(dataPgto, "dd/MM", { locale: ptBR })}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Pagamento registrado em {format(dataPgto, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+              <p className="text-xs">{pagoNoPrazo ? "✅ Dentro do prazo legal" : "⚠️ Fora do prazo legal (Art. 145)"}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
+    // Payment not registered yet
+    const prazo = verificarPrazoPagamento(solicitacao.data_inicio);
+    return (
+      <div className="flex items-center gap-1">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge variant={prazo.dentroDosPrazos ? "outline" : "destructive"} className="text-xs">
+                {prazo.dentroDosPrazos ? (
+                  <>{format(new Date(prazo.dataLimite), "dd/MM/yyyy", { locale: ptBR })} ({prazo.diasRestantes}d)</>
+                ) : (
+                  <span className="flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Atrasado</span>
+                )}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>CLT Art. 145: Pagamento até 2 dias antes do início das férias</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        {solicitacao.status === "aprovado" && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={(e) => { e.stopPropagation(); handleAcao("registrar_pagamento", solicitacao.id); }}
+                >
+                  <DollarSign className="h-3.5 w-3.5 text-green-600" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Registrar pagamento</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -175,29 +250,7 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
                   </TableCell>
                   <TableCell>{solicitacao.dias_solicitados}</TableCell>
                   <TableCell>{getStatusBadge(solicitacao.status)}</TableCell>
-                  <TableCell>
-                    {solicitacao.status === "aprovado" ? (() => {
-                      const prazo = verificarPrazoPagamento(solicitacao.data_inicio);
-                      return (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger>
-                              <Badge variant={prazo.dentroDosPrazos ? "outline" : "destructive"} className="text-xs">
-                                {prazo.dentroDosPrazos ? (
-                                  <>{format(new Date(prazo.dataLimite), "dd/MM/yyyy", { locale: ptBR })} ({prazo.diasRestantes}d)</>
-                                ) : (
-                                  <span className="flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Atrasado</span>
-                                )}
-                              </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                              <p>CLT Art. 145: Pagamento até 2 dias antes do início das férias</p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      );
-                    })() : <span className="text-xs text-muted-foreground">-</span>}
-                  </TableCell>
+                  <TableCell>{renderPrazoPagamento(solicitacao)}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <TooltipProvider>
@@ -206,7 +259,7 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => handleAcao("notificar", solicitacao.id)}
+                              onClick={(e) => { e.stopPropagation(); handleAcao("notificar", solicitacao.id); }}
                             >
                               <Bell className="h-4 w-4" />
                             </Button>
@@ -223,7 +276,7 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => handleAcao("aprovar", solicitacao.id)}
+                                  onClick={(e) => { e.stopPropagation(); handleAcao("aprovar", solicitacao.id); }}
                                 >
                                   <CheckCircle className="h-4 w-4 text-green-600" />
                                 </Button>
@@ -238,7 +291,7 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => handleAcao("reprovar", solicitacao.id)}
+                                  onClick={(e) => { e.stopPropagation(); handleAcao("reprovar", solicitacao.id); }}
                                 >
                                   <XCircle className="h-4 w-4 text-red-600" />
                                 </Button>
@@ -256,7 +309,7 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleAcao("cancelar", solicitacao.id)}
+                                onClick={(e) => { e.stopPropagation(); handleAcao("cancelar", solicitacao.id); }}
                               >
                                 <Trash2 className="h-4 w-4 text-destructive" />
                               </Button>

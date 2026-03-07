@@ -345,6 +345,27 @@ export const useMarcarComoVisualizada = () => {
   });
 };
 
+export const useRegistrarPagamentoFerias = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (solicitacaoId: string) => {
+      const data = await restPatch(`solicitacoes_ferias?id=eq.${solicitacaoId}`, {
+        data_pagamento: new Date().toISOString(),
+      });
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
+      queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+      toast({ title: "Pagamento registrado", description: "Data de pagamento das férias registrada com sucesso (Art. 145 CLT)" });
+    },
+    onError: (error) => {
+      toast({ title: "Erro", description: "Erro ao registrar pagamento: " + error.message, variant: "destructive" });
+    },
+  });
+};
+
 export const useCriarSolicitacaoFerias = () => {
   const queryClient = useQueryClient();
 
