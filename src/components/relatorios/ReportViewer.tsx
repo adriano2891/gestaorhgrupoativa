@@ -52,6 +52,11 @@ const CHART_COLORS = [
 const PIE_COLORS = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
 
 export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
+  const [showTableFilters, setShowTableFilters] = useState(false);
+  const [tableSearch, setTableSearch] = useState("");
+  const [tableFilterCol, setTableFilterCol] = useState("todos");
+  const [tableFilterValue, setTableFilterValue] = useState("");
+
   const getTrendIcon = (value: number) => {
     if (value > 0) return <TrendingUp className="w-4 h-4 text-green-500" />;
     if (value < 0) return <TrendingDown className="w-4 h-4 text-red-500" />;
