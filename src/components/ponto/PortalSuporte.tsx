@@ -29,6 +29,7 @@ interface PortalSuporteProps {
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   aberto: { label: "Aberto", variant: "default" },
+  em_andamento: { label: "Em Andamento", variant: "outline" },
   fechado: { label: "Fechado", variant: "secondary" },
 };
 
@@ -390,7 +391,14 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold truncate">{chamado.assunto}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold truncate">{chamado.assunto}</h3>
+                            {(chamado as any).numero_protocolo && (
+                              <Badge variant="outline" className="text-[9px] font-mono shrink-0">
+                                {(chamado as any).numero_protocolo}
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-sm text-muted-foreground">
                             {CATEGORIAS.find(c => c.value === chamado.categoria)?.label || chamado.categoria}
                           </p>

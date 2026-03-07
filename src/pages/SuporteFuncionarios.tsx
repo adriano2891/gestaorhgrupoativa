@@ -9,8 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   MessageCircle, Search, ArrowLeft, Send, Paperclip, Download, Clock, 
-  Filter, User, CheckCircle, Lock, ClipboardList, FileText, Shield
+  Filter, User, CheckCircle, Lock, ClipboardList, FileText, Shield, AlertTriangle
 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { BackButton } from "@/components/ui/back-button";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -31,6 +33,7 @@ import { gerarPdfChamadoAuditoria, gerarPdfRelatorioGeral } from "@/utils/chamad
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   aberto: { label: "Aberto", variant: "default" },
+  em_andamento: { label: "Em Andamento", variant: "outline" },
   fechado: { label: "Fechado", variant: "secondary" },
 };
 
@@ -51,6 +54,8 @@ const SuporteFuncionarios = () => {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroCategoria, setFiltroCategoria] = useState("todos");
   const [resposta, setResposta] = useState("");
+  const [motivoFechamento, setMotivoFechamento] = useState("");
+  const [showFechamentoDialog, setShowFechamentoDialog] = useState(false);
   const [arquivoResposta, setArquivoResposta] = useState<File | null>(null);
   const replyFileRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
@@ -126,13 +131,12 @@ const SuporteFuncionarios = () => {
   }, [mensagens]);
 
   const chamadosFiltrados = chamados.filter((c) => {
-    const status = c.status === "fechado" ? "fechado" : "aberto";
-    if (filtroStatus !== "todos" && status !== filtroStatus) return false;
+    if (filtroStatus !== "todos" && c.status !== filtroStatus) return false;
     if (filtroCategoria !== "todos" && c.categoria !== filtroCategoria) return false;
     if (busca) {
       const term = busca.toLowerCase();
       const nome = c.profiles?.nome?.toLowerCase() || "";
-      return nome.includes(term) || c.assunto.toLowerCase().includes(term);
+      return nome.includes(term) || c.assunto.toLowerCase().includes(term) || ((c as any).numero_protocolo || "").toLowerCase().includes(term);
     }
     return true;
   });
@@ -161,13 +165,32 @@ const SuporteFuncionarios = () => {
     }
   };
 
-  const handleFechar = async () => {
-    if (!chamadoSelecionado) return;
+  const handleFechar = async (motivo: string) => {
+    if (!chamadoSelecionado || !motivo.trim()) {
+      toast.error("Informe o motivo do fechamento");
+      return;
+    }
     try {
-      await atualizarStatus.mutateAsync({ chamado_id: chamadoSelecionado.id, status: "fechado" });
+      await atualizarStatus.mutateAsync({ 
+        chamado_id: chamadoSelecionado.id, 
+        status: "fechado",
+        motivo_fechamento: motivo,
+      });
       setChamadoSelecionado({ ...chamadoSelecionado, status: "fechado" });
+      setMotivoFechamento("");
+      setShowFechamentoDialog(false);
     } catch (error) {
       console.error("Erro ao fechar chamado:", error);
+    }
+  };
+
+  const handleEmAndamento = async () => {
+    if (!chamadoSelecionado) return;
+    try {
+      await atualizarStatus.mutateAsync({ chamado_id: chamadoSelecionado.id, status: "em_andamento" });
+      setChamadoSelecionado({ ...chamadoSelecionado, status: "em_andamento" });
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
     }
   };
 
@@ -177,7 +200,8 @@ const SuporteFuncionarios = () => {
   };
 
   const contadores = {
-    aberto: chamados.filter(c => c.status !== "fechado").length,
+    aberto: chamados.filter(c => c.status === "aberto").length,
+    em_andamento: chamados.filter(c => c.status === "em_andamento").length,
     fechado: chamados.filter(c => c.status === "fechado").length,
     total: chamados.length,
   };
@@ -208,8 +232,13 @@ const SuporteFuncionarios = () => {
               }}>
                 <FileText className="h-4 w-4 mr-1" /> PDF Auditoria
               </Button>
+              {!isFechado && chamadoSelecionado.status === "aberto" && (
+                <Button variant="outline" onClick={handleEmAndamento} disabled={atualizarStatus.isPending}>
+                  Em Andamento
+                </Button>
+              )}
               {!isFechado && (
-                <Button variant="destructive" onClick={handleFechar} disabled={atualizarStatus.isPending}>
+                <Button variant="destructive" onClick={() => setShowFechamentoDialog(true)} disabled={atualizarStatus.isPending}>
                   <Lock className="h-4 w-4 mr-1" /> Fechar Chamado
                 </Button>
               )}
@@ -237,6 +266,19 @@ const SuporteFuncionarios = () => {
                     {" • "}
                     {format(new Date(chamadoSelecionado.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                   </div>
+                  {/* SLA Indicator */}
+                  {!isFechado && (chamadoSelecionado as any).prazo_resposta && (() => {
+                    const prazo = new Date((chamadoSelecionado as any).prazo_resposta);
+                    const now = new Date();
+                    const isVencido = now > prazo;
+                    const horasRestantes = Math.round((prazo.getTime() - now.getTime()) / (1000 * 60 * 60));
+                    return (
+                      <Badge variant={isVencido ? "destructive" : horasRestantes < 8 ? "outline" : "secondary"} className="text-[10px] mt-1">
+                        <AlertTriangle className="h-3 w-3 mr-1" />
+                        {isVencido ? "SLA VENCIDO" : `SLA: ${horasRestantes}h restantes`}
+                      </Badge>
+                    );
+                  })()}
                 </div>
                 <Badge variant={si.variant} className={isFechado ? "bg-gray-400 text-white" : ""}>{si.label}</Badge>
               </div>
@@ -344,6 +386,33 @@ const SuporteFuncionarios = () => {
               </CardContent>
             </Card>
           )}
+          {/* Fechamento Dialog */}
+          <Dialog open={showFechamentoDialog} onOpenChange={setShowFechamentoDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Fechar Chamado</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <Label>Motivo do fechamento (obrigatório para auditoria CLT)</Label>
+                <Textarea 
+                  value={motivoFechamento} 
+                  onChange={(e) => setMotivoFechamento(e.target.value)} 
+                  placeholder="Descreva o motivo do fechamento e a resolução aplicada..."
+                  className="min-h-[80px]"
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowFechamentoDialog(false)}>Cancelar</Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => handleFechar(motivoFechamento)}
+                  disabled={!motivoFechamento.trim() || atualizarStatus.isPending}
+                >
+                  <Lock className="h-4 w-4 mr-1" /> Confirmar Fechamento
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </Layout>
     );
@@ -388,7 +457,7 @@ const SuporteFuncionarios = () => {
               </Button>
             </div>
             {/* Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold">{contadores.total}</p>
@@ -399,6 +468,12 @@ const SuporteFuncionarios = () => {
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold text-primary">{contadores.aberto}</p>
                   <p className="text-xs text-muted-foreground">Abertos</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-amber-500">{contadores.em_andamento}</p>
+                  <p className="text-xs text-muted-foreground">Em Andamento</p>
                 </CardContent>
               </Card>
               <Card>
@@ -420,6 +495,7 @@ const SuporteFuncionarios = () => {
                 <SelectContent>
                   <SelectItem value="todos">Todos Status</SelectItem>
                   <SelectItem value="aberto">Aberto</SelectItem>
+                  <SelectItem value="em_andamento">Em Andamento</SelectItem>
                   <SelectItem value="fechado">Fechado</SelectItem>
                 </SelectContent>
               </Select>
