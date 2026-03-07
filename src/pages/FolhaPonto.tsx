@@ -546,6 +546,18 @@ const FolhaPonto = () => {
         theme: 'grid',
         styles: { fontSize: 4.5, cellPadding: 0.8, lineWidth: 0.1 },
         headStyles: { fillColor: [17, 188, 183], fontSize: 4.5, cellPadding: 1, fontStyle: 'bold' },
+        didParseCell: (data: any) => {
+          if (data.section === 'body') {
+            const tipo = data.row.raw?.[1];
+            if (tipo === 'FER') {
+              data.cell.styles.fillColor = [255, 243, 224]; // laranja claro
+              data.cell.styles.textColor = [180, 100, 0];
+            } else if (tipo === 'DSR') {
+              data.cell.styles.fillColor = [232, 245, 253]; // azul claro
+              data.cell.styles.textColor = [30, 100, 180];
+            }
+          }
+        },
         columnStyles: {
           0: { cellWidth: 9 },
           1: { cellWidth: 9 },
