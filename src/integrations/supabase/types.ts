@@ -554,12 +554,16 @@ export type Database = {
       }
       comunicados: {
         Row: {
+          anexos: Json | null
           ativo: boolean
           conteudo: string
           created_at: string
           criado_por: string | null
           data_expiracao: string | null
           destinatarios: string[] | null
+          excluido: boolean
+          excluido_em: string | null
+          excluido_por: string | null
           id: string
           prioridade: string
           tipo: string
@@ -567,12 +571,16 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          anexos?: Json | null
           ativo?: boolean
           conteudo: string
           created_at?: string
           criado_por?: string | null
           data_expiracao?: string | null
           destinatarios?: string[] | null
+          excluido?: boolean
+          excluido_em?: string | null
+          excluido_por?: string | null
           id?: string
           prioridade?: string
           tipo?: string
@@ -580,12 +588,16 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          anexos?: Json | null
           ativo?: boolean
           conteudo?: string
           created_at?: string
           criado_por?: string | null
           data_expiracao?: string | null
           destinatarios?: string[] | null
+          excluido?: boolean
+          excluido_em?: string | null
+          excluido_por?: string | null
           id?: string
           prioridade?: string
           tipo?: string
@@ -594,23 +606,73 @@ export type Database = {
         }
         Relationships: []
       }
+      comunicados_auditoria: {
+        Row: {
+          acao: string
+          comunicado_id: string
+          created_at: string
+          detalhes: string | null
+          id: string
+          ip_address: string | null
+          user_id: string
+        }
+        Insert: {
+          acao: string
+          comunicado_id: string
+          created_at?: string
+          detalhes?: string | null
+          id?: string
+          ip_address?: string | null
+          user_id: string
+        }
+        Update: {
+          acao?: string
+          comunicado_id?: string
+          created_at?: string
+          detalhes?: string | null
+          id?: string
+          ip_address?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comunicados_auditoria_comunicado_id_fkey"
+            columns: ["comunicado_id"]
+            isOneToOne: false
+            referencedRelation: "comunicados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comunicados_lidos: {
         Row: {
           comunicado_id: string
+          confirmado: boolean
+          confirmado_em: string | null
           id: string
+          ip_address: string | null
           lido_em: string
+          user_agent: string | null
           user_id: string
         }
         Insert: {
           comunicado_id: string
+          confirmado?: boolean
+          confirmado_em?: string | null
           id?: string
+          ip_address?: string | null
           lido_em?: string
+          user_agent?: string | null
           user_id: string
         }
         Update: {
           comunicado_id?: string
+          confirmado?: boolean
+          confirmado_em?: string | null
           id?: string
+          ip_address?: string | null
           lido_em?: string
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: [
