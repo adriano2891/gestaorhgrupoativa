@@ -167,7 +167,7 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-        {solicitacao.status === "aprovado" && (
+        {(solicitacao.status === "aprovado" || solicitacao.status === "em_andamento") && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
