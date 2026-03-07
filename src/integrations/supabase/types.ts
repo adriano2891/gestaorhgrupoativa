@@ -412,12 +412,54 @@ export type Database = {
           },
         ]
       }
+      chamados_auditoria: {
+        Row: {
+          acao: string
+          chamado_id: string
+          created_at: string
+          detalhes: string | null
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          acao: string
+          chamado_id: string
+          created_at?: string
+          detalhes?: string | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          acao?: string
+          chamado_id?: string
+          created_at?: string
+          detalhes?: string | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chamados_auditoria_chamado_id_fkey"
+            columns: ["chamado_id"]
+            isOneToOne: false
+            referencedRelation: "chamados_suporte"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       chamados_suporte: {
         Row: {
           assunto: string
           categoria: string
           created_at: string
           id: string
+          numero_protocolo: string | null
           status: string
           updated_at: string
           user_id: string
@@ -427,6 +469,7 @@ export type Database = {
           categoria?: string
           created_at?: string
           id?: string
+          numero_protocolo?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -436,6 +479,7 @@ export type Database = {
           categoria?: string
           created_at?: string
           id?: string
+          numero_protocolo?: string | null
           status?: string
           updated_at?: string
           user_id?: string
