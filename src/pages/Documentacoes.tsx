@@ -184,7 +184,7 @@ const Documentacoes = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header - fixed below Layout header+nav */}
-      <header className="fixed top-[88px] sm:top-[92px] md:top-[100px] left-0 right-0 z-30 bg-[#3EE0CF] shadow-md">
+      <header className="fixed top-[96px] sm:top-[102px] md:top-[112px] left-0 right-0 z-30 bg-[#3EE0CF] shadow-md">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-0 sm:h-16 gap-2 sm:gap-0">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
