@@ -13,7 +13,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { FileText, Download, Loader2, ShieldCheck, PenLine } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { FileText, Download, Loader2, ShieldCheck, PenLine, Printer, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { toast } from "sonner";
@@ -42,13 +49,114 @@ interface Assinatura {
   status: string;
 }
 
-// Generate a simple hash from data for document integrity
 const generateHash = async (data: string): Promise<string> => {
   const encoder = new TextEncoder();
   const dataBuffer = encoder.encode(data);
   const hashBuffer = await crypto.subtle.digest("SHA-256", dataBuffer);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+};
+
+const getDeviceType = (): string => {
+  const ua = navigator.userAgent;
+  if (/Mobi|Android|iPhone|iPad/i.test(ua)) return "Mobile";
+  return "Desktop";
+};
+
+const nomeMeses = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+// ── Receipt PDF generator ──
+const generateReceiptPDF = (sig: Assinatura) => {
+  const doc = new jsPDF({ orientation: "portrait" });
+  const sigDate = new Date(sig.data_assinatura);
+  const mesLabel = `${nomeMeses[sig.mes_referencia - 1]} ${sig.ano_referencia}`;
+
+  let y = 15;
+  // Header
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.text("GRUPO ATIVA TEC", 105, y, { align: "center" });
+  y += 5;
+  doc.setFontSize(7);
+  doc.setFont("helvetica", "normal");
+  doc.text("CNPJ: 42.523.488/0001-81 | R. Bela Cintra, 299, 3º Andar – Consolação, São Paulo – SP", 105, y, { align: "center" });
+
+  y += 8;
+  doc.setDrawColor(17, 188, 183);
+  doc.setLineWidth(0.5);
+  doc.line(20, y, 190, y);
+
+  y += 10;
+  doc.setFontSize(14);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(17, 188, 183);
+  doc.text("COMPROVANTE DE ASSINATURA", 105, y, { align: "center" });
+  y += 6;
+  doc.setFontSize(10);
+  doc.text("Espelho de Ponto", 105, y, { align: "center" });
+  doc.setTextColor(0, 0, 0);
+
+  y += 12;
+  doc.setFontSize(9);
+  doc.setFont("helvetica", "normal");
+
+  const fields = [
+    ["Funcionário", sig.nome_funcionario],
+    ["CPF", sig.cpf || "Não informado"],
+    ["Mês de Referência", mesLabel],
+    ["Data da Assinatura", `${sigDate.toLocaleDateString("pt-BR")} às ${sigDate.toLocaleTimeString("pt-BR")}`],
+    ["Dispositivo", getDeviceType()],
+    ["User Agent", (sig.user_agent || "N/A").substring(0, 90)],
+    ["ID da Assinatura", sig.id],
+    ["Status", sig.status.toUpperCase()],
+  ];
+
+  fields.forEach(([label, value]) => {
+    doc.setFont("helvetica", "bold");
+    doc.text(`${label}:`, 25, y);
+    doc.setFont("helvetica", "normal");
+    doc.text(String(value), 75, y);
+    y += 6;
+  });
+
+  y += 4;
+  doc.setDrawColor(200, 200, 200);
+  doc.setLineWidth(0.2);
+  doc.line(25, y, 185, y);
+  y += 6;
+
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(8);
+  doc.text("Hash do Documento (SHA-256):", 25, y);
+  y += 5;
+  doc.setFont("courier", "normal");
+  doc.setFontSize(7);
+  // Split hash into two lines if needed
+  const hash = sig.hash_documento;
+  doc.text(hash.substring(0, 64), 25, y);
+  if (hash.length > 64) {
+    y += 4;
+    doc.text(hash.substring(64), 25, y);
+  }
+
+  y += 10;
+  doc.setDrawColor(17, 188, 183);
+  doc.setLineWidth(0.3);
+  doc.line(25, y, 185, y);
+  y += 6;
+  doc.setFont("helvetica", "italic");
+  doc.setFontSize(7);
+  doc.setTextColor(100, 100, 100);
+  doc.text("Documento assinado eletronicamente pelo Portal do Funcionário.", 25, y);
+  y += 4;
+  doc.text("Registro armazenado permanentemente no sistema para fins de auditoria trabalhista.", 25, y);
+  y += 4;
+  doc.text(`Comprovante gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`, 25, y);
+
+  return doc;
 };
 
 export const FolhasPontoCard = () => {
@@ -59,6 +167,7 @@ export const FolhasPontoCard = () => {
   const [signing, setSigning] = useState<string | null>(null);
   const [assinaturas, setAssinaturas] = useState<Record<string, Assinatura>>({});
   const [confirmSign, setConfirmSign] = useState<MesRegistro | null>(null);
+  const [receiptSig, setReceiptSig] = useState<Assinatura | null>(null);
 
   const loadAssinaturas = useCallback(async () => {
     const userId = profile?.id;
@@ -103,11 +212,6 @@ export const FolhasPontoCard = () => {
         grouped[key].push(r);
       });
 
-      const nomeMeses = [
-        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
-      ];
-
       const mesAtual = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
       const result: MesRegistro[] = Object.entries(grouped)
@@ -149,7 +253,6 @@ export const FolhasPontoCard = () => {
     const key = `${item.ano}-${item.mes}`;
     setSigning(key);
     try {
-      // Build hash from all records data
       const sortedRecords = [...item.registros].sort(
         (a, b) => new Date(a.data).getTime() - new Date(b.data).getTime()
       );
@@ -159,7 +262,7 @@ export const FolhasPontoCard = () => {
       })));
       const hash = await generateHash(hashInput);
 
-      const { error } = await (supabase as any)
+      const { data: inserted, error } = await (supabase as any)
         .from("assinaturas_espelho_ponto")
         .insert({
           funcionario_id: profile!.id,
@@ -167,11 +270,13 @@ export const FolhasPontoCard = () => {
           ano_referencia: item.ano,
           nome_funcionario: profile!.nome || "Funcionário",
           cpf: (profile as any)?.cpf || null,
-          ip_address: null, // captured server-side ideally
+          ip_address: null,
           user_agent: navigator.userAgent,
           hash_documento: hash,
           status: "assinado",
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         if (error.code === "23505") {
@@ -184,6 +289,11 @@ export const FolhasPontoCard = () => {
 
       toast.success("Espelho de ponto assinado com sucesso!");
       await loadAssinaturas();
+
+      // Show receipt immediately
+      if (inserted) {
+        setReceiptSig(inserted as Assinatura);
+      }
     } catch (err) {
       console.error(err);
       toast.error("Erro inesperado ao assinar.");
@@ -191,6 +301,17 @@ export const FolhasPontoCard = () => {
       setSigning(null);
       setConfirmSign(null);
     }
+  };
+
+  const handleDownloadReceipt = (sig: Assinatura) => {
+    const doc = generateReceiptPDF(sig);
+    doc.save(`comprovante-assinatura-${sig.ano_referencia}-${String(sig.mes_referencia).padStart(2, "0")}.pdf`);
+  };
+
+  const handlePrintReceipt = (sig: Assinatura) => {
+    const doc = generateReceiptPDF(sig);
+    const blobUrl = doc.output("bloburl");
+    window.open(blobUrl as unknown as string, "_blank");
   };
 
   const handleDownloadPDF = async (item: MesRegistro) => {
@@ -204,7 +325,6 @@ export const FolhasPontoCard = () => {
       const depto = (profile as any)?.departamento || "Sede Principal";
       const cpf = (profile as any)?.cpf || "";
 
-      // === Header ===
       let yPos = 8;
       doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
@@ -240,19 +360,11 @@ export const FolhasPontoCard = () => {
         const dataFormatted = new Date(r.data + "T12:00:00").toLocaleDateString("pt-BR");
         return [
           dataFormatted,
-          formatHora(r.entrada),
-          formatHora(r.saida_pausa_1),
-          formatHora(r.retorno_pausa_1),
-          formatHora(r.saida_almoco),
-          formatHora(r.retorno_almoco),
-          formatHora(r.saida_pausa_2),
-          formatHora(r.retorno_pausa_2),
-          formatHora(r.saida),
-          formatHora(r.inicio_he),
-          formatHora(r.fim_he),
-          formatInterval(r.total_horas),
-          formatInterval(r.horas_extras),
-          formatInterval(r.horas_noturnas),
+          formatHora(r.entrada), formatHora(r.saida_pausa_1), formatHora(r.retorno_pausa_1),
+          formatHora(r.saida_almoco), formatHora(r.retorno_almoco),
+          formatHora(r.saida_pausa_2), formatHora(r.retorno_pausa_2),
+          formatHora(r.saida), formatHora(r.inicio_he), formatHora(r.fim_he),
+          formatInterval(r.total_horas), formatInterval(r.horas_extras), formatInterval(r.horas_noturnas),
           r.registro_folga ? "Folga" : r.tipo_dia === "dsr" ? "DSR" : r.tipo_dia === "feriado" ? "FER" : "",
         ];
       });
@@ -260,10 +372,7 @@ export const FolhasPontoCard = () => {
       autoTable(doc, {
         startY: yPos,
         margin: { left: 10, right: 10 },
-        head: [[
-          "Data", "Entrada", "S.P1", "R.P1", "S.Alm", "R.Alm",
-          "S.P2", "R.P2", "Saída", "HE Ini", "HE Fim", "Total", "HE", "H.Not", "Tp"
-        ]],
+        head: [["Data", "Entrada", "S.P1", "R.P1", "S.Alm", "R.Alm", "S.P2", "R.P2", "Saída", "HE Ini", "HE Fim", "Total", "HE", "H.Not", "Tp"]],
         body: tableData,
         styles: { fontSize: 4.5, cellPadding: 0.8, lineWidth: 0.1 },
         headStyles: { fillColor: [17, 188, 183], fontSize: 4.5, cellPadding: 1, fontStyle: 'bold' },
@@ -272,17 +381,14 @@ export const FolhasPontoCard = () => {
 
       const finalY = (doc as any).lastAutoTable?.finalY || yPos + 100;
 
-      // === Signature section ===
       if (assinatura) {
         const sigY = finalY + 6;
         doc.setDrawColor(17, 188, 183);
         doc.setLineWidth(0.3);
         doc.line(10, sigY, 287, sigY);
-
         doc.setFontSize(7);
         doc.setFont('helvetica', 'bold');
         doc.text('ASSINATURA ELETRÔNICA DO COLABORADOR', 10, sigY + 4);
-
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(6);
         const sigDate = new Date(assinatura.data_assinatura);
@@ -292,28 +398,25 @@ export const FolhasPontoCard = () => {
           `Data da assinatura: ${sigDate.toLocaleDateString("pt-BR")} às ${sigDate.toLocaleTimeString("pt-BR")}`,
           `Dispositivo: ${(assinatura.user_agent || 'N/A').substring(0, 80)}`,
           `Hash do documento: ${assinatura.hash_documento.substring(0, 32)}...`,
+          `ID Assinatura: ${assinatura.id}`,
           `Status: ${assinatura.status.toUpperCase()}`,
         ];
         sigLines.forEach((line, i) => {
           doc.text(line, 10, sigY + 8 + i * 3);
         });
-
         doc.setFontSize(5.5);
         doc.setTextColor(100, 100, 100);
         doc.text('Documento assinado eletronicamente pelo Portal do Funcionário. Registro armazenado no sistema para auditoria.', 10, sigY + 8 + sigLines.length * 3 + 2);
         doc.setTextColor(0, 0, 0);
       } else {
-        // Unsigned - show signature lines
         const sigY = finalY + 6;
         doc.setFontSize(6);
         doc.setFont('helvetica', 'normal');
         doc.text('Declaro que os horários acima são verdadeiros.', 10, sigY);
-
         doc.line(10, sigY + 10, 100, sigY + 10);
         doc.text('Assinatura do Funcionário', 30, sigY + 13);
         doc.setFontSize(5.5);
         if (cpf) doc.text(`CPF: ${cpf}`, 35, sigY + 16);
-
         doc.line(160, sigY + 10, 250, sigY + 10);
         doc.setFontSize(6);
         doc.text('Assinatura do Empregador', 180, sigY + 13);
@@ -424,6 +527,18 @@ export const FolhasPontoCard = () => {
                         </Button>
                       )}
 
+                      {isSigned && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setReceiptSig(assinatura)}
+                          className="gap-1"
+                        >
+                          <Eye className="h-4 w-4" />
+                          Comprovante
+                        </Button>
+                      )}
+
                       <Button
                         size="sm"
                         variant="outline"
@@ -448,7 +563,7 @@ export const FolhasPontoCard = () => {
         </CardContent>
       </Card>
 
-      {/* Confirmation Dialog */}
+      {/* Sign Confirmation Dialog */}
       <AlertDialog open={!!confirmSign} onOpenChange={(open) => !open && setConfirmSign(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -483,6 +598,90 @@ export const FolhasPontoCard = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Receipt Dialog */}
+      <Dialog open={!!receiptSig} onOpenChange={(open) => !open && setReceiptSig(null)}>
+        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <ShieldCheck className="h-5 w-5" />
+              Comprovante de Assinatura do Espelho de Ponto
+            </DialogTitle>
+            <DialogDescription>
+              Registro de assinatura eletrônica – auditoria trabalhista
+            </DialogDescription>
+          </DialogHeader>
+
+          {receiptSig && (() => {
+            const sig = receiptSig;
+            const sigDate = new Date(sig.data_assinatura);
+            const mesLabel = `${nomeMeses[sig.mes_referencia - 1]} ${sig.ano_referencia}`;
+
+            return (
+              <div className="space-y-4">
+                <div className="bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg p-4 space-y-3">
+                  <div className="grid grid-cols-[130px_1fr] gap-y-2 text-sm">
+                    <span className="font-medium text-muted-foreground">Funcionário:</span>
+                    <span className="font-semibold">{sig.nome_funcionario}</span>
+
+                    <span className="font-medium text-muted-foreground">CPF:</span>
+                    <span>{sig.cpf || "Não informado"}</span>
+
+                    <span className="font-medium text-muted-foreground">Mês de Referência:</span>
+                    <span className="font-semibold">{mesLabel}</span>
+
+                    <span className="font-medium text-muted-foreground">Data/Hora:</span>
+                    <span>{sigDate.toLocaleDateString("pt-BR")} às {sigDate.toLocaleTimeString("pt-BR")}</span>
+
+                    <span className="font-medium text-muted-foreground">Dispositivo:</span>
+                    <span>{getDeviceType()}</span>
+
+                    <span className="font-medium text-muted-foreground">ID da Assinatura:</span>
+                    <span className="font-mono text-xs break-all">{sig.id}</span>
+
+                    <span className="font-medium text-muted-foreground">Status:</span>
+                    <Badge className="bg-green-600 text-white w-fit">
+                      {sig.status.toUpperCase()}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <span className="text-xs font-medium text-muted-foreground">Hash do Documento (SHA-256):</span>
+                  <p className="font-mono text-xs bg-muted p-3 rounded break-all select-all border">
+                    {sig.hash_documento}
+                  </p>
+                </div>
+
+                <div className="text-xs text-muted-foreground border-t pt-3 space-y-1">
+                  <p>Documento assinado eletronicamente pelo Portal do Funcionário.</p>
+                  <p>Registro armazenado permanentemente no sistema para fins de auditoria trabalhista.</p>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    size="sm"
+                    onClick={() => handleDownloadReceipt(sig)}
+                    className="flex-1 gap-1"
+                  >
+                    <Download className="h-4 w-4" />
+                    Baixar PDF
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handlePrintReceipt(sig)}
+                    className="flex-1 gap-1"
+                  >
+                    <Printer className="h-4 w-4" />
+                    Imprimir
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
