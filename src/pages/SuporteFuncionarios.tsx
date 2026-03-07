@@ -198,8 +198,7 @@ const SuporteFuncionarios = () => {
   };
 
   const getStatusDisplay = (status: string) => {
-    if (status === "fechado") return STATUS_MAP.fechado;
-    return STATUS_MAP.aberto;
+    return STATUS_MAP[status] || STATUS_MAP.aberto;
   };
 
   const contadores = {
