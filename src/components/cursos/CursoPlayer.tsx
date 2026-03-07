@@ -14,8 +14,10 @@ import {
   ChevronUp,
   Clock,
   BookOpen,
+  ShieldCheck,
+  Loader2,
 } from "lucide-react";
-import { useCurso, useProgressoAulas, useProgressoMutations } from "@/hooks/useCursos";
+import { useCurso, useProgressoAulas, useProgressoMutations, useConfirmarParticipacao, useMinhasMatriculas } from "@/hooks/useCursos";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Collapsible,
@@ -34,6 +36,11 @@ export const CursoPlayer = ({ onBack }: CursoPlayerProps) => {
   const { data: curso, isLoading } = useCurso(cursoId);
   const { data: progressoAulas } = useProgressoAulas(cursoId);
   const { updateProgresso } = useProgressoMutations();
+  const { confirmar } = useConfirmarParticipacao();
+  const { data: minhasMatriculas } = useMinhasMatriculas();
+
+  const matriculaAtual = minhasMatriculas?.find(m => m.curso_id === cursoId);
+  const jaConfirmou = (matriculaAtual as any)?.confirmado || false;
 
   const [selectedAula, setSelectedAula] = useState<Aula | null>(null);
   const [expandedModulos, setExpandedModulos] = useState<Set<string>>(new Set());
@@ -220,6 +227,52 @@ export const CursoPlayer = ({ onBack }: CursoPlayerProps) => {
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground">{selectedAula.descricao || "Sem descrição"}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Confirmação formal de participação (CLT) */}
+            {progressoCurso === 100 && !jaConfirmou && (
+              <Card className="border-primary/50 bg-primary/5">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <ShieldCheck className="h-6 w-6 text-primary flex-shrink-0 mt-0.5" />
+                    <div className="flex-1 space-y-3">
+                      <div>
+                        <h4 className="font-semibold text-sm">Confirmação de Participação</h4>
+                        <p className="text-xs text-muted-foreground">
+                          Conforme Art. 157 da CLT e NR-1, confirmo que participei integralmente deste treinamento, 
+                          compreendi o conteúdo apresentado e estou ciente das orientações transmitidas.
+                        </p>
+                      </div>
+                      <Button
+                        size="sm"
+                        onClick={() => cursoId && confirmar.mutate({ cursoId })}
+                        disabled={confirmar.isPending}
+                        className="w-full sm:w-auto"
+                      >
+                        {confirmar.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <ShieldCheck className="h-4 w-4 mr-2" />
+                        )}
+                        Confirmo minha participação
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {jaConfirmou && (
+              <Card className="border-green-500/30 bg-green-500/5">
+                <CardContent className="p-3 flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  <span className="text-sm text-green-700 font-medium">
+                    Participação confirmada em {(matriculaAtual as any)?.confirmado_em 
+                      ? new Date((matriculaAtual as any).confirmado_em).toLocaleDateString('pt-BR') 
+                      : ''}
+                  </span>
                 </CardContent>
               </Card>
             )}

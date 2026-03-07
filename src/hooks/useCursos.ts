@@ -56,7 +56,7 @@ export const useCategoriasCurso = () => {
   });
 };
 
-// Cursos
+// Cursos - exclui soft-deleted por padrão
 export const useCursos = (status?: 'rascunho' | 'publicado' | 'arquivado') => {
   return useQuery({
     queryKey: ["cursos", status],
@@ -65,7 +65,7 @@ export const useCursos = (status?: 'rascunho' | 'publicado' | 'arquivado') => {
     retry: 2,
     queryFn: async () => {
       try {
-        let path = 'cursos?select=*&order=created_at.desc';
+        let path = 'cursos?select=*&excluido=eq.false&order=created_at.desc';
         if (status) path += `&status=eq.${status}`;
 
         const data: Curso[] = await restGet(path);
@@ -200,7 +200,12 @@ export const useCursoMutations = () => {
 
   const deleteCurso = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("cursos").delete().eq("id", id);
+      const { data: user } = await supabase.auth.getUser();
+      const { error } = await supabase.from("cursos").update({ 
+        excluido: true, 
+        excluido_por: user.user?.id,
+        excluido_em: new Date().toISOString()
+      } as any).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -501,6 +506,92 @@ export const useProgressoMutations = () => {
   });
 
   return { updateProgresso };
+};
+
+// Confirmar participação formal (CLT compliance)
+export const useConfirmarParticipacao = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  const confirmar = useMutation({
+    mutationFn: async ({ cursoId }: { cursoId: string }) => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Usuário não autenticado");
+
+      const { error } = await supabase
+        .from("matriculas")
+        .update({
+          confirmado: true,
+          confirmado_em: new Date().toISOString(),
+          ip_confirmacao: 'web-client',
+          user_agent_confirmacao: navigator.userAgent,
+        } as any)
+        .eq("curso_id", cursoId)
+        .eq("user_id", user.user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["minhas-matriculas"] });
+      queryClient.invalidateQueries({ queryKey: ["matriculas"] });
+      toast({ title: "Participação confirmada!", description: "Sua confirmação foi registrada com sucesso." });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erro ao confirmar", description: error.message, variant: "destructive" });
+    },
+  });
+
+  return { confirmar };
+};
+
+// Treinamentos vencidos/próximos do vencimento
+export const useTreinamentosVencidos = () => {
+  return useQuery({
+    queryKey: ["treinamentos-vencidos"],
+    queryFn: async () => {
+      // Buscar cursos obrigatórios e recorrentes via REST para evitar conflitos de types
+      const cursosData: any[] = await restGet('cursos?select=id,titulo,obrigatorio,recorrente,meses_recorrencia,norma_regulamentadora&or=(obrigatorio.eq.true,recorrente.eq.true)&excluido=eq.false');
+      const cursos = cursosData || [];
+
+      if (!cursos || cursos.length === 0) return { vencidos: [], proximosVencer: [] };
+
+      const cursoIds = cursos.map(c => c.id);
+
+      // Buscar matrículas concluídas
+      const { data: matriculas } = await supabase
+        .from("matriculas")
+        .select("id, curso_id, user_id, data_conclusao, status")
+        .in("curso_id", cursoIds)
+        .eq("status", "concluido");
+
+      const agora = new Date();
+      const vencidos: Array<{ curso: any; matricula: any; diasVencido: number }> = [];
+      const proximosVencer: Array<{ curso: any; matricula: any; diasRestantes: number }> = [];
+
+      cursos.forEach(curso => {
+        if (!curso.recorrente || !curso.meses_recorrencia) return;
+
+        const matriculasCurso = matriculas?.filter(m => m.curso_id === curso.id) || [];
+        matriculasCurso.forEach(mat => {
+          if (!mat.data_conclusao) return;
+          const conclusao = new Date(mat.data_conclusao);
+          const vencimento = new Date(conclusao);
+          vencimento.setMonth(vencimento.getMonth() + (curso.meses_recorrencia || 12));
+
+          const diffDias = Math.ceil((vencimento.getTime() - agora.getTime()) / (1000 * 60 * 60 * 24));
+
+          if (diffDias < 0) {
+            vencidos.push({ curso, matricula: mat, diasVencido: Math.abs(diffDias) });
+          } else if (diffDias <= 30) {
+            proximosVencer.push({ curso, matricula: mat, diasRestantes: diffDias });
+          }
+        });
+      });
+
+      return { vencidos, proximosVencer };
+    },
+    staleTime: 1000 * 60 * 5,
+  });
 };
 
 // Atualizar progresso na matrícula

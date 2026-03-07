@@ -44,6 +44,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import { gerarPdfListaPresencaLegal } from "@/utils/cursosPdfLegal";
 
 interface RelatoriosCursosDialogProps {
   open: boolean;
@@ -57,6 +58,7 @@ export const RelatoriosCursosDialog = ({
   const [selectedCurso, setSelectedCurso] = useState<string>("all");
   const [isExporting, setIsExporting] = useState(false);
   const [isExportingPDF, setIsExportingPDF] = useState(false);
+  const [isExportingLegal, setIsExportingLegal] = useState(false);
 
   const { data: cursos } = useCursos();
   const { data: stats } = useCursosStats();
@@ -215,6 +217,72 @@ export const RelatoriosCursosDialog = ({
     }
   };
 
+  const exportarPDFLegal = async () => {
+    if (!metricas?.funcionariosMatriculados) return;
+    setIsExportingLegal(true);
+    try {
+      // Buscar dados da empresa
+      const { data: empresa } = await supabase.from("empresas").select("*").limit(1).maybeSingle();
+      
+      // Buscar curso selecionado
+      const cursoSelecionado = selectedCurso !== "all" ? cursos?.find(c => c.id === selectedCurso) : null;
+
+      // Buscar auditoria do curso
+      let auditoria: any[] = [];
+      if (selectedCurso !== "all") {
+        const { data } = await supabase
+          .from("cursos_auditoria" as any)
+          .select("*")
+          .eq("curso_id", selectedCurso)
+          .order("created_at", { ascending: false })
+          .limit(50);
+        auditoria = data || [];
+      }
+
+      // Buscar matrículas com confirmação
+      const matriculaIds = metricas.funcionariosMatriculados.map(f => f.id);
+      let matriculasConfirmacao: any[] = [];
+      if (matriculaIds.length > 0) {
+        const { data } = await supabase
+          .from("matriculas")
+          .select("user_id, confirmado, confirmado_em")
+          .in("id", matriculaIds.slice(0, 100));
+        matriculasConfirmacao = data || [];
+      }
+
+      const confirmMap = new Map(matriculasConfirmacao.map((m: any) => [m.user_id, m]));
+
+      gerarPdfListaPresencaLegal({
+        titulo: cursoSelecionado?.titulo || "Todos os Cursos",
+        descricao: cursoSelecionado?.descricao || undefined,
+        instrutor: cursoSelecionado?.instrutor || undefined,
+        cargaHoraria: cursoSelecionado?.carga_horaria || 0,
+        normaRegulamentadora: (cursoSelecionado as any)?.norma_regulamentadora || undefined,
+        cnpjEmpresa: empresa?.cnpj || undefined,
+        razaoSocial: empresa?.razao_social || undefined,
+        funcionarios: metricas.funcionariosMatriculados.map(f => {
+          const conf = confirmMap.get(f.id);
+          return {
+            nome: f.nome,
+            departamento: f.departamento,
+            cargo: f.cargo,
+            progresso: f.progresso,
+            confirmado: conf?.confirmado || false,
+            confirmado_em: conf?.confirmado_em || undefined,
+            data_conclusao: f.concluido ? "Concluído" : undefined,
+          };
+        }),
+        auditoria: auditoria.map((a: any) => ({
+          acao: a.acao,
+          detalhes: a.detalhes,
+          created_at: a.created_at,
+        })),
+      });
+    } finally {
+      setIsExportingLegal(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[95vw] max-w-4xl max-h-[90vh] flex flex-col p-4 sm:p-6">
@@ -331,7 +399,21 @@ export const RelatoriosCursosDialog = ({
                         <p className="text-[10px] sm:text-xs text-muted-foreground">Progresso Médio</p>
                       </CardContent>
                     </Card>
-                  </div>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={exportarPDFLegal}
+            disabled={isExportingLegal || !metricas?.funcionariosMatriculados?.length}
+            className="w-full sm:w-auto"
+          >
+            {isExportingLegal ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Award className="h-4 w-4 mr-2" />
+            )}
+            PDF Legal (CLT)
+          </Button>
+        </div>
 
                   {/* Visão Geral da Plataforma */}
                   {stats && (

@@ -26,6 +26,23 @@ import { useCursoMutations, useCategoriasCurso } from "@/hooks/useCursos";
 import type { Curso } from "@/types/cursos";
 import { Loader2 } from "lucide-react";
 
+const NR_OPTIONS = [
+  { value: "", label: "Nenhuma (curso interno)" },
+  { value: "NR-1", label: "NR-1 - Disposições Gerais" },
+  { value: "NR-5", label: "NR-5 - CIPA" },
+  { value: "NR-6", label: "NR-6 - EPI" },
+  { value: "NR-10", label: "NR-10 - Eletricidade" },
+  { value: "NR-11", label: "NR-11 - Transporte/Movimentação" },
+  { value: "NR-12", label: "NR-12 - Máquinas e Equipamentos" },
+  { value: "NR-17", label: "NR-17 - Ergonomia" },
+  { value: "NR-18", label: "NR-18 - Construção Civil" },
+  { value: "NR-20", label: "NR-20 - Inflamáveis e Combustíveis" },
+  { value: "NR-23", label: "NR-23 - Proteção Contra Incêndios" },
+  { value: "NR-33", label: "NR-33 - Espaços Confinados" },
+  { value: "NR-35", label: "NR-35 - Trabalho em Altura" },
+  { value: "OUTRO", label: "Outra NR / Legislação" },
+];
+
 const cursoSchema = z.object({
   titulo: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
   descricao: z.string().optional(),
@@ -38,6 +55,7 @@ const cursoSchema = z.object({
   recorrente: z.boolean(),
   meses_recorrencia: z.number().optional(),
   nota_minima: z.number().min(0).max(100),
+  norma_regulamentadora: z.string().optional(),
 });
 
 type CursoFormData = z.infer<typeof cursoSchema>;
@@ -67,6 +85,7 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
       recorrente: false,
       meses_recorrencia: 12,
       nota_minima: 70,
+      norma_regulamentadora: "",
     },
   });
 
@@ -84,6 +103,7 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
         recorrente: curso.recorrente,
         meses_recorrencia: curso.meses_recorrencia || 12,
         nota_minima: curso.nota_minima,
+        norma_regulamentadora: (curso as any).norma_regulamentadora || "",
       });
     } else {
       form.reset({
@@ -98,6 +118,7 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
         recorrente: false,
         meses_recorrencia: 12,
         nota_minima: 70,
+        norma_regulamentadora: "",
       });
     }
   }, [curso, form]);
@@ -107,7 +128,8 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
       const cursoData = {
         ...data,
         categoria_id: data.categoria_id || null,
-      };
+        norma_regulamentadora: data.norma_regulamentadora || null,
+      } as any;
 
       if (isEditing && curso) {
         await updateCurso.mutateAsync({ id: curso.id, ...cursoData });
@@ -292,6 +314,35 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
                 )}
               />
             </div>
+
+            {/* NR / Legislação */}
+            <FormField
+              control={form.control}
+              name="norma_regulamentadora"
+              render={({ field }) => (
+                <FormItem className="rounded-lg border p-4">
+                  <FormLabel className="text-base">Norma Regulamentadora (NR)</FormLabel>
+                  <FormDescription>
+                    Vincule este curso a uma norma regulamentadora para fins de auditoria trabalhista
+                  </FormDescription>
+                  <Select value={field.value || ""} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a NR (opcional)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {NR_OPTIONS.map(nr => (
+                        <SelectItem key={nr.value || "none"} value={nr.value || "none"}>
+                          {nr.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="space-y-4">
               <FormField
