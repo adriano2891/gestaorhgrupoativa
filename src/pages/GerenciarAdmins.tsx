@@ -45,8 +45,6 @@ const GerenciarAdmins = () => {
   const { roles } = useAuth();
   const isSuperAdmin = roles.includes("admin");
   useAdminsRealtime();
-  const isSuperAdmin = roles.includes("admin");
-  useAdminsRealtime();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState<Admin | undefined>();
 
