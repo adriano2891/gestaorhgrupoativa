@@ -49,7 +49,7 @@ const CATEGORIAS = [
 ];
 
 const SuporteFuncionarios = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const { data: chamados = [], isLoading, error, refetch } = useTodosChamados();
   const [chamadoSelecionado, setChamadoSelecionado] = useState<ChamadoSuporte | null>(null);
