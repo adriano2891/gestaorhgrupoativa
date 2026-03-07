@@ -234,12 +234,67 @@ const FolhaPonto = () => {
         employeeList = employeeList.filter(e => e.departamento === selectedDepartamento);
       }
 
+      // === Feriados nacionais brasileiros ===
+      const year = parseInt(selectedYear);
+      const month = parseInt(selectedMonth);
+      
+      // Calcular Páscoa (algoritmo de Meeus/Jones/Butcher)
+      const calcEaster = (y: number) => {
+        const a = y % 19, b = Math.floor(y / 100), c = y % 100;
+        const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+        const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+        const i = Math.floor(c / 4), k = c % 4;
+        const l = (32 + 2 * e + 2 * i - h - k) % 7;
+        const m = Math.floor((a + 11 * h + 22 * l) / 451);
+        const eMonth = Math.floor((h + l - 7 * m + 114) / 31);
+        const eDay = ((h + l - 7 * m + 114) % 31) + 1;
+        return new Date(y, eMonth - 1, eDay);
+      };
+      
+      const easter = calcEaster(year);
+      const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+      
+      const feriadosFixos: Array<[number, number]> = [
+        [1, 1],   // Confraternização Universal
+        [4, 21],  // Tiradentes
+        [5, 1],   // Dia do Trabalho
+        [9, 7],   // Independência
+        [10, 12], // Nossa Sra. Aparecida
+        [11, 2],  // Finados
+        [11, 15], // Proclamação da República
+        [12, 25], // Natal
+      ];
+      
+      const feriadosMoveis = [
+        addDays(easter, -47), // Carnaval (terça)
+        addDays(easter, -48), // Carnaval (segunda)
+        addDays(easter, -2),  // Sexta-feira Santa
+        addDays(easter, 60),  // Corpus Christi
+      ];
+      
+      const isFeriado = (day: number): boolean => {
+        for (const [m, d] of feriadosFixos) {
+          if (m === month && d === day) return true;
+        }
+        for (const dt of feriadosMoveis) {
+          if (dt.getMonth() + 1 === month && dt.getDate() === day) return true;
+        }
+        return false;
+      };
+      
+      const isDSR = (day: number): boolean => {
+        const dt = new Date(year, month - 1, day);
+        return dt.getDay() === 0; // Domingo
+      };
+
       employeeList.forEach(emp => {
         const days: DayRecord[] = [];
         for (let day = 1; day <= daysInMonth; day++) {
+          const tipoDia = isFeriado(day) ? 'feriado' : isDSR(day) ? 'dsr' : undefined;
           days.push({
             day,
-            status: "ausente"
+            status: "ausente",
+            tipo_dia: tipoDia,
           });
         }
 
@@ -336,7 +391,7 @@ const FolhaPonto = () => {
             status: finalStatus,
             registro_folga: reg.registro_folga,
             status_validacao: reg.status_validacao,
-            tipo_dia: reg.tipo_dia,
+            tipo_dia: reg.tipo_dia || empRecord.days[dayIndex]?.tipo_dia,
             percentual_he: reg.percentual_he,
             horas_noturnas_fictas: formatInterval(reg.horas_noturnas_fictas),
           };
@@ -491,6 +546,18 @@ const FolhaPonto = () => {
         theme: 'grid',
         styles: { fontSize: 4.5, cellPadding: 0.8, lineWidth: 0.1 },
         headStyles: { fillColor: [17, 188, 183], fontSize: 4.5, cellPadding: 1, fontStyle: 'bold' },
+        didParseCell: (data: any) => {
+          if (data.section === 'body') {
+            const tipo = data.row.raw?.[1];
+            if (tipo === 'FER') {
+              data.cell.styles.fillColor = [255, 243, 224]; // laranja claro
+              data.cell.styles.textColor = [180, 100, 0];
+            } else if (tipo === 'DSR') {
+              data.cell.styles.fillColor = [232, 245, 253]; // azul claro
+              data.cell.styles.textColor = [30, 100, 180];
+            }
+          }
+        },
         columnStyles: {
           0: { cellWidth: 9 },
           1: { cellWidth: 9 },
@@ -1120,7 +1187,11 @@ const FolhaPonto = () => {
                       </TableHeader>
                       <TableBody>
                         {record.days.map((day) => (
-                          <TableRow key={day.day} className={day.status === "falta" ? "bg-red-50 dark:bg-red-950/20" : ""}>
+                          <TableRow key={day.day} className={
+                            day.tipo_dia === 'feriado' ? "bg-orange-50 dark:bg-orange-950/20" :
+                            day.tipo_dia === 'dsr' ? "bg-blue-50 dark:bg-blue-950/20" :
+                            day.status === "falta" ? "bg-red-50 dark:bg-red-950/20" : ""
+                          }>
                             <TableCell className="font-medium">{day.day}</TableCell>
                             <TableCell className="text-sm">{day.entrada || "-"}</TableCell>
                             <TableCell className="text-sm">{day.saida_pausa_1 || "-"}</TableCell>
