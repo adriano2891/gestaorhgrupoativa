@@ -162,13 +162,32 @@ const SuporteFuncionarios = () => {
     }
   };
 
-  const handleFechar = async () => {
-    if (!chamadoSelecionado) return;
+  const handleFechar = async (motivo: string) => {
+    if (!chamadoSelecionado || !motivo.trim()) {
+      toast.error("Informe o motivo do fechamento");
+      return;
+    }
     try {
-      await atualizarStatus.mutateAsync({ chamado_id: chamadoSelecionado.id, status: "fechado" });
+      await atualizarStatus.mutateAsync({ 
+        chamado_id: chamadoSelecionado.id, 
+        status: "fechado",
+        motivo_fechamento: motivo,
+      });
       setChamadoSelecionado({ ...chamadoSelecionado, status: "fechado" });
+      setMotivoFechamento("");
+      setShowFechamentoDialog(false);
     } catch (error) {
       console.error("Erro ao fechar chamado:", error);
+    }
+  };
+
+  const handleEmAndamento = async () => {
+    if (!chamadoSelecionado) return;
+    try {
+      await atualizarStatus.mutateAsync({ chamado_id: chamadoSelecionado.id, status: "em_andamento" });
+      setChamadoSelecionado({ ...chamadoSelecionado, status: "em_andamento" });
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
     }
   };
 
