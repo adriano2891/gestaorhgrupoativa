@@ -33,6 +33,9 @@ const CATEGORIAS_MAP: Record<string, string> = {
   beneficios: "Benefícios",
   ferias: "Férias",
   documentos: "Documentos",
+  ponto: "Ponto / Jornada",
+  rescisao: "Rescisão / Desligamento",
+  fgts: "FGTS / INSS",
   outros: "Outros",
 };
 

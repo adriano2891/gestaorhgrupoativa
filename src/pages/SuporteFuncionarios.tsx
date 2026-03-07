@@ -42,6 +42,9 @@ const CATEGORIAS = [
   { value: "beneficios", label: "Benefícios" },
   { value: "ferias", label: "Férias" },
   { value: "documentos", label: "Documentos" },
+  { value: "ponto", label: "Ponto / Jornada" },
+  { value: "rescisao", label: "Rescisão / Desligamento" },
+  { value: "fgts", label: "FGTS / INSS" },
   { value: "outros", label: "Outros" },
 ];
 
@@ -195,8 +198,7 @@ const SuporteFuncionarios = () => {
   };
 
   const getStatusDisplay = (status: string) => {
-    if (status === "fechado") return STATUS_MAP.fechado;
-    return STATUS_MAP.aberto;
+    return STATUS_MAP[status] || STATUS_MAP.aberto;
   };
 
   const contadores = {
@@ -205,6 +207,18 @@ const SuporteFuncionarios = () => {
     fechado: chamados.filter(c => c.status === "fechado").length,
     total: chamados.length,
   };
+
+  // Tempo médio de resolução (CLT Art. 74 - rastreabilidade)
+  const tempoMedioResolucao = (() => {
+    const fechados = chamados.filter((c: any) => c.status === "fechado" && c.fechado_em);
+    if (fechados.length === 0) return "N/A";
+    const totalHoras = fechados.reduce((sum: number, c: any) => {
+      const diff = new Date(c.fechado_em).getTime() - new Date(c.created_at).getTime();
+      return sum + diff / (1000 * 60 * 60);
+    }, 0);
+    const media = totalHoras / fechados.length;
+    return media < 1 ? `${Math.round(media * 60)}min` : `${Math.round(media)}h`;
+  })();
 
   // ====== CHAT VIEW ======
   if (chamadoSelecionado) {
@@ -457,7 +471,7 @@ const SuporteFuncionarios = () => {
               </Button>
             </div>
             {/* Metrics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <Card>
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold">{contadores.total}</p>
@@ -480,6 +494,12 @@ const SuporteFuncionarios = () => {
                 <CardContent className="p-4 text-center">
                   <p className="text-2xl font-bold text-muted-foreground">{contadores.fechado}</p>
                   <p className="text-xs text-muted-foreground">Fechados</p>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="p-4 text-center">
+                  <p className="text-2xl font-bold text-blue-500">{tempoMedioResolucao}</p>
+                  <p className="text-xs text-muted-foreground">Tempo Médio</p>
                 </CardContent>
               </Card>
             </div>

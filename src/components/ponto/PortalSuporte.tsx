@@ -38,6 +38,9 @@ const CATEGORIAS = [
   { value: "beneficios", label: "Benefícios" },
   { value: "ferias", label: "Férias" },
   { value: "documentos", label: "Documentos" },
+  { value: "ponto", label: "Ponto / Jornada" },
+  { value: "rescisao", label: "Rescisão / Desligamento" },
+  { value: "fgts", label: "FGTS / INSS" },
   { value: "outros", label: "Outros" },
 ];
 
@@ -173,8 +176,7 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
   };
 
   const statusInfo = (status: string) => {
-    if (status === "fechado") return STATUS_MAP.fechado;
-    return STATUS_MAP.aberto;
+    return STATUS_MAP[status] || STATUS_MAP.aberto;
   };
 
   // ====== VIEW: NOVO CHAMADO ======

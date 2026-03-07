@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      admins_auditoria: {
+        Row: {
+          acao: string
+          admin_id: string | null
+          created_at: string
+          detalhes: string | null
+          executado_por: string | null
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          acao: string
+          admin_id?: string | null
+          created_at?: string
+          detalhes?: string | null
+          executado_por?: string | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          acao?: string
+          admin_id?: string | null
+          created_at?: string
+          detalhes?: string | null
+          executado_por?: string | null
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       audit_trail_ponto: {
         Row: {
           acao: string
