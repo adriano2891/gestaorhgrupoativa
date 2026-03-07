@@ -133,9 +133,16 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
           <History className="h-5 w-5 text-primary" />
           <CardTitle className="text-lg">Histórico de Ações</CardTitle>
         </div>
-        <CardDescription>
-          Log de todas as alterações realizadas na folha de ponto
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <CardDescription>
+            Log de todas as alterações realizadas na folha de ponto
+          </CardDescription>
+          {logs && logs.length > 0 && (
+            <Button variant="outline" size="sm" onClick={exportarPDF} className="gap-1">
+              <Download className="h-4 w-4" /> PDF
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
