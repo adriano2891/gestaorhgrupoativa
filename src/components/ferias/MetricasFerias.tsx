@@ -82,7 +82,7 @@ export const MetricasFerias = () => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
       {cards.map((card) => (
         <Card key={card.title} className="hover:shadow-lg transition-shadow">
           <CardContent className="pt-6">
