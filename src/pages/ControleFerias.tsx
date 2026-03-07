@@ -120,9 +120,6 @@ const ControleFerias = () => {
           {/* Métricas */}
           <MetricasFerias />
 
-          {/* Card CLT - Controle de Férias por Período Aquisitivo */}
-          <CardControleFeriasCLT />
-
           {/* Tabela */}
           <Card>
             <CardHeader>
@@ -151,6 +148,9 @@ const ControleFerias = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Card CLT - Controle de Férias por Período Aquisitivo */}
+          <CardControleFeriasCLT />
         </div>
       </div>
     </div>
