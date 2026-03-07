@@ -87,6 +87,7 @@ const BancoTalentos = () => {
   const [deletingCandidateId, setDeletingCandidateId] = useState<string | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [skillsInput, setSkillsInput] = useState("");
+  const [consentimentoLGPD, setConsentimentoLGPD] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [newCandidate, setNewCandidate] = useState({
     name: "",
