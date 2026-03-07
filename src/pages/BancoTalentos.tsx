@@ -288,6 +288,10 @@ const BancoTalentos = () => {
             ...newCandidate,
             skills,
             resume_url: resumeUrl,
+            consentimento_lgpd: true,
+            data_consentimento: new Date().toISOString(),
+            data_validade_dados: new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            finalidade_tratamento: 'Processo seletivo e recrutamento',
           }),
         }
       );
