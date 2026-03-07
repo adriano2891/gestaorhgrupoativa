@@ -1103,6 +1103,12 @@ const Funcionarios = () => {
         numero_pis: "",
         ctps_numero: "",
         ctps_serie: "",
+        nacionalidade: "Brasileira",
+        estado_civil: "",
+        sexo: "",
+        nome_mae: "",
+        cbo: "",
+        tipo_contrato: "CLT",
       });
       
       // Optimistic update: add employee to list immediately
