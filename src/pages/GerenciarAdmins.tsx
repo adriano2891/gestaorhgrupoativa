@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Shield, UserPlus, Edit, Trash2, Mail, Loader2, RefreshCw } from "lucide-react";
+import { Shield, UserPlus, Edit, Trash2, Mail, Loader2, RefreshCw, FileText, History } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { BackButton } from "@/components/ui/back-button";
-import { useAdmins, useDeleteAdmin, type Admin } from "@/hooks/useAdmins";
+import { useAdmins, useDeleteAdmin, useAdminsAuditoria, type Admin } from "@/hooks/useAdmins";
 import { useAdminsRealtime } from "@/hooks/useRealtimeUpdates";
 import { AdminDialog } from "@/components/admins/AdminDialog";
+import { gerarPdfAdminsAuditoria } from "@/utils/adminsPdfAuditoria";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -37,6 +40,7 @@ import {
 
 const GerenciarAdmins = () => {
   const { data: admins = [], isLoading, refetch, isFetching, error } = useAdmins();
+  const { data: auditoria = [] } = useAdminsAuditoria();
   const deleteAdmin = useDeleteAdmin();
   const { roles } = useAuth();
   const isSuperAdmin = roles.includes("admin");
@@ -135,6 +139,10 @@ const GerenciarAdmins = () => {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => gerarPdfAdminsAuditoria(admins, auditoria)}>
+            <FileText className="h-4 w-4 mr-2" />
+            Relatório PDF
+          </Button>
           <Button variant="outline" onClick={handleRefresh} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
           </Button>
@@ -304,6 +312,40 @@ const GerenciarAdmins = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Trilha de Auditoria */}
+      {isSuperAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5" />
+              Trilha de Auditoria — Gestão de Admins
+            </CardTitle>
+            <CardDescription>
+              Registro de todas as alterações em permissões administrativas (CLT Art. 41 — rastreabilidade obrigatória)
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {auditoria.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">Nenhum registro de auditoria</p>
+            ) : (
+              <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                {auditoria.map((a: any) => (
+                  <div key={a.id} className="flex items-start gap-3 text-xs border-l-2 border-muted pl-3 py-1.5">
+                    <span className="text-muted-foreground whitespace-nowrap">
+                      {format(new Date(a.created_at), "dd/MM/yy HH:mm:ss", { locale: ptBR })}
+                    </span>
+                    <Badge variant={a.acao === "role_removido" ? "destructive" : "default"} className="text-[10px]">
+                      {a.acao === "role_atribuido" ? "Atribuído" : a.acao === "role_removido" ? "Removido" : a.acao}
+                    </Badge>
+                    <span className="text-muted-foreground flex-1">{a.detalhes || ""}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };

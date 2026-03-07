@@ -930,6 +930,9 @@ export type Database = {
           created_at: string
           criado_por: string | null
           descricao: string | null
+          excluido: boolean
+          excluido_em: string | null
+          excluido_por: string | null
           id: string
           mime_type: string | null
           publico: boolean | null
@@ -949,6 +952,9 @@ export type Database = {
           created_at?: string
           criado_por?: string | null
           descricao?: string | null
+          excluido?: boolean
+          excluido_em?: string | null
+          excluido_por?: string | null
           id?: string
           mime_type?: string | null
           publico?: boolean | null
@@ -968,6 +974,9 @@ export type Database = {
           created_at?: string
           criado_por?: string | null
           descricao?: string | null
+          excluido?: boolean
+          excluido_em?: string | null
+          excluido_por?: string | null
           id?: string
           mime_type?: string | null
           publico?: boolean | null
@@ -1037,6 +1046,44 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_auditoria: {
+        Row: {
+          acao: string
+          created_at: string
+          detalhes: string | null
+          documento_id: string | null
+          id: string
+          ip_address: string | null
+          user_id: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          detalhes?: string | null
+          documento_id?: string | null
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          detalhes?: string | null
+          documento_id?: string | null
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_auditoria_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos"
             referencedColumns: ["id"]
           },
         ]
