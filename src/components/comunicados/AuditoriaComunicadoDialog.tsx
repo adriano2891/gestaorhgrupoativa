@@ -23,7 +23,7 @@ export const AuditoriaComunicadoDialog = ({
     queryKey: ["comunicado-auditoria", comunicadoId],
     queryFn: async () => {
       if (!comunicadoId) return [];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("comunicados_auditoria")
         .select("*, profiles:user_id(nome)")
         .eq("comunicado_id", comunicadoId)

@@ -72,10 +72,10 @@ const Comunicados = () => {
         .order("created_at", { ascending: false });
 
       if (!mostrarExcluidos) {
-        query = query.eq("excluido", false);
+        query = query.eq("excluido" as any, false);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query as any;
       if (error) throw error;
 
       return (data || []).map((c: any) => ({

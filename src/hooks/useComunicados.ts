@@ -33,7 +33,7 @@ export const useComunicados = (userId?: string) => {
 
         if (!activeUserId) return [] as ComunicadoComLeitura[];
 
-        const { data: comunicados, error: comunicadosError } = await supabase
+        const { data: comunicados, error: comunicadosError } = await (supabase as any)
           .from("comunicados")
           .select("*")
           .eq("ativo", true)
