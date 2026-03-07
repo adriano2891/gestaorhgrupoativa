@@ -234,12 +234,67 @@ const FolhaPonto = () => {
         employeeList = employeeList.filter(e => e.departamento === selectedDepartamento);
       }
 
+      // === Feriados nacionais brasileiros ===
+      const year = parseInt(selectedYear);
+      const month = parseInt(selectedMonth);
+      
+      // Calcular Páscoa (algoritmo de Meeus/Jones/Butcher)
+      const calcEaster = (y: number) => {
+        const a = y % 19, b = Math.floor(y / 100), c = y % 100;
+        const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
+        const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+        const i = Math.floor(c / 4), k = c % 4;
+        const l = (32 + 2 * e + 2 * i - h - k) % 7;
+        const m = Math.floor((a + 11 * h + 22 * l) / 451);
+        const eMonth = Math.floor((h + l - 7 * m + 114) / 31);
+        const eDay = ((h + l - 7 * m + 114) % 31) + 1;
+        return new Date(y, eMonth - 1, eDay);
+      };
+      
+      const easter = calcEaster(year);
+      const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
+      
+      const feriadosFixos: Array<[number, number]> = [
+        [1, 1],   // Confraternização Universal
+        [4, 21],  // Tiradentes
+        [5, 1],   // Dia do Trabalho
+        [9, 7],   // Independência
+        [10, 12], // Nossa Sra. Aparecida
+        [11, 2],  // Finados
+        [11, 15], // Proclamação da República
+        [12, 25], // Natal
+      ];
+      
+      const feriadosMoveis = [
+        addDays(easter, -47), // Carnaval (terça)
+        addDays(easter, -48), // Carnaval (segunda)
+        addDays(easter, -2),  // Sexta-feira Santa
+        addDays(easter, 60),  // Corpus Christi
+      ];
+      
+      const isFeriado = (day: number): boolean => {
+        for (const [m, d] of feriadosFixos) {
+          if (m === month && d === day) return true;
+        }
+        for (const dt of feriadosMoveis) {
+          if (dt.getMonth() + 1 === month && dt.getDate() === day) return true;
+        }
+        return false;
+      };
+      
+      const isDSR = (day: number): boolean => {
+        const dt = new Date(year, month - 1, day);
+        return dt.getDay() === 0; // Domingo
+      };
+
       employeeList.forEach(emp => {
         const days: DayRecord[] = [];
         for (let day = 1; day <= daysInMonth; day++) {
+          const tipoDia = isFeriado(day) ? 'feriado' : isDSR(day) ? 'dsr' : undefined;
           days.push({
             day,
-            status: "ausente"
+            status: "ausente",
+            tipo_dia: tipoDia,
           });
         }
 
