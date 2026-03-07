@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Shield, UserPlus, Edit, Trash2, Mail, Loader2, RefreshCw } from "lucide-react";
+import { Shield, UserPlus, Edit, Trash2, Mail, Loader2, RefreshCw, FileText, History } from "lucide-react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { BackButton } from "@/components/ui/back-button";
-import { useAdmins, useDeleteAdmin, type Admin } from "@/hooks/useAdmins";
+import { useAdmins, useDeleteAdmin, useAdminsAuditoria, type Admin } from "@/hooks/useAdmins";
 import { useAdminsRealtime } from "@/hooks/useRealtimeUpdates";
 import { AdminDialog } from "@/components/admins/AdminDialog";
+import { gerarPdfAdminsAuditoria } from "@/utils/adminsPdfAuditoria";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import {
   Card,

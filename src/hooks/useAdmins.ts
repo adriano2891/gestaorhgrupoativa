@@ -213,3 +213,21 @@ export const useDeleteAdmin = () => {
     },
   });
 };
+
+// Buscar auditoria de admin
+export const useAdminsAuditoria = () => {
+  return useQuery({
+    queryKey: ["admins-auditoria"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("admins_auditoria" as any)
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+      return (data || []) as any[];
+    },
+    staleTime: 1000 * 60,
+  });
+};
