@@ -47,6 +47,59 @@ export type Database = {
         }
         Relationships: []
       }
+      assinaturas_espelho_ponto: {
+        Row: {
+          ano_referencia: number
+          cpf: string | null
+          created_at: string
+          data_assinatura: string
+          funcionario_id: string
+          hash_documento: string
+          id: string
+          ip_address: string | null
+          mes_referencia: number
+          nome_funcionario: string
+          status: string
+          user_agent: string | null
+        }
+        Insert: {
+          ano_referencia: number
+          cpf?: string | null
+          created_at?: string
+          data_assinatura?: string
+          funcionario_id: string
+          hash_documento: string
+          id?: string
+          ip_address?: string | null
+          mes_referencia: number
+          nome_funcionario: string
+          status?: string
+          user_agent?: string | null
+        }
+        Update: {
+          ano_referencia?: number
+          cpf?: string | null
+          created_at?: string
+          data_assinatura?: string
+          funcionario_id?: string
+          hash_documento?: string
+          id?: string
+          ip_address?: string | null
+          mes_referencia?: number
+          nome_funcionario?: string
+          status?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assinaturas_espelho_ponto_funcionario_id_fkey"
+            columns: ["funcionario_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_trail_ponto: {
         Row: {
           acao: string
