@@ -137,17 +137,18 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
       const campo = log.campo_editado?.toLowerCase() || "";
       const tipo = campo.includes("status") ? "Ajuste" : "Edição";
       return [
+        log.employee_name || "-",
         data,
         hora,
         log._displayName || log.autorizado_por_nome || "-",
         tipo,
-        `${log.employee_name || "-"} — ${log.campo_editado}: ${log.valor_anterior || "—"} → ${log.valor_novo || "—"} (dia ${new Date(log.data_registro).getDate().toString().padStart(2, "0")})`,
+        `${log.campo_editado}: ${log.valor_anterior || "—"} → ${log.valor_novo || "—"} (dia ${new Date(log.data_registro).getDate().toString().padStart(2, "0")})`,
       ];
     });
 
     autoTable(doc, {
       startY: 32,
-      head: [["Data", "Hora", "Responsável", "Tipo", "Descrição"]],
+      head: [["Funcionário", "Data", "Hora", "Responsável", "Tipo", "Descrição"]],
       body: rows,
       styles: { fontSize: 8 },
       headStyles: { fillColor: [17, 188, 183] },
