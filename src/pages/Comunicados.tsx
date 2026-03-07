@@ -68,7 +68,7 @@ const Comunicados = () => {
     queryFn: async () => {
       let query = (supabase as any)
         .from("comunicados")
-        .select("*, profiles:criado_por(nome)")
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (!mostrarExcluidos) {
@@ -78,9 +78,20 @@ const Comunicados = () => {
       const { data, error } = await query;
       if (error) throw error;
 
+      // Fetch creator names separately since there's no FK relationship
+      const criadorIds = [...new Set((data || []).map((c: any) => c.criado_por).filter(Boolean))];
+      let profilesMap: Record<string, string> = {};
+      if (criadorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, nome")
+          .in("id", criadorIds);
+        profilesMap = Object.fromEntries((profiles || []).map((p: any) => [p.id, p.nome]));
+      }
+
       return (data || []).map((c: any) => ({
         ...c,
-        emissor_nome: c.profiles?.nome || "Sistema",
+        emissor_nome: profilesMap[c.criado_por] || "Sistema",
       })) as Comunicado[];
     },
     retry: 2,
