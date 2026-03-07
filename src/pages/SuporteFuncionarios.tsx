@@ -386,6 +386,33 @@ const SuporteFuncionarios = () => {
               </CardContent>
             </Card>
           )}
+          {/* Fechamento Dialog */}
+          <Dialog open={showFechamentoDialog} onOpenChange={setShowFechamentoDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Fechar Chamado</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-3">
+                <Label>Motivo do fechamento (obrigatório para auditoria CLT)</Label>
+                <Textarea 
+                  value={motivoFechamento} 
+                  onChange={(e) => setMotivoFechamento(e.target.value)} 
+                  placeholder="Descreva o motivo do fechamento e a resolução aplicada..."
+                  className="min-h-[80px]"
+                />
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowFechamentoDialog(false)}>Cancelar</Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={() => handleFechar(motivoFechamento)}
+                  disabled={!motivoFechamento.trim() || atualizarStatus.isPending}
+                >
+                  <Lock className="h-4 w-4 mr-1" /> Confirmar Fechamento
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </Layout>
     );
