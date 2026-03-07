@@ -242,6 +242,7 @@ const InventarioEquipamentos = () => {
           </div>
         </div>
       </header>
+      <div className="h-[56px] sm:h-[60px] md:h-[64px]" />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Stats Cards */}

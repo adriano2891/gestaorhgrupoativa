@@ -106,6 +106,7 @@ const FormularioDetalhes = () => {
           </div>
         </div>
       </header>
+      <div className="h-[64px] sm:h-[72px]" />
 
       <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="campos" className="w-full">
