@@ -1161,6 +1161,12 @@ const FolhaPonto = () => {
                               12x36 {record.turno === 'noturno' ? '(Noturno)' : '(Diurno)'}
                             </Badge>
                           )}
+                          {assinaturasMap[record.employee_id] && (
+                            <Badge className="ml-2 bg-green-600 hover:bg-green-700 text-white text-xs">
+                              <ShieldCheck className="h-3 w-3 mr-1" />
+                              Assinado
+                            </Badge>
+                          )}
                         </CardDescription>
                       </div>
                     </div>
