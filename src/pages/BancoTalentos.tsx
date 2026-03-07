@@ -521,24 +521,23 @@ const BancoTalentos = () => {
   };
 
   const handleExportCandidateData = (candidate: Candidate) => {
-    const doc = new jsPDF();
     const pdf = new jsPDF();
     const pw = pdf.internal.pageSize.getWidth();
     const margin = 14;
 
     // Header
-    doc.setFillColor(17, 188, 183);
-    doc.rect(0, 0, pw, 32, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text("EXPORTAÇÃO DE DADOS — PORTABILIDADE LGPD", pw / 2, 14, { align: "center" });
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "normal");
-    doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw / 2, 22, { align: "center" });
-    doc.text("Lei nº 13.709/2018 — Art. 18, V — Direito à portabilidade dos dados", pw / 2, 28, { align: "center" });
+    pdf.setFillColor(17, 188, 183);
+    pdf.rect(0, 0, pw, 32, "F");
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(16);
+    pdf.setFont("helvetica", "bold");
+    pdf.text("EXPORTAÇÃO DE DADOS — PORTABILIDADE LGPD", pw / 2, 14, { align: "center" });
+    pdf.setFontSize(9);
+    pdf.setFont("helvetica", "normal");
+    pdf.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw / 2, 22, { align: "center" });
+    pdf.text("Lei nº 13.709/2018 — Art. 18, V — Direito à portabilidade dos dados", pw / 2, 28, { align: "center" });
 
-    doc.setTextColor(0, 0, 0);
+    pdf.setTextColor(0, 0, 0);
     let y = 42;
 
     const statusMap: Record<string, string> = {
@@ -562,39 +561,39 @@ const BancoTalentos = () => {
       ["Finalidade do Tratamento", candidate.finalidade_tratamento || "—"],
     ];
 
-    doc.setFontSize(9);
+    pdf.setFontSize(9);
     fields.forEach(([label, value]) => {
-      doc.setFont("helvetica", "bold");
-      doc.text(`${label}:`, margin, y);
-      doc.setFont("helvetica", "normal");
-      const lines = doc.splitTextToSize(String(value), pw - 70);
-      doc.text(lines, 65, y);
+      pdf.setFont("helvetica", "bold");
+      pdf.text(`${label}:`, margin, y);
+      pdf.setFont("helvetica", "normal");
+      const lines = pdf.splitTextToSize(String(value), pw - 70);
+      pdf.text(lines, 65, y);
       y += lines.length * 5 + 2;
     });
 
     // Footer
     y += 10;
-    doc.setDrawColor(17, 188, 183);
-    doc.setLineWidth(0.3);
-    doc.line(margin, y, pw - margin, y);
+    pdf.setDrawColor(17, 188, 183);
+    pdf.setLineWidth(0.3);
+    pdf.line(margin, y, pw - margin, y);
     y += 6;
-    doc.setFontSize(7);
-    doc.setTextColor(120, 120, 120);
-    doc.text("Este documento foi gerado automaticamente para fins de portabilidade de dados conforme a LGPD.", margin, y);
+    pdf.setFontSize(7);
+    pdf.setTextColor(120, 120, 120);
+    pdf.text("Este documento foi gerado automaticamente para fins de portabilidade de dados conforme a LGPD.", margin, y);
     y += 4;
-    doc.text(`Data/Hora da exportação: ${new Date().toLocaleString("pt-BR")}`, margin, y);
+    pdf.text(`Data/Hora da exportação: ${new Date().toLocaleString("pt-BR")}`, margin, y);
 
     // Page footer
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.text(
+    pdf.setFontSize(7);
+    pdf.setTextColor(150, 150, 150);
+    pdf.text(
       "Portabilidade LGPD — Banco de Talentos",
       pw / 2,
-      doc.internal.pageSize.getHeight() - 8,
+      pdf.internal.pageSize.getHeight() - 8,
       { align: "center" }
     );
 
-    doc.save(`dados-candidato-${candidate.name.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+    pdf.save(`dados-candidato-${candidate.name.replace(/\s+/g, '-').toLowerCase()}.pdf`);
 
     toast({
       title: "PDF exportado com sucesso!",
