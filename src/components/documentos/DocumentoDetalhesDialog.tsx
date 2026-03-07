@@ -326,6 +326,31 @@ export const DocumentoDetalhesDialog = ({
                   </div>
                 )}
               </TabsContent>
+
+              <TabsContent value="auditoria" className="mt-0">
+                <div className="flex justify-end mb-3">
+                  <Button variant="outline" size="sm" onClick={() => gerarPdfDocumentoAuditoria(documento, auditoria || [])}>
+                    <FileText className="h-4 w-4 mr-1" /> PDF Auditoria
+                  </Button>
+                </div>
+                {!auditoria || auditoria.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground text-sm">
+                    Nenhum registro de auditoria
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {auditoria.map((a: any) => (
+                      <div key={a.id} className="flex items-start gap-3 text-xs border-l-2 border-muted pl-3 py-1.5">
+                        <span className="text-muted-foreground whitespace-nowrap">
+                          {format(new Date(a.created_at), "dd/MM/yy HH:mm", { locale: ptBR })}
+                        </span>
+                        <span className="font-medium">{a.acao}</span>
+                        <span className="text-muted-foreground flex-1">{a.detalhes || ""}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
             </ScrollArea>
           </Tabs>
         </div>
