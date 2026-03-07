@@ -79,7 +79,7 @@ const Comunicados = () => {
       if (error) throw error;
 
       // Fetch creator names separately since there's no FK relationship
-      const criadorIds = [...new Set((data || []).map((c: any) => c.criado_por).filter(Boolean))];
+      const criadorIds = [...new Set((data || []).map((c: any) => c.criado_por).filter(Boolean))] as string[];
       let profilesMap: Record<string, string> = {};
       if (criadorIds.length > 0) {
         const { data: profiles } = await supabase
