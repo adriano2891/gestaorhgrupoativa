@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Clock, Download, Filter, AlertTriangle, CheckCircle, XCircle, FileText, Eye, FileSpreadsheet, Pencil } from "lucide-react";
+import { Calendar, Clock, Download, Filter, AlertTriangle, CheckCircle, XCircle, FileText, Eye, FileSpreadsheet, Pencil, ShieldCheck } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { usePontoRealtime, useFuncionariosRealtime } from "@/hooks/useRealtimeUpdates";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
@@ -117,6 +117,7 @@ const FolhaPonto = () => {
   const [showFolgaDialog, setShowFolgaDialog] = useState(false);
   const [registrosFolga, setRegistrosFolga] = useState<any[]>([]);
   const [countFolga, setCountFolga] = useState(0);
+  const [assinaturasMap, setAssinaturasMap] = useState<Record<string, any>>({});
 
   const getAccessToken = (): string | null => {
     try {
@@ -167,10 +168,32 @@ const FolhaPonto = () => {
     }
   };
 
+  const loadAssinaturasAdmin = async () => {
+    try {
+      const mes = parseInt(selectedMonth);
+      const ano = parseInt(selectedYear);
+      const { data } = await (supabase as any)
+        .from("assinaturas_espelho_ponto")
+        .select("*")
+        .eq("mes_referencia", mes)
+        .eq("ano_referencia", ano);
+      if (data) {
+        const map: Record<string, any> = {};
+        (data as any[]).forEach((a: any) => {
+          map[a.funcionario_id] = a;
+        });
+        setAssinaturasMap(map);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar assinaturas:", err);
+    }
+  };
+
   useEffect(() => {
     if (!loadingFuncionarios && employees.length >= 0) {
       loadMonthRecords();
       loadRegistrosFolga();
+      loadAssinaturasAdmin();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, loadingFuncionarios, employees.length]);
@@ -1138,6 +1161,12 @@ const FolhaPonto = () => {
                               12x36 {record.turno === 'noturno' ? '(Noturno)' : '(Diurno)'}
                             </Badge>
                           )}
+                          {assinaturasMap[record.employee_id] && (
+                            <Badge className="ml-2 bg-green-600 hover:bg-green-700 text-white text-xs">
+                              <ShieldCheck className="h-3 w-3 mr-1" />
+                              Assinado
+                            </Badge>
+                          )}
                         </CardDescription>
                       </div>
                     </div>
@@ -1159,6 +1188,17 @@ const FolhaPonto = () => {
                       <div className="text-center">
                         <div className="text-muted-foreground">Faltas</div>
                         <div className="font-bold text-red-600">{record.total_faltas}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-muted-foreground">Assinatura</div>
+                        {assinaturasMap[record.employee_id] ? (
+                          <div className="font-bold text-green-600 flex items-center gap-1 justify-center">
+                            <ShieldCheck className="h-4 w-4" />
+                            Sim
+                          </div>
+                        ) : (
+                          <div className="font-bold text-muted-foreground">Pendente</div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1312,18 +1352,19 @@ const FolhaPonto = () => {
                     <TableHead className="text-right">Horas Extras</TableHead>
                     <TableHead className="text-right">Faltas</TableHead>
                     <TableHead>Status</TableHead>
+                    <TableHead>Assinatura</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
+                      <TableCell colSpan={7} className="text-center py-8">
                         Carregando...
                       </TableCell>
                     </TableRow>
                   ) : monthRecords.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         Nenhum registro encontrado
                       </TableCell>
                     </TableRow>
@@ -1361,6 +1402,23 @@ const FolhaPonto = () => {
                           <Badge variant={record.status === "completo" ? "default" : "secondary"}>
                             {record.status}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {assinaturasMap[record.employee_id] ? (
+                            <div className="flex flex-col">
+                              <Badge className="bg-green-600 hover:bg-green-700 text-white w-fit">
+                                <ShieldCheck className="h-3 w-3 mr-1" />
+                                Assinado
+                              </Badge>
+                              <span className="text-xs text-muted-foreground mt-1">
+                                {new Date(assinaturasMap[record.employee_id].data_assinatura).toLocaleDateString("pt-BR")}
+                              </span>
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="text-muted-foreground">
+                              Pendente
+                            </Badge>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))
