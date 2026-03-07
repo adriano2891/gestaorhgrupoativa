@@ -65,6 +65,10 @@ type Candidate = {
   status: "disponivel" | "em-processo" | "contratado";
   applied_date: string;
   resume_url: string | null;
+  consentimento_lgpd: boolean;
+  data_consentimento: string | null;
+  data_validade_dados: string | null;
+  finalidade_tratamento: string | null;
 };
 
 const BancoTalentos = () => {
