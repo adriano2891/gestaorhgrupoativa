@@ -46,7 +46,29 @@ export const AuditTrailCard = () => {
         }
       );
       if (!res.ok) throw new Error(`${res.status}`);
-      setLogs(await res.json() || []);
+      const data = await res.json() || [];
+
+      // Enrich with profile names
+      if (data.length > 0) {
+        const userIds = [...new Set(data.map((d: any) => d.user_id).filter(Boolean))];
+        if (userIds.length > 0) {
+          const idsParam = userIds.map(id => `"${id}"`).join(',');
+          try {
+            const pRes = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome&id=in.(${idsParam})`,
+              { headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${token}` } }
+            );
+            if (pRes.ok) {
+              const profiles = await pRes.json();
+              const nameMap: Record<string, string> = {};
+              profiles.forEach((p: any) => { nameMap[p.id] = p.nome; });
+              data.forEach((d: any) => { d._nome = nameMap[d.user_id] || "—"; });
+            }
+          } catch { /* ignore */ }
+        }
+      }
+
+      setLogs(data);
     } catch (e) {
       console.error("Erro ao carregar audit trail:", e);
     } finally {
@@ -66,10 +88,10 @@ export const AuditTrailCard = () => {
   const exportAuditCSV = () => {
     if (logs.length === 0) { toast.error("Sem dados para exportar"); return; }
 
-    const headers = ['Data/Hora', 'Usuário', 'Ação', 'IP', 'Dispositivo', 'Detalhes'];
+    const headers = ['Funcionário', 'Data/Hora', 'Ação', 'IP', 'Dispositivo', 'Detalhes'];
     const rows = logs.map(log => [
+      log._nome || log.user_id,
       new Date(log.created_at).toLocaleString("pt-BR"),
-      log.user_id,
       log.acao,
       log.ip_address || '-',
       (log.user_agent || '-').substring(0, 80),
@@ -275,25 +297,27 @@ export const AuditTrailCard = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data/Hora</TableHead>
-                    <TableHead>Ação</TableHead>
-                    <TableHead>IP</TableHead>
-                    <TableHead>Detalhes</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {displayedLogs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="whitespace-nowrap text-sm">
-                        {new Date(log.created_at).toLocaleString("pt-BR")}
-                      </TableCell>
-                      <TableCell>{getActionBadge(log.acao)}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{log.ip_address || '-'}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate">
-                        {log.detalhes ? JSON.stringify(log.detalhes).substring(0, 100) : '-'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                     <TableHead>Funcionário</TableHead>
+                     <TableHead>Data/Hora</TableHead>
+                     <TableHead>Ação</TableHead>
+                     <TableHead>IP</TableHead>
+                     <TableHead>Detalhes</TableHead>
+                   </TableRow>
+                 </TableHeader>
+                 <TableBody>
+                   {displayedLogs.map((log) => (
+                     <TableRow key={log.id}>
+                       <TableCell className="text-sm font-medium whitespace-nowrap">{log._nome || "—"}</TableCell>
+                       <TableCell className="whitespace-nowrap text-sm">
+                         {new Date(log.created_at).toLocaleString("pt-BR")}
+                       </TableCell>
+                       <TableCell>{getActionBadge(log.acao)}</TableCell>
+                       <TableCell className="text-sm text-muted-foreground">{log.ip_address || '-'}</TableCell>
+                       <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate">
+                         {log.detalhes ? JSON.stringify(log.detalhes).substring(0, 100) : '-'}
+                       </TableCell>
+                     </TableRow>
+                   ))}
                 </TableBody>
               </Table>
             </div>
