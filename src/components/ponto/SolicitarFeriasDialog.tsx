@@ -1,16 +1,22 @@
 import { useState, useMemo } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, AlertTriangle, Info } from "lucide-react";
+import { CalendarIcon, AlertTriangle, Info, ShieldAlert } from "lucide-react";
 import { format, differenceInDays, isBefore, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { useCriarSolicitacaoFerias } from "@/hooks/useFerias";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  validarFracionamento,
+  validarDataInicio,
+  validarAbonoPecuniario,
+  calcularDiasDireitoPorFaltas,
+} from "@/utils/feriasValidacoesCLT";
 
 interface PeriodoAquisitivo {
   id: string;
@@ -21,11 +27,18 @@ interface PeriodoAquisitivo {
   dias_usados: number;
 }
 
-interface SolicitarFeriasDialogProps {
-  periodos: PeriodoAquisitivo[];
+interface SolicitacaoExistente {
+  dias_solicitados: number;
+  status: string;
+  periodo_aquisitivo_id: string;
 }
 
-export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) => {
+interface SolicitarFeriasDialogProps {
+  periodos: PeriodoAquisitivo[];
+  solicitacoesExistentes?: SolicitacaoExistente[];
+}
+
+export const SolicitarFeriasDialog = ({ periodos, solicitacoesExistentes = [] }: SolicitarFeriasDialogProps) => {
   const [open, setOpen] = useState(false);
   const [showIndisponivelDialog, setShowIndisponivelDialog] = useState(false);
   const [periodoSelecionado, setPeriodoSelecionado] = useState("");
@@ -62,6 +75,48 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
     ? Math.max(0, differenceInDays(parseISO(periodoEmAndamento.data_fim), new Date()))
     : null;
 
+  // ========== Validações CLT ==========
+  const validacoesCLT = useMemo(() => {
+    const erros: string[] = [];
+
+    if (!periodoSelecionado || !dataInicio || diasSolicitados <= 0) return erros;
+
+    // Art. 134 §3º – Restrição de data de início
+    const validacaoData = validarDataInicio(dataInicio);
+    if (!validacaoData.valido && validacaoData.mensagem) {
+      erros.push(validacaoData.mensagem);
+    }
+
+    // Art. 134 §1º – Fracionamento
+    const solicitacoesAtivas = solicitacoesExistentes.filter(
+      (s) => s.periodo_aquisitivo_id === periodoSelecionado
+    );
+    const diasDireito = periodo?.dias_direito || 30;
+    const validacaoFracionamento = validarFracionamento(diasSolicitados, solicitacoesAtivas, diasDireito);
+    if (!validacaoFracionamento.valido && validacaoFracionamento.mensagem) {
+      erros.push(validacaoFracionamento.mensagem);
+    }
+
+    // Art. 143 – Abono pecuniário
+    if (tipo === "abono_pecuniario") {
+      const validacaoAbono = validarAbonoPecuniario(diasSolicitados, diasDireito);
+      if (!validacaoAbono.valido && validacaoAbono.mensagem) {
+        erros.push(validacaoAbono.mensagem);
+      }
+    }
+
+    // Mínimo de dias (Art. 134 §1º)
+    if (tipo !== "abono_pecuniario" && diasSolicitados < 5) {
+      erros.push("O período mínimo de férias é de 5 dias corridos (CLT Art. 134 §1º).");
+    }
+
+    return erros;
+  }, [periodoSelecionado, dataInicio, diasSolicitados, tipo, solicitacoesExistentes, periodo]);
+
+  const temErrosCLT = validacoesCLT.length > 0;
+  const diasDisp = periodo ? (periodo.dias_disponiveis ?? (periodo.dias_direito - periodo.dias_usados)) : 0;
+  const saldoExcedido = diasSolicitados > diasDisp;
+
   const handleClickSolicitar = () => {
     if (!podeAbrir) {
       setShowIndisponivelDialog(true);
@@ -72,10 +127,7 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!periodoSelecionado || !dataInicio || !dataFim) return;
-
-    const diasDisp = periodo ? (periodo.dias_disponiveis ?? (periodo.dias_direito - periodo.dias_usados)) : 0;
-    if (diasSolicitados > diasDisp) return;
+    if (!periodoSelecionado || !dataInicio || !dataFim || temErrosCLT || saldoExcedido) return;
 
     await criarSolicitacao.mutateAsync({
       periodo_aquisitivo_id: periodoSelecionado,
@@ -115,6 +167,7 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
                     <> ({format(parseISO(periodoEmAndamento.data_inicio), "dd/MM/yyyy", { locale: ptBR })} a{" "}
                     {format(parseISO(periodoEmAndamento.data_fim), "dd/MM/yyyy", { locale: ptBR })})</>
                   )}.
+                  <br /><span className="text-xs text-muted-foreground">(CLT Art. 130 – Período aquisitivo de 12 meses)</span>
                 </>
               ) : (
                 "Todos os seus períodos aquisitivos já foram utilizados. Aguarde o próximo período."
@@ -141,9 +194,10 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
 
           <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20 mb-2">
             <Info className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-muted-foreground">
-              Apenas períodos aquisitivos completos (12 meses de trabalho) são exibidos, conforme Art. 130 da CLT.
-            </p>
+            <div className="text-xs text-muted-foreground space-y-1">
+              <p>Apenas períodos aquisitivos completos (12 meses) são exibidos (Art. 130 CLT).</p>
+              <p>Férias podem ser fracionadas em até 3 períodos: 1 de no mínimo 14 dias e os demais de no mínimo 5 dias (Art. 134 §1º).</p>
+            </div>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -176,9 +230,14 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
                 <SelectContent>
                   <SelectItem value="ferias">Férias</SelectItem>
                   <SelectItem value="ferias_coletivas">Férias Coletivas</SelectItem>
-                  <SelectItem value="abono_pecuniario">Abono Pecuniário</SelectItem>
+                  <SelectItem value="abono_pecuniario">Abono Pecuniário (Art. 143)</SelectItem>
                 </SelectContent>
               </Select>
+              {tipo === "abono_pecuniario" && (
+                <p className="text-xs text-muted-foreground">
+                  Conversão de até 1/3 dos dias de férias em dinheiro (máx. {Math.floor((periodo?.dias_direito || 30) / 3)} dias).
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -218,11 +277,24 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
             </div>
 
             {diasSolicitados > 0 && (
-              <div className="p-3 bg-muted rounded-lg">
+              <div className="p-3 bg-muted rounded-lg space-y-1">
                 <p className="text-sm font-medium">Dias solicitados: {diasSolicitados}</p>
-                {periodo && diasSolicitados > (periodo.dias_disponiveis ?? (periodo.dias_direito - periodo.dias_usados)) && (
-                  <p className="text-sm text-destructive mt-1">Você não tem saldo suficiente neste período</p>
+                {saldoExcedido && (
+                  <p className="text-sm text-destructive">Você não tem saldo suficiente neste período</p>
                 )}
+              </div>
+            )}
+
+            {/* Alertas CLT */}
+            {temErrosCLT && (
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/30 space-y-2">
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="h-4 w-4 text-destructive flex-shrink-0" />
+                  <p className="text-sm font-medium text-destructive">Validações CLT</p>
+                </div>
+                {validacoesCLT.map((erro, i) => (
+                  <p key={i} className="text-xs text-destructive/80 ml-6">• {erro}</p>
+                ))}
               </div>
             )}
 
@@ -236,7 +308,10 @@ export const SolicitarFeriasDialog = ({ periodos }: SolicitarFeriasDialogProps) 
               <Button
                 type="submit"
                 className="flex-1"
-                disabled={!periodoSelecionado || !dataInicio || !dataFim || (periodo ? diasSolicitados > (periodo.dias_disponiveis ?? (periodo.dias_direito - periodo.dias_usados)) : false) || criarSolicitacao.isPending}
+                disabled={
+                  !periodoSelecionado || !dataInicio || !dataFim || saldoExcedido || temErrosCLT ||
+                  criarSolicitacao.isPending
+                }
               >
                 {criarSolicitacao.isPending ? "Enviando..." : "Solicitar"}
               </Button>
