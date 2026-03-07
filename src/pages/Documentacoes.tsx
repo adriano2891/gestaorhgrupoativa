@@ -194,6 +194,12 @@ const Documentacoes = () => {
               </div>
             </div>
             <div className="flex items-center gap-1 sm:gap-2">
+              <Button variant="ghost" size="sm" onClick={() => {
+                if (documentos) gerarPdfRelatorioDocumentos(documentos);
+              }} className="h-8 px-2 sm:px-3 text-xs sm:text-sm text-black hover:bg-black/10">
+                <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
+                <span className="hidden sm:inline">Relatório PDF</span>
+              </Button>
               <Button variant="ghost" size="sm" onClick={() => setShowCategoriaDialog(true)} className="h-8 px-2 sm:px-3 text-xs sm:text-sm text-black hover:bg-black/10">
                 <FolderOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Nova Categoria</span>
