@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Shield, Download, ChevronDown, ChevronUp } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Shield, Download, ChevronDown, ChevronUp, Filter, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -12,6 +14,11 @@ export const AuditTrailCard = () => {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(false);
+  const [filterDateFrom, setFilterDateFrom] = useState("");
+  const [filterDateTo, setFilterDateTo] = useState("");
+  const [filterAction, setFilterAction] = useState("all");
+  const [filterIP, setFilterIP] = useState("");
+  const [filterDetails, setFilterDetails] = useState("");
 
   const getAccessToken = (): string | null => {
     try {
@@ -123,7 +130,55 @@ export const AuditTrailCard = () => {
     }
   };
 
-  const displayedLogs = expanded ? logs : logs.slice(0, 10);
+  const actionTypes = useMemo(() => {
+    const actions = new Set(logs.map(l => {
+      if (l.acao.includes('entrada')) return 'entrada';
+      if (l.acao.includes('saida')) return 'saida';
+      if (l.acao.includes('almoco') || l.acao.includes('pausa')) return 'intervalo';
+      if (l.acao.includes('login')) return 'login';
+      return 'outro';
+    }));
+    return Array.from(actions);
+  }, [logs]);
+
+  const filteredLogs = useMemo(() => {
+    return logs.filter(log => {
+      if (filterDateFrom) {
+        const logDate = new Date(log.created_at).toISOString().split('T')[0];
+        if (logDate < filterDateFrom) return false;
+      }
+      if (filterDateTo) {
+        const logDate = new Date(log.created_at).toISOString().split('T')[0];
+        if (logDate > filterDateTo) return false;
+      }
+      if (filterAction && filterAction !== 'all') {
+        const acao = log.acao;
+        if (filterAction === 'entrada' && !acao.includes('entrada')) return false;
+        if (filterAction === 'saida' && !acao.includes('saida')) return false;
+        if (filterAction === 'intervalo' && !acao.includes('almoco') && !acao.includes('pausa')) return false;
+        if (filterAction === 'login' && !acao.includes('login')) return false;
+        if (filterAction === 'outro' && (acao.includes('entrada') || acao.includes('saida') || acao.includes('almoco') || acao.includes('pausa') || acao.includes('login'))) return false;
+      }
+      if (filterIP && !(log.ip_address || '').includes(filterIP)) return false;
+      if (filterDetails) {
+        const details = JSON.stringify(log.detalhes || {}).toLowerCase();
+        if (!details.includes(filterDetails.toLowerCase())) return false;
+      }
+      return true;
+    });
+  }, [logs, filterDateFrom, filterDateTo, filterAction, filterIP, filterDetails]);
+
+  const displayedLogs = expanded ? filteredLogs : filteredLogs.slice(0, 10);
+
+  const hasFilters = filterDateFrom || filterDateTo || (filterAction && filterAction !== 'all') || filterIP || filterDetails;
+
+  const clearFilters = () => {
+    setFilterDateFrom("");
+    setFilterDateTo("");
+    setFilterAction("all");
+    setFilterIP("");
+    setFilterDetails("");
+  };
 
   const getActionBadge = (acao: string) => {
     if (acao.includes('entrada')) return <Badge className="bg-green-500/10 text-green-700 border-green-300" variant="outline">Entrada</Badge>;
@@ -170,6 +225,52 @@ export const AuditTrailCard = () => {
           </div>
         ) : (
           <>
+            {/* Filtros */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Data início</label>
+                <Input type="date" value={filterDateFrom} onChange={e => setFilterDateFrom(e.target.value)} className="h-9 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Data fim</label>
+                <Input type="date" value={filterDateTo} onChange={e => setFilterDateTo(e.target.value)} className="h-9 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Ação</label>
+                <Select value={filterAction} onValueChange={setFilterAction}>
+                  <SelectTrigger className="h-9 text-sm">
+                    <SelectValue placeholder="Todas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    <SelectItem value="entrada">Entrada</SelectItem>
+                    <SelectItem value="saida">Saída</SelectItem>
+                    <SelectItem value="intervalo">Intervalo</SelectItem>
+                    <SelectItem value="login">Login</SelectItem>
+                    <SelectItem value="outro">Outros</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">IP</label>
+                <Input placeholder="Filtrar por IP" value={filterIP} onChange={e => setFilterIP(e.target.value)} className="h-9 text-sm" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-muted-foreground mb-1 block">Detalhes</label>
+                <Input placeholder="Buscar nos detalhes" value={filterDetails} onChange={e => setFilterDetails(e.target.value)} className="h-9 text-sm" />
+              </div>
+            </div>
+            {hasFilters && (
+              <div className="flex items-center gap-2 mb-3">
+                <Badge variant="secondary" className="gap-1">
+                  <Filter className="h-3 w-3" />
+                  {filteredLogs.length} resultado(s)
+                </Badge>
+                <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 text-xs gap-1">
+                  <X className="h-3 w-3" /> Limpar filtros
+                </Button>
+              </div>
+            )}
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -196,10 +297,10 @@ export const AuditTrailCard = () => {
                 </TableBody>
               </Table>
             </div>
-            {logs.length > 10 && (
+            {filteredLogs.length > 10 && (
               <div className="flex justify-center mt-3">
                 <Button variant="ghost" size="sm" onClick={() => setExpanded(!expanded)} className="gap-1">
-                  {expanded ? <><ChevronUp className="h-4 w-4" /> Menos</> : <><ChevronDown className="h-4 w-4" /> Ver todos ({logs.length})</>}
+                  {expanded ? <><ChevronUp className="h-4 w-4" /> Menos</> : <><ChevronDown className="h-4 w-4" /> Ver todos ({filteredLogs.length})</>}
                 </Button>
               </div>
             )}
