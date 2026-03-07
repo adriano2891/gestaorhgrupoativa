@@ -144,11 +144,15 @@ export const FolhasPontoCard = () => {
         return [
           dataFormatted,
           formatHora(r.entrada),
-          formatHora(r.saida_almoco),
-          formatHora(r.retorno_almoco),
           formatHora(r.saida_pausa_1),
           formatHora(r.retorno_pausa_1),
+          formatHora(r.saida_almoco),
+          formatHora(r.retorno_almoco),
+          formatHora(r.saida_pausa_2),
+          formatHora(r.retorno_pausa_2),
           formatHora(r.saida),
+          formatHora(r.inicio_he),
+          formatHora(r.fim_he),
           formatInterval(r.total_horas),
           formatInterval(r.horas_extras),
           formatInterval(r.horas_noturnas),
@@ -159,12 +163,12 @@ export const FolhasPontoCard = () => {
       autoTable(doc, {
         startY: yPos + 2,
         head: [[
-          "Data", "Entrada", "Saída Almoço", "Ret. Almoço",
-          "Saída P1", "Ret. P1", "Saída", "Total", "HE", "Noturno", "Tipo"
+          "Data", "Entrada", "S.P1", "R.P1", "S.Alm", "R.Alm",
+          "S.P2", "R.P2", "Saída", "HE Ini", "HE Fim", "Total", "HE", "Noturno", "Tipo"
         ]],
         body: tableData,
-        styles: { fontSize: 7, cellPadding: 2 },
-        headStyles: { fillColor: [59, 130, 246] },
+        styles: { fontSize: 5.5, cellPadding: 1.5 },
+        headStyles: { fillColor: [17, 188, 183], fontSize: 5.5 },
         alternateRowStyles: { fillColor: [245, 247, 250] },
       });
 

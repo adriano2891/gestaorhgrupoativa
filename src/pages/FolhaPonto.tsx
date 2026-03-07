@@ -1105,13 +1105,19 @@ const FolhaPonto = () => {
                 <CardContent>
                   <div className="overflow-x-auto">
                     <Table>
-                       <TableHeader>
+                     <TableHeader>
                         <TableRow>
                           <TableHead className="w-16">Dia</TableHead>
                           <TableHead>Entrada</TableHead>
-                          <TableHead>Saída Almoço</TableHead>
-                          <TableHead>Retorno Almoço</TableHead>
+                          <TableHead>S. P1</TableHead>
+                          <TableHead>R. P1</TableHead>
+                          <TableHead>S. Almoço</TableHead>
+                          <TableHead>R. Almoço</TableHead>
+                          <TableHead>S. P2</TableHead>
+                          <TableHead>R. P2</TableHead>
                           <TableHead>Saída</TableHead>
+                          <TableHead>HE Ini</TableHead>
+                          <TableHead>HE Fim</TableHead>
                           <TableHead>Total</TableHead>
                           <TableHead>HE</TableHead>
                           <TableHead>Status</TableHead>
@@ -1123,9 +1129,15 @@ const FolhaPonto = () => {
                           <TableRow key={day.day} className={day.status === "falta" ? "bg-red-50 dark:bg-red-950/20" : ""}>
                             <TableCell className="font-medium">{day.day}</TableCell>
                             <TableCell className="text-sm">{day.entrada || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.saida_pausa_1 || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.retorno_pausa_1 || "-"}</TableCell>
                             <TableCell className="text-sm">{day.saida_almoco || "-"}</TableCell>
                             <TableCell className="text-sm">{day.retorno_almoco || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.saida_pausa_2 || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.retorno_pausa_2 || "-"}</TableCell>
                             <TableCell className="text-sm">{day.saida || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.inicio_he || "-"}</TableCell>
+                            <TableCell className="text-sm">{day.fim_he || "-"}</TableCell>
                             <TableCell className="text-sm font-medium">{day.total_horas || "-"}</TableCell>
                             <TableCell className="text-sm">
                               {editingCell?.empId === record.employee_id && editingCell?.day === day.day && editingCell?.field === 'horas_extras' ? (
