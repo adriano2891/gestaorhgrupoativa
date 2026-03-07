@@ -2603,6 +2603,7 @@ export type Database = {
       profiles: {
         Row: {
           cargo: string | null
+          cbo: string | null
           cpf: string | null
           created_at: string | null
           ctps_numero: string | null
@@ -2614,17 +2615,22 @@ export type Database = {
           email: string
           endereco: string | null
           escala_trabalho: string | null
+          estado_civil: string | null
           foto_url: string | null
           id: string
           matricula: string | null
+          nacionalidade: string | null
           nome: string
+          nome_mae: string | null
           numero_pis: string | null
           perfil_updated_at: string | null
           perfil_updated_by: string | null
           rg: string | null
           salario: number | null
+          sexo: string | null
           status: string | null
           telefone: string | null
+          tipo_contrato: string | null
           tipo_perfil: string
           turno: string | null
           updated_at: string | null
@@ -2632,6 +2638,7 @@ export type Database = {
         }
         Insert: {
           cargo?: string | null
+          cbo?: string | null
           cpf?: string | null
           created_at?: string | null
           ctps_numero?: string | null
@@ -2643,17 +2650,22 @@ export type Database = {
           email: string
           endereco?: string | null
           escala_trabalho?: string | null
+          estado_civil?: string | null
           foto_url?: string | null
           id: string
           matricula?: string | null
+          nacionalidade?: string | null
           nome: string
+          nome_mae?: string | null
           numero_pis?: string | null
           perfil_updated_at?: string | null
           perfil_updated_by?: string | null
           rg?: string | null
           salario?: number | null
+          sexo?: string | null
           status?: string | null
           telefone?: string | null
+          tipo_contrato?: string | null
           tipo_perfil?: string
           turno?: string | null
           updated_at?: string | null
@@ -2661,6 +2673,7 @@ export type Database = {
         }
         Update: {
           cargo?: string | null
+          cbo?: string | null
           cpf?: string | null
           created_at?: string | null
           ctps_numero?: string | null
@@ -2672,17 +2685,22 @@ export type Database = {
           email?: string
           endereco?: string | null
           escala_trabalho?: string | null
+          estado_civil?: string | null
           foto_url?: string | null
           id?: string
           matricula?: string | null
+          nacionalidade?: string | null
           nome?: string
+          nome_mae?: string | null
           numero_pis?: string | null
           perfil_updated_at?: string | null
           perfil_updated_by?: string | null
           rg?: string | null
           salario?: number | null
+          sexo?: string | null
           status?: string | null
           telefone?: string | null
+          tipo_contrato?: string | null
           tipo_perfil?: string
           turno?: string | null
           updated_at?: string | null
