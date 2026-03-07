@@ -200,7 +200,12 @@ export const useCursoMutations = () => {
 
   const deleteCurso = useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase.from("cursos").delete().eq("id", id);
+      const { data: user } = await supabase.auth.getUser();
+      const { error } = await supabase.from("cursos").update({ 
+        excluido: true, 
+        excluido_por: user.user?.id,
+        excluido_em: new Date().toISOString()
+      }).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
