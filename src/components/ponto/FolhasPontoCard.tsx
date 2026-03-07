@@ -111,7 +111,7 @@ export const FolhasPontoCard = () => {
       doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
       doc.text('CNPJ: 42.523.488/0001-81', 14, yPos + 5);
-      doc.text('Endereço: Rua Exemplo, 123 – Centro – São Paulo/SP – CEP 01001-000', 14, yPos + 9);
+      doc.text('Endereço: R. Bela Cintra, 299, 3º Andar – Consolação, São Paulo – SP, 01415-001', 14, yPos + 9);
       doc.text(`Setor/Estabelecimento: ${depto}`, 14, yPos + 13);
 
       // Linha separadora
