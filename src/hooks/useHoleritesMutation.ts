@@ -10,6 +10,18 @@ interface UploadHoleriteParams {
   salarioBruto?: number;
   descontos?: number;
   salarioLiquido?: number;
+  // CLT fields
+  inss?: number;
+  irrf?: number;
+  fgts?: number;
+  baseCalculoInss?: number;
+  baseCalculoIrrf?: number;
+  horasExtrasValor?: number;
+  adicionalNoturnoValor?: number;
+  valeTransporte?: number;
+  outrosProventos?: number;
+  outrosDescontos?: number;
+  observacoes?: string;
 }
 
 interface CreateHoleriteParams {
@@ -36,6 +48,17 @@ export const useUploadHolerite = () => {
       salarioBruto = 0,
       descontos = 0,
       salarioLiquido = 0,
+      inss,
+      irrf,
+      fgts,
+      baseCalculoInss,
+      baseCalculoIrrf,
+      horasExtrasValor,
+      adicionalNoturnoValor,
+      valeTransporte,
+      outrosProventos,
+      outrosDescontos,
+      observacoes,
     }: UploadHoleriteParams) => {
       // 1. Verificar se já existe holerite para este funcionário/mês/ano
       const { data: existingHolerite } = await supabase
@@ -108,9 +131,21 @@ export const useUploadHolerite = () => {
         }
       }
 
+      const cltExtras: Record<string, any> = {};
+      if (inss !== undefined) cltExtras.inss = inss;
+      if (irrf !== undefined) cltExtras.irrf = irrf;
+      if (fgts !== undefined) cltExtras.fgts = fgts;
+      if (baseCalculoInss !== undefined) cltExtras.base_calculo_inss = baseCalculoInss;
+      if (baseCalculoIrrf !== undefined) cltExtras.base_calculo_irrf = baseCalculoIrrf;
+      if (horasExtrasValor !== undefined) cltExtras.horas_extras_valor = horasExtrasValor;
+      if (adicionalNoturnoValor !== undefined) cltExtras.adicional_noturno_valor = adicionalNoturnoValor;
+      if (valeTransporte !== undefined) cltExtras.vale_transporte = valeTransporte;
+      if (outrosProventos !== undefined) cltExtras.outros_proventos = outrosProventos;
+      if (outrosDescontos !== undefined) cltExtras.outros_descontos = outrosDescontos;
+      if (observacoes !== undefined) cltExtras.observacoes = observacoes;
+
       // 7. Inserir ou atualizar registro no banco
       if (existingHolerite) {
-        // Atualizar registro existente
         const { data, error } = await supabase
           .from("holerites")
           .update({
@@ -119,7 +154,8 @@ export const useUploadHolerite = () => {
             descontos: finalDescontos,
             salario_liquido: finalSalarioLiquido,
             updated_at: new Date().toISOString(),
-          })
+            ...cltExtras,
+          } as any)
           .eq("id", existingHolerite.id)
           .select()
           .single();
@@ -131,7 +167,6 @@ export const useUploadHolerite = () => {
 
         return { ...data, isUpdate: true };
       } else {
-        // Criar novo registro
         const { data, error } = await supabase
           .from("holerites")
           .insert({
@@ -142,7 +177,8 @@ export const useUploadHolerite = () => {
             salario_bruto: finalSalarioBruto,
             descontos: finalDescontos,
             salario_liquido: finalSalarioLiquido,
-          })
+            ...cltExtras,
+          } as any)
           .select()
           .single();
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -18,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { useUploadHolerite } from "@/hooks/useHoleritesMutation";
 
@@ -34,7 +35,8 @@ const months = [
 ];
 
 const currentYear = new Date().getFullYear();
-const years = [2026, 2027, 2028];
+// Art. 11 CLT: prazo prescricional de 5 anos
+const years = Array.from({ length: 7 }, (_, i) => currentYear - 5 + i);
 
 export const UploadHolerite = ({
   open,
@@ -46,6 +48,21 @@ export const UploadHolerite = ({
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState(String(currentYear));
   const [file, setFile] = useState<File | null>(null);
+  const [showCltFields, setShowCltFields] = useState(false);
+  
+  // CLT fields
+  const [inss, setInss] = useState("");
+  const [irrf, setIrrf] = useState("");
+  const [fgts, setFgts] = useState("");
+  const [baseCalculoInss, setBaseCalculoInss] = useState("");
+  const [baseCalculoIrrf, setBaseCalculoIrrf] = useState("");
+  const [horasExtrasValor, setHorasExtrasValor] = useState("");
+  const [adicionalNoturnoValor, setAdicionalNoturnoValor] = useState("");
+  const [valeTransporte, setValeTransporte] = useState("");
+  const [outrosProventos, setOutrosProventos] = useState("");
+  const [outrosDescontos, setOutrosDescontos] = useState("");
+  const [observacoes, setObservacoes] = useState("");
+
   const { toast } = useToast();
   const uploadHolerite = useUploadHolerite();
 
@@ -72,6 +89,18 @@ export const UploadHolerite = ({
     }
   };
 
+  const resetForm = () => {
+    setSelectedEmployee("");
+    setSelectedMonth("");
+    setFile(null);
+    setInss(""); setIrrf(""); setFgts("");
+    setBaseCalculoInss(""); setBaseCalculoIrrf("");
+    setHorasExtrasValor(""); setAdicionalNoturnoValor("");
+    setValeTransporte(""); setOutrosProventos(""); setOutrosDescontos("");
+    setObservacoes("");
+    setShowCltFields(false);
+  };
+
   const handleSubmit = async () => {
     if (!selectedEmployee || !selectedMonth || !file) {
       toast({
@@ -88,23 +117,31 @@ export const UploadHolerite = ({
         mes: parseInt(selectedMonth),
         ano: parseInt(selectedYear),
         file,
+        // CLT extras
+        inss: parseFloat(inss) || undefined,
+        irrf: parseFloat(irrf) || undefined,
+        fgts: parseFloat(fgts) || undefined,
+        baseCalculoInss: parseFloat(baseCalculoInss) || undefined,
+        baseCalculoIrrf: parseFloat(baseCalculoIrrf) || undefined,
+        horasExtrasValor: parseFloat(horasExtrasValor) || undefined,
+        adicionalNoturnoValor: parseFloat(adicionalNoturnoValor) || undefined,
+        valeTransporte: parseFloat(valeTransporte) || undefined,
+        outrosProventos: parseFloat(outrosProventos) || undefined,
+        outrosDescontos: parseFloat(outrosDescontos) || undefined,
+        observacoes: observacoes || undefined,
       });
       
-      // Reset form
-      setSelectedEmployee("");
-      setSelectedMonth("");
-      setFile(null);
+      resetForm();
       onOpenChange(false);
       onUploadSuccess?.();
     } catch (error) {
-      // Erro já tratado pelo hook
       console.error("Erro no upload:", error);
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Upload de Holerite</DialogTitle>
           <DialogDescription>
@@ -197,6 +234,73 @@ export const UploadHolerite = ({
               Tamanho máximo: 5MB. Formato: PDF
             </p>
           </div>
+
+          {/* CLT Fields Toggle */}
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full justify-between text-sm"
+            onClick={() => setShowCltFields(!showCltFields)}
+          >
+            <span>📋 Detalhamento CLT (Art. 464)</span>
+            {showCltFields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+
+          {showCltFields && (
+            <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+              <p className="text-xs text-muted-foreground">
+                Preencha para discriminação completa no contracheque conforme legislação vigente.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">INSS (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={inss} onChange={(e) => setInss(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">IRRF (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={irrf} onChange={(e) => setIrrf(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">FGTS (R$) — informativo</Label>
+                  <Input type="number" step="0.01" min="0" value={fgts} onChange={(e) => setFgts(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Base Cálc. INSS (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={baseCalculoInss} onChange={(e) => setBaseCalculoInss(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Base Cálc. IRRF (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={baseCalculoIrrf} onChange={(e) => setBaseCalculoIrrf(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Horas Extras (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={horasExtrasValor} onChange={(e) => setHorasExtrasValor(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Ad. Noturno (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={adicionalNoturnoValor} onChange={(e) => setAdicionalNoturnoValor(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Vale Transporte (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={valeTransporte} onChange={(e) => setValeTransporte(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Outros Proventos (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={outrosProventos} onChange={(e) => setOutrosProventos(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Outros Descontos (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={outrosDescontos} onChange={(e) => setOutrosDescontos(e.target.value)} placeholder="0,00" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs">Observações</Label>
+                <Textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} placeholder="Observações adicionais..." rows={2} />
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>

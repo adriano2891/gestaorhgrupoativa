@@ -82,10 +82,20 @@ const Holerites = () => {
         salary: holerite?.salario_bruto || employee.salario || 0,
         benefits: 0,
         deductions: holerite?.descontos || 0,
-        fgts: 0,
-        inss: 0,
-        irrf: 0,
+        fgts: holerite?.fgts || 0,
+        inss: holerite?.inss || 0,
+        irrf: holerite?.irrf || 0,
         netSalary: holerite?.salario_liquido || 0,
+        // CLT fields
+        baseCalculoInss: holerite?.base_calculo_inss || 0,
+        baseCalculoIrrf: holerite?.base_calculo_irrf || 0,
+        horasExtrasValor: holerite?.horas_extras_valor || 0,
+        adicionalNoturnoValor: holerite?.adicional_noturno_valor || 0,
+        dsrValor: holerite?.dsr_valor || 0,
+        valeTransporte: holerite?.vale_transporte || 0,
+        outrosProventos: holerite?.outros_proventos || 0,
+        outrosDescontos: holerite?.outros_descontos || 0,
+        observacoes: holerite?.observacoes || null,
       };
       setSelectedPayslip(payslipData);
       setSelectedHolerite(holerite);
