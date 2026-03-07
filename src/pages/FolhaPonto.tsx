@@ -424,51 +424,44 @@ const FolhaPonto = () => {
   };
 
   const exportToPDF = () => {
-    const doc = new jsPDF('l', 'mm', 'a4'); // landscape
-    let yPos = 12;
+    const doc = new jsPDF('l', 'mm', 'a4'); // landscape A4: 297x210mm
     
     monthRecords.forEach((record, index) => {
       if (index > 0) {
         doc.addPage();
-        yPos = 12;
       }
       
-      // === Cabeçalho da Empresa (Portaria 671/2021 & Art. 74 CLT) ===
-      doc.setFontSize(12);
+      let yPos = 8;
+
+      // === Cabeçalho compacto da Empresa (Portaria 671/2021) ===
+      doc.setFontSize(10);
       doc.setFont('helvetica', 'bold');
-      doc.text('GRUPO ATIVA TEC', 14, yPos);
-      doc.setFontSize(8);
+      doc.text('GRUPO ATIVA TEC', 10, yPos);
+      doc.setFontSize(7);
       doc.setFont('helvetica', 'normal');
-      doc.text('CNPJ: 42.523.488/0001-81', 14, yPos + 5);
-      doc.text('Endereço: R. Bela Cintra, 299, 3º Andar – Consolação, São Paulo – SP, 01415-001', 14, yPos + 9);
-      doc.text(`Setor/Estabelecimento: ${record.departamento || 'Sede Principal'}`, 14, yPos + 13);
+      doc.text('CNPJ: 42.523.488/0001-81 | R. Bela Cintra, 299, 3º Andar – Consolação, São Paulo – SP, 01415-001', 55, yPos);
+      yPos += 4;
+      doc.text(`Setor: ${record.departamento || 'Sede Principal'}`, 10, yPos);
       
       // Linha separadora
       doc.setDrawColor(17, 188, 183);
-      doc.setLineWidth(0.5);
-      doc.line(14, yPos + 16, 283, yPos + 16);
-      yPos += 22;
+      doc.setLineWidth(0.4);
+      doc.line(10, yPos + 2, 287, yPos + 2);
+      yPos += 6;
 
-      // Título do documento
-      doc.setFontSize(11);
+      // Título + dados do funcionário em linha compacta
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(0, 0, 0);
-      doc.text(`ESPELHO DE PONTO – ${selectedMonth}/${selectedYear}`, 14, yPos);
-      yPos += 7;
+      doc.text(`ESPELHO DE PONTO – ${selectedMonth}/${selectedYear}`, 10, yPos);
+      yPos += 5;
 
-      // Cabeçalho do funcionário
-      doc.setFontSize(10);
+      doc.setFontSize(8);
       doc.setFont('helvetica', 'normal');
-      doc.text(`Funcionário: ${record.matricula ? `[${record.matricula}] ` : ''}${record.employee_name}`, 14, yPos);
-      yPos += 5;
-      doc.setFontSize(9);
-      doc.text(`Departamento: ${record.departamento || '-'} | Matrícula: ${record.matricula || '-'} | Escala: ${record.escala_trabalho || '-'}`, 14, yPos);
-      yPos += 7;
-      
-      // Resumo do funcionário
-      doc.setFontSize(9);
-      doc.text(`Total Horas: ${record.total_horas_mes.toFixed(1)}h | Horas Extras: ${record.total_horas_extras.toFixed(1)}h | H. Noturnas: ${record.total_horas_noturnas.toFixed(1)}h | Faltas: ${record.total_faltas}`, 14, yPos);
-      yPos += 5;
+      doc.text(`Funcionário: ${record.matricula ? `[${record.matricula}] ` : ''}${record.employee_name} | Depto: ${record.departamento || '-'} | Matrícula: ${record.matricula || '-'} | Escala: ${record.escala_trabalho || '-'}`, 10, yPos);
+      yPos += 4;
+      doc.text(`Total Horas: ${record.total_horas_mes.toFixed(1)}h | Horas Extras: ${record.total_horas_extras.toFixed(1)}h | H. Noturnas: ${record.total_horas_noturnas.toFixed(1)}h | Faltas: ${record.total_faltas}`, 10, yPos);
+      yPos += 4;
       
       // Tabela detalhada - Espelho de Ponto (Portaria 671)
       const tableData = record.days.map(day => [
@@ -487,61 +480,62 @@ const FolhaPonto = () => {
         day.total_horas || '-',
         day.horas_extras ? `${day.horas_extras} (${day.percentual_he || 50}%)` : '-',
         day.horas_noturnas || '-',
-        day.status === 'completo' ? 'OK' : day.status === 'incompleto' ? 'Inc.' : day.status === 'atestado' ? 'Atest.' : day.status === 'falta' ? 'Falta' : day.status === 'pendente_folga' ? 'Pend.' : day.status === 'invalidado' ? 'Inv.' : 'Aus.'
+        day.status === 'completo' ? 'OK' : day.status === 'incompleto' ? 'Inc.' : day.status === 'atestado' ? 'At.' : day.status === 'falta' ? 'F' : day.status === 'pendente_folga' ? 'P' : day.status === 'invalidado' ? 'Inv.' : '-'
       ]);
       
       autoTable(doc, {
         startY: yPos,
-        head: [['Dia', 'Tipo', 'Entrada', 'S.P1', 'R.P1', 'S.Alm', 'R.Alm', 'S.P2', 'R.P2', 'Saída', 'HE Ini', 'HE Fim', 'Total', 'HE (%)', 'H.Not.', 'Status']],
+        margin: { left: 10, right: 10 },
+        head: [['Dia', 'Tp', 'Entrada', 'S.P1', 'R.P1', 'S.Alm', 'R.Alm', 'S.P2', 'R.P2', 'Saída', 'HE Ini', 'HE Fim', 'Total', 'HE (%)', 'H.Not', 'St']],
         body: tableData,
         theme: 'grid',
-        styles: { fontSize: 5, cellPadding: 1.5 },
-        headStyles: { fillColor: [17, 188, 183], fontSize: 5 },
+        styles: { fontSize: 4.5, cellPadding: 0.8, lineWidth: 0.1 },
+        headStyles: { fillColor: [17, 188, 183], fontSize: 4.5, cellPadding: 1, fontStyle: 'bold' },
         columnStyles: {
-          0: { cellWidth: 10 },
-          1: { cellWidth: 10 },
-          2: { cellWidth: 14 },
-          3: { cellWidth: 14 },
-          4: { cellWidth: 14 },
-          5: { cellWidth: 14 },
-          6: { cellWidth: 14 },
-          7: { cellWidth: 14 },
-          8: { cellWidth: 14 },
-          9: { cellWidth: 14 },
-          10: { cellWidth: 14 },
-          11: { cellWidth: 14 },
-          12: { cellWidth: 16 },
-          13: { cellWidth: 22 },
-          14: { cellWidth: 14 },
-          15: { cellWidth: 14 }
+          0: { cellWidth: 9 },
+          1: { cellWidth: 9 },
+          2: { cellWidth: 15 },
+          3: { cellWidth: 15 },
+          4: { cellWidth: 15 },
+          5: { cellWidth: 15 },
+          6: { cellWidth: 15 },
+          7: { cellWidth: 15 },
+          8: { cellWidth: 15 },
+          9: { cellWidth: 15 },
+          10: { cellWidth: 15 },
+          11: { cellWidth: 15 },
+          12: { cellWidth: 15 },
+          13: { cellWidth: 20 },
+          14: { cellWidth: 15 },
+          15: { cellWidth: 9 }
         }
       });
 
-      // Signature section (Art. 74 CLT - employee acknowledgment)
+      // Signature section compacta
       const finalY = (doc as any).lastAutoTable?.finalY || 180;
-      const sigY = finalY + 15;
+      const sigY = finalY + 6;
       
-      doc.setFontSize(8);
+      doc.setFontSize(6);
       doc.setTextColor(100, 100, 100);
-      doc.text('Declaro que os horários acima registrados correspondem fielmente à minha jornada de trabalho no período indicado.', 14, sigY);
-      doc.text(`Documento gerado eletronicamente em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} — Sistema REP-A (Portaria 671/2021)`, 14, sigY + 4);
+      doc.text('Declaro que os horários acima registrados correspondem fielmente à minha jornada de trabalho no período indicado.', 10, sigY);
+      doc.text(`Documento gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} — Sistema REP-A (Portaria 671/2021)`, 10, sigY + 3);
 
-      const sigLineY = sigY + 18;
+      const sigLineY = sigY + 10;
       doc.setDrawColor(0, 0, 0);
       doc.setLineWidth(0.3);
 
       // Employee signature
-      doc.line(14, sigLineY, 120, sigLineY);
-      doc.setFontSize(7);
+      doc.line(10, sigLineY, 120, sigLineY);
+      doc.setFontSize(6);
       doc.setTextColor(0, 0, 0);
-      doc.text(`Assinatura do(a) Funcionário(a): ${record.employee_name}`, 14, sigLineY + 4);
-      doc.text(`Matrícula: ${record.matricula || '-'}`, 14, sigLineY + 8);
-      doc.text(`CPF: ${record.cpf || '-'}`, 14, sigLineY + 12);
+      doc.text(`Assinatura do(a) Funcionário(a): ${record.employee_name}`, 10, sigLineY + 3);
+      doc.text(`Matrícula: ${record.matricula || '-'}`, 10, sigLineY + 6);
+      doc.text(`CPF: ${record.cpf || '-'}`, 10, sigLineY + 9);
 
       // Employer/Manager signature
-      doc.line(160, sigLineY, 280, sigLineY);
-      doc.text('Assinatura do Responsável / Empregador', 160, sigLineY + 4);
-      doc.text('Grupo Ativa Tec — CNPJ: 42.523.488/0001-81', 160, sigLineY + 8);
+      doc.line(160, sigLineY, 287, sigLineY);
+      doc.text('Assinatura do Responsável / Empregador', 160, sigLineY + 3);
+      doc.text('Grupo Ativa Tec — CNPJ: 42.523.488/0001-81', 160, sigLineY + 6);
     });
     
     const fileName = `folha-ponto-detalhada-${selectedMonth}-${selectedYear}.pdf`;
