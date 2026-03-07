@@ -3,7 +3,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
   Download, Star, ExternalLink, Clock, User, FileText, 
-  MessageSquare, History, Send, Upload, Loader2, Tag
+  MessageSquare, History, Send, Upload, Loader2, Tag, Shield
 } from "lucide-react";
 import {
   Dialog,
@@ -17,7 +17,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { useDocumentoComentarios, useDocumentoVersoes, useAddComentario, useUploadVersao, getDocumentoAccessUrl } from "@/hooks/useDocumentos";
+import { useDocumentoComentarios, useDocumentoVersoes, useAddComentario, useUploadVersao, getDocumentoAccessUrl, useDocumentoAuditoria, registrarAcessoDocumento } from "@/hooks/useDocumentos";
+import { gerarPdfDocumentoAuditoria } from "@/utils/documentosPdfAuditoria";
 import { TIPO_LABELS, type Documento } from "@/types/documentos";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
