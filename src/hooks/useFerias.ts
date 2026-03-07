@@ -93,6 +93,7 @@ export interface SolicitacaoFerias {
   visualizada_admin: boolean;
   created_at: string;
   updated_at: string;
+  data_pagamento?: string;
   profiles?: {
     nome: string;
     cargo?: string;
