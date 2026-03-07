@@ -125,7 +125,7 @@ export const useConfirmarComunicado = () => {
         .update({
           confirmado: true,
           confirmado_em: new Date().toISOString(),
-        })
+        } as any)
         .eq("comunicado_id", comunicadoId)
         .eq("user_id", userId);
 
