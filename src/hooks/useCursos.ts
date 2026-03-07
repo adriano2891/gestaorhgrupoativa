@@ -549,12 +549,9 @@ export const useTreinamentosVencidos = () => {
   return useQuery({
     queryKey: ["treinamentos-vencidos"],
     queryFn: async () => {
-      // Buscar cursos obrigatórios e recorrentes
-      const { data: cursos } = await supabase
-        .from("cursos")
-        .select("id, titulo, obrigatorio, recorrente, meses_recorrencia, norma_regulamentadora")
-        .or("obrigatorio.eq.true,recorrente.eq.true")
-        .eq("excluido" as any, false);
+      // Buscar cursos obrigatórios e recorrentes via REST para evitar conflitos de types
+      const cursosData: any[] = await restGet('cursos?select=id,titulo,obrigatorio,recorrente,meses_recorrencia,norma_regulamentadora&or=(obrigatorio.eq.true,recorrente.eq.true)&excluido=eq.false');
+      const cursos = cursosData || [];
 
       if (!cursos || cursos.length === 0) return { vencidos: [], proximosVencer: [] };
 
