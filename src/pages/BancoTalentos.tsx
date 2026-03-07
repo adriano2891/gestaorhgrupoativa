@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Search, UserPlus, Download, Eye, Trash2 } from "lucide-react";
+import { Search, UserPlus, Download, Eye, Trash2, FileDown, ShieldCheck, AlertTriangle } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { useCandidatosRealtime } from "@/hooks/useRealtimeUpdates";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Checkbox } from "@/components/ui/checkbox";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -64,6 +65,10 @@ type Candidate = {
   status: "disponivel" | "em-processo" | "contratado";
   applied_date: string;
   resume_url: string | null;
+  consentimento_lgpd: boolean;
+  data_consentimento: string | null;
+  data_validade_dados: string | null;
+  finalidade_tratamento: string | null;
 };
 
 const BancoTalentos = () => {
@@ -82,6 +87,7 @@ const BancoTalentos = () => {
   const [deletingCandidateId, setDeletingCandidateId] = useState<string | null>(null);
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [skillsInput, setSkillsInput] = useState("");
+  const [consentimentoLGPD, setConsentimentoLGPD] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [newCandidate, setNewCandidate] = useState({
     name: "",
@@ -186,6 +192,7 @@ const BancoTalentos = () => {
     });
     setSkillsInput("");
     setResumeFile(null);
+    setConsentimentoLGPD(false);
     setValidationErrors({});
     setIsAddDialogOpen(true);
   };
@@ -199,6 +206,16 @@ const BancoTalentos = () => {
 
   const handleSaveNewCandidate = async () => {
     try {
+      // Validar consentimento LGPD
+      if (!consentimentoLGPD) {
+        toast({
+          title: "Consentimento obrigatório",
+          description: "O candidato deve consentir com o tratamento dos dados conforme a LGPD.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // Validar dados
       const result = candidateSchema.safeParse(newCandidate);
       if (!result.success) {
@@ -271,6 +288,10 @@ const BancoTalentos = () => {
             ...newCandidate,
             skills,
             resume_url: resumeUrl,
+            consentimento_lgpd: true,
+            data_consentimento: new Date().toISOString(),
+            data_validade_dados: new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            finalidade_tratamento: 'Processo seletivo e recrutamento',
           }),
         }
       );
@@ -498,6 +519,53 @@ const BancoTalentos = () => {
     }
   };
 
+  const handleExportCandidateData = (candidate: Candidate) => {
+    const exportData = {
+      nome: candidate.name,
+      email: candidate.email,
+      telefone: candidate.phone,
+      cargo_desejado: candidate.position,
+      habilidades: candidate.skills,
+      experiencia: candidate.experience,
+      status: candidate.status,
+      data_candidatura: candidate.applied_date,
+      consentimento_lgpd: candidate.consentimento_lgpd,
+      data_consentimento: candidate.data_consentimento,
+      data_validade_dados: candidate.data_validade_dados,
+      finalidade_tratamento: candidate.finalidade_tratamento,
+      exportado_em: new Date().toISOString(),
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dados-candidato-${candidate.name.replace(/\s+/g, '-').toLowerCase()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    toast({
+      title: "Dados exportados",
+      description: "Os dados do candidato foram exportados com sucesso (portabilidade LGPD).",
+    });
+  };
+
+  const isDataExpiring = (dataValidade: string | null) => {
+    if (!dataValidade) return false;
+    const validade = new Date(dataValidade);
+    const agora = new Date();
+    const diff = validade.getTime() - agora.getTime();
+    const diasRestantes = diff / (1000 * 60 * 60 * 24);
+    return diasRestantes <= 90 && diasRestantes > 0;
+  };
+
+  const isDataExpired = (dataValidade: string | null) => {
+    if (!dataValidade) return false;
+    return new Date(dataValidade) < new Date();
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
       <BackButton to="/gestao-rh" variant="light" />
@@ -622,7 +690,26 @@ const BancoTalentos = () => {
                       </div>
                     )}
 
-                    <div className="flex gap-2 pt-2">
+                    {/* LGPD Status */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {candidate.consentimento_lgpd && (
+                        <Badge variant="outline" className="text-xs gap-1 text-green-700 border-green-300 bg-green-50">
+                          <ShieldCheck className="h-3 w-3" /> LGPD
+                        </Badge>
+                      )}
+                      {isDataExpired(candidate.data_validade_dados) && (
+                        <Badge variant="destructive" className="text-xs gap-1">
+                          <AlertTriangle className="h-3 w-3" /> Dados expirados
+                        </Badge>
+                      )}
+                      {isDataExpiring(candidate.data_validade_dados) && !isDataExpired(candidate.data_validade_dados) && (
+                        <Badge variant="secondary" className="text-xs gap-1 text-yellow-700 bg-yellow-50 border-yellow-300">
+                          <AlertTriangle className="h-3 w-3" /> Expira em breve
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 pt-2">
                       <Button 
                         variant="default" 
                         size="sm" 
@@ -642,6 +729,14 @@ const BancoTalentos = () => {
                         title={!candidate.resume_url ? "Currículo não cadastrado" : "Baixar currículo"}
                       >
                         <Download className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleExportCandidateData(candidate)}
+                        title="Exportar dados (Portabilidade LGPD)"
+                      >
+                        <FileDown className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -790,12 +885,38 @@ const BancoTalentos = () => {
                 Formatos aceitos: PDF, DOC, DOCX
               </p>
             </div>
+
+            {/* Seção LGPD - Consentimento e Finalidade */}
+            <div className="rounded-lg border border-border bg-muted/30 p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-primary" />
+                <Label className="font-semibold text-sm">Conformidade LGPD</Label>
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                <strong>Finalidade do tratamento:</strong> Os dados coletados serão utilizados exclusivamente para fins de processo seletivo e recrutamento, conforme Art. 7º, I da Lei nº 13.709/2018 (LGPD). Os dados serão armazenados por até 2 anos e poderão ser excluídos ou exportados a pedido do titular.
+              </p>
+              <div className="flex items-start space-x-2">
+                <Checkbox
+                  id="consentimento-lgpd"
+                  checked={consentimentoLGPD}
+                  onCheckedChange={(checked) => setConsentimentoLGPD(checked === true)}
+                />
+                <label
+                  htmlFor="consentimento-lgpd"
+                  className="text-xs leading-relaxed cursor-pointer"
+                >
+                  O candidato declara que <strong>consente com o tratamento dos seus dados pessoais</strong> para a finalidade descrita acima, em conformidade com a LGPD. *
+                </label>
+              </div>
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveNewCandidate}>Adicionar Candidato</Button>
+            <Button onClick={handleSaveNewCandidate} disabled={!consentimentoLGPD}>
+              Adicionar Candidato
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
