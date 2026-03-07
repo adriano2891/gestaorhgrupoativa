@@ -310,7 +310,7 @@ const Relatorios = () => {
 
       if (!freshRegistrosPonto || freshRegistrosPonto.length === 0) {
         try {
-          freshRegistrosPonto = await fetchDirectREST("registros_ponto", "select=*&order=data.desc&limit=1000");
+          freshRegistrosPonto = await fetchDirectREST("registros_ponto", "select=*&order=data.desc&limit=5000");
         } catch (e) {
           console.error("Error fetching registros ponto:", e);
           freshRegistrosPonto = [];
