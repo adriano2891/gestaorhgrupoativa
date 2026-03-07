@@ -24,7 +24,7 @@ import {
   Radar,
   ComposedChart
 } from "recharts";
-import { TrendingUp, TrendingDown, Minus, Users, Clock, Target, AlertCircle, CheckCircle2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Users, Clock, Target, AlertCircle, CheckCircle2, DollarSign, Percent, CreditCard, Building2, Receipt, Wallet, HeartPulse, Bus, UserMinus, FileText, Briefcase, CircleDollarSign, BadgeDollarSign, Landmark, ShieldCheck, CalendarDays, Banknote, PiggyBank } from "lucide-react";
 
 interface ReportViewerProps {
   reportType: string;
