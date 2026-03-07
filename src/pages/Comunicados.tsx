@@ -67,15 +67,16 @@ const Comunicados = () => {
     queryKey: ["comunicados-admin", mostrarExcluidos],
     queryFn: async () => {
       let query = supabase
+      let query = (supabase as any)
         .from("comunicados")
         .select("*, profiles:criado_por(nome)")
         .order("created_at", { ascending: false });
 
       if (!mostrarExcluidos) {
-        query = query.eq("excluido" as any, false);
+        query = query.eq("excluido", false);
       }
 
-      const { data, error } = await query as any;
+      const { data, error } = await query;
       if (error) throw error;
 
       return (data || []).map((c: any) => ({
