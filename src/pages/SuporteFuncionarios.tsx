@@ -220,7 +220,14 @@ const SuporteFuncionarios = () => {
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div>
-                  <CardTitle>{chamadoSelecionado.assunto}</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    {chamadoSelecionado.assunto}
+                    {(chamadoSelecionado as any).numero_protocolo && (
+                      <Badge variant="outline" className="text-[10px] font-mono">
+                        {(chamadoSelecionado as any).numero_protocolo}
+                      </Badge>
+                    )}
+                  </CardTitle>
                   <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                     <User className="h-3 w-3" />
                     {chamadoSelecionado.profiles?.nome || "Funcionário"}
