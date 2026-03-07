@@ -315,6 +315,35 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
               />
             </div>
 
+            {/* NR / Legislação */}
+            <FormField
+              control={form.control}
+              name="norma_regulamentadora"
+              render={({ field }) => (
+                <FormItem className="rounded-lg border p-4">
+                  <FormLabel className="text-base">Norma Regulamentadora (NR)</FormLabel>
+                  <FormDescription>
+                    Vincule este curso a uma norma regulamentadora para fins de auditoria trabalhista
+                  </FormDescription>
+                  <Select value={field.value || ""} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a NR (opcional)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {NR_OPTIONS.map(nr => (
+                        <SelectItem key={nr.value || "none"} value={nr.value || "none"}>
+                          {nr.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <div className="space-y-4">
               <FormField
                 control={form.control}

@@ -36,6 +36,11 @@ export const CursoPlayer = ({ onBack }: CursoPlayerProps) => {
   const { data: curso, isLoading } = useCurso(cursoId);
   const { data: progressoAulas } = useProgressoAulas(cursoId);
   const { updateProgresso } = useProgressoMutations();
+  const { confirmar } = useConfirmarParticipacao();
+  const { data: minhasMatriculas } = useMinhasMatriculas();
+
+  const matriculaAtual = minhasMatriculas?.find(m => m.curso_id === cursoId);
+  const jaConfirmou = (matriculaAtual as any)?.confirmado || false;
 
   const [selectedAula, setSelectedAula] = useState<Aula | null>(null);
   const [expandedModulos, setExpandedModulos] = useState<Set<string>>(new Set());
