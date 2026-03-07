@@ -136,15 +136,15 @@ export const DocumentoDetalhesDialog = ({
 
         <div className="flex-1 overflow-hidden">
           <Tabs defaultValue="info" className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="info">Informações</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="info">Info</TabsTrigger>
               <TabsTrigger value="versoes" className="gap-1">
                 <History className="h-4 w-4" />
-                Versões ({versoes?.length || 0})
+                ({versoes?.length || 0})
               </TabsTrigger>
               <TabsTrigger value="comentarios" className="gap-1">
                 <MessageSquare className="h-4 w-4" />
-                Comentários ({comentarios?.length || 0})
+                ({comentarios?.length || 0})
               </TabsTrigger>
             </TabsList>
 
