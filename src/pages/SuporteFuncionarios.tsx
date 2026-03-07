@@ -208,6 +208,18 @@ const SuporteFuncionarios = () => {
     total: chamados.length,
   };
 
+  // Tempo médio de resolução (CLT Art. 74 - rastreabilidade)
+  const tempoMedioResolucao = (() => {
+    const fechados = chamados.filter((c: any) => c.status === "fechado" && c.fechado_em);
+    if (fechados.length === 0) return "N/A";
+    const totalHoras = fechados.reduce((sum: number, c: any) => {
+      const diff = new Date(c.fechado_em).getTime() - new Date(c.created_at).getTime();
+      return sum + diff / (1000 * 60 * 60);
+    }, 0);
+    const media = totalHoras / fechados.length;
+    return media < 1 ? `${Math.round(media * 60)}min` : `${Math.round(media)}h`;
+  })();
+
   // ====== CHAT VIEW ======
   if (chamadoSelecionado) {
     const isFechado = chamadoSelecionado.status === "fechado";
