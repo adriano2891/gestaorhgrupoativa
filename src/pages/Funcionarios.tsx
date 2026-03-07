@@ -172,6 +172,12 @@ const Funcionarios = () => {
   const [editPis, setEditPis] = useState("");
   const [editCtps, setEditCtps] = useState("");
   const [editCtpsSerie, setEditCtpsSerie] = useState("");
+  const [editNacionalidade, setEditNacionalidade] = useState("Brasileira");
+  const [editEstadoCivil, setEditEstadoCivil] = useState("");
+  const [editSexo, setEditSexo] = useState("");
+  const [editNomeMae, setEditNomeMae] = useState("");
+  const [editCbo, setEditCbo] = useState("");
+  const [editTipoContrato, setEditTipoContrato] = useState("CLT");
   
   const [newEscala, setNewEscala] = useState("8h");
   const [newTurno, setNewTurno] = useState("diurno");
