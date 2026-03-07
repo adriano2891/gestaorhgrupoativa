@@ -49,7 +49,7 @@ const CATEGORIAS = [
 ];
 
 const SuporteFuncionarios = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const { data: chamados = [], isLoading, error, refetch } = useTodosChamados();
   const [chamadoSelecionado, setChamadoSelecionado] = useState<ChamadoSuporte | null>(null);
@@ -596,7 +596,7 @@ const SuporteFuncionarios = () => {
           <TabsContent value="ajustes" className="mt-4">
             <GerenciarAjustesPontoCard 
               adminId={user?.id || ''} 
-              adminName={user?.email?.split('@')[0] || 'Admin'} 
+              adminName={profile?.nome || user?.email?.split('@')[0] || 'Admin'} 
             />
           </TabsContent>
         </Tabs>
