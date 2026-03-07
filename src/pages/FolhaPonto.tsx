@@ -1404,17 +1404,58 @@ const FolhaPonto = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {assinaturasMap[record.employee_id] ? (
-                            <div className="flex flex-col">
-                              <Badge className="bg-green-600 hover:bg-green-700 text-white w-fit">
-                                <ShieldCheck className="h-3 w-3 mr-1" />
-                                Assinado
-                              </Badge>
-                              <span className="text-xs text-muted-foreground mt-1">
-                                {new Date(assinaturasMap[record.employee_id].data_assinatura).toLocaleDateString("pt-BR")}
-                              </span>
-                            </div>
-                          ) : (
+                          {assinaturasMap[record.employee_id] ? (() => {
+                            const sig = assinaturasMap[record.employee_id];
+                            const sigDate = new Date(sig.data_assinatura);
+                            return (
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <button className="flex flex-col items-start cursor-pointer hover:opacity-80 transition-opacity">
+                                    <Badge className="bg-green-600 hover:bg-green-700 text-white w-fit">
+                                      <ShieldCheck className="h-3 w-3 mr-1" />
+                                      Assinado
+                                    </Badge>
+                                    <span className="text-xs text-muted-foreground mt-1">
+                                      {sigDate.toLocaleDateString("pt-BR")}
+                                    </span>
+                                  </button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-md">
+                                  <DialogHeader>
+                                    <DialogTitle className="flex items-center gap-2">
+                                      <ShieldCheck className="h-5 w-5 text-green-600" />
+                                      Detalhes da Assinatura
+                                    </DialogTitle>
+                                    <DialogDescription>
+                                      Registro de assinatura eletrônica do espelho de ponto
+                                    </DialogDescription>
+                                  </DialogHeader>
+                                  <div className="space-y-3 text-sm">
+                                    <div className="grid grid-cols-[120px_1fr] gap-2">
+                                      <span className="font-medium text-muted-foreground">Funcionário:</span>
+                                      <span>{sig.nome_funcionario}</span>
+                                      <span className="font-medium text-muted-foreground">CPF:</span>
+                                      <span>{sig.cpf || "Não informado"}</span>
+                                      <span className="font-medium text-muted-foreground">Data/Hora:</span>
+                                      <span>{sigDate.toLocaleDateString("pt-BR")} às {sigDate.toLocaleTimeString("pt-BR")}</span>
+                                      <span className="font-medium text-muted-foreground">Status:</span>
+                                      <Badge className="bg-green-600 text-white w-fit">{sig.status?.toUpperCase()}</Badge>
+                                    </div>
+                                    <div className="border-t pt-3 space-y-2">
+                                      <div>
+                                        <span className="font-medium text-muted-foreground text-xs">Hash do Documento (SHA-256):</span>
+                                        <p className="font-mono text-xs bg-muted p-2 rounded mt-1 break-all select-all">{sig.hash_documento}</p>
+                                      </div>
+                                      <div>
+                                        <span className="font-medium text-muted-foreground text-xs">Dispositivo:</span>
+                                        <p className="text-xs text-muted-foreground mt-1 break-all">{sig.user_agent || "N/A"}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </DialogContent>
+                              </Dialog>
+                            );
+                          })() : (
                             <Badge variant="outline" className="text-muted-foreground">
                               Pendente
                             </Badge>
