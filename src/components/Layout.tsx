@@ -70,12 +70,15 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   }).format(new Date());
 
   return (
-    <div 
-      className="min-h-screen bg-cover bg-center bg-no-repeat bg-scroll md:bg-fixed"
-      style={{ backgroundImage: `url(${loginBackground})` }}
-    >
-      {/* Overlay para melhorar legibilidade */}
-      <div className="min-h-screen bg-background/85 backdrop-blur-[2px]">
+    <div className="min-h-screen relative">
+      {/* Background layer */}
+      <div 
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-10"
+        style={{ backgroundImage: `url(${loginBackground})` }}
+      />
+      <div className="fixed inset-0 bg-background/85 backdrop-blur-[2px] -z-10" />
+      {/* Content layer */}
+      <div className="min-h-screen relative">
       {/* Header */}
       <header className="bg-card shadow-sm fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 flex items-center justify-between">
