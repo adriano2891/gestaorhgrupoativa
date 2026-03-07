@@ -5,6 +5,7 @@ import { ArrowLeft, Bell, Paperclip, Download, CheckCircle, History, Clock } fro
 import { Badge } from "@/components/ui/badge";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { useComunicados, useComunicadosHistorico, useMarcarComunicadoLido, useConfirmarComunicado } from "@/hooks/useComunicados";
+import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
