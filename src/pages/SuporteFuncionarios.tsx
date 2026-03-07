@@ -42,6 +42,9 @@ const CATEGORIAS = [
   { value: "beneficios", label: "Benefícios" },
   { value: "ferias", label: "Férias" },
   { value: "documentos", label: "Documentos" },
+  { value: "ponto", label: "Ponto / Jornada" },
+  { value: "rescisao", label: "Rescisão / Desligamento" },
+  { value: "fgts", label: "FGTS / INSS" },
   { value: "outros", label: "Outros" },
 ];
 
