@@ -1392,6 +1392,23 @@ const FolhaPonto = () => {
                             {record.status}
                           </Badge>
                         </TableCell>
+                        <TableCell>
+                          {assinaturasMap[record.employee_id] ? (
+                            <div className="flex flex-col">
+                              <Badge className="bg-green-600 hover:bg-green-700 text-white w-fit">
+                                <ShieldCheck className="h-3 w-3 mr-1" />
+                                Assinado
+                              </Badge>
+                              <span className="text-xs text-muted-foreground mt-1">
+                                {new Date(assinaturasMap[record.employee_id].data_assinatura).toLocaleDateString("pt-BR")}
+                              </span>
+                            </div>
+                          ) : (
+                            <Badge variant="outline" className="text-muted-foreground">
+                              Pendente
+                            </Badge>
+                          )}
+                        </TableCell>
                       </TableRow>
                     ))
                   )}
