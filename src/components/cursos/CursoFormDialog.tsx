@@ -85,6 +85,7 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
       recorrente: false,
       meses_recorrencia: 12,
       nota_minima: 70,
+      norma_regulamentadora: "",
     },
   });
 
