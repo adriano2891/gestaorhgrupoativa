@@ -74,6 +74,7 @@ interface EmployeeMonthRecord {
   employee_id: string;
   employee_name: string;
   matricula?: string;
+  cpf?: string;
   departamento?: string;
   escala_trabalho?: string;
   turno?: string;
@@ -240,6 +241,7 @@ const FolhaPonto = () => {
           employee_id: emp.id,
           employee_name: emp.nome,
           matricula: (emp as any).matricula || undefined,
+          cpf: (emp as any).cpf || undefined,
           departamento: emp.departamento,
           escala_trabalho: (emp as any).escala_trabalho || '8h',
           turno: (emp as any).turno || 'diurno',
@@ -510,6 +512,7 @@ const FolhaPonto = () => {
       doc.setTextColor(0, 0, 0);
       doc.text(`Assinatura do(a) Funcionário(a): ${record.employee_name}`, 14, sigLineY + 4);
       doc.text(`Matrícula: ${record.matricula || '-'}`, 14, sigLineY + 8);
+      doc.text(`CPF: ${record.cpf || '-'}`, 14, sigLineY + 12);
 
       // Employer/Manager signature
       doc.line(160, sigLineY, 280, sigLineY);
