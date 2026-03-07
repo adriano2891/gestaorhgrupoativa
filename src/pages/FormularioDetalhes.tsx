@@ -202,9 +202,9 @@ const FormularioDetalhes = () => {
           {/* Atribuições Tab */}
           <TabsContent value="atribuicoes">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Colaboradores Atribuídos</CardTitle>
-                <Button onClick={() => setShowAtribuirDialog(true)}>
+              <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <CardTitle className="text-base sm:text-lg">Colaboradores Atribuídos</CardTitle>
+                <Button size="sm" onClick={() => setShowAtribuirDialog(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Atribuir
                 </Button>
