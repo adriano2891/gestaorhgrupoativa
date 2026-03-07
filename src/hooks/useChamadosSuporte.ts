@@ -8,6 +8,7 @@ export interface ChamadoSuporte {
   categoria: string;
   assunto: string;
   status: string;
+  numero_protocolo?: string;
   created_at: string;
   updated_at: string;
   profiles?: { nome: string; departamento: string | null; cargo: string | null } | null;
