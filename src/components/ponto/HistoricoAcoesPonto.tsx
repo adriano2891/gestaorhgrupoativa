@@ -205,13 +205,14 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
             <div className={`overflow-x-auto overflow-y-auto ${expanded ? "max-h-[400px]" : ""}`} style={{ WebkitOverflowScrolling: "touch" }}>
               <Table className="min-w-[700px]">
                 <TableHeader>
-                  <TableRow>
-                    <TableHead className="whitespace-nowrap">Data</TableHead>
-                    <TableHead className="whitespace-nowrap">Hora</TableHead>
-                    <TableHead className="whitespace-nowrap">Responsável</TableHead>
-                    <TableHead className="whitespace-nowrap">Tipo</TableHead>
-                    <TableHead className="whitespace-nowrap">Descrição</TableHead>
-                  </TableRow>
+                   <TableRow>
+                     <TableHead className="whitespace-nowrap">Funcionário</TableHead>
+                     <TableHead className="whitespace-nowrap">Data</TableHead>
+                     <TableHead className="whitespace-nowrap">Hora</TableHead>
+                     <TableHead className="whitespace-nowrap">Responsável</TableHead>
+                     <TableHead className="whitespace-nowrap">Tipo</TableHead>
+                     <TableHead className="whitespace-nowrap">Descrição</TableHead>
+                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {displayedLogs?.map((log: any) => {
