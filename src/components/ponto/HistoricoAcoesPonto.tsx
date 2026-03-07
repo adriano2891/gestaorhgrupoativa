@@ -219,6 +219,7 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
                     const { data, hora } = formatDateTime(log.created_at);
                     return (
                       <TableRow key={log.id}>
+                        <TableCell className="text-sm font-medium whitespace-nowrap">{log.employee_name || "—"}</TableCell>
                         <TableCell className="text-sm whitespace-nowrap">{data}</TableCell>
                         <TableCell className="text-sm whitespace-nowrap">{hora}</TableCell>
                         <TableCell className="text-sm font-medium whitespace-nowrap">{log._displayName || log.autorizado_por_nome}</TableCell>
