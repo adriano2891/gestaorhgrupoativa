@@ -56,6 +56,7 @@ const SuporteFuncionarios = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const { data: mensagens = [], isLoading: loadingMensagens } = useMensagensChamado(chamadoSelecionado?.id || null);
+  const { data: auditoria = [] } = useAuditoriaChamado(chamadoSelecionado?.id || null);
   const enviarMensagem = useEnviarMensagem();
   const atualizarStatus = useAtualizarStatusChamado();
 
