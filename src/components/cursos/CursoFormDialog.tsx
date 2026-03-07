@@ -103,6 +103,7 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
         recorrente: curso.recorrente,
         meses_recorrencia: curso.meses_recorrencia || 12,
         nota_minima: curso.nota_minima,
+        norma_regulamentadora: (curso as any).norma_regulamentadora || "",
       });
     } else {
       form.reset({
