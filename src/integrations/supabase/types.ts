@@ -458,8 +458,13 @@ export type Database = {
           assunto: string
           categoria: string
           created_at: string
+          fechado_em: string | null
+          fechado_por: string | null
           id: string
+          ip_fechamento: string | null
+          motivo_fechamento: string | null
           numero_protocolo: string | null
+          prazo_resposta: string | null
           status: string
           updated_at: string
           user_id: string
@@ -468,8 +473,13 @@ export type Database = {
           assunto: string
           categoria?: string
           created_at?: string
+          fechado_em?: string | null
+          fechado_por?: string | null
           id?: string
+          ip_fechamento?: string | null
+          motivo_fechamento?: string | null
           numero_protocolo?: string | null
+          prazo_resposta?: string | null
           status?: string
           updated_at?: string
           user_id: string
@@ -478,8 +488,13 @@ export type Database = {
           assunto?: string
           categoria?: string
           created_at?: string
+          fechado_em?: string | null
+          fechado_por?: string | null
           id?: string
+          ip_fechamento?: string | null
+          motivo_fechamento?: string | null
           numero_protocolo?: string | null
+          prazo_resposta?: string | null
           status?: string
           updated_at?: string
           user_id?: string
