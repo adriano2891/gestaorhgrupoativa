@@ -8,6 +8,7 @@ export interface ChamadoSuporte {
   categoria: string;
   assunto: string;
   status: string;
+  numero_protocolo?: string;
   created_at: string;
   updated_at: string;
   profiles?: { nome: string; departamento: string | null; cargo: string | null } | null;
@@ -92,13 +93,17 @@ export const useTodosChamados = () => {
           profiles: profileMap.get(c.user_id) || null,
         }));
 
-        // Filtrar funcionários demitidos no client-side
-        const filtered = withProfiles.filter((c: any) => {
+        // Marcar funcionários demitidos mas preservar para auditoria (CLT Art. 41)
+        const result = withProfiles.map((c: any) => {
           const profileStatus = c.profiles?.status;
-          return profileStatus !== 'demitido' && profileStatus !== 'pediu_demissao';
+          const isDemitido = profileStatus === 'demitido' || profileStatus === 'pediu_demissao';
+          return {
+            ...c,
+            funcionario_desligado: isDemitido,
+          };
         });
 
-        return filtered as ChamadoSuporte[];
+        return result as (ChamadoSuporte & { funcionario_desligado?: boolean })[];
       } catch (e) {
         console.warn("Failed to fetch profiles for chamados:", e);
         return chamados as ChamadoSuporte[];
@@ -106,6 +111,38 @@ export const useTodosChamados = () => {
     },
     retry: 2,
     staleTime: 1000 * 60 * 2,
+  });
+};
+
+// Hook para auditoria de chamados
+export const useAuditoriaChamado = (chamadoId: string | null) => {
+  return useQuery({
+    queryKey: ["auditoria-chamado", chamadoId],
+    queryFn: async () => {
+      if (!chamadoId) return [];
+      const { data, error } = await (supabase as any)
+        .from("chamados_auditoria")
+        .select("*")
+        .eq("chamado_id", chamadoId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      
+      if (!data || data.length === 0) return [];
+      
+      // Fetch profile names
+      const uniqueIds = [...new Set(data.map((a: any) => a.user_id).filter(Boolean))] as string[];
+      if (uniqueIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, nome")
+          .in("id", uniqueIds);
+        const profileMap = new Map((profiles || []).map((p: any) => [p.id, p]));
+        return data.map((a: any) => ({ ...a, profiles: profileMap.get(a.user_id) || null }));
+      }
+      return data;
+    },
+    enabled: !!chamadoId,
+    staleTime: 1000 * 30,
   });
 };
 

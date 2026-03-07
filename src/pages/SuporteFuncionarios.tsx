@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   MessageCircle, Search, ArrowLeft, Send, Paperclip, Download, Clock, 
-  Filter, User, CheckCircle, Lock, ClipboardList
+  Filter, User, CheckCircle, Lock, ClipboardList, FileText, Shield
 } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +18,7 @@ import {
   useMensagensChamado,
   useEnviarMensagem,
   useAtualizarStatusChamado,
+  useAuditoriaChamado,
   type ChamadoSuporte,
 } from "@/hooks/useChamadosSuporte";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -26,6 +27,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { GerenciarAjustesPontoCard } from "@/components/ponto/GerenciarAjustesPontoCard";
+import { gerarPdfChamadoAuditoria, gerarPdfRelatorioGeral } from "@/utils/chamadosPdfAuditoria";
 
 const STATUS_MAP: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   aberto: { label: "Aberto", variant: "default" },
@@ -54,6 +56,7 @@ const SuporteFuncionarios = () => {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const { data: mensagens = [], isLoading: loadingMensagens } = useMensagensChamado(chamadoSelecionado?.id || null);
+  const { data: auditoria = [] } = useAuditoriaChamado(chamadoSelecionado?.id || null);
   const enviarMensagem = useEnviarMensagem();
   const atualizarStatus = useAtualizarStatusChamado();
 
@@ -190,18 +193,41 @@ const SuporteFuncionarios = () => {
             <Button variant="ghost" onClick={() => setChamadoSelecionado(null)}>
               <ArrowLeft className="h-4 w-4 mr-2" /> Voltar à lista
             </Button>
-            {!isFechado && (
-              <Button variant="destructive" onClick={handleFechar} disabled={atualizarStatus.isPending}>
-                <Lock className="h-4 w-4 mr-1" /> Fechar Chamado
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => {
+                gerarPdfChamadoAuditoria({
+                  ...chamadoSelecionado,
+                  mensagens: mensagens.map(m => ({
+                    conteudo: m.conteudo,
+                    created_at: m.created_at,
+                    profiles: m.profiles,
+                    arquivo_nome: m.arquivo_nome,
+                  })),
+                  auditoria: auditoria,
+                });
+              }}>
+                <FileText className="h-4 w-4 mr-1" /> PDF Auditoria
               </Button>
-            )}
+              {!isFechado && (
+                <Button variant="destructive" onClick={handleFechar} disabled={atualizarStatus.isPending}>
+                  <Lock className="h-4 w-4 mr-1" /> Fechar Chamado
+                </Button>
+              )}
+            </div>
           </div>
 
           <Card className={isFechado ? "border-muted bg-muted/30 opacity-80" : ""}>
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div>
-                  <CardTitle>{chamadoSelecionado.assunto}</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    {chamadoSelecionado.assunto}
+                    {(chamadoSelecionado as any).numero_protocolo && (
+                      <Badge variant="outline" className="text-[10px] font-mono">
+                        {(chamadoSelecionado as any).numero_protocolo}
+                      </Badge>
+                    )}
+                  </CardTitle>
                   <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                     <User className="h-3 w-3" />
                     {chamadoSelecionado.profiles?.nome || "Funcionário"}
@@ -293,6 +319,31 @@ const SuporteFuncionarios = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Audit Trail */}
+          {auditoria.length > 0 && (
+            <Card className="mt-4">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Shield className="h-4 w-4" /> Trilha de Auditoria (CLT Art. 41)
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {auditoria.map((a: any) => (
+                    <div key={a.id} className="flex items-start gap-3 text-xs border-l-2 border-muted pl-3 py-1">
+                      <span className="text-muted-foreground whitespace-nowrap">
+                        {format(new Date(a.created_at), "dd/MM/yy HH:mm:ss", { locale: ptBR })}
+                      </span>
+                      <span className="font-medium">{a.profiles?.nome || "Sistema"}</span>
+                      <span className="text-muted-foreground">{a.detalhes || a.acao}</span>
+                      {a.ip_address && <span className="text-muted-foreground/60">IP: {a.ip_address}</span>}
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
       </Layout>
     );
@@ -330,6 +381,12 @@ const SuporteFuncionarios = () => {
           </TabsList>
 
           <TabsContent value="chamados" className="space-y-6 mt-4">
+            {/* Export button */}
+            <div className="flex justify-end">
+              <Button variant="outline" size="sm" onClick={() => gerarPdfRelatorioGeral(chamados)}>
+                <FileText className="h-4 w-4 mr-1" /> Relatório Geral (PDF)
+              </Button>
+            </div>
             {/* Metrics */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <Card>
@@ -406,7 +463,17 @@ const SuporteFuncionarios = () => {
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <h3 className={`font-semibold truncate ${isFechado ? "line-through text-muted-foreground" : ""}`}>{chamado.assunto}</h3>
+                            <div className="flex items-center gap-2">
+                              <h3 className={`font-semibold truncate ${isFechado ? "line-through text-muted-foreground" : ""}`}>{chamado.assunto}</h3>
+                              {(chamado as any).numero_protocolo && (
+                                <Badge variant="outline" className="text-[9px] font-mono shrink-0">
+                                  {(chamado as any).numero_protocolo}
+                                </Badge>
+                              )}
+                              {(chamado as any).funcionario_desligado && (
+                                <Badge variant="destructive" className="text-[9px] shrink-0">Desligado</Badge>
+                              )}
+                            </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                               <User className="h-3 w-3" />
                               <span>{chamado.profiles?.nome || "Funcionário"}</span>
