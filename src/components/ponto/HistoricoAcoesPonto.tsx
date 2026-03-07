@@ -139,7 +139,7 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
       return [
         data,
         hora,
-        log.autorizado_por_nome || "-",
+        log._displayName || log.autorizado_por_nome || "-",
         tipo,
         `${log.employee_name || "-"} — ${log.campo_editado}: ${log.valor_anterior || "—"} → ${log.valor_novo || "—"} (dia ${new Date(log.data_registro).getDate().toString().padStart(2, "0")})`,
       ];
