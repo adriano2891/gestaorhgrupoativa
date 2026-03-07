@@ -498,22 +498,18 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
     const columns = Object.keys(data.details[0]);
 
     const filteredDetails = data.details.filter((row: any) => {
-      // Global search
-      if (tableSearch) {
-        const match = columns.some(col =>
-          String(row[col] ?? "").toLowerCase().includes(tableSearch.toLowerCase())
-        );
-        if (!match) return false;
-      }
-      // Column-specific filter
-      if (tableFilterCol !== "todos" && tableFilterValue) {
-        const cellVal = String(row[tableFilterCol] ?? "").toLowerCase();
-        if (!cellVal.includes(tableFilterValue.toLowerCase())) return false;
-      }
-      return true;
+      return columns.every(col => {
+        const filter = columnFilters[col];
+        if (!filter) return true;
+        return String(row[col] ?? "").toLowerCase().includes(filter.toLowerCase());
+      });
     });
 
-    const activeFilters = (tableSearch ? 1 : 0) + (tableFilterCol !== "todos" && tableFilterValue ? 1 : 0);
+    const activeFilters = Object.values(columnFilters).filter(v => v).length;
+
+    const updateColumnFilter = (col: string, value: string) => {
+      setColumnFilters(prev => ({ ...prev, [col]: value }));
+    };
 
     return (
       <Card className="overflow-hidden">
@@ -543,64 +539,22 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                   </span>
                 )}
               </Button>
-              <Badge variant="secondary" className="text-[10px] sm:text-xs">
-                Atualizado agora
-              </Badge>
-            </div>
-          </div>
-
-          {showTableFilters && (
-            <div className="mt-3 pt-3 border-t border-border flex flex-col sm:flex-row gap-2 sm:gap-3 items-end">
-              <div className="flex-1 w-full sm:w-auto">
-                <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Busca geral</label>
-                <div className="relative">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                  <Input
-                    placeholder="Buscar em todos os campos..."
-                    value={tableSearch}
-                    onChange={e => setTableSearch(e.target.value)}
-                    className="pl-8 h-8 text-xs"
-                  />
-                </div>
-              </div>
-              <div className="w-full sm:w-40">
-                <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Coluna</label>
-                <Select value={tableFilterCol} onValueChange={v => { setTableFilterCol(v); setTableFilterValue(""); }}>
-                  <SelectTrigger className="h-8 text-xs">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todas</SelectItem>
-                    {columns.map(col => (
-                      <SelectItem key={col} value={col}>{col}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {tableFilterCol !== "todos" && (
-                <div className="w-full sm:w-40">
-                  <label className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1 block">Valor</label>
-                  <Input
-                    placeholder="Filtrar valor..."
-                    value={tableFilterValue}
-                    onChange={e => setTableFilterValue(e.target.value)}
-                    className="h-8 text-xs"
-                  />
-                </div>
-              )}
               {activeFilters > 0 && (
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => { setTableSearch(""); setTableFilterCol("todos"); setTableFilterValue(""); }}
+                  onClick={() => setColumnFilters({})}
                   className="text-xs gap-1 text-destructive hover:text-destructive h-8"
                 >
                   <X className="w-3.5 h-3.5" />
                   Limpar
                 </Button>
               )}
+              <Badge variant="secondary" className="text-[10px] sm:text-xs">
+                Atualizado agora
+              </Badge>
             </div>
-          )}
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
@@ -613,6 +567,20 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                     </TableHead>
                   ))}
                 </TableRow>
+                {showTableFilters && (
+                  <TableRow className="bg-muted/30 hover:bg-muted/30">
+                    {columns.map(col => (
+                      <TableHead key={`filter-${col}`} className="px-1 sm:px-2 py-1.5">
+                        <Input
+                          placeholder="Filtrar..."
+                          value={columnFilters[col] || ""}
+                          onChange={e => updateColumnFilter(col, e.target.value)}
+                          className="h-7 text-[10px] sm:text-xs min-w-[60px] bg-background"
+                        />
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                )}
               </TableHeader>
               <TableBody>
                 {filteredDetails.length === 0 ? (
