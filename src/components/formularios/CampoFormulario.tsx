@@ -87,7 +87,7 @@ export const CampoFormulario = ({ campo, onDelete }: CampoFormularioProps) => {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1 shrink-0">
               <CollapsibleTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
@@ -96,7 +96,7 @@ export const CampoFormulario = ({ campo, onDelete }: CampoFormularioProps) => {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-8 w-8 text-destructive sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                 onClick={onDelete}
               >
                 <Trash2 className="h-4 w-4" />
@@ -105,7 +105,7 @@ export const CampoFormulario = ({ campo, onDelete }: CampoFormularioProps) => {
           </div>
 
           <CollapsibleContent className="pt-4 space-y-4">
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-3">
               <div>
                 <Label>Placeholder</Label>
                 <Input

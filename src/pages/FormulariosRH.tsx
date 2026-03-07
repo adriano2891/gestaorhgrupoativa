@@ -39,29 +39,29 @@ const FormulariosRH = () => {
     <Layout>
       <div className="space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
             <BackButton to="/gestao-rh" />
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">Formulários de RH</h1>
-              <p className="text-sm text-muted-foreground">Gerencie formulários de gestão de pessoas</p>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground truncate">Formulários de RH</h1>
+              <p className="text-xs sm:text-sm text-muted-foreground">Gerencie formulários de gestão de pessoas</p>
             </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowUploadDialog(true)}>
-              <Upload className="h-4 w-4 mr-2" />
-              Upload Externo
+          <div className="flex gap-2 shrink-0">
+            <Button variant="outline" size="sm" className="text-xs sm:text-sm" onClick={() => setShowUploadDialog(true)}>
+              <Upload className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Upload Externo</span>
             </Button>
-            <Button onClick={() => setShowCriarDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Novo Formulário
+            <Button size="sm" className="text-xs sm:text-sm" onClick={() => setShowCriarDialog(true)}>
+              <Plus className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Novo Formulário</span>
             </Button>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <div className="relative flex-1">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <div className="relative sm:col-span-2">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar formulários..."
@@ -71,7 +71,7 @@ const FormulariosRH = () => {
             />
           </div>
           <Select value={categoryFilter} onValueChange={(v) => setCategoryFilter(v as FormCategory | "todos")}>
-            <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectTrigger className="w-full">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Categoria" />
             </SelectTrigger>
@@ -83,7 +83,7 @@ const FormulariosRH = () => {
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as FormStatus | "todos")}>
-            <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
