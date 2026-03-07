@@ -403,8 +403,6 @@ export const PortalSuporte = ({ onBack }: PortalSuporteProps) => {
                             {CATEGORIAS.find(c => c.value === chamado.categoria)?.label || chamado.categoria}
                           </p>
                         </div>
-                          </p>
-                        </div>
                         <div className="flex flex-col items-end gap-1">
                           <Badge variant={si.variant} className={chamado.status === "fechado" ? "bg-gray-400 text-white" : ""}>{si.label}</Badge>
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
