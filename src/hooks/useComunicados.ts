@@ -37,7 +37,7 @@ export const useComunicados = (userId?: string) => {
           .from("comunicados")
           .select("*")
           .eq("ativo", true)
-          .eq("excluido", false)
+          .eq("excluido" as any, false)
           .order("created_at", { ascending: false });
 
         if (comunicadosError) {
@@ -47,14 +47,14 @@ export const useComunicados = (userId?: string) => {
 
         const { data: leituras } = await supabase
           .from("comunicados_lidos")
-          .select("comunicado_id, lido_em, confirmado, confirmado_em")
+          .select("comunicado_id, lido_em, confirmado, confirmado_em" as any)
           .eq("user_id", activeUserId);
 
         const leiturasMap = new Map(
-          leituras?.map((l) => [l.comunicado_id, l]) || []
+          (leituras as any[])?.map((l: any) => [l.comunicado_id, l]) || []
         );
 
-        return (comunicados || []).map((c) => {
+        return (comunicados || []).map((c: any) => {
           const leitura = leiturasMap.get(c.id);
           return {
             ...c,
