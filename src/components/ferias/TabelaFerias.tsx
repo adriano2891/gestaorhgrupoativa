@@ -131,7 +131,7 @@ export const TabelaFerias = ({ solicitacoes }: TabelaFeriasProps) => {
           <TableBody>
             {solicitacoes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   Nenhuma solicitação encontrada
                 </TableCell>
               </TableRow>
