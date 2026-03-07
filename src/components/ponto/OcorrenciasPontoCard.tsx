@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, CheckCircle, Info, XCircle, Shield, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle, Info, XCircle, Shield, Loader2, Download } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 import { Textarea } from "@/components/ui/textarea";
 import { SuperAdminAuthDialog } from "./SuperAdminAuthDialog";
@@ -183,6 +185,36 @@ export const OcorrenciasPontoCard = ({ mes, ano }: OcorrenciasPontoCardProps) =>
   const resolvidas = ocorrencias.filter(o => o.resolvido);
   const displayed = showResolved ? ocorrencias : pendentes;
 
+  const exportarPDF = () => {
+    if (ocorrencias.length === 0) return;
+    const doc = new jsPDF({ orientation: "landscape" });
+    doc.setFontSize(16);
+    doc.text(`Ocorrências CLT – ${mes}/${ano}`, 14, 18);
+    doc.setFontSize(9);
+    doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, 14, 25);
+    doc.text(`Pendentes: ${pendentes.length} | Resolvidas: ${resolvidas.length} | Total: ${ocorrencias.length}`, 14, 30);
+
+    const rows = ocorrencias.map((oc) => [
+      new Date(oc.data + "T12:00:00").toLocaleDateString("pt-BR"),
+      (oc as any).profiles?.nome || "Funcionário",
+      getTipoLabel(oc.tipo),
+      oc.severidade === "error" ? "Crítico" : oc.severidade === "warning" ? "Alerta" : "Info",
+      oc.descricao,
+      oc.resolvido ? "Resolvido" : "Pendente",
+      oc.justificativa_resolucao || "-",
+    ]);
+
+    autoTable(doc, {
+      startY: 36,
+      head: [["Data", "Funcionário", "Tipo", "Severidade", "Descrição", "Status", "Justificativa"]],
+      body: rows,
+      styles: { fontSize: 7 },
+      headStyles: { fillColor: [17, 188, 183] },
+    });
+
+    doc.save(`ocorrencias-clt-${mes}-${ano}.pdf`);
+  };
+
   return (
     <>
       <Card>
@@ -197,13 +229,20 @@ export const OcorrenciasPontoCard = ({ mes, ano }: OcorrenciasPontoCardProps) =>
                 )}
               </CardTitle>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowResolved(!showResolved)}
-            >
-              {showResolved ? "Apenas pendentes" : `Ver todas (${ocorrencias.length})`}
-            </Button>
+            <div className="flex items-center gap-1">
+              {ocorrencias.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={exportarPDF}>
+                  <Download className="h-4 w-4 mr-1" /> PDF
+                </Button>
+              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowResolved(!showResolved)}
+              >
+                {showResolved ? "Apenas pendentes" : `Ver todas (${ocorrencias.length})`}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
