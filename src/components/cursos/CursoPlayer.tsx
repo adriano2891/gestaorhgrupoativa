@@ -14,8 +14,10 @@ import {
   ChevronUp,
   Clock,
   BookOpen,
+  ShieldCheck,
+  Loader2,
 } from "lucide-react";
-import { useCurso, useProgressoAulas, useProgressoMutations } from "@/hooks/useCursos";
+import { useCurso, useProgressoAulas, useProgressoMutations, useConfirmarParticipacao, useMinhasMatriculas } from "@/hooks/useCursos";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Collapsible,
