@@ -1189,6 +1189,17 @@ const FolhaPonto = () => {
                         <div className="text-muted-foreground">Faltas</div>
                         <div className="font-bold text-red-600">{record.total_faltas}</div>
                       </div>
+                      <div className="text-center">
+                        <div className="text-muted-foreground">Assinatura</div>
+                        {assinaturasMap[record.employee_id] ? (
+                          <div className="font-bold text-green-600 flex items-center gap-1 justify-center">
+                            <ShieldCheck className="h-4 w-4" />
+                            Sim
+                          </div>
+                        ) : (
+                          <div className="font-bold text-muted-foreground">Pendente</div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
