@@ -89,13 +89,10 @@ export const CriarComunicadoDialog = ({
         throw error;
       }
 
-      const { data: urlData } = supabase.storage
-        .from("comunicados-anexos")
-        .getPublicUrl(path);
-
+      // Store the path for signed URL generation later
       uploaded.push({
         nome: anexo.file.name,
-        url: urlData.publicUrl,
+        path: path,
         tamanho: anexo.file.size,
         tipo: anexo.file.type,
       });
