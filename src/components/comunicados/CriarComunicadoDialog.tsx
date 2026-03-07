@@ -283,6 +283,28 @@ export const CriarComunicadoDialog = ({
             </Popover>
           </div>
 
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Paperclip className="h-4 w-4" />
+              Anexos (máx. 20MB por arquivo)
+            </Label>
+            <Input
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              className="cursor-pointer"
+            />
+            {anexos.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {anexos.map((a, i) => (
+                  <Badge key={i} variant="secondary" className="flex items-center gap-1">
+                    {a.nome}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeAnexo(i)} />
+                  </Badge>
+                ))}
+              </div>
+            )}
+          </div>
 
           <div className="space-y-3">
             <Label>Destinatários</Label>
