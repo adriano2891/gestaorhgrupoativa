@@ -80,22 +80,35 @@ export const PortalComunicados = ({ onBack }: PortalComunicadosProps) => {
           </p>
           <p className="text-base">{comunicado.conteudo}</p>
 
-          {/* Anexos */}
+          {/* Anexos - private bucket, use signed URLs */}
           {comunicado.anexos && comunicado.anexos.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
               {comunicado.anexos.map((anexo: any, i: number) => (
-                <a
+                <button
                   key={i}
-                  href={anexo.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
+                  type="button"
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    const filePath = anexo.path || anexo.url;
+                    if (filePath?.startsWith("http")) {
+                      window.open(filePath, "_blank");
+                      return;
+                    }
+                    const { data, error } = await supabase.storage
+                      .from("comunicados-anexos")
+                      .createSignedUrl(filePath, 300);
+                    if (error || !data?.signedUrl) {
+                      toast.error("Erro ao acessar anexo");
+                      return;
+                    }
+                    window.open(data.signedUrl, "_blank");
+                  }}
                   className="inline-flex items-center gap-1 text-xs bg-muted rounded px-2 py-1 hover:bg-muted/80"
                 >
                   <Paperclip className="h-3 w-3" />
                   {anexo.nome}
                   <Download className="h-3 w-3 ml-1" />
-                </a>
+                </button>
               ))}
             </div>
           )}
