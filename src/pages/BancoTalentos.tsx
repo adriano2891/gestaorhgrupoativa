@@ -522,8 +522,8 @@ const BancoTalentos = () => {
 
   const handleExportCandidateData = (candidate: Candidate) => {
     const doc = new jsPDF();
-    const doc = new jsPDF();
-    const pw = doc.internal.pageSize.getWidth();
+    const pdf = new jsPDF();
+    const pw = pdf.internal.pageSize.getWidth();
     const margin = 14;
 
     // Header
