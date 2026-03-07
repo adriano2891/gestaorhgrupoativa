@@ -159,7 +159,7 @@ export const FolhasPontoCard = () => {
       })));
       const hash = await generateHash(hashInput);
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from("assinaturas_espelho_ponto")
         .insert({
           funcionario_id: profile!.id,
