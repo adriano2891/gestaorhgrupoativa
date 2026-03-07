@@ -168,10 +168,32 @@ const FolhaPonto = () => {
     }
   };
 
+  const loadAssinaturasAdmin = async () => {
+    try {
+      const mes = parseInt(selectedMonth);
+      const ano = parseInt(selectedYear);
+      const { data } = await (supabase as any)
+        .from("assinaturas_espelho_ponto")
+        .select("*")
+        .eq("mes_referencia", mes)
+        .eq("ano_referencia", ano);
+      if (data) {
+        const map: Record<string, any> = {};
+        (data as any[]).forEach((a: any) => {
+          map[a.funcionario_id] = a;
+        });
+        setAssinaturasMap(map);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar assinaturas:", err);
+    }
+  };
+
   useEffect(() => {
     if (!loadingFuncionarios && employees.length >= 0) {
       loadMonthRecords();
       loadRegistrosFolga();
+      loadAssinaturasAdmin();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, loadingFuncionarios, employees.length]);
