@@ -80,25 +80,25 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
           <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           Resumo Executivo
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
           {summaryItems.map(([key, value], index) => (
             <div
               key={key}
-              className="bg-card rounded-lg border-l-[3px] border-l-primary border border-border px-3 py-3 sm:px-4 sm:py-4 flex items-start justify-between gap-1 hover:shadow-md transition-shadow group"
+              className="bg-card rounded-xl border-l-4 border-l-primary border border-border/60 px-4 py-4 sm:px-5 sm:py-5 flex items-start justify-between gap-2 hover:shadow-lg hover:border-primary/40 transition-all duration-200 group"
             >
-              <div className="min-w-0 flex-1 space-y-1">
-                <p className="text-[9px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest leading-tight break-words">
-                  {key.replace(/([A-Z])/g, " $1").trim()}
+              <div className="min-w-0 flex-1 space-y-2">
+                <p className="text-[10px] sm:text-[11px] font-bold text-muted-foreground uppercase tracking-[0.12em] leading-tight">
+                  {key}
                 </p>
-                <p className="text-sm sm:text-base md:text-lg font-bold text-primary break-words group-hover:scale-[1.03] transition-transform origin-left">
+                <p className="text-base sm:text-lg font-extrabold text-primary break-words group-hover:scale-[1.02] transition-transform origin-left">
                   {value as string}
                 </p>
               </div>
               <div className="flex-shrink-0 mt-0.5">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-primary/30 flex items-center justify-center">
-                  {index === 0 ? <Users className="w-3 h-3 text-primary/60" /> :
-                   index === 1 ? <Clock className="w-3 h-3 text-primary/60" /> :
-                   <CheckCircle2 className="w-3 h-3 text-primary/60" />}
+                <div className="w-7 h-7 rounded-full border-2 border-primary/20 bg-primary/5 flex items-center justify-center">
+                  {index === 0 ? <Users className="w-3.5 h-3.5 text-primary/50" /> :
+                   index === 1 ? <Clock className="w-3.5 h-3.5 text-primary/50" /> :
+                   <CheckCircle2 className="w-3.5 h-3.5 text-primary/50" />}
                 </div>
               </div>
             </div>
