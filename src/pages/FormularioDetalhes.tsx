@@ -109,18 +109,18 @@ const FormularioDetalhes = () => {
 
       <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="campos" className="w-full">
-          <TabsList className="mb-6">
-            <TabsTrigger value="campos" className="gap-2">
+          <TabsList className="mb-6 w-full sm:w-auto flex">
+            <TabsTrigger value="campos" className="gap-1.5 flex-1 sm:flex-none text-xs sm:text-sm">
               <FileText className="h-4 w-4" />
-              Campos ({campos?.length || 0})
+              <span className="hidden xs:inline">Campos</span> ({campos?.length || 0})
             </TabsTrigger>
-            <TabsTrigger value="atribuicoes" className="gap-2">
+            <TabsTrigger value="atribuicoes" className="gap-1.5 flex-1 sm:flex-none text-xs sm:text-sm">
               <Users className="h-4 w-4" />
-              Atribuições ({atribuicoes?.length || 0})
+              <span className="hidden xs:inline">Atribuições</span> ({atribuicoes?.length || 0})
             </TabsTrigger>
-            <TabsTrigger value="configuracoes" className="gap-2">
+            <TabsTrigger value="configuracoes" className="gap-1.5 flex-1 sm:flex-none text-xs sm:text-sm">
               <Settings className="h-4 w-4" />
-              Configurações
+              <span className="hidden xs:inline">Config</span>
             </TabsTrigger>
           </TabsList>
 
