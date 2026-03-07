@@ -128,7 +128,8 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
       const cursoData = {
         ...data,
         categoria_id: data.categoria_id || null,
-      };
+        norma_regulamentadora: data.norma_regulamentadora || null,
+      } as any;
 
       if (isEditing && curso) {
         await updateCurso.mutateAsync({ id: curso.id, ...cursoData });
