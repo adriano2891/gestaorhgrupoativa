@@ -46,7 +46,29 @@ export const AuditTrailCard = () => {
         }
       );
       if (!res.ok) throw new Error(`${res.status}`);
-      setLogs(await res.json() || []);
+      const data = await res.json() || [];
+
+      // Enrich with profile names
+      if (data.length > 0) {
+        const userIds = [...new Set(data.map((d: any) => d.user_id).filter(Boolean))];
+        if (userIds.length > 0) {
+          const idsParam = userIds.map(id => `"${id}"`).join(',');
+          try {
+            const pRes = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome&id=in.(${idsParam})`,
+              { headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${token}` } }
+            );
+            if (pRes.ok) {
+              const profiles = await pRes.json();
+              const nameMap: Record<string, string> = {};
+              profiles.forEach((p: any) => { nameMap[p.id] = p.nome; });
+              data.forEach((d: any) => { d._nome = nameMap[d.user_id] || "—"; });
+            }
+          } catch { /* ignore */ }
+        }
+      }
+
+      setLogs(data);
     } catch (e) {
       console.error("Erro ao carregar audit trail:", e);
     } finally {
