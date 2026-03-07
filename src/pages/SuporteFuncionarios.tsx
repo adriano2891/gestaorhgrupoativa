@@ -193,11 +193,27 @@ const SuporteFuncionarios = () => {
             <Button variant="ghost" onClick={() => setChamadoSelecionado(null)}>
               <ArrowLeft className="h-4 w-4 mr-2" /> Voltar à lista
             </Button>
-            {!isFechado && (
-              <Button variant="destructive" onClick={handleFechar} disabled={atualizarStatus.isPending}>
-                <Lock className="h-4 w-4 mr-1" /> Fechar Chamado
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => {
+                gerarPdfChamadoAuditoria({
+                  ...chamadoSelecionado,
+                  mensagens: mensagens.map(m => ({
+                    conteudo: m.conteudo,
+                    created_at: m.created_at,
+                    profiles: m.profiles,
+                    arquivo_nome: m.arquivo_nome,
+                  })),
+                  auditoria: auditoria,
+                });
+              }}>
+                <FileText className="h-4 w-4 mr-1" /> PDF Auditoria
               </Button>
-            )}
+              {!isFechado && (
+                <Button variant="destructive" onClick={handleFechar} disabled={atualizarStatus.isPending}>
+                  <Lock className="h-4 w-4 mr-1" /> Fechar Chamado
+                </Button>
+              )}
+            </div>
           </div>
 
           <Card className={isFechado ? "border-muted bg-muted/30 opacity-80" : ""}>
