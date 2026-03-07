@@ -297,25 +297,27 @@ export const AuditTrailCard = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Data/Hora</TableHead>
-                    <TableHead>Ação</TableHead>
-                    <TableHead>IP</TableHead>
-                    <TableHead>Detalhes</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {displayedLogs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="whitespace-nowrap text-sm">
-                        {new Date(log.created_at).toLocaleString("pt-BR")}
-                      </TableCell>
-                      <TableCell>{getActionBadge(log.acao)}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground">{log.ip_address || '-'}</TableCell>
-                      <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate">
-                        {log.detalhes ? JSON.stringify(log.detalhes).substring(0, 100) : '-'}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                     <TableHead>Funcionário</TableHead>
+                     <TableHead>Data/Hora</TableHead>
+                     <TableHead>Ação</TableHead>
+                     <TableHead>IP</TableHead>
+                     <TableHead>Detalhes</TableHead>
+                   </TableRow>
+                 </TableHeader>
+                 <TableBody>
+                   {displayedLogs.map((log) => (
+                     <TableRow key={log.id}>
+                       <TableCell className="text-sm font-medium whitespace-nowrap">{log._nome || "—"}</TableCell>
+                       <TableCell className="whitespace-nowrap text-sm">
+                         {new Date(log.created_at).toLocaleString("pt-BR")}
+                       </TableCell>
+                       <TableCell>{getActionBadge(log.acao)}</TableCell>
+                       <TableCell className="text-sm text-muted-foreground">{log.ip_address || '-'}</TableCell>
+                       <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate">
+                         {log.detalhes ? JSON.stringify(log.detalhes).substring(0, 100) : '-'}
+                       </TableCell>
+                     </TableRow>
+                   ))}
                 </TableBody>
               </Table>
             </div>
