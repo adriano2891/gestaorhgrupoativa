@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, CheckCircle, XCircle, Edit, Trash2, Mail } from "lucide-react";
+import { Bell, CheckCircle, XCircle, Trash2, Mail, AlertTriangle } from "lucide-react";
 import { SolicitacaoFerias, useAtualizarSolicitacao, useNotificarFuncionario, useMarcarComoVisualizada } from "@/hooks/useFerias";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { verificarPrazoPagamento } from "@/utils/feriasValidacoesCLT";
 
 interface TabelaFeriasProps {
   solicitacoes: SolicitacaoFerias[];
