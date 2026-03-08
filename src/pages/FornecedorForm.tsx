@@ -328,8 +328,8 @@ export default function FornecedorForm() {
 
             {/* Endereço */}
             <Card className="border border-black/10">
-              <CardHeader className="bg-[#3EE0CF]/10 border-b border-black/5">
-                <CardTitle className="text-lg text-black">Endereço</CardTitle>
+              <CardHeader className="bg-primary/10 border-b border-border">
+                <CardTitle className="text-lg text-foreground">Endereço</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
