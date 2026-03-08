@@ -256,7 +256,7 @@ export default function OrcamentosPublic() {
             </div>
             <div className="flex justify-between text-xl font-bold pt-2 border-t">
               <span>Total</span>
-              <span className="text-[#3EE0CF]">{formatCurrency(quote.financials.total)}</span>
+              <span className="text-primary">{formatCurrency(quote.financials.total)}</span>
             </div>
           </div>
         </GlassPanel>
