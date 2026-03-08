@@ -211,7 +211,7 @@ export default function OrcamentosDashboard() {
               <tbody>
                 {filteredQuotes.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-12 text-black/60">
+                    <td colSpan={6} className="text-center py-12 text-muted-foreground">
                       {quotes.length === 0 
                         ? 'Nenhum orçamento criado ainda. Clique em "Novo Orçamento" para começar.'
                         : 'Nenhum orçamento encontrado com os filtros aplicados.'}
