@@ -414,6 +414,7 @@ export const RelatoriosCursosDialog = ({
                         <p className="text-[10px] sm:text-xs text-muted-foreground">Progresso Médio</p>
                       </CardContent>
                     </Card>
+                  </div>
 
                   {/* Visão Geral da Plataforma */}
                   {stats && (
