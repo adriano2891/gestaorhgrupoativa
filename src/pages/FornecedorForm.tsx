@@ -189,8 +189,8 @@ export default function FornecedorForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Dados Básicos */}
             <Card className="border border-black/10">
-              <CardHeader className="bg-[#3EE0CF]/10 border-b border-black/5">
-                <CardTitle className="text-lg text-black">Dados Básicos</CardTitle>
+              <CardHeader className="bg-primary/10 border-b border-border">
+                <CardTitle className="text-lg text-foreground">Dados Básicos</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
