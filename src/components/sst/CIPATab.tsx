@@ -28,9 +28,14 @@ export const CIPATab = () => {
   const createMembro = useCreateCIPAMembro();
   const deleteMembro = useDeleteCIPAMembro();
   const createReuniao = useCreateCIPAReuniao();
+  const uploadDoc = useUploadSSTDocumento();
   const [openMembro, setOpenMembro] = useState(false);
   const [openReuniao, setOpenReuniao] = useState(false);
   const [docsDialog, setDocsDialog] = useState<{ tipo: string; id: string; nome: string } | null>(null);
+  const [pendingFilesMembro, setPendingFilesMembro] = useState<File[]>([]);
+  const [pendingFilesReuniao, setPendingFilesReuniao] = useState<File[]>([]);
+  const membroFileRef = useRef<HTMLInputElement>(null);
+  const reuniaoFileRef = useRef<HTMLInputElement>(null);
 
   const [membroForm, setMembroForm] = useState({
     nome: "", cargo_cipa: "membro", representacao: "empregado",
