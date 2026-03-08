@@ -328,7 +328,7 @@ export default function OrcamentosPublic() {
                   ) : (
                     <div
                       onClick={() => fileInputRef.current?.click()}
-                      className="border-2 border-dashed border-zinc-300 rounded-lg p-8 text-center cursor-pointer hover:border-[#3EE0CF] hover:bg-zinc-50 transition-colors"
+                      className="border-2 border-dashed border-zinc-300 rounded-lg p-8 text-center cursor-pointer hover:border-primary hover:bg-zinc-50 transition-colors"
                     >
                       {isValidating ? (
                         <div className="text-zinc-500">
