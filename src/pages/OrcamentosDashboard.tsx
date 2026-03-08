@@ -178,9 +178,9 @@ export default function OrcamentosDashboard() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-black/40" />
+              <Filter className="w-4 h-4 text-muted-foreground" />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48 bg-white border-black/20">
+                <SelectTrigger className="w-48 bg-background border-border">
                   <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
