@@ -257,7 +257,7 @@ export default function OrcamentosDashboard() {
                             variant="ghost"
                             size="icon"
                             onClick={() => navigate(`/orcamentos/${quote.id}`)}
-                            className="h-8 w-8 hover:bg-[#3EE0CF]/10"
+                            className="h-8 w-8 hover:bg-primary/10"
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
