@@ -564,7 +564,7 @@ const FolhaPonto = () => {
       autoTable(doc, {
         startY: yPos,
         margin: { left: 10, right: 10 },
-        head: [['Dia', 'Tp', 'Entrada', 'S.P1', 'R.P1', 'S.Alm', 'R.Alm', 'S.P2', 'R.P2', 'Saída', 'HE Ini', 'HE Fim', 'Total', 'HE (%)', 'H.Not', 'St']],
+        head: [['Dia', 'Tipo', 'Entrada', 'Saída Pausa 1', 'Retorno Pausa 1', 'Saída Almoço', 'Retorno Almoço', 'Saída Pausa 2', 'Retorno Pausa 2', 'Saída', 'HE Início', 'HE Fim', 'Total', 'Horas Extras (%)', 'Horas Noturnas', 'Status']],
         body: tableData,
         theme: 'grid',
         styles: { fontSize: 4.5, cellPadding: 0.8, lineWidth: 0.1 },
