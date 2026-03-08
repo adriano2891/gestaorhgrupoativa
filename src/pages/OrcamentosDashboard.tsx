@@ -280,7 +280,7 @@ export default function OrcamentosDashboard() {
                                 <Eye className="w-4 h-4 mr-2" />
                                 Ver Detalhes
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)} className="hover:bg-[#3EE0CF]/10">
+                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)} className="hover:bg-primary/10">
                                 <Edit className="w-4 h-4 mr-2" />
                                 Editar
                               </DropdownMenuItem>
