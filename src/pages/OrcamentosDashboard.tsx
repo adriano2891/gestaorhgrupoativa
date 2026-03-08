@@ -107,7 +107,7 @@ export default function OrcamentosDashboard() {
           </div>
           <Button 
             onClick={() => navigate('/orcamentos/novo')}
-            className="bg-black hover:bg-black/90 text-white shadow-lg"
+            className="bg-foreground hover:bg-foreground/90 text-background shadow-lg"
           >
             <Plus className="w-4 h-4 mr-2" />
             Novo Orçamento
