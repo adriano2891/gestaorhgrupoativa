@@ -38,9 +38,9 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
   return (
     <div className="min-h-screen bg-white">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#3EE0CF] shadow-md px-4 py-3 flex items-center justify-between">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-primary shadow-md px-4 py-3 flex items-center justify-between">
         <button onClick={() => setSidebarOpen(true)} className="p-2">
-          <Menu className="w-6 h-6 text-black" />
+          <Menu className="w-6 h-6 text-primary-foreground" />
         </button>
         <h1 className="text-lg font-semibold text-black">Gestão de Orçamentos</h1>
         <button onClick={() => navigate('/dashboard')} className="p-2">
