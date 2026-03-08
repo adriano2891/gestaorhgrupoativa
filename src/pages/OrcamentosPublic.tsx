@@ -132,7 +132,7 @@ export default function OrcamentosPublic() {
 
   if (!quote) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#3ee0cf' }}>
+      <div className="min-h-screen flex items-center justify-center bg-primary">
         <GlassPanel className="p-12 text-center">
           <p className="text-zinc-500">Orçamento não encontrado ou link inválido</p>
         </GlassPanel>
