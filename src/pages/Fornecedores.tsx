@@ -153,8 +153,8 @@ export default function Fornecedores() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-[#3EE0CF]/10 border-b border-[#3EE0CF]/30">
-                      <TableHead className="text-black font-semibold">Fornecedor</TableHead>
+                    <TableRow className="bg-primary/10 border-b border-primary/30">
+                      <TableHead className="text-foreground font-semibold">Fornecedor</TableHead>
                       <TableHead className="hidden md:table-cell text-black font-semibold">Tipo</TableHead>
                       <TableHead className="hidden lg:table-cell text-black font-semibold">Contato</TableHead>
                       <TableHead className="text-black font-semibold">Status</TableHead>
