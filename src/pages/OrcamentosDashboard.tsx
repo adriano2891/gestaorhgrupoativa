@@ -116,14 +116,14 @@ export default function OrcamentosDashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <GlassPanel className="p-4 bg-white border-2 border-[#3EE0CF]">
+          <GlassPanel className="p-4 bg-card border-2 border-primary">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#3EE0CF]/20 rounded-lg">
-                <FileText className="w-5 h-5 text-[#3EE0CF]" />
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <FileText className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-black/60">Total</p>
-                <p className="text-xl font-bold text-black">{totalQuotes}</p>
+                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="text-xl font-bold text-foreground">{totalQuotes}</p>
               </div>
             </div>
           </GlassPanel>
