@@ -140,14 +140,14 @@ export default function OrcamentosDashboard() {
             </div>
           </GlassPanel>
 
-          <GlassPanel className="p-4 bg-white border-2 border-[#3EE0CF]">
+          <GlassPanel className="p-4 bg-card border-2 border-primary">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#3EE0CF]/20 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-[#3EE0CF]" />
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-black/60">Aprovados</p>
-                <p className="text-xl font-bold text-black">{approvedQuotes}</p>
+                <p className="text-sm text-muted-foreground">Aprovados</p>
+                <p className="text-xl font-bold text-foreground">{approvedQuotes}</p>
               </div>
             </div>
           </GlassPanel>
