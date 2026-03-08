@@ -490,6 +490,24 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
 
               <FormField
                 control={form.control}
+                name="curso_livre"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Curso Livre</FormLabel>
+                      <FormDescription>
+                        Disponível para todos os funcionários sem restrições
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
                 name="recorrente"
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between rounded-lg border p-4">
