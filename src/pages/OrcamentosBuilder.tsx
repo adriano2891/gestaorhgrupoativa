@@ -470,7 +470,7 @@ export default function OrcamentosBuilder() {
                                 "h-8 px-3",
                                 isAdded 
                                   ? "bg-green-500 text-white cursor-default" 
-                                  : "bg-[#3EE0CF] hover:bg-[#35c9ba] text-black"
+                                  : "bg-primary hover:bg-primary-dark text-primary-foreground"
                               )}
                             >
                               {isAdded ? (
