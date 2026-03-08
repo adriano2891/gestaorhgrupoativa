@@ -196,7 +196,7 @@ export const RelatoriosCursosDialog = ({
       autoTable(doc, {
         startY: y,
         head: [["Funcionário", "Departamento", "Curso", "Progresso", "Status"]],
-        body: metricas.funcionariosMatriculados.map((f) => [
+        body: funcionarios.map((f) => [
           f.nome,
           f.departamento,
           f.curso,
