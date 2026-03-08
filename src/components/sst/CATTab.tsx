@@ -71,7 +71,6 @@ export const CATTab = () => {
     setPendingFiles(prev => [...prev, file]);
     if (formFileRef.current) formFileRef.current.value = "";
   };
-  };
 
   const resetForm = () => setForm({
     user_id: "", data_acidente: "", hora_acidente: "", tipo: "tipico",
