@@ -100,10 +100,10 @@ export default function OrcamentosDashboard() {
     <QuotesLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#3EE0CF] rounded-xl p-4 shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-primary rounded-xl p-4 shadow-md">
           <div>
-            <h1 className="text-2xl font-bold text-black">Gestão de Orçamentos</h1>
-            <p className="text-black/70">Gerencie suas propostas comerciais</p>
+            <h1 className="text-2xl font-bold text-primary-foreground">Gestão de Orçamentos</h1>
+            <p className="text-primary-foreground/70">Gerencie suas propostas comerciais</p>
           </div>
           <Button 
             onClick={() => navigate('/orcamentos/novo')}
