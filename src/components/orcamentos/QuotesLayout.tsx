@@ -66,7 +66,7 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold text-black">Orçamentos</h2>
+            <h2 className="text-xl font-bold text-primary-foreground">Orçamentos</h2>
             <button 
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden p-1 hover:bg-black/10 rounded"
