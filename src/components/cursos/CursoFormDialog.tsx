@@ -96,6 +96,7 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
       carga_horaria: 60,
       instrutor: "",
       obrigatorio: false,
+      curso_livre: false,
       recorrente: false,
       meses_recorrencia: 12,
       nota_minima: 70,
