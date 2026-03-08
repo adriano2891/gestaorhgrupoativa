@@ -470,7 +470,7 @@ export default function ItensOrcamento() {
               </Button>
               <Button 
                 type="submit" 
-                className="bg-[#3EE0CF] hover:bg-[#35c9ba] text-black"
+                className="bg-primary hover:bg-primary-dark text-primary-foreground"
                 disabled={createItem.isPending || updateItem.isPending}
               >
                 {selectedItem ? 'Salvar' : 'Criar'}

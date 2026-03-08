@@ -217,7 +217,7 @@ export default function Fornecedores() {
                                 <Eye className="h-4 w-4 mr-2" />
                                 Visualizar
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate(`/fornecedores/${fornecedor.id}/editar`)} className="hover:bg-[#3EE0CF]/10">
+                              <DropdownMenuItem onClick={() => navigate(`/fornecedores/${fornecedor.id}/editar`)} className="hover:bg-primary/10">
                                 <Pencil className="h-4 w-4 mr-2" />
                                 Editar
                               </DropdownMenuItem>
