@@ -227,11 +227,11 @@ export default function OrcamentosDashboard() {
                       )}
                     >
                       <td className="px-6 py-4">
-                        <span className="font-mono text-sm font-medium text-[#3EE0CF]">
+                        <span className="font-mono text-sm font-medium text-primary">
                           {quote.publicId}
                         </span>
                         {quote.version > 1 && (
-                          <span className="ml-1 text-xs text-black/40">v{quote.version}</span>
+                          <span className="ml-1 text-xs text-muted-foreground">v{quote.version}</span>
                         )}
                       </td>
                       <td className="px-6 py-4">
