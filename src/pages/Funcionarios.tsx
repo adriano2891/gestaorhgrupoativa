@@ -1429,7 +1429,7 @@ const Funcionarios = () => {
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div className="space-y-1.5 max-w-xs">
+                <div className="space-y-1.5 max-w-[140px]">
                   <Label className="text-sm">ID (Matrícula)</Label>
                   <Input
                     value={editingEmployee.matricula || '-'}
