@@ -1346,8 +1346,8 @@ const Funcionarios = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => handleEdit(employee.id)}>
-                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 focus-ring" onClick={() => handleEdit(employee.id)} aria-label={`Editar ${employee.name}`}>
+                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                         </Button>
                         <RescisaoCard
                           userId={employee.id}
@@ -1355,8 +1355,8 @@ const Funcionarios = () => {
                           salarioBase={employeeSalaries[employee.id]?.salario || 0}
                           dataAdmissao={employee.admissionDate}
                         />
-                        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => handleDelete(employee.id)}>
-                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 focus-ring" onClick={() => handleDelete(employee.id)} aria-label={`Excluir ${employee.name}`}>
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                         </Button>
                       </div>
                     </TableCell>
