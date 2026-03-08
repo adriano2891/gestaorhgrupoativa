@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, Users, Calendar, Download, Paperclip } from "lucide-react";
+import { Plus, Trash2, Users, Calendar, Download, Paperclip, Upload, X, FileText } from "lucide-react";
 import { useCIPAMembros, useCreateCIPAMembro, useDeleteCIPAMembro, useCIPAReunioes, useCreateCIPAReuniao } from "@/hooks/useSST";
 import { SSTDocumentosPanel } from "./SSTDocumentosPanel";
+import { useUploadSSTDocumento } from "@/hooks/useSSTDocumentos";
 import { gerarPdfCIPAMembro, gerarPdfCIPAReuniao } from "@/utils/sstPdfGenerator";
 import { format, isPast } from "date-fns";
+import { toast } from "sonner";
+
+const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+const MAX_SIZE = 20 * 1024 * 1024;
 
 export const CIPATab = () => {
   const { data: membros, isLoading: loadingMembros } = useCIPAMembros();
@@ -22,9 +28,14 @@ export const CIPATab = () => {
   const createMembro = useCreateCIPAMembro();
   const deleteMembro = useDeleteCIPAMembro();
   const createReuniao = useCreateCIPAReuniao();
+  const uploadDoc = useUploadSSTDocumento();
   const [openMembro, setOpenMembro] = useState(false);
   const [openReuniao, setOpenReuniao] = useState(false);
   const [docsDialog, setDocsDialog] = useState<{ tipo: string; id: string; nome: string } | null>(null);
+  const [pendingFilesMembro, setPendingFilesMembro] = useState<File[]>([]);
+  const [pendingFilesReuniao, setPendingFilesReuniao] = useState<File[]>([]);
+  const membroFileRef = useRef<HTMLInputElement>(null);
+  const reuniaoFileRef = useRef<HTMLInputElement>(null);
 
   const [membroForm, setMembroForm] = useState({
     nome: "", cargo_cipa: "membro", representacao: "empregado",
@@ -38,7 +49,15 @@ export const CIPATab = () => {
   const handleSubmitMembro = () => {
     if (!membroForm.nome || !membroForm.mandato_inicio || !membroForm.mandato_fim) return;
     createMembro.mutate(membroForm as any, {
-      onSuccess: () => { setOpenMembro(false); setMembroForm({ nome: "", cargo_cipa: "membro", representacao: "empregado", tipo: "titular", mandato_inicio: "", mandato_fim: "" }); },
+      onSuccess: (data: any) => {
+        const recordId = data?.[0]?.id;
+        if (recordId && pendingFilesMembro.length > 0) {
+          pendingFilesMembro.forEach(file => uploadDoc.mutate({ file, registroTipo: "cipa_membro", registroId: recordId }));
+        }
+        setOpenMembro(false);
+        setMembroForm({ nome: "", cargo_cipa: "membro", representacao: "empregado", tipo: "titular", mandato_inicio: "", mandato_fim: "" });
+        setPendingFilesMembro([]);
+      },
     });
   };
 
@@ -49,8 +68,30 @@ export const CIPATab = () => {
       pauta: reuniaoForm.pauta || null,
       ata: reuniaoForm.ata || null,
     } as any, {
-      onSuccess: () => { setOpenReuniao(false); setReuniaoForm({ data_reuniao: "", tipo: "ordinaria", pauta: "", ata: "" }); },
+      onSuccess: (data: any) => {
+        const recordId = data?.[0]?.id;
+        if (recordId && pendingFilesReuniao.length > 0) {
+          pendingFilesReuniao.forEach(file => uploadDoc.mutate({ file, registroTipo: "cipa_reuniao", registroId: recordId }));
+        }
+        setOpenReuniao(false);
+        setReuniaoForm({ data_reuniao: "", tipo: "ordinaria", pauta: "", ata: "" });
+        setPendingFilesReuniao([]);
+      },
     });
+  };
+
+  const handleAddFile = (e: React.ChangeEvent<HTMLInputElement>, target: 'membro' | 'reuniao') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_TYPES.includes(file.type)) { toast.error("Formato não permitido. Use PDF, JPG ou PNG."); return; }
+    if (file.size > MAX_SIZE) { toast.error("Arquivo muito grande. Máximo 20MB."); return; }
+    if (target === 'membro') {
+      setPendingFilesMembro(prev => [...prev, file]);
+      if (membroFileRef.current) membroFileRef.current.value = "";
+    } else {
+      setPendingFilesReuniao(prev => [...prev, file]);
+      if (reuniaoFileRef.current) reuniaoFileRef.current.value = "";
+    }
   };
 
   const isLoading = loadingMembros || loadingReunioes;
@@ -234,6 +275,33 @@ export const CIPATab = () => {
                 <Input type="date" value={membroForm.mandato_fim} onChange={e => setMembroForm(p => ({ ...p, mandato_fim: e.target.value }))} />
               </div>
             </div>
+            <Separator />
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="flex items-center gap-1"><Paperclip className="h-3.5 w-3.5" />Anexar Documentos</Label>
+                <div>
+                  <input ref={membroFileRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={e => handleAddFile(e, 'membro')} />
+                  <Button type="button" variant="outline" size="sm" className="gap-1" onClick={() => membroFileRef.current?.click()}>
+                    <Upload className="h-3 w-3" />Adicionar
+                  </Button>
+                </div>
+              </div>
+              {pendingFilesMembro.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-2 border border-dashed rounded-md">Nenhum documento selecionado</p>
+              ) : (
+                <div className="space-y-1">
+                  {pendingFilesMembro.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 p-1.5 rounded border bg-muted/30 text-sm">
+                      <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                      <span className="truncate flex-1">{f.name}</span>
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setPendingFilesMembro(prev => prev.filter((_, idx) => idx !== i))}>
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenMembro(false)}>Cancelar</Button>
@@ -270,6 +338,33 @@ export const CIPATab = () => {
             <div>
               <Label>Ata</Label>
               <Textarea value={reuniaoForm.ata} onChange={e => setReuniaoForm(p => ({ ...p, ata: e.target.value }))} rows={4} />
+            </div>
+            <Separator />
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="flex items-center gap-1"><Paperclip className="h-3.5 w-3.5" />Anexar Documentos</Label>
+                <div>
+                  <input ref={reuniaoFileRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={e => handleAddFile(e, 'reuniao')} />
+                  <Button type="button" variant="outline" size="sm" className="gap-1" onClick={() => reuniaoFileRef.current?.click()}>
+                    <Upload className="h-3 w-3" />Adicionar
+                  </Button>
+                </div>
+              </div>
+              {pendingFilesReuniao.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-2 border border-dashed rounded-md">Nenhum documento selecionado</p>
+              ) : (
+                <div className="space-y-1">
+                  {pendingFilesReuniao.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 p-1.5 rounded border bg-muted/30 text-sm">
+                      <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                      <span className="truncate flex-1">{f.name}</span>
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setPendingFilesReuniao(prev => prev.filter((_, idx) => idx !== i))}>
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
           <DialogFooter>
