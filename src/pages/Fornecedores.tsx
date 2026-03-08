@@ -198,8 +198,8 @@ export default function Fornecedores() {
                           <Badge
                             className={
                               fornecedor.status === 'ativo'
-                                ? 'bg-[#3EE0CF] text-black hover:bg-[#3EE0CF]/90'
-                                : 'bg-black/10 text-black hover:bg-black/20'
+                                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
                             }
                           >
                             {STATUS_FORNECEDOR_LABELS[fornecedor.status]}
