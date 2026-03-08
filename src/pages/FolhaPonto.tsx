@@ -1209,18 +1209,21 @@ const FolhaPonto = () => {
                      <TableHeader>
                         <TableRow>
                           <TableHead className="w-16">Dia</TableHead>
+                          <TableHead>Tipo</TableHead>
                           <TableHead>Entrada</TableHead>
-                          <TableHead>S. P1</TableHead>
-                          <TableHead>R. P1</TableHead>
-                          <TableHead>S. Almoço</TableHead>
-                          <TableHead>R. Almoço</TableHead>
-                          <TableHead>S. P2</TableHead>
-                          <TableHead>R. P2</TableHead>
+                          <TableHead>Saída Pausa 1</TableHead>
+                          <TableHead>Retorno Pausa 1</TableHead>
+                          <TableHead>Saída Almoço</TableHead>
+                          <TableHead>Retorno Almoço</TableHead>
+                          <TableHead>Saída Pausa 2</TableHead>
+                          <TableHead>Retorno Pausa 2</TableHead>
                           <TableHead>Saída</TableHead>
-                          <TableHead>HE Ini</TableHead>
+                          <TableHead>HE Início</TableHead>
                           <TableHead>HE Fim</TableHead>
                           <TableHead>Total</TableHead>
-                          <TableHead>HE</TableHead>
+                          <TableHead>Horas Extras</TableHead>
+                          <TableHead>HE (%)</TableHead>
+                          <TableHead>Horas Noturnas</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead className="w-20">Ações</TableHead>
                         </TableRow>
