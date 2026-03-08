@@ -116,6 +116,7 @@ const GestaoRH = () => {
     '/controle-ferias': () => import("./ControleFerias"),
     '/suporte-funcionarios': () => import("./SuporteFuncionarios"),
     '/documentacoes': () => import("./Documentacoes"),
+    '/saude-seguranca': () => import("./SaudeSeguranca"),
     '/admins': () => import("./GerenciarAdmins"),
   }), []);
 
