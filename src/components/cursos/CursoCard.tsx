@@ -56,6 +56,19 @@ export const CursoCard = ({
   onIniciar,
   onContinuar,
 }: CursoCardProps) => {
+  const [resolvedCapaUrl, setResolvedCapaUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!curso.capa_url) { setResolvedCapaUrl(null); return; }
+    if (curso.capa_url.startsWith("storage:")) {
+      const path = curso.capa_url.replace("storage:", "");
+      supabase.storage.from("cursos").createSignedUrl(path, 7200)
+        .then(({ data }) => { if (data?.signedUrl) setResolvedCapaUrl(data.signedUrl); });
+    } else {
+      setResolvedCapaUrl(curso.capa_url);
+    }
+  }, [curso.capa_url]);
+
   const formatDuration = (minutes: number) => {
     if (minutes < 60) return `${minutes}min`;
     const hours = Math.floor(minutes / 60);
