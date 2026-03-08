@@ -564,7 +564,7 @@ const FolhaPonto = () => {
       autoTable(doc, {
         startY: yPos,
         margin: { left: 10, right: 10 },
-        head: [['Dia', 'Tp', 'Entrada', 'S.P1', 'R.P1', 'S.Alm', 'R.Alm', 'S.P2', 'R.P2', 'Saída', 'HE Ini', 'HE Fim', 'Total', 'HE (%)', 'H.Not', 'St']],
+        head: [['Dia', 'Tipo', 'Entrada', 'Saída Pausa 1', 'Retorno Pausa 1', 'Saída Almoço', 'Retorno Almoço', 'Saída Pausa 2', 'Retorno Pausa 2', 'Saída', 'HE Início', 'HE Fim', 'Total', 'Horas Extras (%)', 'Horas Noturnas', 'Status']],
         body: tableData,
         theme: 'grid',
         styles: { fontSize: 4.5, cellPadding: 0.8, lineWidth: 0.1 },
@@ -645,20 +645,20 @@ const FolhaPonto = () => {
         { header: 'Dia', key: 'dia', width: 8 },
         { header: 'Tipo Dia', key: 'tipo_dia', width: 12 },
         { header: 'Entrada', key: 'entrada', width: 12 },
-        { header: 'S. Pausa 1', key: 'saida_pausa_1', width: 12 },
-        { header: 'R. Pausa 1', key: 'retorno_pausa_1', width: 12 },
+        { header: 'Saída Pausa 1', key: 'saida_pausa_1', width: 14 },
+        { header: 'Retorno Pausa 1', key: 'retorno_pausa_1', width: 16 },
         { header: 'Saída Almoço', key: 'saida_almoco', width: 14 },
         { header: 'Retorno Almoço', key: 'retorno_almoco', width: 16 },
-        { header: 'S. Pausa 2', key: 'saida_pausa_2', width: 12 },
-        { header: 'R. Pausa 2', key: 'retorno_pausa_2', width: 12 },
+        { header: 'Saída Pausa 2', key: 'saida_pausa_2', width: 14 },
+        { header: 'Retorno Pausa 2', key: 'retorno_pausa_2', width: 16 },
         { header: 'Saída', key: 'saida', width: 12 },
         { header: 'HE Início', key: 'inicio_he', width: 12 },
         { header: 'HE Fim', key: 'fim_he', width: 12 },
         { header: 'Total Horas', key: 'total_horas', width: 12 },
-        { header: 'Horas Extras', key: 'horas_extras', width: 12 },
-        { header: '% HE', key: 'percentual_he', width: 8 },
-        { header: 'H. Noturnas', key: 'horas_noturnas', width: 12 },
-        { header: 'H. Not. Fictas', key: 'horas_noturnas_fictas', width: 14 },
+        { header: 'Horas Extras', key: 'horas_extras', width: 14 },
+        { header: 'Percentual HE', key: 'percentual_he', width: 14 },
+        { header: 'Horas Noturnas', key: 'horas_noturnas', width: 14 },
+        { header: 'Horas Noturnas Fictas', key: 'horas_noturnas_fictas', width: 18 },
         { header: 'Status', key: 'status', width: 14 },
       ];
 
@@ -1209,21 +1209,18 @@ const FolhaPonto = () => {
                      <TableHeader>
                         <TableRow>
                           <TableHead className="w-16">Dia</TableHead>
-                          <TableHead>Tipo</TableHead>
                           <TableHead>Entrada</TableHead>
-                          <TableHead>Saída Pausa 1</TableHead>
-                          <TableHead>Retorno Pausa 1</TableHead>
-                          <TableHead>Saída Almoço</TableHead>
-                          <TableHead>Retorno Almoço</TableHead>
-                          <TableHead>Saída Pausa 2</TableHead>
-                          <TableHead>Retorno Pausa 2</TableHead>
+                          <TableHead>S. P1</TableHead>
+                          <TableHead>R. P1</TableHead>
+                          <TableHead>S. Almoço</TableHead>
+                          <TableHead>R. Almoço</TableHead>
+                          <TableHead>S. P2</TableHead>
+                          <TableHead>R. P2</TableHead>
                           <TableHead>Saída</TableHead>
-                          <TableHead>HE Início</TableHead>
+                          <TableHead>HE Ini</TableHead>
                           <TableHead>HE Fim</TableHead>
                           <TableHead>Total</TableHead>
-                          <TableHead>Horas Extras</TableHead>
-                          <TableHead>HE (%)</TableHead>
-                          <TableHead>Horas Noturnas</TableHead>
+                          <TableHead>HE</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead className="w-20">Ações</TableHead>
                         </TableRow>
@@ -1236,10 +1233,6 @@ const FolhaPonto = () => {
                             day.status === "falta" ? "bg-red-50 dark:bg-red-950/20" : ""
                           }>
                             <TableCell className="font-medium">{day.day}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {day.tipo_dia === 'dsr' ? <span className="text-primary font-medium">DSR</span> : 
-                               day.tipo_dia === 'feriado' ? <span className="text-orange-600 font-medium">Feriado</span> : '-'}
-                            </TableCell>
                             <TableCell className="text-sm">{day.entrada || "-"}</TableCell>
                             <TableCell className="text-sm">{day.saida_pausa_1 || "-"}</TableCell>
                             <TableCell className="text-sm">{day.retorno_pausa_1 || "-"}</TableCell>
@@ -1271,8 +1264,6 @@ const FolhaPonto = () => {
                                 <span className="text-yellow-600">{day.horas_extras || "-"}</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{day.percentual_he ? `${day.percentual_he}%` : "-"}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{day.horas_noturnas || "-"}</TableCell>
                             <TableCell>
                               {editingCell?.empId === record.employee_id && editingCell?.day === day.day && editingCell?.field === 'status' ? (
                                 <div className="flex gap-1 items-center">
