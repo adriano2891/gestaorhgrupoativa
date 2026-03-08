@@ -217,7 +217,7 @@ export const RelatoriosCursosDialog = ({
   };
 
   const exportarPDFLegal = async () => {
-    if (!metricas?.funcionariosMatriculados) return;
+    const funcionarios = metricas?.funcionariosMatriculados || [];
     setIsExportingLegal(true);
     try {
       // Buscar dados da empresa
