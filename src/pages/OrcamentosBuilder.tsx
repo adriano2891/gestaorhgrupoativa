@@ -404,7 +404,7 @@ export default function OrcamentosBuilder() {
 
               {isLoadingItens ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3EE0CF]"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
                 </div>
               ) : filteredDbItens.length === 0 ? (
                 <div className="text-center py-8 text-zinc-500">
