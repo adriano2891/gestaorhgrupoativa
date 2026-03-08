@@ -208,7 +208,7 @@ export default function Fornecedores() {
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="hover:bg-[#3EE0CF]/10">
+                              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
