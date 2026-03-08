@@ -340,6 +340,21 @@ export const RelatoriosCursosDialog = ({
             )}
             Baixar PDF
           </Button>
+
+          <Button
+            variant="default"
+            size="sm"
+            onClick={exportarPDFLegal}
+            disabled={isExportingLegal || !metricas?.funcionariosMatriculados?.length}
+            className="w-full sm:w-auto"
+          >
+            {isExportingLegal ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Award className="h-4 w-4 mr-2" />
+            )}
+            PDF Legal (CLT)
+          </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto pr-2">
@@ -399,21 +414,7 @@ export const RelatoriosCursosDialog = ({
                         <p className="text-[10px] sm:text-xs text-muted-foreground">Progresso Médio</p>
                       </CardContent>
                     </Card>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={exportarPDFLegal}
-            disabled={isExportingLegal || !metricas?.funcionariosMatriculados?.length}
-            className="w-full sm:w-auto"
-          >
-            {isExportingLegal ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <Award className="h-4 w-4 mr-2" />
-            )}
-            PDF Legal (CLT)
-          </Button>
-        </div>
+                  </div>
 
                   {/* Visão Geral da Plataforma */}
                   {stats && (
