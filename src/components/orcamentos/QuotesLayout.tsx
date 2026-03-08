@@ -69,9 +69,9 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
             <h2 className="text-xl font-bold text-primary-foreground">Orçamentos</h2>
             <button 
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1 hover:bg-black/10 rounded"
+              className="lg:hidden p-1 hover:bg-primary-foreground/10 rounded"
             >
-              <X className="w-5 h-5 text-black" />
+              <X className="w-5 h-5 text-primary-foreground" />
             </button>
           </div>
 
