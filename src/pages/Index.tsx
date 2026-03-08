@@ -118,7 +118,7 @@ const Index = () => {
                 onClick={() => navigate(module.path)}
               >
                 <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center min-h-[120px]">
-                  <module.icon className="w-12 h-12 md:w-14 md:h-14 text-[#3EE0CF] mb-2" />
+                  <module.icon className="w-12 h-12 md:w-14 md:h-14 text-primary mb-2" />
                   <p className="text-center font-semibold text-gray-800 text-xs md:text-sm leading-tight">
                     {module.title}
                   </p>
