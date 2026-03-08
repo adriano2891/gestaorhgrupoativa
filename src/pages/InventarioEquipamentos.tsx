@@ -322,15 +322,15 @@ const InventarioEquipamentos = () => {
         </Card>
 
         {/* Table */}
-        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg overflow-hidden">
+        <Card className="bg-card/95 backdrop-blur-sm border-border shadow-lg overflow-hidden">
           <CardHeader className="p-3 sm:p-4 md:p-6">
             <CardTitle className="text-base sm:text-lg">Lista de Equipamentos</CardTitle>
           </CardHeader>
           <CardContent className="p-0 sm:p-4 md:p-6 pt-0">
             {isLoading ? (
-              <div className="text-center py-8 text-gray-500 text-sm">Carregando...</div>
+              <div className="text-center py-8 text-muted-foreground text-sm">Carregando...</div>
             ) : filteredEquipamentos.length === 0 ? (
-              <div className="text-center py-8 text-gray-500 text-sm px-4">
+              <div className="text-center py-8 text-muted-foreground text-sm px-4">
                 {search || filterLocalizacao !== "todos" 
                   ? "Nenhum equipamento encontrado."
                   : "Nenhum equipamento cadastrado."}
