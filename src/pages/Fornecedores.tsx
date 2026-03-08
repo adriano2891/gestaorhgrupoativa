@@ -184,11 +184,11 @@ export default function Fornecedores() {
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
                           <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-sm text-black/70">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Phone className="h-3 w-3" />
                               {fornecedor.telefone}
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-black/70">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Mail className="h-3 w-3" />
                               {fornecedor.email}
                             </div>
