@@ -28,8 +28,11 @@ export const CATTab = () => {
   const { data: funcionarios } = useFuncionarios();
   const createCAT = useCreateCAT();
   const updateCAT = useUpdateCAT();
+  const uploadDoc = useUploadSSTDocumento();
   const [open, setOpen] = useState(false);
   const [docsDialogId, setDocsDialogId] = useState<string | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const formFileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     user_id: "", data_acidente: "", hora_acidente: "", tipo: "tipico",
     local_acidente: "", descricao: "", parte_corpo: "", agente_causador: "",
