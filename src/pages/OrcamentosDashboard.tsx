@@ -248,7 +248,7 @@ export default function OrcamentosDashboard() {
                           {QUOTE_STATUS_LABELS[quote.status]}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right font-medium text-black">
+                      <td className="px-6 py-4 text-right font-medium text-foreground">
                         {formatCurrency(quote.financials.total)}
                       </td>
                       <td className="px-6 py-4">
