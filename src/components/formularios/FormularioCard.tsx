@@ -92,7 +92,7 @@ export const FormularioCard = ({ formulario, isTemplate }: FormularioCardProps) 
     <>
       <Card className="group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30">
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
+          <div className="flex items-start justify-between gap-2 overflow-hidden">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="p-2 rounded-lg bg-primary/10 shrink-0">
                 {isTemplate ? (
