@@ -98,7 +98,7 @@ export const RHModuleBar = () => {
         role="navigation"
         aria-label="Módulos de RH"
       >
-        <div className="w-full relative overflow-x-auto overflow-y-hidden scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+        <div className="w-full relative overflow-x-auto overflow-y-hidden rh-module-scrollbar" style={{ WebkitOverflowScrolling: "touch" }}>
           <div className="inline-flex min-w-max items-center gap-2 2xs:gap-3 md:gap-4 px-2 2xs:px-3 md:px-5 py-2.5 sm:py-3">
             {allModules.map((mod) => {
               const isActive = location.pathname === mod.path;
