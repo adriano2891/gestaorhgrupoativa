@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,18 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, AlertTriangle, Download, Paperclip } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Plus, AlertTriangle, Download, Paperclip, Upload, X, FileText } from "lucide-react";
 import { useCATs, useCreateCAT, useUpdateCAT } from "@/hooks/useSST";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { SSTDocumentosPanel } from "./SSTDocumentosPanel";
+import { useUploadSSTDocumento } from "@/hooks/useSSTDocumentos";
 import { gerarPdfCAT } from "@/utils/sstPdfGenerator";
 import { format } from "date-fns";
+import { toast } from "sonner";
+
+const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+const MAX_SIZE = 20 * 1024 * 1024;
 
 export const CATTab = () => {
   const { data: cats, isLoading } = useCATs();
