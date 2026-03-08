@@ -1717,8 +1717,8 @@ const Funcionarios = () => {
               <div className="border-t pt-3 mt-2">
                 <Tabs defaultValue="beneficios" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="beneficios" className="data-[state=active]:bg-[#3ee0cf] data-[state=active]:text-white">Benefícios (VT/VA/VR)</TabsTrigger>
-                    <TabsTrigger value="banco_horas" className="data-[state=active]:bg-[#3ee0cf] data-[state=active]:text-white">Banco de Horas</TabsTrigger>
+                    <TabsTrigger value="beneficios" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Benefícios (VT/VA/VR)</TabsTrigger>
+                    <TabsTrigger value="banco_horas" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Banco de Horas</TabsTrigger>
                   </TabsList>
                   <TabsContent value="beneficios">
                     <BeneficiosCard userId={editingEmployee.id} userName={editingEmployee.name} />

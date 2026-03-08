@@ -100,14 +100,14 @@ export default function OrcamentosDashboard() {
     <QuotesLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-[#3EE0CF] rounded-xl p-4 shadow-md">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-primary rounded-xl p-4 shadow-md">
           <div>
-            <h1 className="text-2xl font-bold text-black">Gestão de Orçamentos</h1>
-            <p className="text-black/70">Gerencie suas propostas comerciais</p>
+            <h1 className="text-2xl font-bold text-primary-foreground">Gestão de Orçamentos</h1>
+            <p className="text-primary-foreground/70">Gerencie suas propostas comerciais</p>
           </div>
           <Button 
             onClick={() => navigate('/orcamentos/novo')}
-            className="bg-black hover:bg-black/90 text-white shadow-lg"
+            className="bg-foreground hover:bg-foreground/90 text-background shadow-lg"
           >
             <Plus className="w-4 h-4 mr-2" />
             Novo Orçamento
@@ -116,71 +116,71 @@ export default function OrcamentosDashboard() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <GlassPanel className="p-4 bg-white border-2 border-[#3EE0CF]">
+          <GlassPanel className="p-4 bg-card border-2 border-primary">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#3EE0CF]/20 rounded-lg">
-                <FileText className="w-5 h-5 text-[#3EE0CF]" />
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <FileText className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-black/60">Total</p>
-                <p className="text-xl font-bold text-black">{totalQuotes}</p>
+                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="text-xl font-bold text-foreground">{totalQuotes}</p>
               </div>
             </div>
           </GlassPanel>
 
-          <GlassPanel className="p-4 bg-white border-2 border-[#3EE0CF]">
+          <GlassPanel className="p-4 bg-card border-2 border-primary">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-black/10 rounded-lg">
-                <Clock className="w-5 h-5 text-black" />
+              <div className="p-2 bg-muted rounded-lg">
+                <Clock className="w-5 h-5 text-foreground" />
               </div>
               <div>
-                <p className="text-sm text-black/60">Pendentes</p>
-                <p className="text-xl font-bold text-black">{pendingQuotes}</p>
+                <p className="text-sm text-muted-foreground">Pendentes</p>
+                <p className="text-xl font-bold text-foreground">{pendingQuotes}</p>
               </div>
             </div>
           </GlassPanel>
 
-          <GlassPanel className="p-4 bg-white border-2 border-[#3EE0CF]">
+          <GlassPanel className="p-4 bg-card border-2 border-primary">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#3EE0CF]/20 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-[#3EE0CF]" />
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <CheckCircle className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-black/60">Aprovados</p>
-                <p className="text-xl font-bold text-black">{approvedQuotes}</p>
+                <p className="text-sm text-muted-foreground">Aprovados</p>
+                <p className="text-xl font-bold text-foreground">{approvedQuotes}</p>
               </div>
             </div>
           </GlassPanel>
 
-          <GlassPanel className="p-4 bg-white border-2 border-[#3EE0CF]">
+          <GlassPanel className="p-4 bg-card border-2 border-primary">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#3EE0CF]/20 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-[#3EE0CF]" />
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-black/60">Valor Total</p>
-                <p className="text-lg font-bold text-black">{formatCurrency(totalValue)}</p>
+                <p className="text-sm text-muted-foreground">Valor Total</p>
+                <p className="text-lg font-bold text-foreground">{formatCurrency(totalValue)}</p>
               </div>
             </div>
           </GlassPanel>
         </div>
 
         {/* Filters */}
-        <GlassPanel className="p-4 bg-white border border-black/10">
+        <GlassPanel className="p-4 bg-card border border-border">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por cliente ou ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white border-black/20 focus:border-[#3EE0CF]"
+                className="pl-10 bg-background border-border focus:border-primary"
               />
             </div>
             <div className="flex items-center gap-2">
-              <Filter className="w-4 h-4 text-black/40" />
+              <Filter className="w-4 h-4 text-muted-foreground" />
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-48 bg-white border-black/20">
+                <SelectTrigger className="w-48 bg-background border-border">
                   <SelectValue placeholder="Filtrar por status" />
                 </SelectTrigger>
                 <SelectContent className="bg-white">
@@ -195,23 +195,23 @@ export default function OrcamentosDashboard() {
         </GlassPanel>
 
         {/* Quotes Table */}
-        <GlassPanel className="overflow-hidden bg-white border border-black/10">
+        <GlassPanel className="overflow-hidden bg-card border border-border">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-[#3EE0CF]/10 border-b border-[#3EE0CF]/30">
+              <thead className="bg-primary/10 border-b border-primary/30">
                 <tr>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-black">ID</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-black">Cliente</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-black">Data</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-black">Status</th>
-                  <th className="text-right px-6 py-4 text-sm font-semibold text-black">Valor</th>
-                  <th className="text-center px-6 py-4 text-sm font-semibold text-black">Ações</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-foreground">ID</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-foreground">Cliente</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-foreground">Data</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-foreground">Status</th>
+                  <th className="text-right px-6 py-4 text-sm font-semibold text-foreground">Valor</th>
+                  <th className="text-center px-6 py-4 text-sm font-semibold text-foreground">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredQuotes.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-12 text-black/60">
+                    <td colSpan={6} className="text-center py-12 text-muted-foreground">
                       {quotes.length === 0 
                         ? 'Nenhum orçamento criado ainda. Clique em "Novo Orçamento" para começar.'
                         : 'Nenhum orçamento encontrado com os filtros aplicados.'}
@@ -222,22 +222,22 @@ export default function OrcamentosDashboard() {
                     <tr 
                       key={quote.id} 
                       className={cn(
-                        "border-b border-black/5 hover:bg-[#3EE0CF]/5 transition-colors",
-                        index % 2 === 0 ? 'bg-white' : 'bg-black/[0.02]'
+                        "border-b border-border hover:bg-primary/5 transition-colors",
+                        index % 2 === 0 ? 'bg-card' : 'bg-muted/30'
                       )}
                     >
                       <td className="px-6 py-4">
-                        <span className="font-mono text-sm font-medium text-[#3EE0CF]">
+                        <span className="font-mono text-sm font-medium text-primary">
                           {quote.publicId}
                         </span>
                         {quote.version > 1 && (
-                          <span className="ml-1 text-xs text-black/40">v{quote.version}</span>
+                          <span className="ml-1 text-xs text-muted-foreground">v{quote.version}</span>
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-medium text-black">{quote.clientName}</span>
+                        <span className="font-medium text-foreground">{quote.clientName}</span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-black/70">
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
                         {format(quote.createdAt, "dd/MM/yyyy", { locale: ptBR })}
                       </td>
                       <td className="px-6 py-4">
@@ -248,7 +248,7 @@ export default function OrcamentosDashboard() {
                           {QUOTE_STATUS_LABELS[quote.status]}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right font-medium text-black">
+                      <td className="px-6 py-4 text-right font-medium text-foreground">
                         {formatCurrency(quote.financials.total)}
                       </td>
                       <td className="px-6 py-4">
@@ -257,7 +257,7 @@ export default function OrcamentosDashboard() {
                             variant="ghost"
                             size="icon"
                             onClick={() => navigate(`/orcamentos/${quote.id}`)}
-                            className="h-8 w-8 hover:bg-[#3EE0CF]/10"
+                            className="h-8 w-8 hover:bg-primary/10"
                           >
                             <Eye className="w-4 h-4" />
                           </Button>
@@ -265,26 +265,26 @@ export default function OrcamentosDashboard() {
                             variant="ghost"
                             size="icon"
                             onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}
-                            className="h-8 w-8 hover:bg-[#3EE0CF]/10"
+                            className="h-8 w-8 hover:bg-primary/10"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[#3EE0CF]/10">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
                                 <MoreVertical className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-white border border-black/10">
-                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)} className="hover:bg-[#3EE0CF]/10">
+                            <DropdownMenuContent align="end" className="bg-card border border-border">
+                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)} className="hover:bg-primary/10">
                                 <Eye className="w-4 h-4 mr-2" />
                                 Ver Detalhes
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)} className="hover:bg-[#3EE0CF]/10">
+                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)} className="hover:bg-primary/10">
                                 <Edit className="w-4 h-4 mr-2" />
                                 Editar
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDownloadPdf(quote)} className="hover:bg-[#3EE0CF]/10">
+                              <DropdownMenuItem onClick={() => handleDownloadPdf(quote)} className="hover:bg-primary/10">
                                 <FileDown className="w-4 h-4 mr-2" />
                                 Baixar PDF
                               </DropdownMenuItem>
