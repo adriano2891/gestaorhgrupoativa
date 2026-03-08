@@ -271,7 +271,7 @@ export default function OrcamentosDashboard() {
                           </Button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-[#3EE0CF]/10">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
                                 <MoreVertical className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>
