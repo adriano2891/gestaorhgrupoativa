@@ -90,7 +90,7 @@ const Index = () => {
     const bottomModules = modules.slice(4);
     
     return (
-      <div className="min-h-[calc(100vh-180px)] relative overflow-hidden" style={{ backgroundColor: '#3EE0CF' }}>
+      <div className="min-h-[calc(100vh-180px)] relative overflow-hidden bg-primary">
         {/* Cabeçalho */}
         <div className="text-center pt-8 pb-6 space-y-1 relative z-10 px-4">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Dashboard</h1>
