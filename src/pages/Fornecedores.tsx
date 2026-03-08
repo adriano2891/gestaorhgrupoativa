@@ -213,7 +213,7 @@ export default function Fornecedores() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-white border border-black/10">
-                              <DropdownMenuItem onClick={() => navigate(`/fornecedores/${fornecedor.id}`)} className="hover:bg-[#3EE0CF]/10">
+                              <DropdownMenuItem onClick={() => navigate(`/fornecedores/${fornecedor.id}`)} className="hover:bg-primary/10">
                                 <Eye className="h-4 w-4 mr-2" />
                                 Visualizar
                               </DropdownMenuItem>
