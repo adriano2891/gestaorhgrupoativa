@@ -115,6 +115,7 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
         carga_horaria: curso.carga_horaria,
         instrutor: curso.instrutor || "",
         obrigatorio: curso.obrigatorio,
+        curso_livre: (curso as any).curso_livre || false,
         recorrente: curso.recorrente,
         meses_recorrencia: curso.meses_recorrencia || 12,
         nota_minima: curso.nota_minima,
