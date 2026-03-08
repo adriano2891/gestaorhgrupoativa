@@ -88,8 +88,6 @@ export const RelatoriosCursosDialog = ({
   }, [open, queryClient]);
 
   const exportarCSV = async () => {
-    if (!metricas?.funcionariosMatriculados) return;
-
     setIsExporting(true);
     try {
       const headers = [
@@ -103,7 +101,8 @@ export const RelatoriosCursosDialog = ({
         "Concluído (100%)",
       ];
 
-      const rows = metricas.funcionariosMatriculados.map((f) => [
+      const funcionarios = metricas?.funcionariosMatriculados || [];
+      const rows = funcionarios.map((f) => [
         f.nome,
         f.email,
         f.departamento,
@@ -131,7 +130,7 @@ export const RelatoriosCursosDialog = ({
   };
 
   const exportarPDF = async () => {
-    if (!metricas?.funcionariosMatriculados) return;
+    const funcionarios = metricas?.funcionariosMatriculados || [];
 
     setIsExportingPDF(true);
     try {
@@ -197,7 +196,7 @@ export const RelatoriosCursosDialog = ({
       autoTable(doc, {
         startY: y,
         head: [["Funcionário", "Departamento", "Curso", "Progresso", "Status"]],
-        body: metricas.funcionariosMatriculados.map((f) => [
+        body: funcionarios.map((f) => [
           f.nome,
           f.departamento,
           f.curso,
@@ -218,7 +217,7 @@ export const RelatoriosCursosDialog = ({
   };
 
   const exportarPDFLegal = async () => {
-    if (!metricas?.funcionariosMatriculados) return;
+    const funcionarios = metricas?.funcionariosMatriculados || [];
     setIsExportingLegal(true);
     try {
       // Buscar dados da empresa
@@ -240,7 +239,7 @@ export const RelatoriosCursosDialog = ({
       }
 
       // Buscar matrículas com confirmação
-      const matriculaIds = metricas.funcionariosMatriculados.map(f => f.id);
+      const matriculaIds = funcionarios.map(f => f.id);
       let matriculasConfirmacao: any[] = [];
       if (matriculaIds.length > 0) {
         const { data } = await supabase
@@ -260,7 +259,7 @@ export const RelatoriosCursosDialog = ({
         normaRegulamentadora: (cursoSelecionado as any)?.norma_regulamentadora || undefined,
         cnpjEmpresa: empresa?.cnpj || undefined,
         razaoSocial: empresa?.razao_social || undefined,
-        funcionarios: metricas.funcionariosMatriculados.map(f => {
+        funcionarios: funcionarios.map(f => {
           const conf = confirmMap.get(f.id);
           return {
             nome: f.nome,
@@ -315,7 +314,7 @@ export const RelatoriosCursosDialog = ({
             variant="outline"
             size="sm"
             onClick={exportarCSV}
-            disabled={isExporting || !metricas?.funcionariosMatriculados?.length}
+            disabled={isExporting}
             className="w-full sm:w-auto"
           >
             {isExporting ? (
@@ -330,7 +329,7 @@ export const RelatoriosCursosDialog = ({
             variant="outline"
             size="sm"
             onClick={exportarPDF}
-            disabled={isExportingPDF || !metricas?.funcionariosMatriculados?.length}
+            disabled={isExportingPDF}
             className="w-full sm:w-auto"
           >
             {isExportingPDF ? (
@@ -345,7 +344,7 @@ export const RelatoriosCursosDialog = ({
             variant="default"
             size="sm"
             onClick={exportarPDFLegal}
-            disabled={isExportingLegal || !metricas?.funcionariosMatriculados?.length}
+            disabled={isExportingLegal}
             className="w-full sm:w-auto"
           >
             {isExportingLegal ? (
