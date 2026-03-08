@@ -74,12 +74,12 @@ export default function Fornecedores() {
               <div className="text-sm text-muted-foreground">Total</div>
             </CardContent>
           </Card>
-          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
+          <Card className="bg-card border-2 border-primary shadow-sm">
             <CardContent className="p-4">
-              <div className="text-2xl font-bold text-[#3EE0CF]">
+              <div className="text-2xl font-bold text-primary">
                 {fornecedores.filter(f => f.status === 'ativo').length}
               </div>
-              <div className="text-sm text-black/60">Ativos</div>
+              <div className="text-sm text-muted-foreground">Ativos</div>
             </CardContent>
           </Card>
           <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
