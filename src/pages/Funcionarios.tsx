@@ -1264,8 +1264,8 @@ const Funcionarios = () => {
           </div>
         </CardHeader>
         <CardContent className="p-0 sm:p-4 md:p-6 pt-0">
-          <div className="overflow-x-auto">
-            <Table className="min-w-[700px]">
+          <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <Table className="min-w-[700px]" aria-label="Lista de funcionários">
               <TableHeader>
                 <TableRow>
                 <TableHead className="text-xs sm:text-sm w-[80px]">ID</TableHead>

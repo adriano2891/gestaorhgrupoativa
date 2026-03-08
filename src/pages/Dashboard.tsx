@@ -282,34 +282,25 @@ const Dashboard = () => {
         <div className="hidden lg:block xl:hidden relative" style={{ width: '600px', height: '450px' }}>
           {modules.map((module, index) => {
             const { x, y } = getModulePosition(index, modules.length, 220);
-            
             return (
-              <div
+              <button
                 key={module.id}
-                className={`absolute module-icon-container ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-                style={{
-                  left: '50%',
-                  top: '50%',
-                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                }}
+                disabled={module.disabled}
+                className={`absolute module-icon-container focus-ring rounded-xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
                 onClick={() => !module.disabled && module.route && navigate(module.route)}
                 onMouseEnter={() => handlePrefetch(module.route)}
+                aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
               >
                 <div className="flex flex-col items-center">
-                  <div 
-                    className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-3 ring-white/30"
-                    style={{ width: '96px', height: '96px' }}
-                  >
-                    <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
+                  <div className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-3 ring-primary-foreground/30" style={{ width: '96px', height: '96px' }}>
+                    <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-cover" />
                   </div>
-                  <p 
-                    className="text-center mt-2 font-semibold text-white text-xs max-w-[100px] leading-tight"
-                    style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}
-                  >
+                  <p className="text-center mt-2 font-semibold text-primary-foreground text-xs max-w-[100px] leading-tight" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
                     {module.label}
                   </p>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -318,34 +309,25 @@ const Dashboard = () => {
         <div className="hidden md:block lg:hidden relative" style={{ width: '500px', height: '400px' }}>
           {modules.map((module, index) => {
             const { x, y } = getModulePosition(index, modules.length, 180);
-            
             return (
-              <div
+              <button
                 key={module.id}
-                className={`absolute module-icon-container ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-                style={{
-                  left: '50%',
-                  top: '50%',
-                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                }}
+                disabled={module.disabled}
+                className={`absolute module-icon-container focus-ring rounded-xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
                 onClick={() => !module.disabled && module.route && navigate(module.route)}
                 onMouseEnter={() => handlePrefetch(module.route)}
+                aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
               >
                 <div className="flex flex-col items-center">
-                  <div 
-                    className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
-                    style={{ width: '80px', height: '80px' }}
-                  >
-                    <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
+                  <div className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-primary-foreground/30" style={{ width: '80px', height: '80px' }}>
+                    <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-cover" />
                   </div>
-                  <p 
-                    className="text-center mt-2 font-semibold text-white text-[10px] max-w-[80px] leading-tight"
-                    style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}
-                  >
+                  <p className="text-center mt-2 font-semibold text-primary-foreground text-[10px] max-w-[80px] leading-tight" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
                     {module.label}
                   </p>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -354,34 +336,25 @@ const Dashboard = () => {
         <div className="hidden sm:block md:hidden relative" style={{ width: '380px', height: '340px' }}>
           {modules.map((module, index) => {
             const { x, y } = getModulePosition(index, modules.length, 140);
-            
             return (
-              <div
+              <button
                 key={module.id}
-                className={`absolute module-icon-container ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-                style={{
-                  left: '50%',
-                  top: '50%',
-                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                }}
+                disabled={module.disabled}
+                className={`absolute module-icon-container focus-ring rounded-xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
                 onClick={() => !module.disabled && module.route && navigate(module.route)}
                 onMouseEnter={() => handlePrefetch(module.route)}
+                aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
               >
                 <div className="flex flex-col items-center">
-                  <div 
-                    className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-white/30"
-                    style={{ width: '68px', height: '68px' }}
-                  >
-                    <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
+                  <div className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-primary-foreground/30" style={{ width: '68px', height: '68px' }}>
+                    <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-cover" />
                   </div>
-                  <p 
-                    className="text-center mt-2 font-semibold text-white text-[9px] max-w-[70px] leading-tight"
-                    style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.4)' }}
-                  >
+                  <p className="text-center mt-2 font-semibold text-primary-foreground text-[9px] max-w-[70px] leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.4)' }}>
                     {module.label}
                   </p>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
