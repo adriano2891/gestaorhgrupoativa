@@ -201,7 +201,7 @@ export default function OrcamentosClienteForm() {
             <div className="space-y-6">
               <GlassPanel className="p-6">
                 <div className="flex items-center gap-2 mb-4">
-                  <Building2 className="w-5 h-5 text-[#3EE0CF]" />
+                  <Building2 className="w-5 h-5 text-primary" />
                   <h2 className="text-lg font-semibold text-zinc-800">Dados Básicos</h2>
                 </div>
                 
