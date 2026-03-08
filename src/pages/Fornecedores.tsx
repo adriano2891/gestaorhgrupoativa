@@ -178,7 +178,7 @@ export default function Fornecedores() {
                           </div>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
-                          <Badge variant="outline" className="border-black/20 text-black">
+                          <Badge variant="outline" className="border-border text-foreground">
                             {TIPO_FORNECEDOR_LABELS[fornecedor.tipo_fornecedor]}
                           </Badge>
                         </TableCell>
