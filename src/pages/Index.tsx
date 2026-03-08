@@ -257,7 +257,7 @@ const Index = () => {
             onClick={() => navigate("/comunicados")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
-              <Bell className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
+              <Bell className="w-12 h-12 lg:w-16 lg:h-16 text-primary" />
             </div>
             <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Comunicados</p>
           </div>
