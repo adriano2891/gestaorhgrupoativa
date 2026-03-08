@@ -284,7 +284,7 @@ export default function OrcamentosDashboard() {
                                 <Edit className="w-4 h-4 mr-2" />
                                 Editar
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleDownloadPdf(quote)} className="hover:bg-[#3EE0CF]/10">
+                              <DropdownMenuItem onClick={() => handleDownloadPdf(quote)} className="hover:bg-primary/10">
                                 <FileDown className="w-4 h-4 mr-2" />
                                 Baixar PDF
                               </DropdownMenuItem>
