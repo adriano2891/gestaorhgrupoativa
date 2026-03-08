@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, Users, Calendar, Download, Paperclip } from "lucide-react";
+import { Plus, Trash2, Users, Calendar, Download, Paperclip, Upload, X, FileText } from "lucide-react";
 import { useCIPAMembros, useCreateCIPAMembro, useDeleteCIPAMembro, useCIPAReunioes, useCreateCIPAReuniao } from "@/hooks/useSST";
 import { SSTDocumentosPanel } from "./SSTDocumentosPanel";
+import { useUploadSSTDocumento } from "@/hooks/useSSTDocumentos";
 import { gerarPdfCIPAMembro, gerarPdfCIPAReuniao } from "@/utils/sstPdfGenerator";
 import { format, isPast } from "date-fns";
+import { toast } from "sonner";
+
+const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+const MAX_SIZE = 20 * 1024 * 1024;
 
 export const CIPATab = () => {
   const { data: membros, isLoading: loadingMembros } = useCIPAMembros();
