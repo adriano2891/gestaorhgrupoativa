@@ -1209,21 +1209,18 @@ const FolhaPonto = () => {
                      <TableHeader>
                         <TableRow>
                           <TableHead className="w-16">Dia</TableHead>
-                          <TableHead>Tipo</TableHead>
                           <TableHead>Entrada</TableHead>
-                          <TableHead>Saída Pausa 1</TableHead>
-                          <TableHead>Retorno Pausa 1</TableHead>
-                          <TableHead>Saída Almoço</TableHead>
-                          <TableHead>Retorno Almoço</TableHead>
-                          <TableHead>Saída Pausa 2</TableHead>
-                          <TableHead>Retorno Pausa 2</TableHead>
+                          <TableHead>S. P1</TableHead>
+                          <TableHead>R. P1</TableHead>
+                          <TableHead>S. Almoço</TableHead>
+                          <TableHead>R. Almoço</TableHead>
+                          <TableHead>S. P2</TableHead>
+                          <TableHead>R. P2</TableHead>
                           <TableHead>Saída</TableHead>
-                          <TableHead>HE Início</TableHead>
+                          <TableHead>HE Ini</TableHead>
                           <TableHead>HE Fim</TableHead>
                           <TableHead>Total</TableHead>
-                          <TableHead>Horas Extras</TableHead>
-                          <TableHead>HE (%)</TableHead>
-                          <TableHead>Horas Noturnas</TableHead>
+                          <TableHead>HE</TableHead>
                           <TableHead>Status</TableHead>
                           <TableHead className="w-20">Ações</TableHead>
                         </TableRow>
@@ -1236,10 +1233,6 @@ const FolhaPonto = () => {
                             day.status === "falta" ? "bg-red-50 dark:bg-red-950/20" : ""
                           }>
                             <TableCell className="font-medium">{day.day}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {day.tipo_dia === 'dsr' ? <span className="text-primary font-medium">DSR</span> : 
-                               day.tipo_dia === 'feriado' ? <span className="text-orange-600 font-medium">Feriado</span> : '-'}
-                            </TableCell>
                             <TableCell className="text-sm">{day.entrada || "-"}</TableCell>
                             <TableCell className="text-sm">{day.saida_pausa_1 || "-"}</TableCell>
                             <TableCell className="text-sm">{day.retorno_pausa_1 || "-"}</TableCell>
@@ -1271,8 +1264,6 @@ const FolhaPonto = () => {
                                 <span className="text-yellow-600">{day.horas_extras || "-"}</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{day.percentual_he ? `${day.percentual_he}%` : "-"}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">{day.horas_noturnas || "-"}</TableCell>
                             <TableCell>
                               {editingCell?.empId === record.employee_id && editingCell?.day === day.day && editingCell?.field === 'status' ? (
                                 <div className="flex gap-1 items-center">
