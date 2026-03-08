@@ -248,9 +248,10 @@ const GestaoRH = () => {
           />
           <button
             onClick={handleLogout}
-            className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity touch-target"
+            aria-label="Sair do sistema"
+            className="flex items-center gap-1 text-primary-foreground hover:opacity-80 transition-opacity touch-target focus-ring rounded-md"
           >
-            <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+            <LogOut className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
             <span className="text-xs sm:text-sm">Sair</span>
           </button>
         </div>
@@ -331,9 +332,10 @@ const GestaoRH = () => {
         </div>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity self-start flex-shrink-0"
+          aria-label="Sair do sistema"
+          className="flex items-center gap-2 text-primary-foreground hover:opacity-80 transition-opacity self-start flex-shrink-0 focus-ring rounded-md"
         >
-          <LogOut className="w-5 h-5 lg:w-6 lg:h-6" />
+          <LogOut className="w-5 h-5 lg:w-6 lg:h-6" aria-hidden="true" />
           <span className="text-sm lg:text-lg font-medium">Sair</span>
         </button>
       </div>
