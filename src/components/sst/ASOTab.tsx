@@ -26,8 +26,11 @@ export const ASOTab = () => {
   const { data: funcionarios } = useFuncionarios();
   const createASO = useCreateASO();
   const deleteASO = useDeleteASO();
+  const uploadDoc = useUploadSSTDocumento();
   const [open, setOpen] = useState(false);
   const [docsDialogId, setDocsDialogId] = useState<string | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const formFileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     user_id: "", tipo: "periodico", data_exame: "", data_vencimento: "",
     resultado: "apto", medico_nome: "", crm: "", observacoes: "",
