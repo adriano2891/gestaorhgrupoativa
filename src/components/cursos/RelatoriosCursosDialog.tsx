@@ -88,8 +88,6 @@ export const RelatoriosCursosDialog = ({
   }, [open, queryClient]);
 
   const exportarCSV = async () => {
-    if (!metricas?.funcionariosMatriculados) return;
-
     setIsExporting(true);
     try {
       const headers = [
@@ -103,7 +101,8 @@ export const RelatoriosCursosDialog = ({
         "Concluído (100%)",
       ];
 
-      const rows = metricas.funcionariosMatriculados.map((f) => [
+      const funcionarios = metricas?.funcionariosMatriculados || [];
+      const rows = funcionarios.map((f) => [
         f.nome,
         f.email,
         f.departamento,
