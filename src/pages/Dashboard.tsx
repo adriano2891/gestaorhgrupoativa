@@ -246,9 +246,10 @@ const Dashboard = () => {
             const { x, y } = getModulePosition(index, modules.length, 260);
             
             return (
-              <div
+              <button
                 key={module.id}
-                className={`absolute module-icon-container ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+                disabled={module.disabled}
+                className={`absolute module-icon-container focus-ring rounded-xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
                 style={{
                   left: '50%',
                   top: '50%',
@@ -256,22 +257,23 @@ const Dashboard = () => {
                 }}
                 onClick={() => !module.disabled && module.route && navigate(module.route)}
                 onMouseEnter={() => handlePrefetch(module.route)}
+                aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
               >
                 <div className="flex flex-col items-center">
                   <div 
-                    className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-white/30"
+                    className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-primary-foreground/30"
                     style={{ width: '112px', height: '112px' }}
                   >
-                    <img src={module.icon} alt={module.label} className="w-full h-full object-cover" />
+                    <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-cover" />
                   </div>
                   <p 
-                    className="text-center mt-3 font-semibold text-white text-sm max-w-[120px] leading-tight"
+                    className="text-center mt-3 font-semibold text-primary-foreground text-sm max-w-[120px] leading-tight"
                     style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}
                   >
                     {module.label}
                   </p>
                 </div>
-              </div>
+              </button>
             );
           })}
         </div>
