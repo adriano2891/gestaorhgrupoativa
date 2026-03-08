@@ -313,7 +313,7 @@ export default function OrcamentosBuilder() {
                     <Button
                       type="button"
                       onClick={() => navigate('/orcamentos/clientes/novo')}
-                      className="bg-[#3EE0CF] hover:bg-[#35c9ba] text-black shrink-0"
+                      className="bg-primary hover:bg-primary-dark text-primary-foreground shrink-0"
                     >
                       <UserPlus className="w-4 h-4 mr-2" />
                       Adicionar Cliente
