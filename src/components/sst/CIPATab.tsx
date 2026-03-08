@@ -10,8 +10,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, Users, Calendar } from "lucide-react";
+import { Plus, Trash2, Users, Calendar, Download, Paperclip } from "lucide-react";
 import { useCIPAMembros, useCreateCIPAMembro, useDeleteCIPAMembro, useCIPAReunioes, useCreateCIPAReuniao } from "@/hooks/useSST";
+import { SSTDocumentosPanel } from "./SSTDocumentosPanel";
+import { gerarPdfCIPAMembro, gerarPdfCIPAReuniao } from "@/utils/sstPdfGenerator";
 import { format, isPast } from "date-fns";
 
 export const CIPATab = () => {
@@ -22,6 +24,7 @@ export const CIPATab = () => {
   const createReuniao = useCreateCIPAReuniao();
   const [openMembro, setOpenMembro] = useState(false);
   const [openReuniao, setOpenReuniao] = useState(false);
+  const [docsDialog, setDocsDialog] = useState<{ tipo: string; id: string; nome: string } | null>(null);
 
   const [membroForm, setMembroForm] = useState({
     nome: "", cargo_cipa: "membro", representacao: "empregado",
@@ -89,7 +92,7 @@ export const CIPATab = () => {
                     <TableHead>Tipo</TableHead>
                     <TableHead>Mandato</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead></TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -114,9 +117,17 @@ export const CIPATab = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Button variant="ghost" size="icon" onClick={() => deleteMembro.mutate(m.id)}>
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => setDocsDialog({ tipo: "cipa_membro", id: m.id, nome: m.nome })} title="Documentos">
+                            <Paperclip className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => gerarPdfCIPAMembro(m)} title="Baixar PDF">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => deleteMembro.mutate(m.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -139,6 +150,7 @@ export const CIPATab = () => {
                     <TableHead>Tipo</TableHead>
                     <TableHead>Pauta</TableHead>
                     <TableHead>Ata</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -150,6 +162,16 @@ export const CIPATab = () => {
                       </TableCell>
                       <TableCell className="max-w-[300px] truncate text-sm">{r.pauta || "—"}</TableCell>
                       <TableCell className="max-w-[300px] truncate text-sm">{r.ata || "—"}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-end gap-1">
+                          <Button variant="ghost" size="icon" onClick={() => setDocsDialog({ tipo: "cipa_reuniao", id: r.id, nome: format(new Date(r.data_reuniao), "dd/MM/yyyy") })} title="Documentos">
+                            <Paperclip className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => gerarPdfCIPAReuniao(r)} title="Baixar PDF">
+                            <Download className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -254,6 +276,18 @@ export const CIPATab = () => {
             <Button variant="outline" onClick={() => setOpenReuniao(false)}>Cancelar</Button>
             <Button onClick={handleSubmitReuniao} disabled={createReuniao.isPending}>Salvar</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Documentos */}
+      <Dialog open={!!docsDialog} onOpenChange={(o) => !o && setDocsDialog(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Documentos — {docsDialog?.nome || ""}</DialogTitle>
+          </DialogHeader>
+          {docsDialog && (
+            <SSTDocumentosPanel registroTipo={docsDialog.tipo} registroId={docsDialog.id} />
+          )}
         </DialogContent>
       </Dialog>
     </Card>

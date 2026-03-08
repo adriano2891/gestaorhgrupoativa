@@ -8,9 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, AlertTriangle, CheckCircle } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Trash2, AlertTriangle, CheckCircle, Download, Paperclip } from "lucide-react";
 import { useASOs, useCreateASO, useDeleteASO } from "@/hooks/useSST";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
+import { SSTDocumentosPanel } from "./SSTDocumentosPanel";
+import { gerarPdfASO } from "@/utils/sstPdfGenerator";
 import { format, isPast, addDays } from "date-fns";
 
 export const ASOTab = () => {
@@ -19,6 +22,7 @@ export const ASOTab = () => {
   const createASO = useCreateASO();
   const deleteASO = useDeleteASO();
   const [open, setOpen] = useState(false);
+  const [docsDialogId, setDocsDialogId] = useState<string | null>(null);
   const [form, setForm] = useState({
     user_id: "", tipo: "periodico", data_exame: "", data_vencimento: "",
     resultado: "apto", medico_nome: "", crm: "", observacoes: "",
@@ -56,6 +60,8 @@ export const ASOTab = () => {
 
   if (isLoading) return <Skeleton className="h-64 w-full" />;
 
+  const selectedAso = asos?.find(a => a.id === docsDialogId);
+
   return (
     <Card>
       <CardHeader>
@@ -82,7 +88,7 @@ export const ASOTab = () => {
                   <TableHead>Resultado</TableHead>
                   <TableHead>Médico</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -100,9 +106,17 @@ export const ASOTab = () => {
                     <TableCell className="text-sm">{aso.medico_nome || "—"}{aso.crm ? ` (CRM ${aso.crm})` : ""}</TableCell>
                     <TableCell>{getStatusBadge(aso)}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => deleteASO.mutate(aso.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => setDocsDialogId(aso.id)} title="Documentos">
+                          <Paperclip className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => gerarPdfASO(aso)} title="Baixar PDF">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteASO.mutate(aso.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -112,6 +126,7 @@ export const ASOTab = () => {
         )}
       </CardContent>
 
+      {/* Dialog Novo ASO */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Registrar ASO</DialogTitle></DialogHeader>
@@ -182,6 +197,18 @@ export const ASOTab = () => {
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={handleSubmit} disabled={createASO.isPending}>Salvar</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Documentos */}
+      <Dialog open={!!docsDialogId} onOpenChange={(o) => !o && setDocsDialogId(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Documentos — ASO {selectedAso?._nome || ""}</DialogTitle>
+          </DialogHeader>
+          {docsDialogId && (
+            <SSTDocumentosPanel registroTipo="aso" registroId={docsDialogId} />
+          )}
         </DialogContent>
       </Dialog>
     </Card>
