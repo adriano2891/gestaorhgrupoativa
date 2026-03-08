@@ -251,10 +251,10 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
               className="bg-card rounded-lg border border-border border-l-[3px] border-l-primary px-3 py-3 sm:px-3.5 sm:py-3.5 min-h-[84px] flex items-start justify-between gap-2"
             >
               <div className="min-w-0 flex-1">
-                <p className="text-[9px] sm:text-[10px] font-semibold text-foreground/80 uppercase tracking-[0.28em] leading-tight">
+                <p className="text-[11px] sm:text-xs font-semibold text-foreground/80 uppercase tracking-[0.18em] leading-tight" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
                   {key}
                 </p>
-                <p className="mt-1 text-base sm:text-lg font-bold text-primary break-words leading-tight">
+                <p className="mt-1 text-lg sm:text-xl font-bold text-primary break-words leading-tight" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
                   {value as string}
                 </p>
               </div>
