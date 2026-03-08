@@ -232,7 +232,7 @@ const InventarioEquipamentos = () => {
                     <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                       Cancelar
                     </Button>
-                    <Button type="submit" className="bg-black hover:bg-black/90 text-white">
+                    <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">
                       {editingEquipamento ? "Salvar" : "Cadastrar"}
                     </Button>
                   </div>
