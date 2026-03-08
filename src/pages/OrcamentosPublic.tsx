@@ -332,7 +332,7 @@ export default function OrcamentosPublic() {
                     >
                       {isValidating ? (
                         <div className="text-zinc-500">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3EE0CF] mx-auto mb-2" />
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
                           <p>Processando...</p>
                         </div>
                       ) : (
