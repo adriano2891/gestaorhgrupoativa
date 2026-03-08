@@ -155,9 +155,9 @@ export default function Fornecedores() {
                   <TableHeader>
                     <TableRow className="bg-primary/10 border-b border-primary/30">
                       <TableHead className="text-foreground font-semibold">Fornecedor</TableHead>
-                      <TableHead className="hidden md:table-cell text-black font-semibold">Tipo</TableHead>
-                      <TableHead className="hidden lg:table-cell text-black font-semibold">Contato</TableHead>
-                      <TableHead className="text-black font-semibold">Status</TableHead>
+                      <TableHead className="hidden md:table-cell text-foreground font-semibold">Tipo</TableHead>
+                      <TableHead className="hidden lg:table-cell text-foreground font-semibold">Contato</TableHead>
+                      <TableHead className="text-foreground font-semibold">Status</TableHead>
                       <TableHead className="w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
