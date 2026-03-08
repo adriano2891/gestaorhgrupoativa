@@ -246,48 +246,48 @@ const InventarioEquipamentos = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-[#3EE0CF]/20 rounded-full flex-shrink-0">
-                <Monitor className="h-5 w-5 text-[#3EE0CF]" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <Card className="bg-card border-2 border-primary/30 shadow-sm">
+            <CardContent className="p-3 sm:p-4 flex items-center gap-3">
+              <div className="p-2 bg-primary/20 rounded-full flex-shrink-0">
+                <Monitor className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-black/60">Total</p>
-                <p className="text-2xl font-bold text-black">{stats.total}</p>
+                <p className="text-sm text-muted-foreground">Total</p>
+                <p className="text-2xl font-bold text-foreground">{stats.total}</p>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-[#3EE0CF]/20 rounded-full flex-shrink-0">
-                <Building2 className="h-5 w-5 text-[#3EE0CF]" />
+          <Card className="bg-card border-2 border-primary/30 shadow-sm">
+            <CardContent className="p-3 sm:p-4 flex items-center gap-3">
+              <div className="p-2 bg-primary/20 rounded-full flex-shrink-0">
+                <Building2 className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-black/60">Central</p>
-                <p className="text-2xl font-bold text-black">{stats.central}</p>
+                <p className="text-sm text-muted-foreground">Central</p>
+                <p className="text-2xl font-bold text-foreground">{stats.central}</p>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-[#3EE0CF]/20 rounded-full flex-shrink-0">
-                <Home className="h-5 w-5 text-[#3EE0CF]" />
+          <Card className="bg-card border-2 border-primary/30 shadow-sm">
+            <CardContent className="p-3 sm:p-4 flex items-center gap-3">
+              <div className="p-2 bg-primary/20 rounded-full flex-shrink-0">
+                <Home className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-black/60">Home Office</p>
-                <p className="text-2xl font-bold text-black">{stats.homeOffice}</p>
+                <p className="text-sm text-muted-foreground">Home Office</p>
+                <p className="text-2xl font-bold text-foreground">{stats.homeOffice}</p>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 bg-[#3EE0CF]/20 rounded-full flex-shrink-0">
-                <Users className="h-5 w-5 text-[#3EE0CF]" />
+          <Card className="bg-card border-2 border-primary/30 shadow-sm">
+            <CardContent className="p-3 sm:p-4 flex items-center gap-3">
+              <div className="p-2 bg-primary/20 rounded-full flex-shrink-0">
+                <Users className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-black/60">Cliente</p>
-                <p className="text-2xl font-bold text-black">{stats.cliente}</p>
+                <p className="text-sm text-muted-foreground">Cliente</p>
+                <p className="text-2xl font-bold text-foreground">{stats.cliente}</p>
               </div>
             </CardContent>
           </Card>
