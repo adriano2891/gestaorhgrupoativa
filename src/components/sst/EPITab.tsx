@@ -26,8 +26,11 @@ export const EPITab = () => {
   const { data: funcionarios } = useFuncionarios();
   const createEPI = useCreateEPI();
   const deleteEPI = useDeleteEPI();
+  const uploadDoc = useUploadSSTDocumento();
   const [open, setOpen] = useState(false);
   const [docsDialogId, setDocsDialogId] = useState<string | null>(null);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
+  const formFileRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     user_id: "", nome_epi: "", ca_numero: "", data_entrega: "",
     quantidade: 1, observacoes: "",
