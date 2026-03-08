@@ -163,17 +163,17 @@ export default function Fornecedores() {
                   </TableHeader>
                   <TableBody>
                     {filteredFornecedores.map((fornecedor) => (
-                      <TableRow key={fornecedor.id} className="cursor-pointer hover:bg-[#3EE0CF]/5 border-b border-black/5">
+                      <TableRow key={fornecedor.id} className="cursor-pointer hover:bg-primary/5 border-b border-border">
                         <TableCell onClick={() => navigate(`/fornecedores/${fornecedor.id}`)}>
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-[#3EE0CF]/20 flex items-center justify-center">
-                              <Building2 className="h-5 w-5 text-[#3EE0CF]" />
+                            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                              <Building2 className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                              <div className="font-medium text-black">
+                              <div className="font-medium text-foreground">
                                 {fornecedor.nome_fantasia || fornecedor.razao_social}
                               </div>
-                              <div className="text-sm text-black/60">{fornecedor.cpf_cnpj}</div>
+                              <div className="text-sm text-muted-foreground">{fornecedor.cpf_cnpj}</div>
                             </div>
                           </div>
                         </TableCell>
