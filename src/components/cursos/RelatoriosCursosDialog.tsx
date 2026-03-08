@@ -329,7 +329,7 @@ export const RelatoriosCursosDialog = ({
             variant="outline"
             size="sm"
             onClick={exportarPDF}
-            disabled={isExportingPDF || !metricas?.funcionariosMatriculados?.length}
+            disabled={isExportingPDF}
             className="w-full sm:w-auto"
           >
             {isExportingPDF ? (
