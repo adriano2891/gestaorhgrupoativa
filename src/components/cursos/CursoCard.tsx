@@ -84,11 +84,12 @@ export const CursoCard = ({
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30">
       {/* Cover Image */}
       <div className="relative h-40 bg-gradient-to-br from-primary/20 via-primary/10 to-background overflow-hidden">
-        {curso.capa_url ? (
+        {resolvedCapaUrl ? (
           <img 
-            src={curso.capa_url} 
+            src={resolvedCapaUrl} 
             alt={curso.titulo}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
