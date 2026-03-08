@@ -49,7 +49,15 @@ export const CIPATab = () => {
   const handleSubmitMembro = () => {
     if (!membroForm.nome || !membroForm.mandato_inicio || !membroForm.mandato_fim) return;
     createMembro.mutate(membroForm as any, {
-      onSuccess: () => { setOpenMembro(false); setMembroForm({ nome: "", cargo_cipa: "membro", representacao: "empregado", tipo: "titular", mandato_inicio: "", mandato_fim: "" }); },
+      onSuccess: (data: any) => {
+        const recordId = data?.[0]?.id;
+        if (recordId && pendingFilesMembro.length > 0) {
+          pendingFilesMembro.forEach(file => uploadDoc.mutate({ file, registroTipo: "cipa_membro", registroId: recordId }));
+        }
+        setOpenMembro(false);
+        setMembroForm({ nome: "", cargo_cipa: "membro", representacao: "empregado", tipo: "titular", mandato_inicio: "", mandato_fim: "" });
+        setPendingFilesMembro([]);
+      },
     });
   };
 
@@ -60,8 +68,30 @@ export const CIPATab = () => {
       pauta: reuniaoForm.pauta || null,
       ata: reuniaoForm.ata || null,
     } as any, {
-      onSuccess: () => { setOpenReuniao(false); setReuniaoForm({ data_reuniao: "", tipo: "ordinaria", pauta: "", ata: "" }); },
+      onSuccess: (data: any) => {
+        const recordId = data?.[0]?.id;
+        if (recordId && pendingFilesReuniao.length > 0) {
+          pendingFilesReuniao.forEach(file => uploadDoc.mutate({ file, registroTipo: "cipa_reuniao", registroId: recordId }));
+        }
+        setOpenReuniao(false);
+        setReuniaoForm({ data_reuniao: "", tipo: "ordinaria", pauta: "", ata: "" });
+        setPendingFilesReuniao([]);
+      },
     });
+  };
+
+  const handleAddFile = (e: React.ChangeEvent<HTMLInputElement>, target: 'membro' | 'reuniao') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_TYPES.includes(file.type)) { toast.error("Formato não permitido. Use PDF, JPG ou PNG."); return; }
+    if (file.size > MAX_SIZE) { toast.error("Arquivo muito grande. Máximo 20MB."); return; }
+    if (target === 'membro') {
+      setPendingFilesMembro(prev => [...prev, file]);
+      if (membroFileRef.current) membroFileRef.current.value = "";
+    } else {
+      setPendingFilesReuniao(prev => [...prev, file]);
+      if (reuniaoFileRef.current) reuniaoFileRef.current.value = "";
+    }
   };
 
   const isLoading = loadingMembros || loadingReunioes;
