@@ -447,7 +447,7 @@ const SuporteFuncionarios = () => {
 
         <Tabs defaultValue="chamados" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="chamados" className="flex items-center gap-2 data-[state=active]:bg-[#3ee0cf] data-[state=active]:text-white">
+            <TabsTrigger value="chamados" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <MessageCircle className="h-4 w-4" />
               Chamados
               {contadores.aberto > 0 && (
