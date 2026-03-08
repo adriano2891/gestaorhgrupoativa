@@ -47,6 +47,59 @@ export type Database = {
         }
         Relationships: []
       }
+      asos: {
+        Row: {
+          arquivo_url: string | null
+          created_at: string | null
+          crm: string | null
+          data_exame: string
+          data_vencimento: string | null
+          id: string
+          medico_nome: string | null
+          observacoes: string | null
+          resultado: string
+          tipo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          arquivo_url?: string | null
+          created_at?: string | null
+          crm?: string | null
+          data_exame: string
+          data_vencimento?: string | null
+          id?: string
+          medico_nome?: string | null
+          observacoes?: string | null
+          resultado?: string
+          tipo?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          arquivo_url?: string | null
+          created_at?: string | null
+          crm?: string | null
+          data_exame?: string
+          data_vencimento?: string | null
+          id?: string
+          medico_nome?: string | null
+          observacoes?: string | null
+          resultado?: string
+          tipo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assinaturas_espelho_ponto: {
         Row: {
           ano_referencia: number
@@ -425,6 +478,77 @@ export type Database = {
         }
         Relationships: []
       }
+      cats: {
+        Row: {
+          agente_causador: string | null
+          created_at: string | null
+          data_acidente: string
+          descricao: string
+          dias_afastamento: number | null
+          hora_acidente: string | null
+          houve_afastamento: boolean | null
+          id: string
+          local_acidente: string | null
+          numero_cat: string | null
+          observacoes: string | null
+          parte_corpo: string | null
+          status: string | null
+          testemunha_1: string | null
+          testemunha_2: string | null
+          tipo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          agente_causador?: string | null
+          created_at?: string | null
+          data_acidente: string
+          descricao: string
+          dias_afastamento?: number | null
+          hora_acidente?: string | null
+          houve_afastamento?: boolean | null
+          id?: string
+          local_acidente?: string | null
+          numero_cat?: string | null
+          observacoes?: string | null
+          parte_corpo?: string | null
+          status?: string | null
+          testemunha_1?: string | null
+          testemunha_2?: string | null
+          tipo?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          agente_causador?: string | null
+          created_at?: string | null
+          data_acidente?: string
+          descricao?: string
+          dias_afastamento?: number | null
+          hora_acidente?: string | null
+          houve_afastamento?: boolean | null
+          id?: string
+          local_acidente?: string | null
+          numero_cat?: string | null
+          observacoes?: string | null
+          parte_corpo?: string | null
+          status?: string | null
+          testemunha_1?: string | null
+          testemunha_2?: string | null
+          tipo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cats_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certificados: {
         Row: {
           carga_horaria_real: number | null
@@ -594,6 +718,116 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      cipa_membros: {
+        Row: {
+          ativo: boolean | null
+          cargo_cipa: string
+          created_at: string | null
+          id: string
+          mandato_fim: string
+          mandato_inicio: string
+          nome: string
+          representacao: string
+          tipo: string
+          user_id: string | null
+        }
+        Insert: {
+          ativo?: boolean | null
+          cargo_cipa?: string
+          created_at?: string | null
+          id?: string
+          mandato_fim: string
+          mandato_inicio: string
+          nome: string
+          representacao?: string
+          tipo?: string
+          user_id?: string | null
+        }
+        Update: {
+          ativo?: boolean | null
+          cargo_cipa?: string
+          created_at?: string | null
+          id?: string
+          mandato_fim?: string
+          mandato_inicio?: string
+          nome?: string
+          representacao?: string
+          tipo?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cipa_membros_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cipa_reuniao_participantes: {
+        Row: {
+          id: string
+          membro_id: string
+          presente: boolean | null
+          reuniao_id: string
+        }
+        Insert: {
+          id?: string
+          membro_id: string
+          presente?: boolean | null
+          reuniao_id: string
+        }
+        Update: {
+          id?: string
+          membro_id?: string
+          presente?: boolean | null
+          reuniao_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cipa_reuniao_participantes_membro_id_fkey"
+            columns: ["membro_id"]
+            isOneToOne: false
+            referencedRelation: "cipa_membros"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cipa_reuniao_participantes_reuniao_id_fkey"
+            columns: ["reuniao_id"]
+            isOneToOne: false
+            referencedRelation: "cipa_reunioes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cipa_reunioes: {
+        Row: {
+          ata: string | null
+          created_at: string | null
+          data_reuniao: string
+          id: string
+          pauta: string | null
+          tipo: string | null
+        }
+        Insert: {
+          ata?: string | null
+          created_at?: string | null
+          data_reuniao: string
+          id?: string
+          pauta?: string | null
+          tipo?: string | null
+        }
+        Update: {
+          ata?: string | null
+          created_at?: string | null
+          data_reuniao?: string
+          id?: string
+          pauta?: string | null
+          tipo?: string | null
+        }
+        Relationships: []
       }
       clientes_orcamentos: {
         Row: {
@@ -1513,6 +1747,62 @@ export type Database = {
             columns: ["fornecedor_id"]
             isOneToOne: false
             referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      epi_entregas: {
+        Row: {
+          assinado: boolean | null
+          ca_numero: string | null
+          created_at: string | null
+          data_assinatura: string | null
+          data_devolucao: string | null
+          data_entrega: string
+          id: string
+          ip_assinatura: string | null
+          motivo_troca: string | null
+          nome_epi: string
+          observacoes: string | null
+          quantidade: number | null
+          user_id: string
+        }
+        Insert: {
+          assinado?: boolean | null
+          ca_numero?: string | null
+          created_at?: string | null
+          data_assinatura?: string | null
+          data_devolucao?: string | null
+          data_entrega: string
+          id?: string
+          ip_assinatura?: string | null
+          motivo_troca?: string | null
+          nome_epi: string
+          observacoes?: string | null
+          quantidade?: number | null
+          user_id: string
+        }
+        Update: {
+          assinado?: boolean | null
+          ca_numero?: string | null
+          created_at?: string | null
+          data_assinatura?: string | null
+          data_devolucao?: string | null
+          data_entrega?: string
+          id?: string
+          ip_assinatura?: string | null
+          motivo_troca?: string | null
+          nome_epi?: string
+          observacoes?: string | null
+          quantidade?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "epi_entregas_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
