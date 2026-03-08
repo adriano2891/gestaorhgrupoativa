@@ -166,7 +166,7 @@ export default function FornecedorForm() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#3EE0CF] shadow-md">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-md">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 h-16">
             <BackButton to="/fornecedores" variant="light" className="text-black hover:bg-black/10" />
