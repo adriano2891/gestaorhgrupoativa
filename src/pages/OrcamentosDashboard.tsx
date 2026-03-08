@@ -195,17 +195,17 @@ export default function OrcamentosDashboard() {
         </GlassPanel>
 
         {/* Quotes Table */}
-        <GlassPanel className="overflow-hidden bg-white border border-black/10">
+        <GlassPanel className="overflow-hidden bg-card border border-border">
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-[#3EE0CF]/10 border-b border-[#3EE0CF]/30">
+              <thead className="bg-primary/10 border-b border-primary/30">
                 <tr>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-black">ID</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-black">Cliente</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-black">Data</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-black">Status</th>
-                  <th className="text-right px-6 py-4 text-sm font-semibold text-black">Valor</th>
-                  <th className="text-center px-6 py-4 text-sm font-semibold text-black">Ações</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-foreground">ID</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-foreground">Cliente</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-foreground">Data</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-foreground">Status</th>
+                  <th className="text-right px-6 py-4 text-sm font-semibold text-foreground">Valor</th>
+                  <th className="text-center px-6 py-4 text-sm font-semibold text-foreground">Ações</th>
                 </tr>
               </thead>
               <tbody>
