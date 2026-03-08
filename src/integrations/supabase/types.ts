@@ -1090,6 +1090,7 @@ export type Database = {
           categoria_id: string | null
           created_at: string | null
           criado_por: string | null
+          curso_livre: boolean | null
           departamentos_permitidos: string[] | null
           descricao: string | null
           excluido: boolean
@@ -1114,6 +1115,7 @@ export type Database = {
           categoria_id?: string | null
           created_at?: string | null
           criado_por?: string | null
+          curso_livre?: boolean | null
           departamentos_permitidos?: string[] | null
           descricao?: string | null
           excluido?: boolean
@@ -1138,6 +1140,7 @@ export type Database = {
           categoria_id?: string | null
           created_at?: string | null
           criado_por?: string | null
+          curso_livre?: boolean | null
           departamentos_permitidos?: string[] | null
           descricao?: string | null
           excluido?: boolean
