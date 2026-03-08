@@ -294,7 +294,7 @@ const InventarioEquipamentos = () => {
         </div>
 
         {/* Filters */}
-        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
+        <Card className="bg-card/95 backdrop-blur-sm border-border shadow-lg">
           <CardContent className="p-3 sm:p-4">
             <div className="flex flex-col gap-3 sm:gap-4">
               <div className="relative">
