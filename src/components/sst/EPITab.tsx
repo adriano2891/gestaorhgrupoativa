@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, ShieldCheck } from "lucide-react";
+import { Plus, Trash2, ShieldCheck, Download, Paperclip } from "lucide-react";
 import { useEPIEntregas, useCreateEPI, useDeleteEPI } from "@/hooks/useSST";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
+import { SSTDocumentosPanel } from "./SSTDocumentosPanel";
+import { gerarPdfEPI } from "@/utils/sstPdfGenerator";
 import { format } from "date-fns";
 
 export const EPITab = () => {
@@ -19,6 +21,7 @@ export const EPITab = () => {
   const createEPI = useCreateEPI();
   const deleteEPI = useDeleteEPI();
   const [open, setOpen] = useState(false);
+  const [docsDialogId, setDocsDialogId] = useState<string | null>(null);
   const [form, setForm] = useState({
     user_id: "", nome_epi: "", ca_numero: "", data_entrega: "",
     quantidade: 1, observacoes: "",
@@ -39,6 +42,8 @@ export const EPITab = () => {
   });
 
   if (isLoading) return <Skeleton className="h-64 w-full" />;
+
+  const selectedEpi = epis?.find(e => e.id === docsDialogId);
 
   return (
     <Card>
@@ -66,7 +71,7 @@ export const EPITab = () => {
                   <TableHead>Qtd</TableHead>
                   <TableHead>Assinatura</TableHead>
                   <TableHead>Devolução</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -88,9 +93,17 @@ export const EPITab = () => {
                     </TableCell>
                     <TableCell>{epi.data_devolucao ? format(new Date(epi.data_devolucao), "dd/MM/yyyy") : "—"}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="icon" onClick={() => deleteEPI.mutate(epi.id)}>
-                        <Trash2 className="h-4 w-4 text-destructive" />
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => setDocsDialogId(epi.id)} title="Documentos">
+                          <Paperclip className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => gerarPdfEPI(epi)} title="Baixar PDF">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => deleteEPI.mutate(epi.id)}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -100,6 +113,7 @@ export const EPITab = () => {
         )}
       </CardContent>
 
+      {/* Dialog Novo EPI */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader><DialogTitle>Registrar Entrega de EPI</DialogTitle></DialogHeader>
@@ -144,6 +158,18 @@ export const EPITab = () => {
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={handleSubmit} disabled={createEPI.isPending}>Salvar</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Documentos */}
+      <Dialog open={!!docsDialogId} onOpenChange={(o) => !o && setDocsDialogId(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Documentos — EPI {selectedEpi?._nome || ""}</DialogTitle>
+          </DialogHeader>
+          {docsDialogId && (
+            <SSTDocumentosPanel registroTipo="epi" registroId={docsDialogId} />
+          )}
         </DialogContent>
       </Dialog>
     </Card>

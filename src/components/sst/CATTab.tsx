@@ -10,9 +10,11 @@ import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, AlertTriangle } from "lucide-react";
+import { Plus, AlertTriangle, Download, Paperclip } from "lucide-react";
 import { useCATs, useCreateCAT, useUpdateCAT } from "@/hooks/useSST";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
+import { SSTDocumentosPanel } from "./SSTDocumentosPanel";
+import { gerarPdfCAT } from "@/utils/sstPdfGenerator";
 import { format } from "date-fns";
 
 export const CATTab = () => {
@@ -21,6 +23,7 @@ export const CATTab = () => {
   const createCAT = useCreateCAT();
   const updateCAT = useUpdateCAT();
   const [open, setOpen] = useState(false);
+  const [docsDialogId, setDocsDialogId] = useState<string | null>(null);
   const [form, setForm] = useState({
     user_id: "", data_acidente: "", hora_acidente: "", tipo: "tipico",
     local_acidente: "", descricao: "", parte_corpo: "", agente_causador: "",
@@ -63,6 +66,8 @@ export const CATTab = () => {
 
   if (isLoading) return <Skeleton className="h-64 w-full" />;
 
+  const selectedCat = cats?.find(c => c.id === docsDialogId);
+
   return (
     <Card>
       <CardHeader>
@@ -92,7 +97,7 @@ export const CATTab = () => {
                   <TableHead>Afastamento</TableHead>
                   <TableHead>Nº CAT</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -112,16 +117,24 @@ export const CATTab = () => {
                     <TableCell className="text-sm">{cat.numero_cat || "—"}</TableCell>
                     <TableCell>{statusBadge(cat.status)}</TableCell>
                     <TableCell>
-                      {cat.status === 'registrado' && (
-                        <Button variant="outline" size="sm" onClick={() => updateCAT.mutate({ id: cat.id, status: 'enviado_inss' })}>
-                          Enviar INSS
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="icon" onClick={() => setDocsDialogId(cat.id)} title="Documentos">
+                          <Paperclip className="h-4 w-4" />
                         </Button>
-                      )}
-                      {cat.status === 'enviado_inss' && (
-                        <Button variant="outline" size="sm" onClick={() => updateCAT.mutate({ id: cat.id, status: 'concluido' })}>
-                          Concluir
+                        <Button variant="ghost" size="icon" onClick={() => gerarPdfCAT(cat)} title="Baixar PDF">
+                          <Download className="h-4 w-4" />
                         </Button>
-                      )}
+                        {cat.status === 'registrado' && (
+                          <Button variant="outline" size="sm" onClick={() => updateCAT.mutate({ id: cat.id, status: 'enviado_inss' })}>
+                            Enviar INSS
+                          </Button>
+                        )}
+                        {cat.status === 'enviado_inss' && (
+                          <Button variant="outline" size="sm" onClick={() => updateCAT.mutate({ id: cat.id, status: 'concluido' })}>
+                            Concluir
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -131,6 +144,7 @@ export const CATTab = () => {
         )}
       </CardContent>
 
+      {/* Dialog Novo CAT */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader><DialogTitle>Registrar CAT</DialogTitle></DialogHeader>
@@ -220,6 +234,18 @@ export const CATTab = () => {
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={handleSubmit} disabled={createCAT.isPending} variant="destructive">Registrar CAT</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Documentos */}
+      <Dialog open={!!docsDialogId} onOpenChange={(o) => !o && setDocsDialogId(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Documentos — CAT {selectedCat?._nome || ""}</DialogTitle>
+          </DialogHeader>
+          {docsDialogId && (
+            <SSTDocumentosPanel registroTipo="cat" registroId={docsDialogId} />
+          )}
         </DialogContent>
       </Dialog>
     </Card>
