@@ -426,7 +426,7 @@ export default function OrcamentosBuilder() {
                             "flex items-center gap-4 p-3 rounded-xl border transition-all",
                             isAdded 
                               ? "border-green-200 bg-green-50" 
-                              : "border-zinc-200 bg-white hover:border-[#3EE0CF]/30 hover:shadow-sm"
+                              : "border-zinc-200 bg-white hover:border-primary/30 hover:shadow-sm"
                           )}
                         >
                           {/* Product Image */}
