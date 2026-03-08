@@ -39,22 +39,22 @@ export default function Fornecedores() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#3EE0CF] shadow-md">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-md">
         <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-0 sm:h-16 gap-2 sm:gap-0">
             <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <BackButton to="/dashboard" variant="light" className="text-black hover:bg-black/10" />
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex items-center justify-center flex-shrink-0">
-                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+              <BackButton to="/dashboard" variant="light" className="text-primary-foreground hover:bg-primary-foreground/10" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-sm sm:text-lg font-bold text-black truncate">Fornecedores</h1>
-                <p className="text-[10px] sm:text-xs text-black/70 truncate">Gerencie seus fornecedores e produtos</p>
+                <h1 className="text-sm sm:text-lg font-bold text-primary-foreground truncate">Fornecedores</h1>
+                <p className="text-[10px] sm:text-xs text-primary-foreground/70 truncate">Gerencie seus fornecedores e produtos</p>
               </div>
             </div>
-            <Button onClick={() => navigate('/fornecedores/novo')} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-black hover:bg-black/90 text-white">
+            <Button onClick={() => navigate('/fornecedores/novo')} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground touch-target">
               <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
               <span className="hidden sm:inline">Adicionar Fornecedor</span>
               <span className="sm:hidden">Novo</span>
