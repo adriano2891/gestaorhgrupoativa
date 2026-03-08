@@ -15,6 +15,7 @@ import iconCursos from "@/assets/icon-rh-cursos.png";
 import iconFerias from "@/assets/icon-rh-ferias.png";
 import iconSuporte from "@/assets/icon-rh-suporte.png";
 import iconDocumentos from "@/assets/icon-rh-documentos.png";
+import iconSST from "@/assets/icon-rh-sst.png";
 
 interface RHModule {
   title: string;
@@ -36,12 +37,14 @@ const rhModules: RHModule[] = [
   { title: "Controle de Férias", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
   { title: "Suporte", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.3]" },
   { title: "Documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.3]" },
+  { title: "Saúde e Segurança", iconSrc: iconSST, path: "/saude-seguranca", iconScale: "scale-[1.3]" },
 ];
 
 const rhPaths = new Set(rhModules.map(m => m.path));
 rhPaths.add("/admins");
 rhPaths.add("/gestao-rh");
 rhPaths.add("/formularios-rh");
+rhPaths.add("/saude-seguranca");
 
 export const RH_PATHS = rhPaths;
 
@@ -80,6 +83,7 @@ export const RHModuleBar = () => {
     '/controle-ferias': () => import("@/pages/ControleFerias"),
     '/suporte-funcionarios': () => import("@/pages/SuporteFuncionarios"),
     '/documentacoes': () => import("@/pages/Documentacoes"),
+    '/saude-seguranca': () => import("@/pages/SaudeSeguranca"),
     '/admins': () => import("@/pages/GerenciarAdmins"),
   }), []);
 
