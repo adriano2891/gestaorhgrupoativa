@@ -143,7 +143,7 @@ export default function OrcamentosPublic() {
   const isSigned = quote.status === 'assinado';
 
   return (
-    <div className="min-h-screen py-8 px-4" style={{ backgroundColor: '#3ee0cf' }}>
+    <div className="min-h-screen py-8 px-4 bg-primary">
       <div className="max-w-4xl mx-auto space-y-6">
       {/* Public Notice */}
         <div className="text-center">
