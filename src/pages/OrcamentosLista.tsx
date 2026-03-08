@@ -145,7 +145,7 @@ export default function OrcamentosLista() {
           </div>
           <Button 
             onClick={() => navigate('/orcamentos/novo')}
-            className="bg-[#3EE0CF] hover:bg-[#35c9ba] text-black shadow-lg"
+            className="bg-primary hover:bg-primary-dark text-primary-foreground shadow-lg"
           >
             <Plus className="w-4 h-4 mr-2" />
             Novo Orçamento
