@@ -278,6 +278,41 @@ All colors MUST be HSL.
   .img-responsive {
     @apply w-full h-auto max-w-full;
   }
+
+  /* Focus visible for keyboard navigation */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  /* Skip to content link */
+  .skip-to-content {
+    @apply sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md focus:shadow-lg focus:text-sm focus:font-medium;
+  }
+
+  /* Scroll fade indicators */
+  .scroll-fade-right::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 2rem;
+    background: linear-gradient(to right, transparent, hsl(var(--primary)));
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .scroll-fade-left::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2rem;
+    background: linear-gradient(to left, transparent, hsl(var(--primary)));
+    pointer-events: none;
+    z-index: 1;
+  }
 }
 
 /* A4 Canvas Styles */

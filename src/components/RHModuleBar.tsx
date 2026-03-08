@@ -3,7 +3,6 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { useAdminNotifications } from "@/hooks/useAdminNotifications";
 import { useMemo, useCallback } from "react";
 
-
 import iconFuncionarios from "@/assets/icon-rh-funcionarios.png";
 import iconTalentos from "@/assets/icon-rh-talentos.png";
 import iconRelatorios from "@/assets/icon-rh-relatorios.png";
@@ -90,9 +89,13 @@ export const RHModuleBar = () => {
 
   return (
     <>
-      <nav className="bg-primary border-b border-primary-foreground/10 fixed top-[44px] sm:top-[48px] md:top-[56px] left-0 right-0 z-40 shadow-md">
-        <div className="w-full overflow-x-auto overflow-y-hidden" style={{ WebkitOverflowScrolling: "touch" }}>
-          <div className="inline-flex min-w-max items-center gap-3 md:gap-4 px-3 md:px-5 py-3">
+      <nav
+        className="bg-primary border-b border-primary-foreground/10 fixed top-[44px] sm:top-[48px] md:top-[56px] left-0 right-0 z-40 shadow-md"
+        role="navigation"
+        aria-label="Módulos de RH"
+      >
+        <div className="w-full relative overflow-x-auto overflow-y-hidden scrollbar-hide" style={{ WebkitOverflowScrolling: "touch" }}>
+          <div className="inline-flex min-w-max items-center gap-2 2xs:gap-3 md:gap-4 px-2 2xs:px-3 md:px-5 py-2.5 sm:py-3">
             {allModules.map((mod) => {
               const isActive = location.pathname === mod.path;
               const badge = badgeCounts[mod.path] || 0;
@@ -102,30 +105,37 @@ export const RHModuleBar = () => {
                   key={mod.path}
                   onClick={() => navigate(mod.path)}
                   onMouseEnter={() => handlePrefetch(mod.path)}
-                  className={`relative inline-flex shrink-0 items-center gap-2 whitespace-nowrap transition-all duration-200 group ${
+                  aria-current={isActive ? "page" : undefined}
+                  aria-label={`${mod.title}${badge > 0 ? ` (${badge} notificações)` : ''}`}
+                  className={`relative inline-flex shrink-0 items-center gap-1.5 sm:gap-2 whitespace-nowrap transition-all duration-200 group focus-ring rounded-md ${
                     isActive ? "opacity-100" : "opacity-75 hover:opacity-100"
                   }`}
                 >
                   <div
                     className={`relative shrink-0 rounded-full overflow-hidden transition-all duration-200 ${
                       isActive
-                        ? "ring-2 ring-white shadow-lg scale-105"
-                        : "ring-1 ring-white/40 group-hover:ring-2 group-hover:ring-white group-hover:scale-105"
+                        ? "ring-2 ring-primary-foreground shadow-lg scale-105"
+                        : "ring-1 ring-primary-foreground/40 group-hover:ring-2 group-hover:ring-primary-foreground group-hover:scale-105"
                     }`}
-                    style={{ width: 30, height: 30 }}
+                    style={{ width: 28, height: 28 }}
                   >
                     <img
                       src={mod.iconSrc}
-                      alt={mod.title}
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
                       className={`w-full h-full object-cover ${mod.iconScale || (mod.scaleIcon ? "scale-110" : "")}`}
                     />
                     {badge > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-white text-[8px] font-bold shadow z-10 ring-1 ring-white">
+                      <span
+                        className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[8px] font-bold shadow z-10 ring-1 ring-primary-foreground"
+                        aria-hidden="true"
+                      >
                         {badge > 9 ? "9+" : badge}
                       </span>
                     )}
                   </div>
-                  <span className={`text-sm leading-tight text-white font-medium whitespace-nowrap ${isActive ? "font-bold" : ""}`}>
+                  <span className={`text-xs sm:text-sm leading-tight text-primary-foreground font-medium whitespace-nowrap ${isActive ? "font-bold" : ""}`}>
                     {mod.title}
                   </span>
                 </button>
@@ -135,7 +145,7 @@ export const RHModuleBar = () => {
         </div>
       </nav>
       {/* Spacer to prevent content from being hidden behind the fixed bar */}
-      <div className="h-[52px] sm:h-[54px] md:h-[56px]" />
+      <div className="h-[48px] sm:h-[54px] md:h-[56px]" />
     </>
   );
 };
