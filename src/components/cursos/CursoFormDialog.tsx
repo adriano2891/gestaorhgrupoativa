@@ -57,6 +57,7 @@ const cursoSchema = z.object({
   carga_horaria: z.number().min(0),
   instrutor: z.string().optional(),
   obrigatorio: z.boolean(),
+  curso_livre: z.boolean(),
   recorrente: z.boolean(),
   meses_recorrencia: z.number().optional(),
   nota_minima: z.number().min(0).max(100),
