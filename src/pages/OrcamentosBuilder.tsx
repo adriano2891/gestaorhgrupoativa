@@ -597,7 +597,7 @@ export default function OrcamentosBuilder() {
                 </div>
                 <div className="border-t border-zinc-200 pt-3 flex justify-between">
                   <span className="text-lg font-bold text-zinc-800">Total</span>
-                  <span className="text-lg font-bold text-[#3EE0CF]">{formatCurrency(total)}</span>
+                  <span className="text-lg font-bold text-primary">{formatCurrency(total)}</span>
                 </div>
               </div>
 
