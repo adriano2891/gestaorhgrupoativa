@@ -3861,6 +3861,42 @@ export type Database = {
           },
         ]
       }
+      sst_documentos: {
+        Row: {
+          arquivo_nome: string
+          arquivo_tamanho: number | null
+          arquivo_url: string
+          created_at: string | null
+          id: string
+          mime_type: string | null
+          registro_id: string
+          registro_tipo: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          arquivo_nome: string
+          arquivo_tamanho?: number | null
+          arquivo_url: string
+          created_at?: string | null
+          id?: string
+          mime_type?: string | null
+          registro_id: string
+          registro_tipo: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          arquivo_nome?: string
+          arquivo_tamanho?: number | null
+          arquivo_url?: string
+          created_at?: string | null
+          id?: string
+          mime_type?: string | null
+          registro_id?: string
+          registro_tipo?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       tentativas_avaliacao: {
         Row: {
           aprovado: boolean | null
