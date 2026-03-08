@@ -152,14 +152,14 @@ export default function OrcamentosDashboard() {
             </div>
           </GlassPanel>
 
-          <GlassPanel className="p-4 bg-white border-2 border-[#3EE0CF]">
+          <GlassPanel className="p-4 bg-card border-2 border-primary">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-[#3EE0CF]/20 rounded-lg">
-                <TrendingUp className="w-5 h-5 text-[#3EE0CF]" />
+              <div className="p-2 bg-primary/20 rounded-lg">
+                <TrendingUp className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-black/60">Valor Total</p>
-                <p className="text-lg font-bold text-black">{formatCurrency(totalValue)}</p>
+                <p className="text-sm text-muted-foreground">Valor Total</p>
+                <p className="text-lg font-bold text-foreground">{formatCurrency(totalValue)}</p>
               </div>
             </div>
           </GlassPanel>
