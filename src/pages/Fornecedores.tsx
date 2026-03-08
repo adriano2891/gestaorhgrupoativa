@@ -110,7 +110,7 @@ export default function Fornecedores() {
                   placeholder="Buscar por nome, CNPJ/CPF..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-black/20 focus:border-[#3EE0CF] focus:ring-[#3EE0CF]"
+                  className="pl-10 border-border focus:border-primary focus:ring-primary"
                 />
               </div>
               <Select value={tipoFilter} onValueChange={setTipoFilter}>
