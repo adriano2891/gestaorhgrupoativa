@@ -16,7 +16,7 @@ export const useFormulariosRH = () => {
       if (error) throw error;
       return (data ?? []) as FormularioRH[];
     },
-    staleTime: 1000 * 60 * 2,
+    staleTime: 0,
     retry: 2,
   });
 };
