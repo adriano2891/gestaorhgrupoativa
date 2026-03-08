@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, AlertTriangle, CheckCircle, Download, Paperclip } from "lucide-react";
+import { Plus, Trash2, AlertTriangle, CheckCircle, Download, Paperclip, Upload, X, FileText } from "lucide-react";
 import { useASOs, useCreateASO, useDeleteASO } from "@/hooks/useSST";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { SSTDocumentosPanel } from "./SSTDocumentosPanel";
+import { useUploadSSTDocumento } from "@/hooks/useSSTDocumentos";
 import { gerarPdfASO } from "@/utils/sstPdfGenerator";
 import { format, isPast, addDays } from "date-fns";
+import { toast } from "sonner";
+
+const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+const MAX_SIZE = 20 * 1024 * 1024;
 
 export const ASOTab = () => {
   const { data: asos, isLoading } = useASOs();
