@@ -237,7 +237,7 @@ export default function OrcamentosDashboard() {
                       <td className="px-6 py-4">
                         <span className="font-medium text-foreground">{quote.clientName}</span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-black/70">
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
                         {format(quote.createdAt, "dd/MM/yyyy", { locale: ptBR })}
                       </td>
                       <td className="px-6 py-4">
