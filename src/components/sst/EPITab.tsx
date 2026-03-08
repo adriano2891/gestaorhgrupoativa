@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,12 +8,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Trash2, ShieldCheck, Download, Paperclip } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Trash2, ShieldCheck, Download, Paperclip, Upload, X, FileText } from "lucide-react";
 import { useEPIEntregas, useCreateEPI, useDeleteEPI } from "@/hooks/useSST";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { SSTDocumentosPanel } from "./SSTDocumentosPanel";
+import { useUploadSSTDocumento } from "@/hooks/useSSTDocumentos";
 import { gerarPdfEPI } from "@/utils/sstPdfGenerator";
 import { format } from "date-fns";
+import { toast } from "sonner";
+
+const ALLOWED_TYPES = ["application/pdf", "image/jpeg", "image/png", "image/jpg"];
+const MAX_SIZE = 20 * 1024 * 1024;
 
 export const EPITab = () => {
   const { data: epis, isLoading } = useEPIEntregas();
