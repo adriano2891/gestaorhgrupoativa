@@ -16,7 +16,7 @@ export const useFormulariosRH = () => {
       if (error) throw error;
       return (data ?? []) as FormularioRH[];
     },
-    staleTime: 1000 * 60 * 2,
+    staleTime: 0,
     retry: 2,
   });
 };
@@ -174,16 +174,27 @@ export const useDeleteFormulario = () => {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      const { error } = await supabase
+      // First verify the record exists
+      const { data: existing } = await supabase
         .from("formularios_rh")
-        .delete()
+        .select("id")
+        .eq("id", id)
+        .maybeSingle();
+
+      if (!existing) throw new Error("Formulário não encontrado ou sem permissão.");
+
+      const { error, count } = await supabase
+        .from("formularios_rh")
+        .delete({ count: "exact" })
         .eq("id", id);
 
       if (error) throw error;
+      if (count === 0) throw new Error("Não foi possível excluir. Verifique suas permissões.");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["formularios-rh"] });
-      toast({ title: "Formulário excluído!" });
+      queryClient.invalidateQueries({ queryKey: ["formularios-templates"] });
+      toast({ title: "Formulário excluído com sucesso!" });
     },
     onError: (error: Error) => {
       toast({ title: "Erro ao excluir formulário", description: error.message, variant: "destructive" });
