@@ -166,15 +166,15 @@ export default function OrcamentosDashboard() {
         </div>
 
         {/* Filters */}
-        <GlassPanel className="p-4 bg-white border border-black/10">
+        <GlassPanel className="p-4 bg-card border border-border">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-black/40" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar por cliente ou ID..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white border-black/20 focus:border-[#3EE0CF]"
+                className="pl-10 bg-background border-border focus:border-primary"
               />
             </div>
             <div className="flex items-center gap-2">
