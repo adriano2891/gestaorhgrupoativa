@@ -275,7 +275,7 @@ export default function OrcamentosDashboard() {
                                 <MoreVertical className="w-4 h-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-white border border-black/10">
+                            <DropdownMenuContent align="end" className="bg-card border border-border">
                               <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)} className="hover:bg-[#3EE0CF]/10">
                                 <Eye className="w-4 h-4 mr-2" />
                                 Ver Detalhes
