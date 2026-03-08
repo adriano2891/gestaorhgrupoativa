@@ -222,8 +222,8 @@ export default function OrcamentosDashboard() {
                     <tr 
                       key={quote.id} 
                       className={cn(
-                        "border-b border-black/5 hover:bg-[#3EE0CF]/5 transition-colors",
-                        index % 2 === 0 ? 'bg-white' : 'bg-black/[0.02]'
+                        "border-b border-border hover:bg-primary/5 transition-colors",
+                        index % 2 === 0 ? 'bg-card' : 'bg-muted/30'
                       )}
                     >
                       <td className="px-6 py-4">
