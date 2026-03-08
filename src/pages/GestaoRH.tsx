@@ -81,6 +81,7 @@ const GestaoRH = () => {
     { title: "Controle de Férias", description: "Férias e licenças", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
     { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.4]", badgeKey: "/suporte-funcionarios" },
     { title: "Documentos", description: "Gestão de documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.4]" },
+    { title: "Saúde e Segurança", description: "SST - NR-5, NR-6, NR-7, CAT", iconSrc: iconSST, path: "/saude-seguranca", iconScale: "scale-[1.4]" },
   ];
 
   if (isSuperAdmin) {
