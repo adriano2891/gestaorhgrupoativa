@@ -152,7 +152,7 @@ const Index = () => {
 
   // Layout desktop (circular original)
   return (
-    <div className="min-h-[calc(100vh-180px)] relative overflow-hidden" style={{ backgroundColor: '#3EE0CF' }}>
+    <div className="min-h-[calc(100vh-180px)] relative overflow-hidden bg-primary">
       {/* Cabeçalho */}
       <div className="text-center pt-12 pb-8 space-y-2 relative z-10">
         <h1 className="text-4xl lg:text-5xl font-bold text-gray-900">Dashboard</h1>
