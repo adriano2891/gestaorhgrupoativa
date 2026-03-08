@@ -259,7 +259,7 @@ export const RelatoriosCursosDialog = ({
         normaRegulamentadora: (cursoSelecionado as any)?.norma_regulamentadora || undefined,
         cnpjEmpresa: empresa?.cnpj || undefined,
         razaoSocial: empresa?.razao_social || undefined,
-        funcionarios: metricas.funcionariosMatriculados.map(f => {
+        funcionarios: funcionarios.map(f => {
           const conf = confirmMap.get(f.id);
           return {
             nome: f.nome,
