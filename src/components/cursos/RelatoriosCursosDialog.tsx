@@ -314,7 +314,7 @@ export const RelatoriosCursosDialog = ({
             variant="outline"
             size="sm"
             onClick={exportarCSV}
-            disabled={isExporting || !metricas?.funcionariosMatriculados?.length}
+            disabled={isExporting}
             className="w-full sm:w-auto"
           >
             {isExporting ? (
