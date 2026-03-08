@@ -57,6 +57,7 @@ const cursoSchema = z.object({
   carga_horaria: z.number().min(0),
   instrutor: z.string().optional(),
   obrigatorio: z.boolean(),
+  curso_livre: z.boolean(),
   recorrente: z.boolean(),
   meses_recorrencia: z.number().optional(),
   nota_minima: z.number().min(0).max(100),
@@ -95,6 +96,7 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
       carga_horaria: 60,
       instrutor: "",
       obrigatorio: false,
+      curso_livre: false,
       recorrente: false,
       meses_recorrencia: 12,
       nota_minima: 70,
@@ -113,6 +115,7 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
         carga_horaria: curso.carga_horaria,
         instrutor: curso.instrutor || "",
         obrigatorio: curso.obrigatorio,
+        curso_livre: (curso as any).curso_livre || false,
         recorrente: curso.recorrente,
         meses_recorrencia: curso.meses_recorrencia || 12,
         nota_minima: curso.nota_minima,
@@ -130,6 +133,7 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
         carga_horaria: 60,
         instrutor: "",
         obrigatorio: false,
+        curso_livre: false,
         recorrente: false,
         meses_recorrencia: 12,
         nota_minima: 70,
@@ -475,6 +479,24 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
                       <FormLabel className="text-base">Curso Obrigatório</FormLabel>
                       <FormDescription>
                         Funcionários devem completar este curso
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch checked={field.value} onCheckedChange={field.onChange} />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="curso_livre"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">Curso Livre</FormLabel>
+                      <FormDescription>
+                        Disponível para todos os funcionários sem restrições
                       </FormDescription>
                     </div>
                     <FormControl>
