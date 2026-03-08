@@ -220,9 +220,10 @@ const Dashboard = () => {
         </h1>
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1 sm:gap-2 text-white hover:opacity-80 transition-opacity flex-shrink-0"
+          aria-label="Sair do sistema"
+          className="flex items-center gap-1 sm:gap-2 text-primary-foreground hover:opacity-80 transition-opacity flex-shrink-0 focus-ring rounded-md"
         >
-          <LogOut className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
+          <LogOut className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" aria-hidden="true" />
           <span className="text-xs sm:text-sm lg:text-lg font-medium">Sair</span>
         </button>
       </div>
