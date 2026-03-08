@@ -128,14 +128,14 @@ export default function OrcamentosDashboard() {
             </div>
           </GlassPanel>
 
-          <GlassPanel className="p-4 bg-white border-2 border-[#3EE0CF]">
+          <GlassPanel className="p-4 bg-card border-2 border-primary">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-black/10 rounded-lg">
-                <Clock className="w-5 h-5 text-black" />
+              <div className="p-2 bg-muted rounded-lg">
+                <Clock className="w-5 h-5 text-foreground" />
               </div>
               <div>
-                <p className="text-sm text-black/60">Pendentes</p>
-                <p className="text-xl font-bold text-black">{pendingQuotes}</p>
+                <p className="text-sm text-muted-foreground">Pendentes</p>
+                <p className="text-xl font-bold text-foreground">{pendingQuotes}</p>
               </div>
             </div>
           </GlassPanel>
