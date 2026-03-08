@@ -90,12 +90,12 @@ export default function Fornecedores() {
               <div className="text-sm text-muted-foreground">Produtos</div>
             </CardContent>
           </Card>
-          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
+          <Card className="bg-card border-2 border-primary shadow-sm">
             <CardContent className="p-4">
-              <div className="text-2xl font-bold text-black">
+              <div className="text-2xl font-bold text-foreground">
                 {fornecedores.filter(f => f.tipo_fornecedor === 'servico' || f.tipo_fornecedor === 'ambos').length}
               </div>
-              <div className="text-sm text-black/60">Serviços</div>
+              <div className="text-sm text-muted-foreground">Serviços</div>
             </CardContent>
           </Card>
         </div>
