@@ -344,7 +344,7 @@ export const RelatoriosCursosDialog = ({
             variant="default"
             size="sm"
             onClick={exportarPDFLegal}
-            disabled={isExportingLegal || !metricas?.funcionariosMatriculados?.length}
+            disabled={isExportingLegal}
             className="w-full sm:w-auto"
           >
             {isExportingLegal ? (
