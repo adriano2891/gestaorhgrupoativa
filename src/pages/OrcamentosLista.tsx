@@ -212,7 +212,7 @@ export default function OrcamentosLista() {
                       )}
                     >
                       <td className="px-3 sm:px-6 py-3 sm:py-4">
-                        <span className="font-mono text-xs sm:text-sm font-medium text-[#3EE0CF]">
+                        <span className="font-mono text-xs sm:text-sm font-medium text-primary">
                           {quote.publicId}
                         </span>
                         {quote.version > 1 && (

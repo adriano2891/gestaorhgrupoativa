@@ -131,7 +131,7 @@ export default function OrcamentosDetail() {
                   <span>{formatCurrency(quote.financials.taxAmount)}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold">
-                  <span>Total</span><span className="text-[#3EE0CF]">{formatCurrency(quote.financials.total)}</span>
+                  <span>Total</span><span className="text-primary">{formatCurrency(quote.financials.total)}</span>
                 </div>
               </div>
             </GlassPanel>

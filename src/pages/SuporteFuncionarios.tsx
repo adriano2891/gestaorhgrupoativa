@@ -454,7 +454,7 @@ const SuporteFuncionarios = () => {
                 <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">{contadores.aberto}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="ajustes" className="flex items-center gap-2 data-[state=active]:bg-[#3ee0cf] data-[state=active]:text-white">
+            <TabsTrigger value="ajustes" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <ClipboardList className="h-4 w-4" />
               Ajustes de Ponto
               {ajustesPendentes > 0 && (

@@ -88,8 +88,8 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left",
                     isActive 
-                      ? "bg-black text-white shadow-md" 
-                      : "text-black hover:bg-black/10"
+                      ? "bg-primary-foreground text-primary shadow-md" 
+                      : "text-primary-foreground hover:bg-primary-foreground/10"
                   )}
                 >
                   <item.icon className="w-5 h-5" />
