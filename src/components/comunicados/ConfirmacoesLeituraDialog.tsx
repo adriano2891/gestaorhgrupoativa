@@ -42,13 +42,12 @@ export const ConfirmacoesLeituraDialog = ({
       if (!comunicado) return 0;
       const destinatarios = comunicado.destinatarios as string[] | null;
 
-      let query = supabase
+      let query = (supabase as any)
         .from("profiles")
         .select("id", { count: "exact", head: true })
         .eq("ativo", true);
 
       if (destinatarios && !destinatarios.includes("todos")) {
-        // Filter by departments
         query = query.in("departamento", destinatarios);
       }
 
