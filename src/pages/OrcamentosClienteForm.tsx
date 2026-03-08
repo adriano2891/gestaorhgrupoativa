@@ -439,7 +439,7 @@ export default function OrcamentosClienteForm() {
                   </Button>
                   <Button
                     type="submit"
-                    className="flex-1 bg-[#3EE0CF] hover:bg-[#35c9ba] text-black"
+                    className="flex-1 bg-primary hover:bg-primary-dark text-primary-foreground"
                     disabled={isSubmitting}
                   >
                     <Save className="w-4 h-4 mr-2" />

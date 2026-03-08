@@ -360,7 +360,7 @@ export default function OrcamentosPublic() {
 
                 <Button
                   onClick={handleSign}
-                  className="w-full bg-[#3EE0CF] hover:bg-[#35c9ba] text-black py-6 text-lg"
+                  className="w-full bg-primary hover:bg-primary-dark text-primary-foreground py-6 text-lg"
                 >
                   <CheckCircle className="w-5 h-5 mr-2" />
                   Assinar e Aprovar Orçamento

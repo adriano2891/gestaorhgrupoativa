@@ -634,7 +634,7 @@ export default function OrcamentosBuilder() {
                 </DropdownMenu>
                 <Button
                   onClick={handleSave}
-                  className="flex-1 bg-[#3EE0CF] hover:bg-[#35c9ba] text-black"
+                  className="flex-1 bg-primary hover:bg-primary-dark text-primary-foreground"
                   disabled={!clientId || items.length === 0}
                 >
                   <Save className="w-4 h-4 mr-2" />

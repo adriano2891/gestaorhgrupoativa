@@ -432,8 +432,8 @@ export default function FornecedorForm() {
 
             {/* Informações Comerciais */}
             <Card className="border border-black/10">
-              <CardHeader className="bg-[#3EE0CF]/10 border-b border-black/5">
-                <CardTitle className="text-lg text-black">Informações Comerciais</CardTitle>
+              <CardHeader className="bg-primary/10 border-b border-border">
+                <CardTitle className="text-lg text-foreground">Informações Comerciais</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
