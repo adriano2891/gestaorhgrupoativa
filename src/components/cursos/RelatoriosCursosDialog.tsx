@@ -239,7 +239,7 @@ export const RelatoriosCursosDialog = ({
       }
 
       // Buscar matrículas com confirmação
-      const matriculaIds = metricas.funcionariosMatriculados.map(f => f.id);
+      const matriculaIds = funcionarios.map(f => f.id);
       let matriculasConfirmacao: any[] = [];
       if (matriculaIds.length > 0) {
         const { data } = await supabase
