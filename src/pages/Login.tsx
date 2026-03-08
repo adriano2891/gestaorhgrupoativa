@@ -57,7 +57,7 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={handleLogin} className="space-y-4" aria-label="Formulário de login">
             <div className="space-y-2">
               <Label htmlFor="login-email" className="text-sm sm:text-base">Usuário</Label>
               <Input
@@ -69,6 +69,8 @@ const Login = () => {
                   setLoginData({ ...loginData, email: e.target.value })
                 }
                 required
+                autoComplete="username"
+                aria-required="true"
                 className="h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
@@ -82,11 +84,13 @@ const Login = () => {
                   setLoginData({ ...loginData, password: e.target.value })
                 }
                 required
+                autoComplete="current-password"
+                aria-required="true"
                 className="h-10 sm:h-11 text-sm sm:text-base"
               />
             </div>
-            <Button type="submit" className="w-full h-10 sm:h-11 text-sm sm:text-base" disabled={loading}>
-              <LogIn className="mr-2 h-4 w-4" />
+            <Button type="submit" className="w-full h-11 sm:h-12 text-sm sm:text-base touch-target" disabled={loading}>
+              <LogIn className="mr-2 h-4 w-4" aria-hidden="true" />
               {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
