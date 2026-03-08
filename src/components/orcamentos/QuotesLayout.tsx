@@ -42,9 +42,9 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
         <button onClick={() => setSidebarOpen(true)} className="p-2">
           <Menu className="w-6 h-6 text-primary-foreground" />
         </button>
-        <h1 className="text-lg font-semibold text-black">Gestão de Orçamentos</h1>
+        <h1 className="text-lg font-semibold text-primary-foreground">Gestão de Orçamentos</h1>
         <button onClick={() => navigate('/dashboard')} className="p-2">
-          <ChevronLeft className="w-6 h-6 text-black" />
+          <ChevronLeft className="w-6 h-6 text-primary-foreground" />
         </button>
       </div>
 
