@@ -1211,15 +1211,15 @@ const Funcionarios = () => {
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: '#000000' }}>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
             Funcionários
           </h1>
-          <p className="mt-1 text-xs sm:text-sm md:text-base font-bold" style={{ color: '#000000' }}>
+          <p className="mt-1 text-xs sm:text-sm md:text-base text-muted-foreground">
             Gerencie todos os funcionários da empresa
           </p>
         </div>
-        <Button onClick={handleAddEmployee} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={handleAddEmployee} className="w-full sm:w-auto touch-target focus-ring" aria-label="Adicionar novo funcionário">
+          <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
           Adicionar Funcionário
         </Button>
       </div>
