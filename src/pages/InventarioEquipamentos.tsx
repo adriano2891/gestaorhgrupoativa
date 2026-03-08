@@ -154,7 +154,7 @@ const InventarioEquipamentos = () => {
                       placeholder="Ex: EQ-001"
                       required
                       readOnly={!editingEquipamento}
-                      className={!editingEquipamento ? "bg-gray-100 cursor-not-allowed" : ""}
+                    className={!editingEquipamento ? "bg-muted cursor-not-allowed" : ""}
                     />
                     {!editingEquipamento && (
                       <p className="text-xs text-gray-500">Gerado automaticamente</p>
