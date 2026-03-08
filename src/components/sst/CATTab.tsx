@@ -52,7 +52,25 @@ export const CATTab = () => {
       testemunha_2: form.testemunha_2 || null,
       numero_cat: form.numero_cat || null,
       observacoes: form.observacoes || null,
-    } as any, { onSuccess: () => { setOpen(false); resetForm(); } });
+    } as any, {
+      onSuccess: (data: any) => {
+        const recordId = data?.[0]?.id;
+        if (recordId && pendingFiles.length > 0) {
+          pendingFiles.forEach(file => uploadDoc.mutate({ file, registroTipo: "cat", registroId: recordId }));
+        }
+        setOpen(false); resetForm(); setPendingFiles([]);
+      }
+    });
+  };
+
+  const handleAddFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!ALLOWED_TYPES.includes(file.type)) { toast.error("Formato não permitido. Use PDF, JPG ou PNG."); return; }
+    if (file.size > MAX_SIZE) { toast.error("Arquivo muito grande. Máximo 20MB."); return; }
+    setPendingFiles(prev => [...prev, file]);
+    if (formFileRef.current) formFileRef.current.value = "";
+  };
   };
 
   const resetForm = () => setForm({
