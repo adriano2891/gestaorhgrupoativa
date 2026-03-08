@@ -1236,6 +1236,10 @@ const FolhaPonto = () => {
                             day.status === "falta" ? "bg-red-50 dark:bg-red-950/20" : ""
                           }>
                             <TableCell className="font-medium">{day.day}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {day.tipo_dia === 'dsr' ? <span className="text-primary font-medium">DSR</span> : 
+                               day.tipo_dia === 'feriado' ? <span className="text-orange-600 font-medium">Feriado</span> : '-'}
+                            </TableCell>
                             <TableCell className="text-sm">{day.entrada || "-"}</TableCell>
                             <TableCell className="text-sm">{day.saida_pausa_1 || "-"}</TableCell>
                             <TableCell className="text-sm">{day.retorno_pausa_1 || "-"}</TableCell>
@@ -1267,6 +1271,8 @@ const FolhaPonto = () => {
                                 <span className="text-yellow-600">{day.horas_extras || "-"}</span>
                               )}
                             </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{day.percentual_he ? `${day.percentual_he}%` : "-"}</TableCell>
+                            <TableCell className="text-sm text-muted-foreground">{day.horas_noturnas || "-"}</TableCell>
                             <TableCell>
                               {editingCell?.empId === record.employee_id && editingCell?.day === day.day && editingCell?.field === 'status' ? (
                                 <div className="flex gap-1 items-center">
