@@ -275,6 +275,33 @@ export const CIPATab = () => {
                 <Input type="date" value={membroForm.mandato_fim} onChange={e => setMembroForm(p => ({ ...p, mandato_fim: e.target.value }))} />
               </div>
             </div>
+            <Separator />
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label className="flex items-center gap-1"><Paperclip className="h-3.5 w-3.5" />Anexar Documentos</Label>
+                <div>
+                  <input ref={membroFileRef} type="file" accept=".pdf,.jpg,.jpeg,.png" className="hidden" onChange={e => handleAddFile(e, 'membro')} />
+                  <Button type="button" variant="outline" size="sm" className="gap-1" onClick={() => membroFileRef.current?.click()}>
+                    <Upload className="h-3 w-3" />Adicionar
+                  </Button>
+                </div>
+              </div>
+              {pendingFilesMembro.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-2 border border-dashed rounded-md">Nenhum documento selecionado</p>
+              ) : (
+                <div className="space-y-1">
+                  {pendingFilesMembro.map((f, i) => (
+                    <div key={i} className="flex items-center gap-2 p-1.5 rounded border bg-muted/30 text-sm">
+                      <FileText className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                      <span className="truncate flex-1">{f.name}</span>
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setPendingFilesMembro(prev => prev.filter((_, idx) => idx !== i))}>
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpenMembro(false)}>Cancelar</Button>
