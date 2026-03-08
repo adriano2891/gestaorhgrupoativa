@@ -391,29 +391,30 @@ const GestaoRH = () => {
         </div>
 
         {/* Layout Circular - LG */}
-        <div className="hidden lg:block xl:hidden relative" style={{ width: '600px', height: '450px' }}>
+        <div className="hidden lg:block xl:hidden relative" style={{ width: '660px', height: '520px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 220);
+            const { x, y } = getModulePosition(index, modules.length, 250);
             return (
               <div
                 key={module.path}
-                className={`absolute rh-module-icon cursor-pointer ${isAnimating ? 'rh-animate-module' : ''}`}
+                className={`absolute rh-module-icon cursor-pointer flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
                 style={{ 
                   left: '50%', 
                   top: '50%', 
+                  width: '110px',
                   transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
                   ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
                 }}
                 onClick={() => navigate(module.path)}
                 onMouseEnter={() => handlePrefetch(module.path)}
               >
-                <div className="relative">
+                <div className="relative flex-shrink-0">
                   {renderBadge(module)}
-                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-24 h-24 ring-3 ring-white/30">
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-20 h-20 ring-3 ring-white/30 mx-auto">
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
-                <p className="text-center mt-1 font-extrabold text-white text-[11px] max-w-[90px] leading-snug mx-auto" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.2)', letterSpacing: '0.02em' }}>
+                <p className="text-center mt-2 font-extrabold text-white text-[11px] leading-snug w-full line-clamp-2" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.2)', letterSpacing: '0.02em', fontFamily: 'Arial, Helvetica, sans-serif' }}>
                   {module.title}
                 </p>
               </div>
