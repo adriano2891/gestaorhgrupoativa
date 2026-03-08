@@ -276,7 +276,7 @@ export default function OrcamentosDashboard() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-card border border-border">
-                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)} className="hover:bg-[#3EE0CF]/10">
+                              <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)} className="hover:bg-primary/10">
                                 <Eye className="w-4 h-4 mr-2" />
                                 Ver Detalhes
                               </DropdownMenuItem>
