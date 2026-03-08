@@ -83,6 +83,7 @@ export const RHModuleBar = () => {
     '/controle-ferias': () => import("@/pages/ControleFerias"),
     '/suporte-funcionarios': () => import("@/pages/SuporteFuncionarios"),
     '/documentacoes': () => import("@/pages/Documentacoes"),
+    '/saude-seguranca': () => import("@/pages/SaudeSeguranca"),
     '/admins': () => import("@/pages/GerenciarAdmins"),
   }), []);
 
