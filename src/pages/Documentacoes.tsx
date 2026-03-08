@@ -185,30 +185,30 @@ const Documentacoes = () => {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-primary shadow-md mt-2">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-0 sm:h-16 gap-2 sm:gap-0">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <BackButton to="/dashboard" variant="light" className="text-primary-foreground hover:bg-primary-foreground/10" />
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between py-2.5 sm:py-0 sm:h-16 gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <BackButton to="/dashboard" variant="light" className="text-primary-foreground hover:bg-primary-foreground/10 flex-shrink-0" />
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center flex-shrink-0">
                 <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-sm sm:text-lg font-bold text-primary-foreground truncate">Documentações</h1>
-                <p className="text-[10px] sm:text-xs text-primary-foreground/70 truncate">Gestão centralizada de documentos</p>
+                <h1 className="text-xs sm:text-lg font-bold text-primary-foreground truncate">Documentações</h1>
+                <p className="text-[9px] sm:text-xs text-primary-foreground/70 truncate">Gestão de documentos</p>
               </div>
             </div>
-            <div className="flex items-center gap-1 sm:gap-2">
+            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
               <Button variant="ghost" size="sm" onClick={() => {
                 if (documentos) gerarPdfRelatorioDocumentos(documentos);
-              }} className="h-8 px-2 sm:px-3 text-xs sm:text-sm text-primary-foreground hover:bg-primary-foreground/10" aria-label="Gerar relatório PDF">
+              }} className="h-8 w-8 sm:w-auto sm:px-3 text-xs sm:text-sm text-primary-foreground hover:bg-primary-foreground/10" aria-label="Gerar relatório PDF">
                 <FileText className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Relatório PDF</span>
               </Button>
-              <Button variant="ghost" size="sm" onClick={() => setShowCategoriaDialog(true)} className="h-8 px-2 sm:px-3 text-xs sm:text-sm text-primary-foreground hover:bg-primary-foreground/10" aria-label="Nova categoria">
+              <Button variant="ghost" size="sm" onClick={() => setShowCategoriaDialog(true)} className="h-8 w-8 sm:w-auto sm:px-3 text-xs sm:text-sm text-primary-foreground hover:bg-primary-foreground/10" aria-label="Nova categoria">
                 <FolderOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Nova Categoria</span>
               </Button>
-              <Button size="sm" onClick={() => setShowUploadDialog(true)} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground" aria-label="Upload de documento">
+              <Button size="sm" onClick={() => setShowUploadDialog(true)} className="h-8 w-8 sm:w-auto sm:px-3 text-xs sm:text-sm bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground" aria-label="Upload de documento">
                 <Upload className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
                 <span className="hidden sm:inline">Upload</span>
               </Button>
