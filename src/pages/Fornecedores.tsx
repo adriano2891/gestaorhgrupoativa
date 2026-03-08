@@ -68,7 +68,7 @@ export default function Fornecedores() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
+          <Card className="bg-card border-2 border-primary shadow-sm">
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-black">{fornecedores.length}</div>
               <div className="text-sm text-black/60">Total</div>
