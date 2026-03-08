@@ -176,8 +176,8 @@ const Holerites = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold" style={{ color: '#000000' }}>Holerites (Visão ADM)</h1>
-            <p className="mt-1 font-bold" style={{ color: '#000000' }}>
+            <h1 className="text-3xl font-bold text-foreground">Holerites (Visão ADM)</h1>
+            <p className="mt-1 font-bold text-muted-foreground">
               Gerencie e visualize os holerites de todos os funcionários
             </p>
           </div>
