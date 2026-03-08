@@ -130,7 +130,7 @@ export const RelatoriosCursosDialog = ({
   };
 
   const exportarPDF = async () => {
-    if (!metricas?.funcionariosMatriculados) return;
+    const funcionarios = metricas?.funcionariosMatriculados || [];
 
     setIsExportingPDF(true);
     try {
