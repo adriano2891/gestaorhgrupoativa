@@ -309,6 +309,12 @@ const Afastamentos = () => {
         </TabsContent>
 
         <TabsContent value="alertas" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => setAsoDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Registrar ASO
+            </Button>
+          </div>
           <ASOAlertasVencimento asos={asos || []} />
         </TabsContent>
 
