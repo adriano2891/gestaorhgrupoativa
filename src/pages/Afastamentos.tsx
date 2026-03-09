@@ -24,6 +24,7 @@ import { format, parseISO, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ASOAlertasVencimento } from "@/components/sst/ASOAlertasVencimento";
 import { DocumentosSSTPanel } from "@/components/sst/DocumentosSSTPanel";
+import { toast } from "@/hooks/use-toast";
 
 const tipoIcons: Record<string, any> = {
   medico: Stethoscope,
