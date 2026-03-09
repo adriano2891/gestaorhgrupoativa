@@ -43,6 +43,9 @@ export const ConvencoesColetivasCard = () => {
 
   const [form, setForm] = useState({ nome: "", tipo: "cct", sindicato: "", data_inicio: "", data_fim: "" });
   const [pisoForm, setPisoForm] = useState({ cargo: "", piso_salarial: "" });
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     try {
