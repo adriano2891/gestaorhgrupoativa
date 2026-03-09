@@ -186,6 +186,12 @@ const Relatorios = () => {
     {
       id: "custo-folha",
       name: "Custo de Folha de Ponto",
+      icon: Wallet,
+      category: "Custos",
+    },
+  ];
+      id: "custo-folha",
+      name: "Custo de Folha de Ponto",
       icon: FileText,
       category: "Custos",
       description: "Custos detalhados por colaborador",
