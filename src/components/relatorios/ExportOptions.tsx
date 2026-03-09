@@ -82,6 +82,30 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
     processElement(svgClone, originalSvg);
   };
 
+  // Resolve all CSS variable references in SVG attribute values
+  const resolveAllCssVarsInElement = (el: Element) => {
+    const attrs = el.attributes;
+    for (let i = 0; i < attrs.length; i++) {
+      const attr = attrs[i];
+      if (attr.value && attr.value.includes("var(")) {
+        attr.value = resolveCssVariables(attr.value);
+      }
+    }
+    // Also check inline style attribute
+    if (el instanceof HTMLElement || el instanceof SVGElement) {
+      const style = el.getAttribute("style");
+      if (style && style.includes("var(")) {
+        el.setAttribute("style", style.replace(/hsl\(var\(--([^)]+)\)\)/g, (_match, varName) => {
+          const val = getComputedStyle(document.documentElement).getPropertyValue(`--${varName}`).trim();
+          return val ? `hsl(${val})` : _match;
+        }));
+      }
+    }
+    for (let i = 0; i < el.children.length; i++) {
+      resolveAllCssVarsInElement(el.children[i]);
+    }
+  };
+
   const getChartPngDataUrl = async (chartIndex: number): Promise<{ dataUrl: string; width: number; height: number } | null> => {
     const container = document.getElementById(`report-chart-${chartIndex}`);
     const svg = container?.querySelector("svg");
@@ -90,6 +114,9 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
     // Clone the SVG and inline all computed styles
     const svgClone = svg.cloneNode(true) as SVGElement;
     inlineStyles(svgClone, svg);
+    
+    // Resolve CSS variables in all SVG attributes (fill, stroke, etc.)
+    resolveAllCssVarsInElement(svgClone);
     
     // Ensure SVG has proper namespace
     if (!svgClone.getAttribute("xmlns")) {
