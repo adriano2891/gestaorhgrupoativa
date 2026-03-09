@@ -25,9 +25,9 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
           style={{ animationDelay: `${idx * 0.1}s` }}
         >
           <div className="mb-3 sm:mb-5 flex items-center gap-2 sm:gap-3">
-            <div className="h-1 w-8 sm:w-12 bg-white/40 dark:bg-white/20 rounded-full"></div>
+            <div className="h-1 w-8 sm:w-12 rounded-full" style={{ backgroundColor: '#19b2b0' }}></div>
             <h3 className="text-base sm:text-lg md:text-xl font-extrabold tracking-wide uppercase" style={{ fontFamily: 'Arial, sans-serif', color: '#3ee0cf' }}>{category}</h3>
-            <div className="h-1 flex-1 bg-white/20 dark:bg-white/10 rounded-full"></div>
+            <div className="h-1 flex-1 rounded-full" style={{ backgroundColor: '#19b2b0', opacity: 0.5 }}></div>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
