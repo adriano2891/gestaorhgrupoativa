@@ -140,16 +140,44 @@ const Relatorios = () => {
         const statusCount: Record<string, number> = {};
         data.forEach((f: any) => {
           const s = f.status || "pendente";
-          statusCount[s] = (statusCount[s] || 0) + 1;
+          const label = s === "aprovado" ? "Aprovadas" : s === "pendente" ? "Pendentes" : s === "reprovado" ? "Reprovadas" : s === "em_andamento" ? "Em Andamento" : s === "concluido" ? "Concluídas" : s === "cancelado" ? "Canceladas" : s;
+          statusCount[label] = (statusCount[label] || 0) + 1;
         });
+
+        // Enrich with funcionarios data for employees without vacation requests
+        const empComFerias = new Set(data.map((f: any) => f.user_id));
+        const funcsAtivos = (funcionarios || []).filter((f: any) => {
+          const st = (f.status || "ativo").toLowerCase();
+          return st !== "demitido" && st !== "pediu_demissao";
+        });
+        const semSolicitacao = funcsAtivos.filter((f: any) => !empComFerias.has(f.id));
+
+        const deptFerias: Record<string, number> = {};
+        data.forEach((f: any) => {
+          const d = f.profiles?.departamento || "Sem Departamento";
+          deptFerias[d] = (deptFerias[d] || 0) + 1;
+        });
+
+        const tipoCount: Record<string, number> = {};
+        data.forEach((f: any) => {
+          const t = f.tipo === "ferias" ? "Férias" : f.tipo === "ferias_coletivas" ? "Férias Coletivas" : f.tipo === "abono_pecuniario" ? "Abono Pecuniário" : f.tipo || "Férias";
+          tipoCount[t] = (tipoCount[t] || 0) + 1;
+        });
+
+        const totalDias = data.reduce((acc: number, f: any) => acc + (f.dias_solicitados || 0), 0);
+
         setGeneratedData({
           generatedAt: now.toISOString(),
           summary: {
             "Período": periodoLabel,
             "Total Solicitações": data.length,
-            "Aprovadas": statusCount["aprovada"] || 0,
-            "Pendentes": statusCount["pendente"] || 0,
-            "Rejeitadas": statusCount["rejeitada"] || 0,
+            "Aprovadas": statusCount["Aprovadas"] || 0,
+            "Pendentes": statusCount["Pendentes"] || 0,
+            "Em Andamento": statusCount["Em Andamento"] || 0,
+            "Concluídas": statusCount["Concluídas"] || 0,
+            "Reprovadas": statusCount["Reprovadas"] || 0,
+            "Total Dias Solicitados": totalDias,
+            "Sem Solicitação": semSolicitacao.length,
           },
           charts: [
             {
@@ -158,13 +186,29 @@ const Relatorios = () => {
               description: "Distribuição por status",
               data: Object.entries(statusCount).map(([status, count]) => ({ status, valor: count })),
             },
+            {
+              type: "bar",
+              title: "Solicitações por Departamento",
+              description: "Quantidade de solicitações de férias por departamento",
+              data: Object.entries(deptFerias).map(([dept, count]) => ({ departamento: dept, valor: count })),
+              dataName: "Solicitações",
+            },
+            {
+              type: "pie",
+              title: "Tipo de Solicitação",
+              description: "Distribuição por tipo",
+              data: Object.entries(tipoCount).map(([tipo, count]) => ({ tipo, valor: count })),
+            },
           ],
           details: data.slice(0, 100).map((f: any) => ({
             Funcionário: f.profiles?.nome || "-",
+            Cargo: f.profiles?.cargo || "-",
+            Departamento: f.profiles?.departamento || "-",
             "Data Início": f.data_inicio || "-",
             "Data Fim": f.data_fim || "-",
+            "Dias": f.dias_solicitados || "-",
             Status: f.status || "-",
-            Tipo: f.tipo || "Férias",
+            Tipo: f.tipo === "ferias" ? "Férias" : f.tipo === "ferias_coletivas" ? "Férias Coletivas" : f.tipo === "abono_pecuniario" ? "Abono Pecuniário" : f.tipo || "Férias",
           })),
         });
         break;
