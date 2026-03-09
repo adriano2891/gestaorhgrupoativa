@@ -17,7 +17,7 @@ import {
   Clock, Baby, HeartPulse, Shield, FileText
 } from "lucide-react";
 import { useAfastamentos, useCriarAfastamento, useEncerrarAfastamento, TIPOS_AFASTAMENTO } from "@/hooks/useAfastamentos";
-import { useASOs } from "@/hooks/useSST";
+import { useASOs, useCreateASO } from "@/hooks/useSST";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { format, parseISO, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
