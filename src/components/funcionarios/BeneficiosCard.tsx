@@ -252,18 +252,6 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                 </p>
               </div>
             ) : (
-              <div className="space-y-1.5">
-                <Label>Nome do Plano</Label>
-                <Input
-                  value={nomePlano}
-                  onChange={(e) => setNomePlano(e.target.value)}
-                  placeholder="Ex: Unimed, Amil, OdontoPrev..."
-                />
-                <p className="text-xs text-muted-foreground">
-                  Informe o nome do plano contratado
-                </p>
-              </div>
-            ) : (
               <>
                 <div className="space-y-1.5">
                   <Label>Valor Mensal (R$)</Label>
