@@ -271,7 +271,7 @@ export function gerarPdfChecklistConformidade() {
       4: { halign: "center", cellWidth: 28, textColor: RED },
     },
     didParseCell: (data) => {
-      if (data.rowIndex === summaryBody.length - 1 && data.section === "body") {
+      if (data.row.index === summaryBody.length - 1 && data.section === "body") {
         data.cell.styles.fontStyle = "bold";
         data.cell.styles.fillColor = [240, 248, 248];
       }
