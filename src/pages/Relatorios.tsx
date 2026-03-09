@@ -79,26 +79,10 @@ const Relatorios = () => {
       return data || [];
     },
   });
-  const { data: asos } = useQuery({
-    queryKey: ["asos-relatorio"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("asos")
-        .select("*");
-      if (error) throw error;
-      return data || [];
-    },
-  });
-  const { data: cats } = useQuery({
-    queryKey: ["cats-relatorio"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("cats")
-        .select("*");
-      if (error) throw error;
-      return data || [];
-    },
-  });
+  const { data: asos } = useASOs();
+  const { data: cats } = useCATs();
+  const { data: epiEntregas } = useEPIEntregas();
+  const { data: cipaMembros } = useCIPAMembros();
 
   const selectedReportInfo = reportOptions.find(r => r.id === selectedReport);
 
