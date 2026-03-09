@@ -475,14 +475,6 @@ const Relatorios = () => {
           });
           const totalColab = new Set(data.map((r: any) => r.user_id)).size;
           const comHE = data.filter((r: any) => r.horas_extras && r.horas_extras !== "00:00:00").length;
-          setGeneratedData({
-            generatedAt: now.toISOString(),
-            summary: {
-              "Período": periodoLabel,
-              "Total Registros": data.length,
-              "Colaboradores": totalColab,
-              "Registros com Horas Extras": comHE,
-            },
           const tipoRegistro: Record<string, number> = {};
           data.forEach((r: any) => {
             const tem_entrada = !!r.entrada;
@@ -491,7 +483,14 @@ const Relatorios = () => {
             else if (tem_entrada) tipoRegistro["Só Entrada"] = (tipoRegistro["Só Entrada"] || 0) + 1;
             else tipoRegistro["Sem Registro"] = (tipoRegistro["Sem Registro"] || 0) + 1;
           });
-
+          setGeneratedData({
+            generatedAt: now.toISOString(),
+            summary: {
+              "Período": periodoLabel,
+              "Total Registros": data.length,
+              "Colaboradores": totalColab,
+              "Registros com Horas Extras": comHE,
+            },
             charts: [
               {
                 type: "bar",
