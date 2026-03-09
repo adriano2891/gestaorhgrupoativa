@@ -421,6 +421,11 @@ const Funcionarios = () => {
           cpf: profile.cpf || null,
         })));
 
+        // Protect against race conditions: don't replace a larger list with a smaller one right after adding
+        if (recentlyAddedRef.current && formattedEmployees.length < employeesRef.current.length) {
+          console.log("fetchEmployees: Ignorando resultado menor (adição recente)", formattedEmployees.length, "vs", employeesRef.current.length);
+          return;
+        }
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
         setEmployees(formattedEmployees);
         employeesRef.current = formattedEmployees;
