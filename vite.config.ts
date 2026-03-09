@@ -37,6 +37,9 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         navigateFallbackDenylist: [/^\/~oauth/],
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        cleanupOutdatedCaches: true,
+        skipWaiting: true,
+        clientsClaim: true,
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -47,6 +50,11 @@ export default defineConfig(({ mode }) => ({
             urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
             handler: "CacheFirst",
             options: { cacheName: "gstatic-fonts-cache", expiration: { maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 365 } },
+          },
+          {
+            urlPattern: /\/rest\/v1\/.*/i,
+            handler: "NetworkFirst",
+            options: { cacheName: "api-cache", expiration: { maxEntries: 50, maxAgeSeconds: 60 }, networkTimeoutSeconds: 5 },
           },
         ],
       },
