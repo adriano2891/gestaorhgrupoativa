@@ -25,7 +25,7 @@ import iconFerias from "@/assets/icon-rh-ferias.png";
 import iconSuporte from "@/assets/icon-rh-suporte.png";
 import iconDocumentos from "@/assets/icon-rh-documentos.png";
 import iconSST from "@/assets/icon-rh-sst.png";
-import iconChecklist from "@/assets/icon-rh-checklist.png";
+
 
 interface ModuleItem {
   title: string;
