@@ -47,6 +47,84 @@ export type Database = {
         }
         Relationships: []
       }
+      afastamentos: {
+        Row: {
+          cat_id: string | null
+          cid: string | null
+          created_at: string | null
+          data_fim: string | null
+          data_inicio: string
+          data_retorno: string | null
+          dias_empresa: number | null
+          dias_inss: number | null
+          documento_url: string | null
+          id: string
+          numero_beneficio: string | null
+          observacoes: string | null
+          registrado_por: string | null
+          status: string
+          suspende_periodo_aquisitivo: boolean | null
+          tipo: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          cat_id?: string | null
+          cid?: string | null
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio: string
+          data_retorno?: string | null
+          dias_empresa?: number | null
+          dias_inss?: number | null
+          documento_url?: string | null
+          id?: string
+          numero_beneficio?: string | null
+          observacoes?: string | null
+          registrado_por?: string | null
+          status?: string
+          suspende_periodo_aquisitivo?: boolean | null
+          tipo: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          cat_id?: string | null
+          cid?: string | null
+          created_at?: string | null
+          data_fim?: string | null
+          data_inicio?: string
+          data_retorno?: string | null
+          dias_empresa?: number | null
+          dias_inss?: number | null
+          documento_url?: string | null
+          id?: string
+          numero_beneficio?: string | null
+          observacoes?: string | null
+          registrado_por?: string | null
+          status?: string
+          suspende_periodo_aquisitivo?: boolean | null
+          tipo?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "afastamentos_cat_id_fkey"
+            columns: ["cat_id"]
+            isOneToOne: false
+            referencedRelation: "cats"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "afastamentos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asos: {
         Row: {
           arquivo_url: string | null
@@ -296,6 +374,7 @@ export type Database = {
           aprovado_por: string | null
           created_at: string
           data: string
+          data_vencimento: string | null
           horas: string
           id: string
           motivo: string | null
@@ -310,6 +389,7 @@ export type Database = {
           aprovado_por?: string | null
           created_at?: string
           data: string
+          data_vencimento?: string | null
           horas?: string
           id?: string
           motivo?: string | null
@@ -324,6 +404,7 @@ export type Database = {
           aprovado_por?: string | null
           created_at?: string
           data?: string
+          data_vencimento?: string | null
           horas?: string
           id?: string
           motivo?: string | null
@@ -1882,6 +1963,42 @@ export type Database = {
           },
         ]
       }
+      feriados: {
+        Row: {
+          ativo: boolean | null
+          cidade: string | null
+          created_at: string | null
+          data: string
+          estado: string | null
+          id: string
+          nome: string
+          recorrente: boolean | null
+          tipo: string
+        }
+        Insert: {
+          ativo?: boolean | null
+          cidade?: string | null
+          created_at?: string | null
+          data: string
+          estado?: string | null
+          id?: string
+          nome: string
+          recorrente?: boolean | null
+          tipo?: string
+        }
+        Update: {
+          ativo?: boolean | null
+          cidade?: string | null
+          created_at?: string | null
+          data?: string
+          estado?: string | null
+          id?: string
+          nome?: string
+          recorrente?: boolean | null
+          tipo?: string
+        }
+        Relationships: []
+      }
       formulario_atribuicoes: {
         Row: {
           assinado: boolean
@@ -2187,6 +2304,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      historico_cargos: {
+        Row: {
+          alterado_por: string | null
+          cargo_anterior: string | null
+          cargo_novo: string
+          created_at: string | null
+          data_alteracao: string
+          departamento_anterior: string | null
+          departamento_novo: string | null
+          id: string
+          motivo: string | null
+          user_id: string
+        }
+        Insert: {
+          alterado_por?: string | null
+          cargo_anterior?: string | null
+          cargo_novo: string
+          created_at?: string | null
+          data_alteracao?: string
+          departamento_anterior?: string | null
+          departamento_novo?: string | null
+          id?: string
+          motivo?: string | null
+          user_id: string
+        }
+        Update: {
+          alterado_por?: string | null
+          cargo_anterior?: string | null
+          cargo_novo?: string
+          created_at?: string | null
+          data_alteracao?: string
+          departamento_anterior?: string | null
+          departamento_novo?: string | null
+          id?: string
+          motivo?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historico_cargos_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       historico_ferias: {
         Row: {
@@ -4085,6 +4249,15 @@ export type Database = {
         }
         Returns: string
       }
+      calcular_saldo_banco_horas: {
+        Args: { p_user_id: string }
+        Returns: {
+          creditos_vencidos: number
+          saldo: number
+          total_credito: number
+          total_debito: number
+        }[]
+      }
       get_email_by_cpf: {
         Args: { cpf_input: string }
         Returns: {
@@ -4111,6 +4284,7 @@ export type Database = {
         Args: { _user_id: string; doc_id: string }
         Returns: boolean
       }
+      is_feriado: { Args: { p_data: string }; Returns: boolean }
       user_has_document_permission: {
         Args: { _user_id: string; doc_id: string }
         Returns: boolean

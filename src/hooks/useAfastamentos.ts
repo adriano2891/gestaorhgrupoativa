@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { restGet, restPost, restPatch, getUserIdFromToken } from "@/lib/restClient";
 import { toast } from "@/hooks/use-toast";
+import { validarAfastamento } from "@/utils/esocialValidation";
 
 export interface Afastamento {
   id: string;
@@ -25,10 +26,11 @@ export interface Afastamento {
 
 const TIPOS_AFASTAMENTO = {
   medico: { label: "Afastamento Médico", diasEmpresa: 15, descricao: "Primeiros 15 dias pela empresa, após pelo INSS (Art. 60 Lei 8.213/91)" },
-  licenca_maternidade: { label: "Licença Maternidade", diasEmpresa: 120, descricao: "120 dias (Art. 392 CLT)" },
-  licenca_paternidade: { label: "Licença Paternidade", diasEmpresa: 5, descricao: "5 dias (Art. 10 §1º ADCT)" },
-  acidente_trabalho: { label: "Acidente de Trabalho", diasEmpresa: 15, descricao: "15 dias empresa + INSS (Art. 118 Lei 8.213/91)" },
-  previdenciario: { label: "Afastamento Previdenciário", diasEmpresa: 0, descricao: "Benefício INSS" },
+  licenca_maternidade: { label: "Licença Maternidade", diasEmpresa: 120, descricao: "120 dias (Art. 392 CLT) — estabilidade até 5 meses após parto" },
+  licenca_paternidade: { label: "Licença Paternidade", diasEmpresa: 5, descricao: "5 dias (Art. 10 §1º ADCT) — 20 dias se Empresa Cidadã" },
+  acidente_trabalho: { label: "Acidente de Trabalho", diasEmpresa: 15, descricao: "15 dias empresa + INSS (Art. 118 Lei 8.213/91) — estabilidade 12 meses após retorno" },
+  previdenciario: { label: "Afastamento Previdenciário", diasEmpresa: 0, descricao: "Benefício INSS — suspensão do contrato" },
+  servico_militar: { label: "Serviço Militar", diasEmpresa: 0, descricao: "Art. 472 CLT — suspensão do contrato" },
   outro: { label: "Outro", diasEmpresa: 0, descricao: "Outros tipos de afastamento" },
 };
 
@@ -44,6 +46,7 @@ export const useAfastamentos = (userId?: string) => {
       const afastamentos: any[] = await restGet(path);
       if (!afastamentos || afastamentos.length === 0) return [] as Afastamento[];
 
+      // Data enrichment: fetch profiles separately
       const userIds = [...new Set(afastamentos.map(a => a.user_id))];
       const profilesPath = `profiles?select=id,nome,cargo,departamento&id=in.(${userIds.join(',')})`;
       const profiles: any[] = await restGet(profilesPath);
@@ -79,12 +82,43 @@ export const useCriarAfastamento = () => {
       observacoes?: string;
       suspende_periodo_aquisitivo?: boolean;
     }) => {
+      // Validação eSocial S-2230
+      const validacao = validarAfastamento({
+        tipo: data.tipo,
+        data_inicio: data.data_inicio,
+        data_fim: data.data_fim,
+        cid: data.cid,
+      });
+
+      if (!validacao.valido) {
+        throw new Error(`Validação eSocial falhou: ${validacao.erros.join('; ')}`);
+      }
+
+      // Show warnings but don't block
+      if (validacao.avisos.length > 0) {
+        toast({
+          title: "Avisos eSocial",
+          description: validacao.avisos.join('\n'),
+        });
+      }
+
       const registradoPor = getUserIdFromToken();
       const tipoConfig = TIPOS_AFASTAMENTO[data.tipo as keyof typeof TIPOS_AFASTAMENTO];
       
+      // Calculate dias_inss for medical leaves > 15 days
+      let diasInss = 0;
+      if (data.data_fim && data.data_inicio) {
+        const totalDias = Math.ceil(
+          (new Date(data.data_fim).getTime() - new Date(data.data_inicio).getTime()) / (1000 * 60 * 60 * 24)
+        ) + 1;
+        const diasEmpresa = tipoConfig?.diasEmpresa || 0;
+        diasInss = Math.max(0, totalDias - diasEmpresa);
+      }
+
       const result = await restPost('afastamentos', {
         ...data,
         dias_empresa: tipoConfig?.diasEmpresa || 0,
+        dias_inss: diasInss,
         registrado_por: registradoPor,
         status: 'ativo',
       });

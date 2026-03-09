@@ -29,13 +29,11 @@ export const BancoHorasCard = ({ userId, userName }: { userId: string; userName:
 
   const loadBancoHoras = async () => {
     try {
-      // Use REST call for backend saldo calculation (bypasses type restrictions)
+      // Use centralized REST client for backend saldo calculation
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const { getAccessToken } = await import("@/lib/restClient");
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-      const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID || supabaseUrl?.match(/\/\/([^.]+)/)?.[1];
-      const storageKey = `sb-${projectRef}-auth-token`;
-      let token = anonKey;
-      try { const raw = localStorage.getItem(storageKey); if (raw) token = JSON.parse(raw).access_token || anonKey; } catch {}
+      const token = getAccessToken() || anonKey;
 
       const saldoRes = await fetch(`${supabaseUrl}/rest/v1/rpc/calcular_saldo_banco_horas`, {
         method: 'POST',
