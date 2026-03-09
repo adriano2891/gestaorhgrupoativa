@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BackButton } from "@/components/ui/back-button";
 import { BarChart3, Download, Users, Clock, FileText, DollarSign, TrendingDown, Briefcase, Receipt, AlertCircle, CalendarDays, Heart, HardHat } from "lucide-react";
@@ -10,6 +11,7 @@ import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { useRegistrosPonto } from "@/hooks/useRegistrosPonto";
 import { useHolerites } from "@/hooks/useHolerites";
 import { useSolicitacoesFerias } from "@/hooks/useFerias";
+import { supabase } from "@/integrations/supabase/client";
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
