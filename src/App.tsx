@@ -367,7 +367,9 @@ const App = () => {
                       path="/afastamentos"
                       element={
                         <ProtectedRoute>
-                          <Afastamentos />
+                          <LazyLayout>
+                            <Afastamentos />
+                          </LazyLayout>
                         </ProtectedRoute>
                       }
                     />
