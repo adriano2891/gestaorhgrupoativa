@@ -426,26 +426,77 @@ const Relatorios = () => {
         if (filters.departamento && filters.departamento !== "todos") {
           filtered = filtered.filter((f: any) => f.departamento?.toLowerCase().includes(filters.departamento.toLowerCase()));
         }
+        if (filters.dataInicio) {
+          filtered = filtered.filter((f: any) => f.data_admissao >= filters.dataInicio || !f.data_admissao);
+        }
+
         const total = filtered.length;
-        const desligados = filtered.filter((f: any) =>
-          f.status === "demitido" || f.status === "pediu_demissao" || f.status === "Demitido" || f.status === "Pediu Demissão"
-        );
+        const ativos = filtered.filter((f: any) => {
+          const st = (f.status || "ativo").toLowerCase();
+          return st !== "demitido" && st !== "pediu_demissao";
+        });
+        const desligados = filtered.filter((f: any) => {
+          const st = (f.status || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+          return st === "demitido" || st === "pediu_demissao" || st === "demissao";
+        });
+
+        // Filter by motivo/tipo de movimentação
+        let movimentacoes = filtered;
+        if (filters.tipoMovimentacao && filters.tipoMovimentacao !== "todos") {
+          if (filters.tipoMovimentacao === "admissao") {
+            movimentacoes = ativos;
+          } else if (filters.tipoMovimentacao === "desligamento") {
+            movimentacoes = desligados;
+          }
+        }
+        if (filters.motivo && filters.motivo !== "todos") {
+          movimentacoes = movimentacoes.filter((f: any) => {
+            const st = (f.status || "").toLowerCase();
+            if (filters.motivo === "pedido") return st === "pediu_demissao";
+            if (filters.motivo === "justa-causa" || filters.motivo === "sem-justa-causa") return st === "demitido";
+            return true;
+          });
+        }
+
         const taxaTurnover = total > 0 ? ((desligados.length / total) * 100).toFixed(1) : "0";
-        const taxaRetencao = total > 0 ? (((total - desligados.length) / total) * 100).toFixed(1) : "0";
+        const taxaRetencao = total > 0 ? ((ativos.length / total) * 100).toFixed(1) : "0";
+
         const motivoCount: Record<string, number> = {};
         desligados.forEach((f: any) => {
-          const m = f.status || "Desligado";
-          motivoCount[m] = (motivoCount[m] || 0) + 1;
+          const st = (f.status || "").toLowerCase();
+          const label = st === "pediu_demissao" ? "Pedido de Demissão" : st === "demitido" ? "Demissão pela Empresa" : "Outro";
+          motivoCount[label] = (motivoCount[label] || 0) + 1;
         });
+
         const deptDesligamentos: Record<string, number> = {};
         desligados.forEach((f: any) => {
           const d = f.departamento || "Sem Departamento";
           deptDesligamentos[d] = (deptDesligamentos[d] || 0) + 1;
         });
+
+        const deptAtivos: Record<string, number> = {};
+        ativos.forEach((f: any) => {
+          const d = f.departamento || "Sem Departamento";
+          deptAtivos[d] = (deptAtivos[d] || 0) + 1;
+        });
+
+        // Admissões por mês (últimos 6 meses)
+        const admissoesMes: Record<string, number> = {};
+        filtered.forEach((f: any) => {
+          if (f.data_admissao) {
+            const mes = f.data_admissao.substring(0, 7); // YYYY-MM
+            admissoesMes[mes] = (admissoesMes[mes] || 0) + 1;
+          }
+        });
+
+        const allDepts = [...new Set([...Object.keys(deptDesligamentos), ...Object.keys(deptAtivos)])];
+
         setGeneratedData({
           generatedAt: now.toISOString(),
           summary: {
+            "Período": periodoLabel,
             "Total Colaboradores": total,
+            "Ativos": ativos.length,
             "Desligamentos": desligados.length,
             "Taxa Turnover": `${taxaTurnover}%`,
             "Taxa Retenção": `${taxaRetencao}%`,
@@ -453,10 +504,10 @@ const Relatorios = () => {
           charts: [
             {
               type: "bar",
-              title: "Desligamentos por Departamento",
-              description: "Distribuição de desligamentos por área",
-              data: Object.entries(deptDesligamentos).map(([dept, count]) => ({ departamento: dept, valor: count })),
-              dataName: "Desligamentos",
+              title: "Ativos vs Desligados por Departamento",
+              description: "Comparativo por área",
+              data: allDepts.map(dept => ({ departamento: dept, Ativos: deptAtivos[dept] || 0, Desligados: deptDesligamentos[dept] || 0 })),
+              dataName: "Colaboradores",
             },
             {
               type: "pie",
@@ -464,12 +515,21 @@ const Relatorios = () => {
               description: "Tipo de desligamento",
               data: Object.entries(motivoCount).map(([motivo, count]) => ({ motivo, valor: count })),
             },
+            {
+              type: "bar",
+              title: "Admissões por Mês",
+              description: "Volume de admissões ao longo do tempo",
+              data: Object.entries(admissoesMes).sort(([a], [b]) => a.localeCompare(b)).map(([mes, count]) => ({ mês: mes, valor: count })),
+              dataName: "Admissões",
+            },
           ],
-          details: desligados.slice(0, 100).map((f: any) => ({
+          details: movimentacoes.slice(0, 100).map((f: any) => ({
             Nome: f.nome || "-",
             Cargo: f.cargo || "-",
             Departamento: f.departamento || "-",
-            Status: f.status || "-",
+            "Data Admissão": f.data_admissao || "-",
+            Escala: f.escala || "-",
+            Status: f.status || "Ativo",
           })),
         });
         break;
