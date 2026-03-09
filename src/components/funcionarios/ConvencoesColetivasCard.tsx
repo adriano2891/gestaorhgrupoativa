@@ -109,7 +109,7 @@ export const ConvencoesColetivasCard = () => {
 
   return (
     <>
-      <Card>
+      <Card style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
         <CardHeader className="p-3 sm:p-4 pb-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="min-w-0">
