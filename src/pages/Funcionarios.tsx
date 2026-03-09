@@ -1367,6 +1367,9 @@ const Funcionarios = () => {
                           userName={employee.name}
                           salarioBase={employeeSalaries[employee.id]?.salario || 0}
                           dataAdmissao={employee.admissionDate}
+                          cpf={employee.cpf}
+                          cargo={employee.position}
+                          tipoContrato={employee.tipo_contrato}
                         />
                         <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 focus-ring" onClick={() => handleDelete(employee.id)} aria-label={`Excluir ${employee.name}`}>
                           <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
