@@ -449,6 +449,16 @@ const Relatorios = () => {
                 })),
                 dataName: "Taxa (%)",
               },
+              {
+                type: "pie",
+                title: "Presença vs Ausência",
+                description: "Proporção geral de presença e ausências",
+                data: [
+                  { tipo: "Presentes", valor: data.length - totalAusencias },
+                  { tipo: "Ausentes", valor: totalAusencias },
+                  { tipo: "Atrasados", valor: totalAtrasos },
+                ],
+              },
             ],
             details: rankingAbsenteismo.length > 0
               ? rankingAbsenteismo.slice(0, 100).map(e => ({
