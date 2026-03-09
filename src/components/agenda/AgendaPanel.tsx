@@ -109,7 +109,11 @@ export function AgendaPanel({ open, onOpenChange }: AgendaPanelProps) {
                   eventos={eventos}
                   getEventosDia={getEventosDia}
                   getEventosMes={getEventosMes}
-                  onDiaClick={(d) => { setDataSelecionada(d); setTab('dia'); }}
+                  onDiaClick={(d) => {
+                    setDataSelecionada(d);
+                    setTab('dia');
+                    handleNovoEvento(d);
+                  }}
                   onNovoEvento={handleNovoEvento}
                   dataSelecionada={dataSelecionada}
                   setDataSelecionada={setDataSelecionada}
