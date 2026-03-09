@@ -6,6 +6,7 @@ import { EPITab } from "@/components/sst/EPITab";
 import { CATTab } from "@/components/sst/CATTab";
 import { CIPATab } from "@/components/sst/CIPATab";
 import { AfastamentosTab } from "@/components/sst/AfastamentosTab";
+import { AlertasVencimentoSST } from "@/components/sst/AlertasVencimentoSST";
 
 const SaudeSeguranca = () => {
   return (
