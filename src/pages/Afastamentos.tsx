@@ -438,6 +438,101 @@ const Afastamentos = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog: Registrar ASO */}
+      <Dialog open={asoDialogOpen} onOpenChange={setAsoDialogOpen}>
+        <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Registrar ASO</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            if (!asoUserId) return;
+            createASO.mutate({
+              user_id: asoUserId,
+              tipo: asoTipo,
+              data_exame: asoDataExame,
+              data_vencimento: asoDataVencimento || null,
+              resultado: asoResultado,
+              medico_nome: asoMedico || null,
+              crm: asoCrm || null,
+              observacoes: asoObs || null,
+            }, {
+              onSuccess: () => {
+                setAsoDialogOpen(false);
+                setAsoUserId(""); setAsoTipo("periodico"); setAsoResultado("apto");
+                setAsoDataExame(new Date().toISOString().split("T")[0]);
+                setAsoDataVencimento(""); setAsoMedico(""); setAsoCrm(""); setAsoObs("");
+              }
+            });
+          }} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Funcionário *</Label>
+              <Select value={asoUserId} onValueChange={setAsoUserId}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {(funcionarios || []).map(f => (
+                    <SelectItem key={f.id} value={f.id}>{f.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Tipo de Exame *</Label>
+              <Select value={asoTipo} onValueChange={setAsoTipo}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admissional">Admissional</SelectItem>
+                  <SelectItem value="periodico">Periódico</SelectItem>
+                  <SelectItem value="retorno">Retorno ao Trabalho</SelectItem>
+                  <SelectItem value="mudanca_funcao">Mudança de Função</SelectItem>
+                  <SelectItem value="demissional">Demissional</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Data do Exame *</Label>
+                <Input type="date" value={asoDataExame} onChange={e => setAsoDataExame(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Vencimento</Label>
+                <Input type="date" value={asoDataVencimento} onChange={e => setAsoDataVencimento(e.target.value)} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Resultado *</Label>
+              <Select value={asoResultado} onValueChange={setAsoResultado}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="apto">Apto</SelectItem>
+                  <SelectItem value="inapto">Inapto</SelectItem>
+                  <SelectItem value="apto_restricao">Apto com Restrição</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label>Médico</Label>
+                <Input value={asoMedico} onChange={e => setAsoMedico(e.target.value)} placeholder="Nome do médico" />
+              </div>
+              <div className="space-y-2">
+                <Label>CRM</Label>
+                <Input value={asoCrm} onChange={e => setAsoCrm(e.target.value)} placeholder="CRM" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Observações</Label>
+              <Textarea value={asoObs} onChange={e => setAsoObs(e.target.value)} rows={2} />
+            </div>
+            <DialogFooter>
+              <Button type="submit" disabled={createASO.isPending || !asoUserId}>
+                {createASO.isPending ? "Salvando..." : "Registrar ASO"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
