@@ -62,19 +62,48 @@ export const ConvencoesColetivasCard = () => {
 
   useEffect(() => { load(); }, []);
 
+  const sanitizeFileName = (name: string) =>
+    name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
+
   const handleAddConvencao = async () => {
     if (!form.nome || !form.data_inicio || !form.data_fim) { toast.error("Preencha todos os campos obrigatórios"); return; }
     try {
+      setUploading(true);
+      let documento_url: string | null = null;
+      let documento_nome: string | null = null;
+
+      if (arquivo) {
+        const safeName = sanitizeFileName(arquivo.name);
+        const path = `convencoes/${Date.now()}-${safeName}`;
+        const { error: upErr } = await supabase.storage.from("documentos").upload(path, arquivo);
+        if (upErr) throw upErr;
+        documento_url = path;
+        documento_nome = arquivo.name;
+      }
+
       const { error } = await (supabase as any).from("convencoes_coletivas").insert({
-        ...form, sindicato: form.sindicato || null,
+        ...form, sindicato: form.sindicato || null, documento_url, documento_nome,
       });
       if (error) throw error;
       toast.success("Convenção registrada");
       setDialogOpen(false);
       setForm({ nome: "", tipo: "cct", sindicato: "", data_inicio: "", data_fim: "" });
+      setArquivo(null);
       load();
     } catch (e: any) {
       toast.error("Erro", { description: e.message });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDownloadDoc = async (url: string, nome: string) => {
+    try {
+      const { data, error } = await supabase.storage.from("documentos").createSignedUrl(url, 300);
+      if (error) throw error;
+      window.open(data.signedUrl, "_blank");
+    } catch (e: any) {
+      toast.error("Erro ao abrir documento", { description: e.message });
     }
   };
 
