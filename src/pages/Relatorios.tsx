@@ -1314,7 +1314,7 @@ const Relatorios = () => {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <button
                 onClick={() => setGeneratedData(null)}
-                className="text-sm text-primary hover:underline flex items-center gap-1"
+                className="text-sm text-primary-foreground bg-primary hover:bg-primary/90 px-4 py-2 rounded-md flex items-center gap-1 transition-colors"
               >
                 ← Voltar aos filtros
               </button>
