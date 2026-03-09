@@ -831,49 +831,65 @@ const Relatorios = () => {
           plano_odontologico: "Plano Odontológico",
         };
 
+        // Count unique benefit types
+        const uniqueBenTypes = new Set(bens.map((b: any) => b.tipo));
+        const bensAtivos = bens.filter((b: any) => b.ativo);
+        const bensInativos = bens.filter((b: any) => !b.ativo);
+
+        // Benefits per employee count
+        const empBenCount: Record<string, number> = {};
+        bensAtivos.forEach((b: any) => {
+          empBenCount[b.user_id] = (empBenCount[b.user_id] || 0) + 1;
+        });
+        const avgBenPerEmp = filtered.length > 0 ? (bensAtivos.length / filtered.length) : 0;
+
         setGeneratedData({
           generatedAt: now.toISOString(),
           summary: {
-            "Período": periodoLabel,
-            "Colaboradores Ativos": filtered.length,
-            "Total de Benefícios Ativos": bens.length,
-            "Custo Total (sem planos)": `R$ ${totalCusto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-            "Sem Benefícios": semBeneficio.length,
-            "Tipos Distintos": Object.keys(tipoCount).length,
+            "Total Funcionários": filtered.length,
+            "Benefícios Cadastrados": uniqueBenTypes.size,
+            "Benefícios Ativos": bensAtivos.length,
+            "Benefícios Inativos": bensInativos.length,
           },
           charts: [
             {
               type: "pie",
-              title: "Distribuição por Tipo de Benefício",
-              description: "Quantidade de benefícios por tipo",
-              data: Object.entries(tipoCount).map(([tipo, count]) => ({ tipo: tipoLabels[tipo] || tipo, valor: count })),
+              title: "1. Status dos Benefícios",
+              description: "Proporção entre benefícios ativos e inativos",
+              data: [
+                { status: "Ativos", valor: bensAtivos.length },
+                { status: "Inativos", valor: bensInativos.length },
+              ].filter(d => d.valor > 0),
             },
             {
               type: "bar",
-              title: "Benefícios por Departamento",
-              description: "Quantidade de benefícios ativos por departamento",
-              data: Object.entries(deptBens).map(([dept, count]) => ({ departamento: dept, valor: count })),
+              title: "2. Benefícios por Funcionário",
+              description: "Quantidade de benefícios ativos por colaborador",
+              data: filtered.map((f: any) => ({
+                funcionario: (f.nome || "-").split(" ").slice(0, 2).join(" "),
+                valor: empBenCount[f.id] || 0,
+              })),
               dataName: "Benefícios",
-            },
-            {
-              type: "bar",
-              title: "Custo por Tipo de Benefício",
-              description: "Valores monetários (exceto planos de saúde/odontológico)",
-              data: Object.entries(tipoCusto).map(([tipo, valor]) => ({ tipo: tipoLabels[tipo] || tipo, valor: parseFloat(valor.toFixed(2)) })),
-              dataName: "R$",
+              insight: `Cada funcionário possui ${Math.round(avgBenPerEmp)} benefício(s) ativo(s).`,
             },
           ],
-          details: bens.slice(0, 100).map((b: any) => {
+          details: bensAtivos.slice(0, 100).map((b: any) => {
             const func = funcMap.get(b.user_id);
             const isPlano = ["plano_saude", "plano_odontologico"].includes(b.tipo);
+            let valorStr = "-";
+            if (isPlano) {
+              valorStr = b.observacoes || (tipoLabels[b.tipo] || b.tipo);
+            } else {
+              const val = b.valor || 0;
+              const periodo = b.tipo === "vale_refeicao" || b.tipo === "vale_alimentacao" ? "/dia" : "/mês";
+              valorStr = `R$ ${val.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}${periodo}`;
+            }
             return {
-              Funcionário: func?.nome || "-",
-              Departamento: func?.departamento || "-",
-              Cargo: func?.cargo || "-",
-              Benefício: tipoLabels[b.tipo] || b.tipo || "-",
-              Valor: isPlano ? (b.observacoes || "Plano ativo") : `R$ ${(b.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-              "Desconto (%)": b.desconto_percentual ? `${b.desconto_percentual}%` : "-",
-              "Data Início": b.data_inicio || "-",
+              funcionario: func?.nome || "-",
+              departamento: func?.departamento || "-",
+              beneficio: tipoLabels[b.tipo] || b.tipo || "-",
+              valor: valorStr,
+              status: b.ativo ? "Ativo" : "Inativo",
             };
           }),
         });
