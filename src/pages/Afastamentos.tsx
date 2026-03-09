@@ -294,6 +294,16 @@ const Afastamentos = () => {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="alertas" className="space-y-4">
+          <ASOAlertasVencimento asos={asos || []} />
+        </TabsContent>
+
+        <TabsContent value="documentos" className="space-y-4">
+          <DocumentosSSTPanel />
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog: Registrar Afastamento */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
