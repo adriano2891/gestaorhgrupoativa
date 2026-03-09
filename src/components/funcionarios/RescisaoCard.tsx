@@ -8,9 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { FileText, Calculator, AlertTriangle } from "lucide-react";
+import { FileText, Calculator, AlertTriangle, Download } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { calcularINSS, calcularIRRF } from "@/utils/inssIrrfCalculos";
+import { gerarTRCT } from "@/utils/trctPdfGenerator";
 
 interface RescisaoCardProps {
   userId: string;
