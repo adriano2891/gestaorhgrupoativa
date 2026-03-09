@@ -665,22 +665,38 @@ const Relatorios = () => {
           const d = f.departamento || "Sem Departamento";
           deptCount[d] = (deptCount[d] || 0) + 1;
         });
-        setGeneratedData({
-          generatedAt: now.toISOString(),
-          summary: {
-            "Período": periodoLabel,
-            "Total Avaliados": filtered.length,
-            "Departamentos": Object.keys(deptCount).length,
-          },
-          charts: [
-            {
-              type: "bar",
-              title: "Colaboradores por Departamento",
-              description: "Distribuição para avaliação de desempenho",
-              data: Object.entries(deptCount).map(([dept, count]) => ({ departamento: dept, valor: count })),
-              dataName: "Colaboradores",
+          const cargoCount: Record<string, number> = {};
+          filtered.forEach((f: any) => {
+            const c = f.cargo || "Sem Cargo";
+            cargoCount[c] = (cargoCount[c] || 0) + 1;
+          });
+          const statusDesempenho: Record<string, number> = {};
+          filtered.forEach((f: any) => {
+            const s = f.status || "Ativo";
+            statusDesempenho[s] = (statusDesempenho[s] || 0) + 1;
+          });
+          setGeneratedData({
+            generatedAt: now.toISOString(),
+            summary: {
+              "Período": periodoLabel,
+              "Total Avaliados": filtered.length,
+              "Departamentos": Object.keys(deptCount).length,
             },
-          ],
+            charts: [
+              {
+                type: "bar",
+                title: "Colaboradores por Departamento",
+                description: "Distribuição para avaliação de desempenho",
+                data: Object.entries(deptCount).map(([dept, count]) => ({ departamento: dept, valor: count })),
+                dataName: "Colaboradores",
+              },
+              {
+                type: "pie",
+                title: "Distribuição por Status",
+                description: "Status dos colaboradores avaliados",
+                data: Object.entries(statusDesempenho).map(([status, count]) => ({ status, valor: count })),
+              },
+            ],
           details: filtered.slice(0, 100).map((f: any) => ({
             Nome: f.nome || "-",
             Cargo: f.cargo || "-",
