@@ -157,7 +157,9 @@ const Funcionarios = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const employeesRef = useRef<Employee[]>([]);
   const recentlyAddedRef = useRef(false);
-  
+  const pendingNewEmployeeIdRef = useRef<string | null>(null);
+  const propagationGuardUntilRef = useRef(0);
+  const propagationRetryTimeoutRef = useRef<number | null>(null);
   const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }>>({});
   const [employeeUpdates, setEmployeeUpdates] = useState<Record<string, { updated_at: string }>>({});
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
