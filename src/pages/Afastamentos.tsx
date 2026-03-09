@@ -455,7 +455,6 @@ const Afastamentos = () => {
               <Button type="submit" disabled={!userId || criarAfastamento.isPending || uploading}>
                 {uploading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Enviando...</> : criarAfastamento.isPending ? "Salvando..." : "Registrar"}
               </Button>
-              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
