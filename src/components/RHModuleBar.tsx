@@ -79,11 +79,10 @@ export const RHModuleBar = () => {
     '/hrflow-pro': () => import("@/pages/HRFlowPro"),
     '/cursos': () => import("@/pages/CursosAdmin"),
     '/controle-ferias': () => import("@/pages/ControleFerias"),
-    '/suporte-funcionarios': () => import("@/pages/SuporteFuncionarios"),
-    '/documentacoes': () => import("@/pages/Documentacoes"),
-    '/saude-seguranca': () => import("@/pages/SaudeSeguranca"),
-    '/admins': () => import("@/pages/GerenciarAdmins"),
-  }), []);
+     '/suporte-funcionarios': () => import("@/pages/SuporteFuncionarios"),
+     '/documentacoes': () => import("@/pages/Documentacoes"),
+     '/admins': () => import("@/pages/GerenciarAdmins"),
+   }), []);
 
   const handlePrefetch = useCallback((path: string) => {
     prefetchMap[path]?.();
