@@ -11,14 +11,18 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BackButton } from "@/components/ui/back-button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Stethoscope, Plus, Calendar, AlertTriangle, CheckCircle, 
-  Clock, Baby, HeartPulse, Shield
+  Clock, Baby, HeartPulse, Shield, FileText
 } from "lucide-react";
 import { useAfastamentos, useCriarAfastamento, useEncerrarAfastamento, TIPOS_AFASTAMENTO } from "@/hooks/useAfastamentos";
+import { useASOs } from "@/hooks/useSST";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { format, parseISO, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ASOAlertasVencimento } from "@/components/sst/ASOAlertasVencimento";
+import { DocumentosSSTPanel } from "@/components/sst/DocumentosSSTPanel";
 
 const tipoIcons: Record<string, any> = {
   medico: Stethoscope,
@@ -32,6 +36,7 @@ const tipoIcons: Record<string, any> = {
 const Afastamentos = () => {
   const { data: afastamentos, isLoading } = useAfastamentos();
   const { data: funcionarios } = useFuncionarios();
+  const { data: asos } = useASOs();
   const criarAfastamento = useCriarAfastamento();
   const encerrarAfastamento = useEncerrarAfastamento();
 
@@ -92,18 +97,29 @@ const Afastamentos = () => {
           <div className="flex items-center gap-2">
             <Shield className="h-6 w-6 text-primary" />
             <div>
-              <h1 className="text-2xl font-bold">Afastamentos e Licenças</h1>
+              <h1 className="text-2xl font-bold">Saúde e Segurança do Trabalho</h1>
               <p className="text-sm text-muted-foreground">
-                CLT Art. 392 (Maternidade) · Art. 10 ADCT (Paternidade) · Lei 8.213/91 (INSS)
+                NR-1 (PGR) · NR-6 (EPI) · NR-7 (ASO/PCMSO) · NR-5 (CIPA) · CLT Art. 154-201
               </p>
             </div>
           </div>
         </div>
-        <Button onClick={() => setDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Registrar Afastamento
-        </Button>
       </div>
+
+      <Tabs defaultValue="afastamentos" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="afastamentos">Afastamentos</TabsTrigger>
+          <TabsTrigger value="alertas">Alertas ASO</TabsTrigger>
+          <TabsTrigger value="documentos">Documentos Regulatórios</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="afastamentos" className="space-y-4">
+          <div className="flex justify-end">
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Registrar Afastamento
+            </Button>
+          </div>
 
       {/* Métricas */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -278,6 +294,16 @@ const Afastamentos = () => {
           </CardContent>
         </Card>
       )}
+        </TabsContent>
+
+        <TabsContent value="alertas" className="space-y-4">
+          <ASOAlertasVencimento asos={asos || []} />
+        </TabsContent>
+
+        <TabsContent value="documentos" className="space-y-4">
+          <DocumentosSSTPanel />
+        </TabsContent>
+      </Tabs>
 
       {/* Dialog: Registrar Afastamento */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
