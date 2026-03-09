@@ -1265,28 +1265,8 @@ const Relatorios = () => {
         });
         break;
       }
-        let data = holerites || [];
-        if (filters.mes) {
-          data = data.filter((h: any) => String(h.mes) === filters.mes);
-        }
-        if (filters.ano) {
-          data = data.filter((h: any) => String(h.ano) === filters.ano);
-        }
-        const funcMap = new Map((funcionarios || []).map((f: any) => [f.id, f]));
-        if (filters.departamento && filters.departamento !== "todos") {
-          data = data.filter((h: any) => {
-            const func = funcMap.get(h.user_id);
-            return func?.departamento?.toLowerCase().includes(filters.departamento.toLowerCase());
-          });
-        }
-        const totalBruto = data.reduce((acc: number, h: any) => acc + (parseFloat(h.salario_bruto) || 0), 0);
-        const totalDescontos = data.reduce((acc: number, h: any) => acc + (parseFloat(h.descontos) || 0), 0);
-        const totalLiquido = data.reduce((acc: number, h: any) => acc + (parseFloat(h.salario_liquido) || 0), 0);
-        const totalINSS = data.reduce((acc: number, h: any) => acc + (parseFloat(h.inss) || 0), 0);
-        const totalIRRF = data.reduce((acc: number, h: any) => acc + (parseFloat(h.irrf) || 0), 0);
-        const totalFGTS = data.reduce((acc: number, h: any) => acc + (parseFloat(h.fgts) || 0), 0);
-        const encargosEstimados = totalBruto * 0.368;
-        const totalColab = new Set(data.map((h: any) => h.user_id)).size;
+
+
 
         // Benefícios dos funcionários presentes na folha
         const empIds = new Set(data.map((h: any) => h.user_id));
