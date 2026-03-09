@@ -66,6 +66,9 @@ const Afastamentos = () => {
   const [asoMedico, setAsoMedico] = useState("");
   const [asoCrm, setAsoCrm] = useState("");
   const [asoObs, setAsoObs] = useState("");
+  const [asoArquivo, setAsoArquivo] = useState<File | null>(null);
+  const [asoUploading, setAsoUploading] = useState(false);
+  const asoFileInputRef = useRef<HTMLInputElement>(null);
   const [suspende, setSuspende] = useState(false);
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -499,9 +502,27 @@ const Afastamentos = () => {
           <DialogHeader>
             <DialogTitle>Registrar ASO</DialogTitle>
           </DialogHeader>
-          <form onSubmit={(e) => {
+          <form onSubmit={async (e) => {
             e.preventDefault();
             if (!asoUserId) return;
+
+            let arquivoUrl: string | null = null;
+            if (asoArquivo) {
+              setAsoUploading(true);
+              try {
+                const sanitized = sanitizeFileName(asoArquivo.name);
+                const path = `asos/${asoUserId}/${Date.now()}_${sanitized}`;
+                const { error } = await supabase.storage.from('sst-documentos').upload(path, asoArquivo);
+                if (error) throw error;
+                arquivoUrl = path;
+              } catch (err: any) {
+                toast({ title: "Erro no upload", description: err.message, variant: "destructive" });
+                setAsoUploading(false);
+                return;
+              }
+              setAsoUploading(false);
+            }
+
             createASO.mutate({
               user_id: asoUserId,
               tipo: asoTipo,
@@ -511,12 +532,14 @@ const Afastamentos = () => {
               medico_nome: asoMedico || null,
               crm: asoCrm || null,
               observacoes: asoObs || null,
+              arquivo_url: arquivoUrl,
             }, {
               onSuccess: () => {
                 setAsoDialogOpen(false);
                 setAsoUserId(""); setAsoTipo("periodico"); setAsoResultado("apto");
                 setAsoDataExame(new Date().toISOString().split("T")[0]);
                 setAsoDataVencimento(""); setAsoMedico(""); setAsoCrm(""); setAsoObs("");
+                setAsoArquivo(null);
               }
             });
           }} className="space-y-4">
@@ -576,12 +599,37 @@ const Afastamentos = () => {
               </div>
             </div>
             <div className="space-y-2">
+              <Label>Documento / Exame</Label>
+              <input
+                ref={asoFileInputRef}
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                className="hidden"
+                onChange={(e) => setAsoArquivo(e.target.files?.[0] || null)}
+              />
+              {asoArquivo ? (
+                <div className="flex items-center gap-2 rounded-md border border-border p-2 text-sm">
+                  <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="truncate flex-1">{asoArquivo.name}</span>
+                  <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setAsoArquivo(null); if (asoFileInputRef.current) asoFileInputRef.current.value = ''; }}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <Button type="button" variant="outline" className="w-full gap-2" onClick={() => asoFileInputRef.current?.click()}>
+                  <Upload className="h-4 w-4" />
+                  Anexar documento
+                </Button>
+              )}
+              <p className="text-xs text-muted-foreground">PDF, imagem ou documento (máx. 20MB)</p>
+            </div>
+            <div className="space-y-2">
               <Label>Observações</Label>
               <Textarea value={asoObs} onChange={e => setAsoObs(e.target.value)} rows={2} />
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={createASO.isPending || !asoUserId}>
-                {createASO.isPending ? "Salvando..." : "Registrar ASO"}
+              <Button type="submit" disabled={createASO.isPending || asoUploading || !asoUserId}>
+                {asoUploading ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Enviando...</> : createASO.isPending ? "Salvando..." : "Registrar ASO"}
               </Button>
             </DialogFooter>
           </form>
