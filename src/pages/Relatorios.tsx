@@ -8,6 +8,7 @@ import { ReportViewer } from "@/components/relatorios/ReportViewer";
 import { ReportFilters } from "@/components/relatorios/ReportFilters";
 import { ExportOptions } from "@/components/relatorios/ExportOptions";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
+import { useASOs, useEPIEntregas, useCATs, useCIPAMembros } from "@/hooks/useSST";
 import { useRegistrosPonto } from "@/hooks/useRegistrosPonto";
 import { useHolerites } from "@/hooks/useHolerites";
 import { useSolicitacoesFerias } from "@/hooks/useFerias";
