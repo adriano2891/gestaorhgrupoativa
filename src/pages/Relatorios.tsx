@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BackButton } from "@/components/ui/back-button";
-import { BarChart3, Download, ShieldCheck, Users, Clock, FileText, DollarSign, TrendingDown, HeartPulse, Briefcase, Receipt, AlertCircle, CalendarDays, Heart } from "lucide-react";
+import { BarChart3, Download, ShieldCheck, Users, Clock, FileText, DollarSign, TrendingDown, HeartPulse, Briefcase, Receipt, AlertCircle, CalendarDays, Heart, HardHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { gerarPdfChecklistConformidade } from "@/utils/checklistConformidadePdf";
 import { ReportSelector } from "@/components/relatorios/ReportSelector";
