@@ -56,15 +56,81 @@ const calcularMeses13Proporcional = (admissao: Date, demissao: Date): number => 
   return meses;
 };
 
-export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao, cpf, cargo }: RescisaoCardProps) => {
+export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao, cpf, cargo, tipoContrato }: RescisaoCardProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tipoRescisao, setTipoRescisao] = useState("sem_justa_causa");
   const [dataDemissao, setDataDemissao] = useState(new Date().toISOString().split("T")[0]);
   const [avisoTrabalhado, setAvisoTrabalhado] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [resultado, setResultado] = useState<any>(null);
-  const [feriasVencidas, setFeriasVencidas] = useState(0); // Períodos completos não gozados
+  const [feriasVencidas, setFeriasVencidas] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [estabilidades, setEstabilidades] = useState<string[]>([]);
+
+  // Verificar estabilidades especiais (gestante, cipeiro, acidentado, contrato experiência)
+  useEffect(() => {
+    const verificarEstabilidades = async () => {
+      const alertas: string[] = [];
+      try {
+        // Verificar se é membro CIPA ativo (estabilidade 1 ano após mandato - ADCT Art. 10, II, a)
+        const { data: cipaMembros } = await (supabase as any)
+          .from("cipa_membros")
+          .select("mandato_fim, ativo")
+          .eq("user_id", userId)
+          .eq("ativo", true);
+        
+        if (cipaMembros && cipaMembros.length > 0) {
+          const hoje = new Date();
+          cipaMembros.forEach((m: any) => {
+            const fimMandato = new Date(m.mandato_fim);
+            const fimEstabilidade = new Date(fimMandato);
+            fimEstabilidade.setFullYear(fimEstabilidade.getFullYear() + 1);
+            if (hoje <= fimEstabilidade) {
+              alertas.push(`🛡️ CIPEIRO com estabilidade até ${fimEstabilidade.toLocaleDateString("pt-BR")} (ADCT Art. 10, II, a)`);
+            }
+          });
+        }
+
+        // Verificar afastamento por acidente (estabilidade 12 meses após retorno - Art. 118 Lei 8.213/91)
+        const { data: afastamentos } = await (supabase as any)
+          .from("afastamentos")
+          .select("tipo, data_retorno, status")
+          .eq("user_id", userId)
+          .in("tipo", ["acidente_trabalho", "doenca_ocupacional"]);
+        
+        if (afastamentos) {
+          const hoje = new Date();
+          afastamentos.forEach((a: any) => {
+            if (a.data_retorno) {
+              const retorno = new Date(a.data_retorno);
+              const fimEstabilidade = new Date(retorno);
+              fimEstabilidade.setFullYear(fimEstabilidade.getFullYear() + 1);
+              if (hoje <= fimEstabilidade) {
+                alertas.push(`🏥 ACIDENTADO com estabilidade até ${fimEstabilidade.toLocaleDateString("pt-BR")} (Art. 118 Lei 8.213/91)`);
+              }
+            }
+          });
+        }
+
+        // Verificar contrato de experiência (máx 90 dias - CLT Art. 445)
+        if (tipoContrato === "Experiência" && dataAdmissao) {
+          const admissao = new Date(dataAdmissao);
+          const limiteExp = new Date(admissao);
+          limiteExp.setDate(limiteExp.getDate() + 90);
+          const hoje = new Date();
+          if (hoje <= limiteExp) {
+            const diasRestantes = Math.ceil((limiteExp.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+            alertas.push(`📋 CONTRATO DE EXPERIÊNCIA: ${diasRestantes} dias restantes (vence em ${limiteExp.toLocaleDateString("pt-BR")})`);
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao verificar estabilidades:", e);
+      }
+      setEstabilidades(alertas);
+    };
+
+    if (userId) verificarEstabilidades();
+  }, [userId, tipoContrato, dataAdmissao]);
 
   const calcularRescisao = () => {
     if (!dataAdmissao || !dataDemissao || !salarioBase) {
