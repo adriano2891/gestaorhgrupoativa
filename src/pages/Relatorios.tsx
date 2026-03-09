@@ -921,23 +921,31 @@ const Relatorios = () => {
       case "custo-folha": {
         let data = holerites || [];
         if (filters.mes) {
-          data = data.filter((h: any) => String(h.mes_referencia) === filters.mes);
+          data = data.filter((h: any) => String(h.mes) === filters.mes);
         }
         if (filters.ano) {
-          data = data.filter((h: any) => String(h.ano_referencia) === filters.ano);
+          data = data.filter((h: any) => String(h.ano) === filters.ano);
         }
+        const funcMap = new Map((funcionarios || []).map((f: any) => [f.id, f]));
         if (filters.departamento && filters.departamento !== "todos") {
-          data = data.filter((h: any) => h.profiles?.departamento?.toLowerCase().includes(filters.departamento.toLowerCase()));
+          data = data.filter((h: any) => {
+            const func = funcMap.get(h.user_id);
+            return func?.departamento?.toLowerCase().includes(filters.departamento.toLowerCase());
+          });
         }
         const totalBruto = data.reduce((acc: number, h: any) => acc + (parseFloat(h.salario_bruto) || 0), 0);
-        const totalDescontos = data.reduce((acc: number, h: any) => acc + (parseFloat(h.total_descontos) || 0), 0);
+        const totalDescontos = data.reduce((acc: number, h: any) => acc + (parseFloat(h.descontos) || 0), 0);
         const totalLiquido = data.reduce((acc: number, h: any) => acc + (parseFloat(h.salario_liquido) || 0), 0);
+        const totalINSS = data.reduce((acc: number, h: any) => acc + (parseFloat(h.inss) || 0), 0);
+        const totalFGTS = data.reduce((acc: number, h: any) => acc + (parseFloat(h.fgts) || 0), 0);
         const encargosEstimados = totalBruto * 0.368;
         const custoTotal = totalBruto + encargosEstimados;
+        const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
 
         const deptCusto: Record<string, number> = {};
         data.forEach((h: any) => {
-          const d = h.profiles?.departamento || "Sem Departamento";
+          const func = funcMap.get(h.user_id);
+          const d = func?.departamento || "Sem Departamento";
           deptCusto[d] = (deptCusto[d] || 0) + (parseFloat(h.salario_bruto) || 0);
         });
 
@@ -946,18 +954,20 @@ const Relatorios = () => {
           summary: {
             "Período": filters.mes && filters.ano ? `${filters.mes}/${filters.ano}` : periodoLabel,
             "Total Pagamentos": data.length,
-            "Total Proventos": `R$ ${totalBruto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-            "Total Descontos": `R$ ${totalDescontos.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-            "Remuneração Líquida": `R$ ${totalLiquido.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-            "Encargos Estimados (36.8%)": `R$ ${encargosEstimados.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-            "Custo Total Estimado": `R$ ${custoTotal.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+            "Total Proventos": fmt(totalBruto),
+            "Total Descontos": fmt(totalDescontos),
+            "INSS": fmt(totalINSS),
+            "FGTS": fmt(totalFGTS),
+            "Remuneração Líquida": fmt(totalLiquido),
+            "Encargos Estimados (36.8%)": fmt(encargosEstimados),
+            "Custo Total Estimado": fmt(custoTotal),
           },
           charts: [
             {
               type: "bar",
               title: "Custo por Departamento",
               description: "Distribuição do custo de folha por departamento",
-              data: Object.entries(deptCusto).map(([dept, custo]) => ({ departamento: dept, valor: custo })),
+              data: Object.entries(deptCusto).map(([dept, custo]) => ({ departamento: dept, valor: parseFloat(custo.toFixed(2)) })),
               dataName: "Custo (R$)",
             },
             {
@@ -965,19 +975,24 @@ const Relatorios = () => {
               title: "Composição do Custo",
               description: "Proventos, Descontos e Encargos",
               data: [
-                { categoria: "Proventos", valor: totalBruto },
-                { categoria: "Descontos", valor: totalDescontos },
-                { categoria: "Encargos", valor: encargosEstimados },
+                { categoria: "Proventos", valor: parseFloat(totalBruto.toFixed(2)) },
+                { categoria: "Descontos", valor: parseFloat(totalDescontos.toFixed(2)) },
+                { categoria: "Encargos", valor: parseFloat(encargosEstimados.toFixed(2)) },
               ],
             },
           ],
-          details: data.slice(0, 100).map((h: any) => ({
-            Funcionário: h.profiles?.nome || "-",
-            Departamento: h.profiles?.departamento || "-",
-            "Salário Bruto": `R$ ${(parseFloat(h.salario_bruto) || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-            Descontos: `R$ ${(parseFloat(h.total_descontos) || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-            Líquido: `R$ ${(parseFloat(h.salario_liquido) || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
-          })),
+          details: data.slice(0, 100).map((h: any) => {
+            const func = funcMap.get(h.user_id);
+            return {
+              Funcionário: func?.nome || "-",
+              Departamento: func?.departamento || "-",
+              Cargo: func?.cargo || "-",
+              "Mês/Ano": `${String(h.mes).padStart(2, "0")}/${h.ano}`,
+              "Sal. Bruto": fmt(parseFloat(h.salario_bruto) || 0),
+              Descontos: fmt(parseFloat(h.descontos) || 0),
+              Líquido: fmt(parseFloat(h.salario_liquido) || 0),
+            };
+          }),
         });
         break;
       }
