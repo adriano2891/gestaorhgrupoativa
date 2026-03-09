@@ -1255,8 +1255,12 @@ const Funcionarios = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 text-sm h-10"
                   aria-label="Buscar funcionários"
-                  autoComplete="off"
-                  name="search-funcionarios"
+                  autoComplete="new-password"
+                  name={`search-func-${Date.now()}`}
+                  data-form-type="other"
+                  data-lpignore="true"
+                  readOnly
+                  onFocus={(e) => { e.currentTarget.removeAttribute('readonly'); }}
                 />
               </div>
               <Select
