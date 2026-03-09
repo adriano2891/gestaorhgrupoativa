@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { FileText, Calculator, AlertTriangle, Download } from "lucide-react";
+import { FileText, Calculator, AlertTriangle, Download, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { calcularINSS, calcularIRRF } from "@/utils/inssIrrfCalculos";
@@ -21,6 +21,7 @@ interface RescisaoCardProps {
   dataAdmissao: string;
   cpf?: string;
   cargo?: string;
+  tipoContrato?: string;
 }
 
 const tipoRescisaoLabels: Record<string, string> = {
