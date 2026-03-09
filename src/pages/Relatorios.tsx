@@ -9,7 +9,7 @@ import { ReportViewer } from "@/components/relatorios/ReportViewer";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { useRegistrosPonto } from "@/hooks/useRegistrosPonto";
 import { useHolerites } from "@/hooks/useHolerites";
-import { useFerias } from "@/hooks/useFerias";
+import { useSolicitacoesFerias } from "@/hooks/useFerias";
 
 const reportOptions = [
   { id: "funcionarios", name: "Funcionários Ativos", icon: Users, category: "RH", description: "Relatório completo de colaboradores ativos, cargos e departamentos" },
