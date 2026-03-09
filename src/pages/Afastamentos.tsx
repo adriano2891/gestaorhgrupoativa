@@ -38,6 +38,7 @@ const Afastamentos = () => {
   const { data: funcionarios } = useFuncionarios();
   const { data: asos } = useASOs();
   const criarAfastamento = useCriarAfastamento();
+  const createASO = useCreateASO();
   const encerrarAfastamento = useEncerrarAfastamento();
 
   const [dialogOpen, setDialogOpen] = useState(false);
