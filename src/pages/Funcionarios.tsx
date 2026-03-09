@@ -386,6 +386,10 @@ const Funcionarios = () => {
 
         if (targetIds.length === 0) {
           console.warn("fetchEmployees: Nenhum funcionário puro encontrado");
+          if (recentlyAddedRef.current) {
+            console.log("fetchEmployees: Ignorando lista vazia (adição recente)");
+            return;
+          }
           setEmployees([]);
           employeesRef.current = [];
           setEmployeeSalaries({});
