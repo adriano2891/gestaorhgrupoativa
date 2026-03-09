@@ -87,14 +87,14 @@ export function CalendarView({
   const isSelecionado = (d: Date) => d.toDateString() === dataSelecionada.toDateString();
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navegar(-1)}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h3 className="text-base font-semibold text-foreground min-w-[160px] text-center">
+          <h3 className="text-base font-semibold text-foreground min-w-[160px] text-center" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
             {MESES[mesAtual.getMonth()]} {mesAtual.getFullYear()}
           </h3>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navegar(1)}>
@@ -122,103 +122,104 @@ export function CalendarView({
         </div>
       </div>
 
-      {/* Dias da semana header */}
-      <div className="grid grid-cols-7 gap-px">
-        {DIAS_SEMANA.map(d => (
-          <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1.5">
-            {d}
-          </div>
-        ))}
-      </div>
+       {/* Dias da semana header */}
+       <div className="grid grid-cols-7 gap-px" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+         {DIAS_SEMANA.map(d => (
+           <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1.5">
+             {d}
+           </div>
+         ))}
+       </div>
 
-      {/* Grid */}
-      {visualizacao === 'mensal' ? (
-        <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
-          {diasMes.map(({ data, foraDoMes }, i) => {
-            const eventosD = getEventosDia(data);
-            return (
-              <button
-                key={i}
-                onClick={() => {
-                  setDataSelecionada(data);
-                  onDiaClick(data);
-                }}
-                className={cn(
-                  'relative bg-card p-1 min-h-[68px] sm:min-h-[80px] text-left transition-colors hover:bg-accent/50 focus-ring',
-                  foraDoMes && 'opacity-40',
-                  isSelecionado(data) && 'ring-2 ring-primary ring-inset',
-                )}
-              >
-                <span className={cn(
-                  'inline-flex items-center justify-center h-6 w-6 text-xs rounded-full font-medium',
-                  isHoje(data) && 'bg-primary text-primary-foreground',
-                )}>
-                  {data.getDate()}
-                </span>
-                <div className="mt-0.5 space-y-0.5 overflow-hidden">
-                  {eventosD.slice(0, 3).map((ev, j) => (
-                    <div
-                      key={j}
-                      className="text-[10px] leading-tight truncate rounded px-1 py-px text-white font-medium"
-                      style={{ backgroundColor: ev.cor || CORES_CATEGORIA[ev.categoria] }}
-                    >
-                      {ev.titulo}
-                    </div>
-                  ))}
-                  {eventosD.length > 3 && (
-                    <span className="text-[10px] text-muted-foreground pl-1">+{eventosD.length - 3}</span>
-                  )}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden">
-          {diasSemana.map((data, i) => {
-            const eventosD = getEventosDia(data);
-            return (
-              <button
-                key={i}
-                onClick={() => {
-                  setDataSelecionada(data);
-                  onDiaClick(data);
-                }}
-                className={cn(
-                  'bg-card p-2 min-h-[200px] text-left transition-colors hover:bg-accent/50 focus-ring',
-                  isSelecionado(data) && 'ring-2 ring-primary ring-inset',
-                )}
-              >
-                <div className="text-center mb-2">
-                  <span className="text-xs text-muted-foreground block">{DIAS_SEMANA[data.getDay()]}</span>
-                  <span className={cn(
-                    'inline-flex items-center justify-center h-8 w-8 text-sm rounded-full font-semibold',
-                    isHoje(data) && 'bg-primary text-primary-foreground',
-                  )}>
-                    {data.getDate()}
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  {eventosD.map((ev, j) => (
-                    <div
-                      key={j}
-                      className="text-[10px] sm:text-xs leading-tight truncate rounded px-1.5 py-0.5 text-white font-medium"
-                      style={{ backgroundColor: ev.cor || CORES_CATEGORIA[ev.categoria] }}
-                    >
-                      {!ev.diaInteiro && (
-                        <span className="opacity-80">
-                          {new Date(ev.dataInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}{' '}
-                        </span>
-                      )}
-                      {ev.titulo}
-                    </div>
-                  ))}
-                </div>
-              </button>
-            );
-          })}
-        </div>
-      )}
+       {/* Grid */}
+       {visualizacao === 'mensal' ? (
+         <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+           {diasMes.map(({ data, foraDoMes }, i) => {
+             const eventosD = getEventosDia(data);
+             return (
+               <button
+                 key={i}
+                 onClick={() => {
+                   setDataSelecionada(data);
+                   onDiaClick(data);
+                 }}
+                 className={cn(
+                   'relative bg-card p-1 min-h-[68px] sm:min-h-[80px] text-left transition-colors hover:bg-accent/50 focus-ring',
+                   foraDoMes && 'opacity-40',
+                   isSelecionado(data) && 'ring-2 ring-primary ring-inset',
+                 )}
+                 style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}
+               >
+                 <span className={cn(
+                   'inline-flex items-center justify-center h-6 w-6 text-xs rounded-full font-medium',
+                   isHoje(data) && 'bg-primary text-primary-foreground',
+                 )}>
+                   {data.getDate()}
+                 </span>
+                 <div className="mt-0.5 space-y-0.5 overflow-hidden">
+                   {eventosD.slice(0, 3).map((ev, j) => (
+                     <div
+                       key={j}
+                       className="text-[10px] leading-tight truncate rounded px-1 py-px text-white font-medium"
+                       style={{ backgroundColor: ev.cor || CORES_CATEGORIA[ev.categoria], fontFamily: 'Arial, Helvetica, sans-serif' }}
+                     >
+                       {ev.titulo}
+                     </div>
+                   ))}
+                   {eventosD.length > 3 && (
+                     <span className="text-[10px] text-muted-foreground pl-1">+{eventosD.length - 3}</span>
+                   )}
+                 </div>
+               </button>
+             );
+           })}
+         </div>
+       ) : (
+         <div className="grid grid-cols-7 gap-px bg-border rounded-lg overflow-hidden" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+           {diasSemana.map((data, i) => {
+             const eventosD = getEventosDia(data);
+             return (
+               <button
+                 key={i}
+                 onClick={() => {
+                   setDataSelecionada(data);
+                   onDiaClick(data);
+                 }}
+                 className={cn(
+                   'bg-card p-2 min-h-[200px] text-left transition-colors hover:bg-accent/50 focus-ring',
+                   isSelecionado(data) && 'ring-2 ring-primary ring-inset',
+                 )}
+               >
+                 <div className="text-center mb-2">
+                   <span className="text-xs text-muted-foreground block">{DIAS_SEMANA[data.getDay()]}</span>
+                   <span className={cn(
+                     'inline-flex items-center justify-center h-8 w-8 text-sm rounded-full font-semibold',
+                     isHoje(data) && 'bg-primary text-primary-foreground',
+                   )}>
+                     {data.getDate()}
+                   </span>
+                 </div>
+                 <div className="space-y-1">
+                   {eventosD.map((ev, j) => (
+                     <div
+                       key={j}
+                       className="text-[10px] sm:text-xs leading-tight truncate rounded px-1.5 py-0.5 text-white font-medium"
+                       style={{ backgroundColor: ev.cor || CORES_CATEGORIA[ev.categoria], fontFamily: 'Arial, Helvetica, sans-serif' }}
+                     >
+                       {!ev.diaInteiro && (
+                         <span className="opacity-80">
+                           {new Date(ev.dataInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}{' '}
+                         </span>
+                       )}
+                       {ev.titulo}
+                     </div>
+                   ))}
+                 </div>
+               </button>
+             );
+           })}
+         </div>
+       )}
 
       {/* FAB */}
       <Button

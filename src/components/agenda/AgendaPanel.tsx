@@ -66,42 +66,42 @@ export function AgendaPanel({ open, onOpenChange }: AgendaPanelProps) {
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col">
+        <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
           <SheetHeader className="p-4 pb-2 border-b">
-            <SheetTitle className="flex items-center gap-2 text-lg">
+            <SheetTitle className="flex items-center gap-2 text-lg" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
               <CalendarDays className="h-5 w-5 text-primary" />
               Agenda
             </SheetTitle>
             <SheetDescription className="sr-only">Painel de agenda e calendário</SheetDescription>
           </SheetHeader>
 
-          {/* Produtividade */}
-          <div className="px-4 py-3 border-b bg-muted/30">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" /> Ocupação hoje
-              </span>
-              <span className="text-xs font-bold text-foreground">{ocupacao}%</span>
-            </div>
-            <Progress value={ocupacao} className="h-2" />
-            <div className="flex items-center justify-between mt-1.5 text-[10px] text-muted-foreground">
-              <span>{eventosDia.length} evento(s) hoje</span>
-              <span>{100 - ocupacao}% livre</span>
-            </div>
-            {lembretes.length > 0 && (
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
-                <AlertTriangle className="h-3 w-3" />
-                {lembretes.length} lembrete(s) ativo(s)
-              </div>
-            )}
-          </div>
+           {/* Produtividade */}
+           <div className="px-4 py-3 border-b bg-muted/30" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+             <div className="flex items-center justify-between mb-1.5">
+               <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                 <TrendingUp className="h-3 w-3" /> Ocupação hoje
+               </span>
+               <span className="text-xs font-bold text-foreground">{ocupacao}%</span>
+             </div>
+             <Progress value={ocupacao} className="h-2" />
+             <div className="flex items-center justify-between mt-1.5 text-[10px] text-muted-foreground">
+               <span>{eventosDia.length} evento(s) hoje</span>
+               <span>{100 - ocupacao}% livre</span>
+             </div>
+             {lembretes.length > 0 && (
+               <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+                 <AlertTriangle className="h-3 w-3" />
+                 {lembretes.length} lembrete(s) ativo(s)
+               </div>
+             )}
+           </div>
 
           <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col min-h-0">
-            <TabsList className="mx-4 mt-2 grid grid-cols-3 h-9">
-              <TabsTrigger value="calendario" className="text-xs">Calendário</TabsTrigger>
-              <TabsTrigger value="dia" className="text-xs">Dia</TabsTrigger>
-              <TabsTrigger value="proximos" className="text-xs">Próximos</TabsTrigger>
-            </TabsList>
+             <TabsList className="mx-4 mt-2 grid grid-cols-3 h-9" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+               <TabsTrigger value="calendario" className="text-xs" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>Calendário</TabsTrigger>
+               <TabsTrigger value="dia" className="text-xs" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>Dia</TabsTrigger>
+               <TabsTrigger value="proximos" className="text-xs" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>Próximos</TabsTrigger>
+             </TabsList>
 
             <ScrollArea className="flex-1">
               <TabsContent value="calendario" className="p-4 mt-0">
@@ -125,8 +125,8 @@ export function AgendaPanel({ open, onOpenChange }: AgendaPanelProps) {
                 />
               </TabsContent>
 
-              <TabsContent value="proximos" className="p-4 mt-0 space-y-4">
-                <h4 className="text-sm font-semibold text-foreground">Próximos Eventos</h4>
+               <TabsContent value="proximos" className="p-4 mt-0 space-y-4" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+                 <h4 className="text-sm font-semibold text-foreground" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>Próximos Eventos</h4>
                 {proximos.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-6">Nenhum evento próximo</p>
                 ) : (
