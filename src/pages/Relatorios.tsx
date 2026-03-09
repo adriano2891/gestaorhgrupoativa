@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BackButton } from "@/components/ui/back-button";
@@ -35,6 +36,25 @@ const Relatorios = () => {
   const [filters, setFilters] = useState<any>({ departamento: "todos" });
   const [generatedData, setGeneratedData] = useState<any>(null);
 
+  const queryClient = useQueryClient();
+
+  // Realtime: atualiza dados do turnover quando profiles ou user_roles mudam
+  useEffect(() => {
+    const channel = supabase
+      .channel('relatorios-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["todos-funcionarios-turnover"] });
+        queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["todos-funcionarios-turnover"] });
+        queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
+
   const { data: funcionarios } = useFuncionarios();
   const { data: todosFuncionarios } = useQuery({
     queryKey: ["todos-funcionarios-turnover"],
@@ -53,7 +73,7 @@ const Relatorios = () => {
       return (profiles || []) as any[];
     },
     retry: 2,
-    staleTime: 1000 * 30,
+    staleTime: 1000 * 15,
   });
   const { data: registros } = useRegistrosPonto();
   const { data: holerites } = useHolerites();
@@ -626,6 +646,7 @@ const Relatorios = () => {
 
         const total = filtered.length;
         const statusNorm = (f: any) => (f.status || "ativo").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const isEmFerias = (st: string) => st === "em_ferias" || st === "ferias";
 
         const desligados = filtered.filter((f: any) => {
           const st = statusNorm(f);
@@ -639,11 +660,11 @@ const Relatorios = () => {
           const st = statusNorm(f);
           return st === "ativo" || st === "";
         });
-        const emFerias = naoDesligados.filter((f: any) => statusNorm(f) === "em_ferias");
+        const emFerias = naoDesligados.filter((f: any) => isEmFerias(statusNorm(f)));
         const afastados = naoDesligados.filter((f: any) => statusNorm(f) === "afastado");
         const outrosStatus = naoDesligados.filter((f: any) => {
           const st = statusNorm(f);
-          return st !== "ativo" && st !== "" && st !== "em_ferias" && st !== "afastado";
+          return st !== "ativo" && st !== "" && !isEmFerias(st) && st !== "afastado";
         });
 
         const feriasData = ferias || [];
@@ -758,7 +779,7 @@ const Relatorios = () => {
             const diasFerias = feriasPorFunc[f.id] || 0;
             const st = statusNorm(f);
             let statusLabel = f.status || "Ativo";
-            if (st === "em_ferias") statusLabel = "Em férias";
+            if (isEmFerias(st)) statusLabel = "Em férias";
             else if (st === "ativo" || st === "") statusLabel = "Ativo";
             else if (st === "demitido" || st === "demissao") statusLabel = "Demitido";
             else if (st === "pediu_demissao") statusLabel = "Pediu demissão";
