@@ -75,26 +75,26 @@ export function AgendaPanel({ open, onOpenChange }: AgendaPanelProps) {
             <SheetDescription className="sr-only">Painel de agenda e calendário</SheetDescription>
           </SheetHeader>
 
-          {/* Produtividade */}
-          <div className="px-4 py-3 border-b bg-muted/30">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" /> Ocupação hoje
-              </span>
-              <span className="text-xs font-bold text-foreground">{ocupacao}%</span>
-            </div>
-            <Progress value={ocupacao} className="h-2" />
-            <div className="flex items-center justify-between mt-1.5 text-[10px] text-muted-foreground">
-              <span>{eventosDia.length} evento(s) hoje</span>
-              <span>{100 - ocupacao}% livre</span>
-            </div>
-            {lembretes.length > 0 && (
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
-                <AlertTriangle className="h-3 w-3" />
-                {lembretes.length} lembrete(s) ativo(s)
-              </div>
-            )}
-          </div>
+           {/* Produtividade */}
+           <div className="px-4 py-3 border-b bg-muted/30" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+             <div className="flex items-center justify-between mb-1.5">
+               <span className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                 <TrendingUp className="h-3 w-3" /> Ocupação hoje
+               </span>
+               <span className="text-xs font-bold text-foreground">{ocupacao}%</span>
+             </div>
+             <Progress value={ocupacao} className="h-2" />
+             <div className="flex items-center justify-between mt-1.5 text-[10px] text-muted-foreground">
+               <span>{eventosDia.length} evento(s) hoje</span>
+               <span>{100 - ocupacao}% livre</span>
+             </div>
+             {lembretes.length > 0 && (
+               <div className="mt-2 flex items-center gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+                 <AlertTriangle className="h-3 w-3" />
+                 {lembretes.length} lembrete(s) ativo(s)
+               </div>
+             )}
+           </div>
 
           <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col min-h-0">
             <TabsList className="mx-4 mt-2 grid grid-cols-3 h-9">
