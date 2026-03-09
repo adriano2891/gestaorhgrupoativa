@@ -3,136 +3,256 @@ import { Layout } from "@/components/Layout";
 import { BackButton } from "@/components/ui/back-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Monitor, Users, FileText, ShieldCheck, AlertTriangle, 
-  CheckCircle2, Clock, Search, Download
+import {
+  ShieldCheck, Search, Download, ChevronDown, ChevronRight,
+  UserPlus, Clock, Wallet, Landmark, Palmtree, Gift, 
+  HardHat, FileX, ShieldAlert, Heart
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from "@/components/ui/table";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
-// ========== DATA ==========
+// ========== TYPES ==========
+type Dependencia = "sistema" | "parcial" | "procedimento";
+type AuditoriaStatus = "conforme" | "nao_conforme" | "nao_aplicavel" | "pendente";
 
-interface ChecklistItem {
+interface CheckItem {
   id: string;
   nome: string;
-  descricaoRisco?: string;
-  multa?: string;
-  fundamentacao?: string;
-  // Category 2
-  dependeSistema?: string;
-  dependeProcesso?: string;
-  // Category 3
-  descricaoObrigacao?: string;
+  descricao: string;
+  baseLegal: string;
+  risco: string;
+  dependencia: Dependencia;
 }
 
-const ITEMS_SISTEMA: ChecklistItem[] = [
-  { id: "s1", nome: "Cálculo de folha de pagamento", descricaoRisco: "Erros no cálculo de salários, descontos e encargos", multa: "Multa de R$ 170,26 a R$ 17.026,42 por trabalhador (Art. 510 CLT) + diferenças salariais em reclamação trabalhista", fundamentacao: "Art. 459, 462 CLT; eSocial S-1200" },
-  { id: "s2", nome: "Cálculo de férias", descricaoRisco: "Pagamento incorreto ou fora do prazo de férias", multa: "Pagamento em dobro das férias não concedidas (Art. 137 CLT) + 1/3 constitucional. Multa administrativa de R$ 170,26 por empregado", fundamentacao: "Art. 129-145 CLT; CF Art. 7º, XVII" },
-  { id: "s3", nome: "Cálculo de 13º salário", descricaoRisco: "Erro no cálculo proporcional ou atraso no pagamento", multa: "Multa de R$ 170,26 por empregado (Lei 4.090/62). Reclamação trabalhista com juros e correção", fundamentacao: "Lei 4.090/62; Lei 4.749/65" },
-  { id: "s4", nome: "Cálculo e recolhimento de FGTS", descricaoRisco: "Recolhimento incorreto ou em atraso do FGTS", multa: "Multa de 5% do valor não depositado + juros (Lei 8.036/90). Multa administrativa de R$ 10,64 a R$ 106,41 por trabalhador", fundamentacao: "Lei 8.036/90 Art. 23; eSocial S-1200" },
-  { id: "s5", nome: "Geração de eventos eSocial", descricaoRisco: "Envio atrasado, incorreto ou ausente de eventos obrigatórios", multa: "Multa por evento não enviado: R$ 402,54 a R$ 181.284,63 conforme Art. 92 da Lei 8.212/91", fundamentacao: "eSocial S-2200, S-2206, S-2230, S-2299" },
-  { id: "s6", nome: "Registro eletrônico de jornada (REP-A)", descricaoRisco: "Sistema de ponto não conforme com Portaria 671/2021", multa: "Multa de R$ 4.025,33 por empregado prejudicado (Art. 75 CLT). Inversão do ônus da prova em reclamação", fundamentacao: "Portaria 671/2021; Art. 74 §2º CLT" },
-  { id: "s7", nome: "Controle de banco de horas", descricaoRisco: "Compensação fora do prazo ou sem acordo formal", multa: "Pagamento de todas as horas como extras (50% ou 100%). Nulidade do banco de horas", fundamentacao: "Art. 59 §2º e §5º CLT" },
-  { id: "s8", nome: "Cálculo de horas extras", descricaoRisco: "Percentuais incorretos ou não pagamento de HE", multa: "Diferenças salariais com reflexos em DSR, férias, 13º e FGTS. Multa do Art. 510 CLT", fundamentacao: "Art. 59 CLT; Súmula 172 TST" },
-  { id: "s9", nome: "Cálculo de adicional noturno", descricaoRisco: "Não pagamento ou cálculo incorreto do adicional noturno (20%)", multa: "Diferenças salariais + reflexos. Multa administrativa", fundamentacao: "Art. 73 CLT (20% sobre hora diurna, hora reduzida 52min30s)" },
-  { id: "s10", nome: "Cálculo de verbas rescisórias", descricaoRisco: "Erro no cálculo de saldo salário, aviso prévio, férias proporcionais, 13º, multa FGTS", multa: "Multa do Art. 477 §8º CLT: salário mensal do empregado. Juros e correção sobre diferenças", fundamentacao: "Art. 477 CLT; Lei 12.506/2011" },
-  { id: "s11", nome: "Controle de períodos aquisitivos de férias", descricaoRisco: "Perda de controle sobre vencimento de férias", multa: "Pagamento em dobro (Art. 137 CLT). Multa administrativa de R$ 170,26 por empregado", fundamentacao: "Art. 130, 134, 137 CLT" },
-  { id: "s12", nome: "Cálculo de DSR (Descanso Semanal Remunerado)", descricaoRisco: "Não inclusão de HE habituais no cálculo do DSR", multa: "Diferenças salariais + reflexos (Súmula 172 TST)", fundamentacao: "Lei 605/49; Súmula 172 TST" },
-  { id: "s13", nome: "Geração de comprovantes de ponto", descricaoRisco: "Não emissão de comprovante ao empregado após cada marcação", multa: "Irregularidade perante MTE. Multa do Art. 75 CLT", fundamentacao: "Portaria 671/2021 Art. 79" },
-  { id: "s14", nome: "Controle de intervalo intrajornada", descricaoRisco: "Não concessão ou supressão parcial do intervalo de 1h", multa: "Pagamento do período suprimido como hora extra (Art. 71 §4º CLT). Natureza indenizatória", fundamentacao: "Art. 71 CLT; Súmula 437 TST" },
-  { id: "s15", nome: "Controle de intervalo interjornada (11h)", descricaoRisco: "Não respeitar o intervalo mínimo de 11h entre jornadas", multa: "Horas extras sobre o período suprimido (OJ 355 SDI-1 TST)", fundamentacao: "Art. 66 CLT" },
-  { id: "s16", nome: "Gestão de afastamentos e INSS", descricaoRisco: "Falha no controle dos 15 dias de responsabilidade da empresa", multa: "Pagamento indevido ou falta de encaminhamento ao INSS", fundamentacao: "Lei 8.213/91 Art. 60" },
-  { id: "s17", nome: "Relatórios de auditoria trabalhista", descricaoRisco: "Impossibilidade de comprovar conformidade em fiscalizações", multa: "Presunção de irregularidade pelo MTE. Multas diversas", fundamentacao: "Art. 41, 74 CLT" },
+interface Categoria {
+  id: string;
+  titulo: string;
+  emoji: string;
+  icon: React.ReactNode;
+  items: CheckItem[];
+}
+
+// ========== DATA ==========
+const CATEGORIAS: Categoria[] = [
+  {
+    id: "admissao", titulo: "Admissão de Funcionários", emoji: "1️⃣",
+    icon: <UserPlus className="h-5 w-5" />,
+    items: [
+      { id: "a1", nome: "Registro do empregado", descricao: "Registro antes do início das atividades", baseLegal: "CLT Art. 41", risco: "Multa administrativa", dependencia: "parcial" },
+      { id: "a2", nome: "Cadastro no eSocial", descricao: "Envio evento S-1000/S-2200", baseLegal: "eSocial", risco: "Multa por omissão", dependencia: "sistema" },
+      { id: "a3", nome: "Assinatura de contrato", descricao: "Formalização do vínculo empregatício", baseLegal: "CLT", risco: "Reclamação trabalhista", dependencia: "procedimento" },
+      { id: "a4", nome: "Exame admissional", descricao: "Atestar aptidão para a função", baseLegal: "NR-7", risco: "Multa e ação judicial", dependencia: "procedimento" },
+      { id: "a5", nome: "Coleta de documentos", descricao: "RG, CPF, endereço, dados bancários", baseLegal: "CLT", risco: "Risco documental", dependencia: "procedimento" },
+      { id: "a6", nome: "Cadastro no sistema de folha", descricao: "Inclusão correta do funcionário no sistema", baseLegal: "CLT", risco: "Erro em cálculos", dependencia: "sistema" },
+      { id: "a7", nome: "Cadastro no FGTS", descricao: "Registro na conta vinculada", baseLegal: "Lei 8.036/90", risco: "Multa FGTS", dependencia: "sistema" },
+      { id: "a8", nome: "Cadastro no INSS", descricao: "Contribuição previdenciária", baseLegal: "Lei 8.212/91", risco: "Multa", dependencia: "sistema" },
+      { id: "a9", nome: "Definição de cargo", descricao: "Compatibilidade com função exercida", baseLegal: "CLT", risco: "Desvio de função", dependencia: "procedimento" },
+      { id: "a10", nome: "Entrega de regulamento interno", descricao: "Normas e políticas da empresa", baseLegal: "CLT", risco: "Questionamentos judiciais", dependencia: "procedimento" },
+    ],
+  },
+  {
+    id: "jornada", titulo: "Jornada de Trabalho", emoji: "2️⃣",
+    icon: <Clock className="h-5 w-5" />,
+    items: [
+      { id: "j1", nome: "Controle de ponto", descricao: "Registro de jornada obrigatório", baseLegal: "CLT Art. 74", risco: "Multa", dependencia: "parcial" },
+      { id: "j2", nome: "Registro correto de horas", descricao: "Marcação real da jornada", baseLegal: "CLT", risco: "Processo trabalhista", dependencia: "parcial" },
+      { id: "j3", nome: "Controle de horas extras", descricao: "Limite legal de 2h diárias", baseLegal: "CLT Art. 59", risco: "Multa", dependencia: "sistema" },
+      { id: "j4", nome: "Pagamento adicional HE", descricao: "Mínimo 50% dia útil, 100% DSR/feriado", baseLegal: "CLT Art. 59", risco: "Ação judicial", dependencia: "sistema" },
+      { id: "j5", nome: "Intervalo intrajornada", descricao: "Mínimo 1h para jornada > 6h", baseLegal: "CLT Art. 71", risco: "Multa", dependencia: "parcial" },
+      { id: "j6", nome: "Intervalo interjornada", descricao: "Mínimo 11h entre jornadas", baseLegal: "CLT Art. 66", risco: "Multa", dependencia: "parcial" },
+      { id: "j7", nome: "Descanso semanal remunerado", descricao: "DSR obrigatório", baseLegal: "Lei 605/49", risco: "Multa", dependencia: "sistema" },
+      { id: "j8", nome: "Escalas de trabalho", descricao: "Ex: 12x36, turnos ininterruptos", baseLegal: "CLT", risco: "Processo", dependencia: "procedimento" },
+      { id: "j9", nome: "Banco de horas", descricao: "Acordo formal individual ou coletivo", baseLegal: "CLT Art. 59", risco: "Multa", dependencia: "parcial" },
+      { id: "j10", nome: "Compensação de horas", descricao: "Controle correto de compensações", baseLegal: "CLT", risco: "Processo", dependencia: "parcial" },
+    ],
+  },
+  {
+    id: "folha", titulo: "Folha de Pagamento", emoji: "3️⃣",
+    icon: <Wallet className="h-5 w-5" />,
+    items: [
+      { id: "f1", nome: "Cálculo salarial", descricao: "Salário base correto", baseLegal: "CLT", risco: "Reclamação", dependencia: "sistema" },
+      { id: "f2", nome: "Pagamento até 5º dia útil", descricao: "Prazo legal de pagamento", baseLegal: "CLT Art. 459", risco: "Multa", dependencia: "procedimento" },
+      { id: "f3", nome: "Cálculo horas extras", descricao: "Adicional correto sobre HE", baseLegal: "CLT", risco: "Processo", dependencia: "sistema" },
+      { id: "f4", nome: "Adicional noturno", descricao: "20% mínimo sobre hora diurna", baseLegal: "CLT Art. 73", risco: "Multa", dependencia: "sistema" },
+      { id: "f5", nome: "Insalubridade", descricao: "Pagamento conforme grau (10/20/40%)", baseLegal: "CLT", risco: "Ação judicial", dependencia: "parcial" },
+      { id: "f6", nome: "Periculosidade", descricao: "Adicional de 30% sobre salário base", baseLegal: "CLT", risco: "Multa", dependencia: "parcial" },
+      { id: "f7", nome: "Descontos autorizados", descricao: "Ex: VT, plano saúde, pensão", baseLegal: "CLT", risco: "Reclamação", dependencia: "procedimento" },
+      { id: "f8", nome: "Entrega de holerite", descricao: "Comprovante de pagamento mensal", baseLegal: "CLT", risco: "Reclamação", dependencia: "procedimento" },
+      { id: "f9", nome: "Integração comissões", descricao: "Cálculo correto sobre comissões", baseLegal: "CLT", risco: "Processo", dependencia: "sistema" },
+      { id: "f10", nome: "Registro na folha", descricao: "Valores corretos registrados", baseLegal: "CLT", risco: "Multa", dependencia: "sistema" },
+    ],
+  },
+  {
+    id: "fgts_inss", titulo: "FGTS e INSS", emoji: "4️⃣",
+    icon: <Landmark className="h-5 w-5" />,
+    items: [
+      { id: "fi1", nome: "Depósito FGTS", descricao: "8% sobre salário bruto", baseLegal: "Lei 8.036", risco: "Multa", dependencia: "sistema" },
+      { id: "fi2", nome: "FGTS prazo correto", descricao: "Depósito até dia 7 de cada mês", baseLegal: "Lei FGTS", risco: "Multa", dependencia: "sistema" },
+      { id: "fi3", nome: "FGTS rescisão", descricao: "Depósito correto na rescisão", baseLegal: "CLT", risco: "Processo", dependencia: "sistema" },
+      { id: "fi4", nome: "INSS empregado", descricao: "Desconto correto na folha", baseLegal: "Lei 8.212", risco: "Multa", dependencia: "sistema" },
+      { id: "fi5", nome: "INSS empresa", descricao: "Recolhimento patronal correto", baseLegal: "Lei 8.212", risco: "Multa", dependencia: "sistema" },
+      { id: "fi6", nome: "DCTFWeb", descricao: "Envio correto à Receita Federal", baseLegal: "Receita Federal", risco: "Multa", dependencia: "sistema" },
+      { id: "fi7", nome: "eSocial eventos", descricao: "Transmissão correta de eventos", baseLegal: "eSocial", risco: "Multa", dependencia: "sistema" },
+      { id: "fi8", nome: "GFIP histórica", descricao: "Registros antigos corretos", baseLegal: "Caixa", risco: "Multa", dependencia: "sistema" },
+    ],
+  },
+  {
+    id: "ferias", titulo: "Férias", emoji: "5️⃣",
+    icon: <Palmtree className="h-5 w-5" />,
+    items: [
+      { id: "fe1", nome: "Controle período aquisitivo", descricao: "12 meses de trabalho", baseLegal: "CLT", risco: "Multa", dependencia: "sistema" },
+      { id: "fe2", nome: "Concessão de férias", descricao: "Até 12 meses após período aquisitivo", baseLegal: "CLT", risco: "Multa (férias em dobro)", dependencia: "sistema" },
+      { id: "fe3", nome: "Comunicação de férias", descricao: "30 dias de antecedência por escrito", baseLegal: "CLT", risco: "Multa", dependencia: "procedimento" },
+      { id: "fe4", nome: "Pagamento de férias", descricao: "Até 2 dias antes do início do gozo", baseLegal: "CLT", risco: "Multa (dobro)", dependencia: "procedimento" },
+      { id: "fe5", nome: "Adicional 1/3", descricao: "Terço constitucional obrigatório", baseLegal: "CF Art. 7º", risco: "Processo", dependencia: "sistema" },
+      { id: "fe6", nome: "Registro de férias", descricao: "Registro correto no sistema", baseLegal: "CLT", risco: "Multa", dependencia: "sistema" },
+      { id: "fe7", nome: "Férias fracionadas", descricao: "Respeitar limites legais (até 3 períodos)", baseLegal: "CLT", risco: "Processo", dependencia: "parcial" },
+    ],
+  },
+  {
+    id: "decimo", titulo: "13º Salário", emoji: "6️⃣",
+    icon: <Gift className="h-5 w-5" />,
+    items: [
+      { id: "d1", nome: "Primeira parcela", descricao: "Pagamento até 30 de novembro", baseLegal: "Lei 4.749", risco: "Multa", dependencia: "sistema" },
+      { id: "d2", nome: "Segunda parcela", descricao: "Pagamento até 20 de dezembro", baseLegal: "Lei 4.749", risco: "Multa", dependencia: "sistema" },
+      { id: "d3", nome: "Desconto INSS", descricao: "Cálculo correto sobre 13º", baseLegal: "INSS", risco: "Multa", dependencia: "sistema" },
+      { id: "d4", nome: "FGTS sobre 13º", descricao: "Recolhimento correto", baseLegal: "FGTS", risco: "Multa", dependencia: "sistema" },
+    ],
+  },
+  {
+    id: "beneficios", titulo: "Benefícios", emoji: "7️⃣",
+    icon: <Heart className="h-5 w-5" />,
+    items: [
+      { id: "b1", nome: "Vale transporte", descricao: "Desconto máximo de 6% do salário base", baseLegal: "Lei 7.418", risco: "Processo", dependencia: "parcial" },
+      { id: "b2", nome: "Vale alimentação", descricao: "Regras conforme contrato/convenção", baseLegal: "CLT", risco: "Reclamação", dependencia: "procedimento" },
+      { id: "b3", nome: "Plano de saúde", descricao: "Desconto autorizado pelo empregado", baseLegal: "CLT", risco: "Processo", dependencia: "procedimento" },
+      { id: "b4", nome: "Auxílio creche", descricao: "Quando aplicável por convenção/lei", baseLegal: "CLT", risco: "Multa", dependencia: "procedimento" },
+    ],
+  },
+  {
+    id: "sst", titulo: "Segurança do Trabalho (NRs)", emoji: "8️⃣",
+    icon: <HardHat className="h-5 w-5" />,
+    items: [
+      { id: "s1", nome: "PGR", descricao: "Programa de Gerenciamento de Riscos", baseLegal: "NR-1", risco: "Multa", dependencia: "procedimento" },
+      { id: "s2", nome: "PCMSO", descricao: "Programa de Controle Médico de Saúde Ocupacional", baseLegal: "NR-7", risco: "Multa", dependencia: "procedimento" },
+      { id: "s3", nome: "Exames periódicos", descricao: "Monitoramento de saúde ocupacional", baseLegal: "NR-7", risco: "Multa", dependencia: "procedimento" },
+      { id: "s4", nome: "Entrega de EPI", descricao: "Equipamento de proteção individual", baseLegal: "NR-6", risco: "Multa", dependencia: "procedimento" },
+      { id: "s5", nome: "Treinamentos NR", descricao: "Treinamentos obrigatórios por norma", baseLegal: "NRs", risco: "Multa", dependencia: "procedimento" },
+      { id: "s6", nome: "CIPA", descricao: "Comissão Interna de Prevenção de Acidentes", baseLegal: "NR-5", risco: "Multa", dependencia: "procedimento" },
+    ],
+  },
+  {
+    id: "rescisao", titulo: "Rescisão de Contrato", emoji: "9️⃣",
+    icon: <FileX className="h-5 w-5" />,
+    items: [
+      { id: "r1", nome: "Prazo pagamento", descricao: "Até 10 dias corridos do término", baseLegal: "CLT Art. 477", risco: "Multa (salário do empregado)", dependencia: "sistema" },
+      { id: "r2", nome: "Cálculo de verbas", descricao: "Saldo, férias, 13º, aviso, FGTS", baseLegal: "CLT", risco: "Processo", dependencia: "sistema" },
+      { id: "r3", nome: "Multa FGTS 40%", descricao: "Demissão sem justa causa", baseLegal: "Lei FGTS", risco: "Multa", dependencia: "sistema" },
+      { id: "r4", nome: "TRCT", descricao: "Termo de Rescisão do Contrato de Trabalho", baseLegal: "CLT", risco: "Processo", dependencia: "sistema" },
+      { id: "r5", nome: "Baixa no eSocial", descricao: "Envio evento S-2299", baseLegal: "eSocial", risco: "Multa", dependencia: "sistema" },
+    ],
+  },
+  {
+    id: "lgpd", titulo: "LGPD – Dados de Funcionários", emoji: "🔟",
+    icon: <ShieldAlert className="h-5 w-5" />,
+    items: [
+      { id: "l1", nome: "Proteção de dados pessoais", descricao: "Armazenamento seguro e criptografado", baseLegal: "LGPD", risco: "Multa até 2% faturamento", dependencia: "parcial" },
+      { id: "l2", nome: "Acesso restrito", descricao: "Controle de acesso aos dados do RH", baseLegal: "LGPD", risco: "Multa", dependencia: "parcial" },
+      { id: "l3", nome: "Política de privacidade", descricao: "Documento interno formalizado", baseLegal: "LGPD", risco: "Multa", dependencia: "procedimento" },
+    ],
+  },
 ];
 
-const ITEMS_PARCIAL: ChecklistItem[] = [
-  { id: "p1", nome: "Registro correto de ponto pelos funcionários", dependeSistema: "Disponibilidade do sistema REP-A, geolocalização, comprovantes automáticos", dependeProcesso: "Funcionário registrar nos horários corretos, sem fraudes ou omissões", descricaoRisco: "Inversão do ônus da prova contra a empresa (Súmula 338 TST). Multa de R$ 4.025,33", fundamentacao: "Art. 74 CLT; Portaria 671/2021" },
-  { id: "p2", nome: "Aprovação de horas extras", dependeSistema: "Registro automático de HE no ponto, alertas ao gestor", dependeProcesso: "Gestor aprovar/rejeitar HE tempestivamente, verificar necessidade real", descricaoRisco: "Pagamento de HE não autorizadas ou não pagamento de HE devidas", fundamentacao: "Art. 59 CLT" },
-  { id: "p3", nome: "Gestão de banco de horas", dependeSistema: "Cálculo automático de créditos/débitos, vencimentos, saldos", dependeProcesso: "Acordo individual/coletivo vigente, compensação dentro do prazo legal", descricaoRisco: "Nulidade do banco de horas e pagamento integral de HE (50-100%)", fundamentacao: "Art. 59 §2º e §5º CLT" },
-  { id: "p4", nome: "Registro de atestados médicos", dependeSistema: "Upload e armazenamento seguro, vinculação ao ponto/afastamento", dependeProcesso: "Funcionário apresentar atestado em até 48h, RH validar CRM e período", descricaoRisco: "Descontos indevidos de faltas justificadas. Reclamação trabalhista", fundamentacao: "Art. 6º Lei 605/49; CLT Art. 473" },
-  { id: "p5", nome: "Controle de faltas e justificativas", dependeSistema: "Identificação automática de faltas no sistema de ponto", dependeProcesso: "Funcionário justificar ausências, RH avaliar e registrar", descricaoRisco: "Descontos indevidos ou não desconto de faltas injustificadas afetando férias (Art. 130 CLT)", fundamentacao: "Art. 130, 131, 473 CLT" },
-  { id: "p6", nome: "Solicitação e aprovação de férias", dependeSistema: "Cálculo de período aquisitivo, proporcionalidades, alertas de vencimento", dependeProcesso: "Programação com 30 dias de antecedência, aprovação do gestor, pagamento 2 dias antes", descricaoRisco: "Férias em dobro (Art. 137 CLT). Multa administrativa", fundamentacao: "Art. 134, 135, 137, 145 CLT" },
-  { id: "p7", nome: "Ajustes de ponto", dependeSistema: "Workflow de solicitação, aprovação com trilha de auditoria", dependeProcesso: "Funcionário solicitar ajuste com justificativa, gestor aprovar/rejeitar", descricaoRisco: "Fraude no registro de ponto. Irregularidade perante MTE", fundamentacao: "Portaria 671/2021" },
-  { id: "p8", nome: "Gestão de escalas e turnos", dependeSistema: "Cadastro de escalas, validação de intervalos legais", dependeProcesso: "Gestor definir escalas respeitando limites legais, comunicar funcionários", descricaoRisco: "Violação de interjornada (11h) e intrajornada (1h). HE indevidas", fundamentacao: "Art. 58, 66, 71 CLT" },
-  { id: "p9", nome: "Comunicados internos com confirmação de leitura", dependeSistema: "Envio, rastreamento de leitura, armazenamento com log de auditoria", dependeProcesso: "RH elaborar comunicados claros, garantir que todos os funcionários acessem", descricaoRisco: "Alegação de desconhecimento de normas internas em processos trabalhistas", fundamentacao: "CLT Art. 444; Princípio da publicidade" },
-  { id: "p10", nome: "Controle de EPIs entregues", dependeSistema: "Registro de entrega com assinatura digital, alertas de validade", dependeProcesso: "Empresa adquirir EPIs adequados, entregar e fiscalizar uso", descricaoRisco: "Multa NR-6 de R$ 2.396,35 a R$ 6.708,09. Responsabilidade por acidente", fundamentacao: "NR-6; Art. 166, 167 CLT" },
-  { id: "p11", nome: "Chamados de suporte ao funcionário", dependeSistema: "Abertura, protocolo automático, SLA de atendimento, trilha de auditoria", dependeProcesso: "RH responder dentro do prazo, resolver pendências administrativas", descricaoRisco: "Acúmulo de irregularidades não resolvidas. Passivo trabalhista", fundamentacao: "Art. 2º CLT (poder diretivo)" },
-];
+const STORAGE_KEY = "checklist-trabalhista-v2";
 
-const ITEMS_EXTERNO: ChecklistItem[] = [
-  { id: "e1", nome: "Assinatura de contrato de trabalho (CTPS)", descricaoObrigacao: "Registrar o empregado na CTPS em até 5 dias úteis da admissão", multa: "Multa de R$ 3.000,00 por empregado não registrado (R$ 800,00 para ME/EPP). Reincidência dobra", fundamentacao: "Art. 29, 41 CLT; eSocial S-2200" },
-  { id: "e2", nome: "Exame médico admissional", descricaoObrigacao: "Realizar ASO antes do início das atividades", multa: "Multa de R$ 1.436,53 a R$ 4.024,42 por infração (NR-7). Responsabilidade por doenças pré-existentes", fundamentacao: "NR-7; Art. 168 CLT" },
-  { id: "e3", nome: "Exame médico periódico", descricaoObrigacao: "Realizar exames periódicos conforme PCMSO (anual, bianual ou conforme risco)", multa: "Multa NR-7 de R$ 1.436,53 a R$ 4.024,42. Responsabilidade por doença ocupacional", fundamentacao: "NR-7 item 7.5.8" },
-  { id: "e4", nome: "Exame médico demissional", descricaoObrigacao: "Realizar ASO demissional até a data da homologação", multa: "Multa NR-7. Risco de ação trabalhista alegando doença ocupacional pré-demissão", fundamentacao: "NR-7 item 7.5.11; Art. 168 CLT" },
-  { id: "e5", nome: "Entrega de EPI com treinamento", descricaoObrigacao: "Fornecer EPI adequado ao risco e treinar o empregado para uso correto", multa: "Multa NR-6 de R$ 2.396,35 a R$ 6.708,09. Culpa exclusiva do empregador em acidente", fundamentacao: "NR-6; Art. 157, 166 CLT" },
-  { id: "e6", nome: "Treinamentos obrigatórios (NRs)", descricaoObrigacao: "Realizar treinamentos de NR-5 (CIPA), NR-6 (EPI), NR-10 (Elétrica), NR-35 (Altura), etc.", multa: "Multa específica por NR violada (R$ 1.000 a R$ 50.000+). Interdição de atividades", fundamentacao: "NRs específicas; Art. 157 CLT" },
-  { id: "e7", nome: "Comunicação de férias com 30 dias de antecedência", descricaoObrigacao: "Notificar o empregado por escrito com no mínimo 30 dias de antecedência", multa: "Nulidade da concessão, obrigação de remarcar. Multa administrativa", fundamentacao: "Art. 135 CLT" },
-  { id: "e8", nome: "Pagamento de férias 2 dias antes do início", descricaoObrigacao: "Pagar remuneração de férias + 1/3 constitucional até 2 dias antes do início do gozo", multa: "Pagamento em dobro das férias (Súmula 450 TST). Multa Art. 137 CLT", fundamentacao: "Art. 145 CLT; Súmula 450 TST" },
-  { id: "e9", nome: "Aviso prévio formal", descricaoObrigacao: "Comunicar formalmente o aviso prévio (30 a 90 dias conforme tempo de serviço)", multa: "Pagamento de salário correspondente ao período não concedido. Art. 487 §1º CLT", fundamentacao: "Art. 487 CLT; Lei 12.506/2011" },
-  { id: "e10", nome: "Homologação de rescisão", descricaoObrigacao: "Pagar verbas rescisórias em até 10 dias do término do contrato", multa: "Multa equivalente ao salário do empregado (Art. 477 §8º CLT)", fundamentacao: "Art. 477 §6º e §8º CLT" },
-  { id: "e11", nome: "Entrega de holerite/contracheque", descricaoObrigacao: "Fornecer demonstrativo de pagamento detalhado ao empregado mensalmente", multa: "Reclamação trabalhista por falta de transparência. Inversão do ônus da prova", fundamentacao: "Art. 464 CLT" },
-  { id: "e12", nome: "Elaboração de PPRA/PGR", descricaoObrigacao: "Manter Programa de Gerenciamento de Riscos atualizado", multa: "Multa NR-1 de R$ 2.396,35 a R$ 6.708,09. Embargo/interdição", fundamentacao: "NR-1; NR-9" },
-  { id: "e13", nome: "Elaboração de PCMSO", descricaoObrigacao: "Manter Programa de Controle Médico de Saúde Ocupacional", multa: "Multa NR-7 de R$ 1.436,53 a R$ 4.024,42", fundamentacao: "NR-7; Art. 168 CLT" },
-  { id: "e14", nome: "CIPA — Constituição e funcionamento", descricaoObrigacao: "Constituir CIPA conforme dimensionamento (NR-5), realizar eleições e reuniões mensais", multa: "Multa NR-5 de R$ 2.396,35 a R$ 6.708,09. Estabilidade não respeitada de cipeiros", fundamentacao: "NR-5; Art. 163-165 CLT; ADCT Art. 10, II, a" },
-  { id: "e15", nome: "Emissão de CAT (Comunicação de Acidente)", descricaoObrigacao: "Comunicar acidente de trabalho ao INSS em até 1 dia útil", multa: "Multa variável (Art. 22 Lei 8.213/91). Responsabilidade civil e criminal", fundamentacao: "Art. 22 Lei 8.213/91; Art. 169 CLT" },
-  { id: "e16", nome: "Recolhimento de contribuições previdenciárias (INSS)", descricaoObrigacao: "Recolher INSS do empregado e patronal dentro do prazo", multa: "Multa moratória de 0,33% ao dia + juros SELIC. Crime de apropriação indébita previdenciária (Art. 168-A CP)", fundamentacao: "Lei 8.212/91; Art. 168-A CP" },
-  { id: "e17", nome: "Depósito de FGTS mensal", descricaoObrigacao: "Depositar 8% do salário bruto na conta FGTS até o dia 7 de cada mês", multa: "Multa de 5% no mês de vencimento + 10% a partir do 2º mês + TR + juros", fundamentacao: "Lei 8.036/90 Art. 15" },
-  { id: "e18", nome: "Manutenção de livro/ficha de registro de empregados", descricaoObrigacao: "Manter registro atualizado de todos os empregados (físico ou eletrônico)", multa: "Multa de R$ 600,00 por empregado (R$ 800,00 reincidência)", fundamentacao: "Art. 41 CLT; Portaria 671/2021" },
-];
+const DEP_CONFIG: Record<Dependencia, { label: string; color: string; emoji: string }> = {
+  sistema: { label: "Sistema", color: "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300", emoji: "🟦" },
+  parcial: { label: "Parcial", color: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300", emoji: "🟨" },
+  procedimento: { label: "Procedimento", color: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300", emoji: "🟥" },
+};
 
-const STORAGE_KEY = "checklist-trabalhista-status";
+const AUDIT_CONFIG: Record<AuditoriaStatus, { label: string; color: string }> = {
+  pendente: { label: "Pendente", color: "bg-muted text-muted-foreground" },
+  conforme: { label: "Conforme", color: "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300" },
+  nao_conforme: { label: "Não conforme", color: "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300" },
+  nao_aplicavel: { label: "N/A", color: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400" },
+};
 
 const ChecklistTrabalhista = () => {
-  const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  const [auditoriaMap, setAuditoriaMap] = useState<Record<string, AuditoriaStatus>>({});
   const [busca, setBusca] = useState("");
+  const [filtroDepend, setFiltroDepend] = useState<string>("todos");
+  const [filtroAudit, setFiltroAudit] = useState<string>("todos");
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(CATEGORIAS.map(c => [c.id, true]))
+  );
 
   useEffect(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setCheckedItems(JSON.parse(saved));
+      if (saved) setAuditoriaMap(JSON.parse(saved));
     } catch { /* ignore */ }
   }, []);
 
-  const toggleItem = (id: string) => {
-    setCheckedItems(prev => {
-      const next = { ...prev, [id]: !prev[id] };
+  const setAuditoria = (id: string, status: AuditoriaStatus) => {
+    setAuditoriaMap(prev => {
+      const next = { ...prev, [id]: status };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       return next;
     });
   };
 
-  const getProgress = (items: ChecklistItem[]) => {
-    const done = items.filter(i => checkedItems[i.id]).length;
-    return { done, total: items.length, pct: items.length ? Math.round((done / items.length) * 100) : 0 };
+  const toggleSection = (id: string) => {
+    setOpenSections(prev => ({ ...prev, [id]: !prev[id] }));
   };
 
-  const filter = (items: ChecklistItem[]) => {
-    if (!busca.trim()) return items;
-    const q = busca.toLowerCase();
-    return items.filter(i =>
-      i.nome.toLowerCase().includes(q) ||
-      i.descricaoRisco?.toLowerCase().includes(q) ||
-      i.multa?.toLowerCase().includes(q) ||
-      i.descricaoObrigacao?.toLowerCase().includes(q) ||
-      i.fundamentacao?.toLowerCase().includes(q)
-    );
-  };
+  const allItems = CATEGORIAS.flatMap(c => c.items);
+  const totalItems = allItems.length;
+  const conformeCount = allItems.filter(i => auditoriaMap[i.id] === "conforme").length;
+  const naoConformeCount = allItems.filter(i => auditoriaMap[i.id] === "nao_conforme").length;
+  const naCount = allItems.filter(i => auditoriaMap[i.id] === "nao_aplicavel").length;
+  const pendenteCount = totalItems - conformeCount - naoConformeCount - naCount;
+  const progressPct = totalItems ? Math.round(((conformeCount + naCount) / totalItems) * 100) : 0;
 
-  const pSistema = getProgress(ITEMS_SISTEMA);
-  const pParcial = getProgress(ITEMS_PARCIAL);
-  const pExterno = getProgress(ITEMS_EXTERNO);
-  const pGeral = getProgress([...ITEMS_SISTEMA, ...ITEMS_PARCIAL, ...ITEMS_EXTERNO]);
+  const sistemaCount = allItems.filter(i => i.dependencia === "sistema").length;
+  const parcialCount = allItems.filter(i => i.dependencia === "parcial").length;
+  const procedimentoCount = allItems.filter(i => i.dependencia === "procedimento").length;
+
+  const filterItems = (items: CheckItem[]) => {
+    return items.filter(item => {
+      const q = busca.toLowerCase();
+      const matchBusca = !q || item.nome.toLowerCase().includes(q) || item.descricao.toLowerCase().includes(q) || item.baseLegal.toLowerCase().includes(q) || item.risco.toLowerCase().includes(q);
+      const matchDep = filtroDepend === "todos" || item.dependencia === filtroDepend;
+      const status = auditoriaMap[item.id] || "pendente";
+      const matchAudit = filtroAudit === "todos" || status === filtroAudit;
+      return matchBusca && matchDep && matchAudit;
+    });
+  };
 
   const exportCSV = () => {
     const rows = [
-      ["Categoria", "Item", "Fundamentação", "Risco/Multa", "Status"],
-      ...ITEMS_SISTEMA.map(i => ["Sistema", i.nome, i.fundamentacao || "", i.multa || "", checkedItems[i.id] ? "OK" : "Pendente"]),
-      ...ITEMS_PARCIAL.map(i => ["Parcial", i.nome, i.fundamentacao || "", i.descricaoRisco || "", checkedItems[i.id] ? "OK" : "Pendente"]),
-      ...ITEMS_EXTERNO.map(i => ["Externo", i.nome, i.fundamentacao || "", i.multa || "", checkedItems[i.id] ? "OK" : "Pendente"]),
+      ["Categoria", "Item", "Descrição", "Base Legal", "Risco", "Dependência", "Auditoria"],
+      ...CATEGORIAS.flatMap(cat =>
+        cat.items.map(i => [
+          cat.titulo,
+          i.nome,
+          i.descricao,
+          i.baseLegal,
+          i.risco,
+          DEP_CONFIG[i.dependencia].label,
+          AUDIT_CONFIG[auditoriaMap[i.id] || "pendente"].label,
+        ])
+      ),
     ];
     const csv = rows.map(r => r.map(c => `"${c.replace(/"/g, '""')}"`).join(",")).join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
@@ -143,12 +263,6 @@ const ChecklistTrabalhista = () => {
     a.click();
     URL.revokeObjectURL(url);
   };
-
-  const StatusBadge = ({ checked }: { checked: boolean }) => (
-    <Badge variant={checked ? "default" : "outline"} className={checked ? "bg-green-600 hover:bg-green-700" : "border-amber-500 text-amber-600"}>
-      {checked ? <><CheckCircle2 className="h-3 w-3 mr-1" /> OK</> : <><Clock className="h-3 w-3 mr-1" /> Pendente</>}
-    </Badge>
-  );
 
   return (
     <Layout>
@@ -163,209 +277,192 @@ const ChecklistTrabalhista = () => {
                 Checklist de Conformidade Trabalhista
               </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Auditoria baseada em CLT, eSocial, FGTS e Normas Regulamentadoras
+                Auditoria baseada em CLT, eSocial, FGTS, NRs e LGPD
               </p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={exportCSV} className="gap-2">
+          <Button variant="outline" size="sm" onClick={exportCSV} className="gap-2 shrink-0">
             <Download className="h-4 w-4" /> Exportar CSV
           </Button>
         </div>
 
-        {/* Progress geral */}
+        {/* Progress + Stats */}
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Progresso Geral</p>
-                <p className="text-2xl font-bold text-foreground">{pGeral.done}/{pGeral.total} itens conformes</p>
+                <p className="text-sm font-medium text-muted-foreground">Progresso da Auditoria</p>
+                <p className="text-2xl font-bold text-foreground">{conformeCount + naCount}/{totalItems} itens resolvidos</p>
               </div>
-              <div className="text-3xl font-bold text-primary">{pGeral.pct}%</div>
+              <div className="text-3xl font-bold text-primary">{progressPct}%</div>
             </div>
-            <Progress value={pGeral.pct} className="h-3" />
-            <div className="grid grid-cols-3 gap-4 mt-4 text-center text-sm">
-              <div>
-                <Monitor className="h-4 w-4 mx-auto mb-1 text-blue-500" />
-                <span className="font-medium">{pSistema.done}/{pSistema.total}</span>
-                <p className="text-muted-foreground text-xs">Sistema</p>
+            <Progress value={progressPct} className="h-3 mb-4" />
+
+            {/* Counters */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+              <div className="text-center p-2 rounded-lg bg-green-50 dark:bg-green-950/30">
+                <p className="text-lg font-bold text-green-700 dark:text-green-400">{conformeCount}</p>
+                <p className="text-xs text-muted-foreground">Conforme</p>
               </div>
-              <div>
-                <Users className="h-4 w-4 mx-auto mb-1 text-amber-500" />
-                <span className="font-medium">{pParcial.done}/{pParcial.total}</span>
-                <p className="text-muted-foreground text-xs">Parcial</p>
+              <div className="text-center p-2 rounded-lg bg-red-50 dark:bg-red-950/30">
+                <p className="text-lg font-bold text-red-700 dark:text-red-400">{naoConformeCount}</p>
+                <p className="text-xs text-muted-foreground">Não conforme</p>
               </div>
-              <div>
-                <FileText className="h-4 w-4 mx-auto mb-1 text-emerald-500" />
-                <span className="font-medium">{pExterno.done}/{pExterno.total}</span>
-                <p className="text-muted-foreground text-xs">Externo</p>
+              <div className="text-center p-2 rounded-lg bg-muted/50">
+                <p className="text-lg font-bold text-muted-foreground">{naCount}</p>
+                <p className="text-xs text-muted-foreground">N/A</p>
               </div>
+              <div className="text-center p-2 rounded-lg bg-amber-50 dark:bg-amber-950/30">
+                <p className="text-lg font-bold text-amber-700 dark:text-amber-400">{pendenteCount}</p>
+                <p className="text-xs text-muted-foreground">Pendente</p>
+              </div>
+            </div>
+
+            {/* Dependency legend */}
+            <div className="flex flex-wrap gap-3 text-xs">
+              <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-blue-500" /> Sistema ({sistemaCount})</span>
+              <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-amber-500" /> Parcial ({parcialCount})</span>
+              <span className="flex items-center gap-1.5"><span className="inline-block w-3 h-3 rounded-sm bg-red-500" /> Procedimento ({procedimentoCount})</span>
             </div>
           </CardContent>
         </Card>
 
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input placeholder="Buscar item, legislação ou risco..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-10" />
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input placeholder="Buscar item, legislação ou risco..." value={busca} onChange={e => setBusca(e.target.value)} className="pl-10" />
+          </div>
+          <Select value={filtroDepend} onValueChange={setFiltroDepend}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Dependência" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todas dependências</SelectItem>
+              <SelectItem value="sistema">🟦 Sistema</SelectItem>
+              <SelectItem value="parcial">🟨 Parcial</SelectItem>
+              <SelectItem value="procedimento">🟥 Procedimento</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filtroAudit} onValueChange={setFiltroAudit}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Auditoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos status</SelectItem>
+              <SelectItem value="pendente">⬜ Pendente</SelectItem>
+              <SelectItem value="conforme">✅ Conforme</SelectItem>
+              <SelectItem value="nao_conforme">❌ Não conforme</SelectItem>
+              <SelectItem value="nao_aplicavel">➖ N/A</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Tabs */}
-        <Tabs defaultValue="sistema">
-          <TabsList className="w-full flex-wrap h-auto gap-1">
-            <TabsTrigger value="sistema" className="gap-1.5 text-xs sm:text-sm">
-              <Monitor className="h-4 w-4" /> 100% Sistema ({pSistema.done}/{pSistema.total})
-            </TabsTrigger>
-            <TabsTrigger value="parcial" className="gap-1.5 text-xs sm:text-sm">
-              <Users className="h-4 w-4" /> Parcial ({pParcial.done}/{pParcial.total})
-            </TabsTrigger>
-            <TabsTrigger value="externo" className="gap-1.5 text-xs sm:text-sm">
-              <FileText className="h-4 w-4" /> Externo ({pExterno.done}/{pExterno.total})
-            </TabsTrigger>
-          </TabsList>
+        {/* Categories */}
+        {CATEGORIAS.map(cat => {
+          const filtered = filterItems(cat.items);
+          if (filtered.length === 0 && (busca || filtroDepend !== "todos" || filtroAudit !== "todos")) return null;
+          const catConforme = cat.items.filter(i => auditoriaMap[i.id] === "conforme" || auditoriaMap[i.id] === "nao_aplicavel").length;
+          const catPct = cat.items.length ? Math.round((catConforme / cat.items.length) * 100) : 0;
 
-          {/* TAB 1: Sistema */}
-          <TabsContent value="sistema">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Monitor className="h-5 w-5 text-blue-500" />
-                  Itens 100% Controlados pelo Sistema
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">Dependem diretamente do software para funcionar corretamente.</p>
-              </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-10">✓</TableHead>
-                      <TableHead>Item</TableHead>
-                      <TableHead className="hidden md:table-cell">Risco Trabalhista</TableHead>
-                      <TableHead className="hidden lg:table-cell">Multa / Consequência</TableHead>
-                      <TableHead className="hidden sm:table-cell">Fundamentação</TableHead>
-                      <TableHead className="w-24">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filter(ITEMS_SISTEMA).map(item => (
-                      <TableRow key={item.id} className={checkedItems[item.id] ? "bg-green-50/50 dark:bg-green-950/20" : ""}>
-                        <TableCell><Checkbox checked={!!checkedItems[item.id]} onCheckedChange={() => toggleItem(item.id)} /></TableCell>
-                        <TableCell className="font-medium text-sm">
-                          {item.nome}
-                          <p className="md:hidden text-xs text-muted-foreground mt-1">{item.descricaoRisco}</p>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{item.descricaoRisco}</TableCell>
-                        <TableCell className="hidden lg:table-cell text-xs">
-                          <span className="text-destructive">{item.multa}</span>
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell text-xs text-muted-foreground font-mono">{item.fundamentacao}</TableCell>
-                        <TableCell><StatusBadge checked={!!checkedItems[item.id]} /></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+          return (
+            <Collapsible key={cat.id} open={openSections[cat.id]} onOpenChange={() => toggleSection(cat.id)}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="cursor-pointer hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                        {openSections[cat.id] ? <ChevronDown className="h-4 w-4 shrink-0" /> : <ChevronRight className="h-4 w-4 shrink-0" />}
+                        <span className="text-primary">{cat.icon}</span>
+                        <span>{cat.emoji} {cat.titulo}</span>
+                      </CardTitle>
+                      <div className="flex items-center gap-3">
+                        <span className="text-xs text-muted-foreground hidden sm:inline">{catConforme}/{cat.items.length}</span>
+                        <Badge variant="outline" className="text-xs">{catPct}%</Badge>
+                      </div>
+                    </div>
+                    <Progress value={catPct} className="h-1.5 mt-2" />
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="pt-0 overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Item</TableHead>
+                          <TableHead className="hidden md:table-cell">Descrição</TableHead>
+                          <TableHead className="hidden sm:table-cell">Base Legal</TableHead>
+                          <TableHead className="hidden lg:table-cell">Risco</TableHead>
+                          <TableHead className="w-28">Dependência</TableHead>
+                          <TableHead className="w-36">Auditoria</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filtered.map(item => {
+                          const dep = DEP_CONFIG[item.dependencia];
+                          const status = auditoriaMap[item.id] || "pendente";
+                          const rowBg = status === "conforme"
+                            ? "bg-green-50/50 dark:bg-green-950/10"
+                            : status === "nao_conforme"
+                            ? "bg-red-50/50 dark:bg-red-950/10"
+                            : "";
 
-          {/* TAB 2: Parcial */}
-          <TabsContent value="parcial">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Users className="h-5 w-5 text-amber-500" />
-                  Itens Parcialmente Dependentes do Sistema
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">O sistema ajuda a controlar, mas dependem também de processos internos da empresa.</p>
-              </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-10">✓</TableHead>
-                      <TableHead>Item</TableHead>
-                      <TableHead className="hidden md:table-cell">Depende do Sistema</TableHead>
-                      <TableHead className="hidden md:table-cell">Depende de Processo</TableHead>
-                      <TableHead className="hidden lg:table-cell">Risco Trabalhista</TableHead>
-                      <TableHead className="w-24">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filter(ITEMS_PARCIAL).map(item => (
-                      <TableRow key={item.id} className={checkedItems[item.id] ? "bg-green-50/50 dark:bg-green-950/20" : ""}>
-                        <TableCell><Checkbox checked={!!checkedItems[item.id]} onCheckedChange={() => toggleItem(item.id)} /></TableCell>
-                        <TableCell className="font-medium text-sm">
-                          {item.nome}
-                          <div className="md:hidden text-xs text-muted-foreground mt-1 space-y-1">
-                            <p><strong>Sistema:</strong> {item.dependeSistema}</p>
-                            <p><strong>Processo:</strong> {item.dependeProcesso}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{item.dependeSistema}</TableCell>
-                        <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{item.dependeProcesso}</TableCell>
-                        <TableCell className="hidden lg:table-cell text-xs">
-                          <span className="text-destructive">{item.descricaoRisco}</span>
-                          <p className="text-muted-foreground mt-1 font-mono">{item.fundamentacao}</p>
-                        </TableCell>
-                        <TableCell><StatusBadge checked={!!checkedItems[item.id]} /></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                          return (
+                            <TableRow key={item.id} className={rowBg}>
+                              <TableCell className="font-medium text-sm">
+                                {item.nome}
+                                <p className="md:hidden text-xs text-muted-foreground mt-0.5">{item.descricao}</p>
+                                <p className="sm:hidden text-xs text-muted-foreground font-mono">{item.baseLegal}</p>
+                              </TableCell>
+                              <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{item.descricao}</TableCell>
+                              <TableCell className="hidden sm:table-cell text-xs font-mono text-muted-foreground">{item.baseLegal}</TableCell>
+                              <TableCell className="hidden lg:table-cell text-xs text-destructive">{item.risco}</TableCell>
+                              <TableCell>
+                                <Badge variant="secondary" className={`text-[10px] ${dep.color}`}>
+                                  {dep.emoji} {dep.label}
+                                </Badge>
+                              </TableCell>
+                              <TableCell>
+                                <Select value={status} onValueChange={(v) => setAuditoria(item.id, v as AuditoriaStatus)}>
+                                  <SelectTrigger className="h-7 text-xs w-full">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="pendente">⬜ Pendente</SelectItem>
+                                    <SelectItem value="conforme">✅ Conforme</SelectItem>
+                                    <SelectItem value="nao_conforme">❌ Não conforme</SelectItem>
+                                    <SelectItem value="nao_aplicavel">➖ N/A</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                        {filtered.length === 0 && (
+                          <TableRow>
+                            <TableCell colSpan={6} className="text-center text-muted-foreground py-4">
+                              Nenhum item encontrado com os filtros aplicados
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
+          );
+        })}
 
-          {/* TAB 3: Externo */}
-          <TabsContent value="externo">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-emerald-500" />
-                  Itens que Não Dependem do Sistema
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">Procedimentos administrativos ou operacionais da empresa.</p>
-              </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-10">✓</TableHead>
-                      <TableHead>Item</TableHead>
-                      <TableHead className="hidden md:table-cell">Obrigação</TableHead>
-                      <TableHead className="hidden lg:table-cell">Multa / Risco Judicial</TableHead>
-                      <TableHead className="hidden sm:table-cell">Fundamentação</TableHead>
-                      <TableHead className="w-24">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filter(ITEMS_EXTERNO).map(item => (
-                      <TableRow key={item.id} className={checkedItems[item.id] ? "bg-green-50/50 dark:bg-green-950/20" : ""}>
-                        <TableCell><Checkbox checked={!!checkedItems[item.id]} onCheckedChange={() => toggleItem(item.id)} /></TableCell>
-                        <TableCell className="font-medium text-sm">
-                          {item.nome}
-                          <p className="md:hidden text-xs text-muted-foreground mt-1">{item.descricaoObrigacao}</p>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell text-xs text-muted-foreground">{item.descricaoObrigacao}</TableCell>
-                        <TableCell className="hidden lg:table-cell text-xs">
-                          <span className="text-destructive">{item.multa}</span>
-                        </TableCell>
-                        <TableCell className="hidden sm:table-cell text-xs text-muted-foreground font-mono">{item.fundamentacao}</TableCell>
-                        <TableCell><StatusBadge checked={!!checkedItems[item.id]} /></TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-
-        {/* Legenda */}
+        {/* Footer info */}
         <Card>
           <CardContent className="pt-4">
-            <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1"><AlertTriangle className="h-3 w-3 text-amber-500" /> Items pendentes representam risco de multa ou processo</div>
-              <div className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3 text-green-600" /> Status salvo automaticamente no navegador</div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-muted-foreground">
+              <div className="space-y-1">
+                <p className="font-medium text-foreground">✔ {totalItems} pontos de verificação</p>
+                <p>Usado para: auditoria de RH • auditoria contábil trabalhista • prevenção de processos • compliance</p>
+              </div>
+              <p>Status salvo automaticamente no navegador</p>
             </div>
           </CardContent>
         </Card>
