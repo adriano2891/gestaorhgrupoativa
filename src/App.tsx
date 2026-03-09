@@ -372,16 +372,8 @@ const App = () => {
                         </ProtectedRoute>
                       }
                     />
-                    <Route
-                      path="/afastamentos"
-                      element={
-                        <ProtectedRoute>
-                          <LazyLayout>
-                            <Afastamentos />
-                          </LazyLayout>
-                        </ProtectedRoute>
-                      }
-                    />
+                    {/* Redirect old /afastamentos to SST */}
+                    <Route path="/afastamentos" element={<Navigate to="/saude-seguranca" replace />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
