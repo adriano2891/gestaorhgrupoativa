@@ -125,8 +125,8 @@ export function AgendaPanel({ open, onOpenChange }: AgendaPanelProps) {
                 />
               </TabsContent>
 
-              <TabsContent value="proximos" className="p-4 mt-0 space-y-4">
-                <h4 className="text-sm font-semibold text-foreground">Próximos Eventos</h4>
+               <TabsContent value="proximos" className="p-4 mt-0 space-y-4" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+                 <h4 className="text-sm font-semibold text-foreground" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>Próximos Eventos</h4>
                 {proximos.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-6">Nenhum evento próximo</p>
                 ) : (
