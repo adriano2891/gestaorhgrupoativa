@@ -437,7 +437,7 @@ const Funcionarios = () => {
         console.log("fetchEmployees: Fallback - buscando profiles diretamente...");
         const fallbackProfiles = await restFetch(
           'profiles',
-          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula&tipo_perfil=eq.funcionario&order=nome.asc'
+          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula,tipo_contrato,cpf&tipo_perfil=eq.funcionario&order=nome.asc'
         );
 
         const allProfiles = fallbackProfiles || [];
