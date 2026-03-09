@@ -1435,8 +1435,6 @@ const Relatorios = () => {
         };
       }
 
-      case "saude-seguranca":
-        const totalFuncionariosSS = funcList?.length || 0;
         
         return {
           ...baseData,
