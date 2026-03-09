@@ -93,7 +93,8 @@ export const calcularAvisoPrevio = (
 export const calcular13Proporcional = (
   salarioBase: number,
   dataAdmissao: Date,
-  dataDemissao: Date
+  dataDemissao: Date,
+  mediaHEmensal: number = 0 // Súmula 45 TST: média de HE habituais integra o 13º
 ): number => {
   const anoAtual = dataDemissao.getFullYear();
   const inicioAno = new Date(anoAtual, 0, 1);
@@ -108,7 +109,90 @@ export const calcular13Proporcional = (
     if (diasTrabalhados >= 15) meses++;
   }
 
-  return (salarioBase / 12) * meses;
+  // Súmula 45 TST: a média de HE habituais integra o cálculo do 13º
+  const baseCalculo = salarioBase + mediaHEmensal;
+  return (baseCalculo / 12) * meses;
+};
+
+/**
+ * Calcula a média mensal de horas extras habituais para integração no 13º
+ * Súmula 45 TST
+ */
+export const calcularMediaHEmensal = (
+  valoresHEmensais: number[] // valores de HE dos últimos meses
+): number => {
+  if (valoresHEmensais.length === 0) return 0;
+  const soma = valoresHEmensais.reduce((acc, v) => acc + v, 0);
+  return Math.round((soma / valoresHEmensais.length) * 100) / 100;
+};
+
+// ========== Cálculos de Sobreaviso (CLT Art. 244 §2º / Súmula 428 TST) ==========
+
+/**
+ * Sobreaviso: 1/3 da hora normal
+ * CLT Art. 244 §2º: Considera-se de "sobreaviso" o empregado efetivo que
+ * permanecer em sua própria casa, aguardando a qualquer momento o chamado
+ * para o serviço. Cada escala de sobreaviso será de, no máximo, 24h.
+ * Remuneração: 1/3 do salário-hora normal.
+ */
+export const calcularSobreaviso = (
+  horasSobreaviso: number,
+  valorHoraNormal: number
+): number => {
+  return Math.round((horasSobreaviso * valorHoraNormal / 3) * 100) / 100;
+};
+
+// ========== Prorrogação do Adicional Noturno (Súmula 60 II TST) ==========
+
+/**
+ * Súmula 60 II TST: "Cumprida integralmente a jornada no período noturno
+ * e prorrogada esta, devido é também o adicional quanto às horas prorrogadas."
+ * Se o trabalhador começa a jornada no período noturno (22h-5h) e continua
+ * trabalhando após as 5h, o adicional noturno deve ser mantido.
+ */
+export const calcularProrrogacaoNoturno = (
+  entrada: Date,
+  saida: Date
+): { horasNoturnas: number; horasProrrogadas: number; totalComAdicional: number } => {
+  const entradaHour = entrada.getHours();
+  const saidaHour = saida.getHours();
+
+  // Verifica se a jornada começou no período noturno (22h-5h)
+  const iniciouNoturno = entradaHour >= 22 || entradaHour < 5;
+
+  if (!iniciouNoturno) {
+    return { horasNoturnas: 0, horasProrrogadas: 0, totalComAdicional: 0 };
+  }
+
+  // Período noturno padrão: 22h às 5h = 7 horas
+  // Horas prorrogadas: após 5h, quando a jornada iniciou no noturno
+  let horasNoturnas = 0;
+  let horasProrrogadas = 0;
+
+  // Calcular horas entre 22h e 5h
+  const diffMs = saida.getTime() - entrada.getTime();
+  const totalHoras = diffMs / (1000 * 60 * 60);
+
+  if (saidaHour >= 5 && saidaHour < 22) {
+    // Saiu após o período noturno — há prorrogação
+    const fimNoturno = new Date(saida);
+    fimNoturno.setHours(5, 0, 0, 0);
+    if (fimNoturno <= entrada) {
+      fimNoturno.setDate(fimNoturno.getDate() + 1);
+    }
+    horasNoturnas = Math.max(0, (fimNoturno.getTime() - entrada.getTime()) / (1000 * 60 * 60));
+    horasProrrogadas = Math.max(0, totalHoras - horasNoturnas);
+  } else {
+    horasNoturnas = totalHoras;
+  }
+
+  const totalComAdicional = horasNoturnas + horasProrrogadas; // Ambas com adicional
+
+  return {
+    horasNoturnas: Math.round(horasNoturnas * 100) / 100,
+    horasProrrogadas: Math.round(horasProrrogadas * 100) / 100,
+    totalComAdicional: Math.round(totalComAdicional * 100) / 100,
+  };
 };
 
 // ========== Cálculos de Férias ==========
