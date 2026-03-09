@@ -71,6 +71,8 @@ interface Employee {
   admissionDate: string;
   foto_url?: string;
   matricula?: string;
+  tipo_contrato?: string;
+  cpf?: string;
 }
 
 const employeeSchema = z.object({
