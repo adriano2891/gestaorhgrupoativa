@@ -1226,10 +1226,8 @@ const Funcionarios = () => {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        <AlertaEquiparacaoSalarial />
-        <ConvencoesColetivasCard />
-      </div>
+      <AlertaEquiparacaoSalarial />
+      <ConvencoesColetivasCard />
 
       <Card>
         <CardHeader className="p-3 sm:p-4 md:p-6">

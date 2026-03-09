@@ -110,69 +110,69 @@ export const ConvencoesColetivasCard = () => {
   return (
     <>
       <Card>
-        <CardHeader className="p-3 sm:p-4 pb-2">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="min-w-0">
-              <CardTitle className="flex items-center gap-1.5 text-sm font-semibold">
-                <BookOpen className="h-4 w-4 text-primary flex-shrink-0" />
-                <span className="truncate">CCT / ACT — Convenções Coletivas</span>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5 text-primary" />
+                CCT / ACT — Convenções Coletivas
               </CardTitle>
-              <CardDescription className="text-[11px] mt-0.5">CLT Art. 611-A — Pisos salariais por categoria</CardDescription>
+              <CardDescription>CLT Art. 611-A — Pisos salariais por categoria</CardDescription>
             </div>
-            <Button onClick={() => setDialogOpen(true)} size="sm" className="gap-1 h-7 text-xs px-2.5 flex-shrink-0"><Plus className="h-3 w-3" />Nova CCT/ACT</Button>
+            <Button onClick={() => setDialogOpen(true)} className="gap-1"><Plus className="h-4 w-4" />Nova CCT/ACT</Button>
           </div>
           {violacoes.length > 0 && (
-            <div className="mt-2 p-2 rounded-md bg-destructive/5 border border-destructive/30">
-              <div className="flex items-center gap-1.5">
-                <AlertTriangle className="h-3.5 w-3.5 text-destructive flex-shrink-0" />
-                <span className="font-medium text-xs text-destructive">
-                  {violacoes.length} violação(ões) de piso detectada(s)
+            <div className="mt-3 p-3 rounded-lg bg-destructive/5 border border-destructive/30">
+              <div className="flex items-center gap-2 mb-1">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
+                <span className="font-medium text-sm text-destructive">
+                  {violacoes.length} violação(ões) de piso salarial detectada(s)
                 </span>
               </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
-                Funcionários com salário abaixo do piso da categoria. Risco de autuação.
+              <p className="text-xs text-muted-foreground">
+                Existem funcionários com salário abaixo do piso da categoria. Risco de autuação.
               </p>
             </div>
           )}
         </CardHeader>
-        <CardContent className="p-3 sm:p-4 pt-0">
+        <CardContent>
           {loading ? (
-            <p className="text-xs text-muted-foreground text-center py-3">Carregando...</p>
+            <p className="text-sm text-muted-foreground text-center py-4">Carregando...</p>
           ) : convencoes.length === 0 ? (
-            <p className="text-xs text-muted-foreground text-center py-5">Nenhuma CCT/ACT cadastrada.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">Nenhuma CCT/ACT cadastrada.</p>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-4">
               {convencoes.map(conv => {
                 const pisosConv = pisos.filter(p => p.convencao_id === conv.id);
                 const vencida = isPast(new Date(conv.data_fim));
                 return (
-                  <div key={conv.id} className="p-2.5 rounded-md border">
-                    <div className="flex items-center justify-between mb-1 gap-1">
-                      <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
-                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">{conv.tipo.toUpperCase()}</Badge>
-                        <span className="font-medium text-xs truncate">{conv.nome}</span>
-                        {vencida && <Badge variant="destructive" className="text-[9px] px-1 py-0">Vencida</Badge>}
+                  <div key={conv.id} className="p-4 rounded-lg border">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">{conv.tipo.toUpperCase()}</Badge>
+                        <span className="font-medium text-sm">{conv.nome}</span>
+                        {vencida && <Badge variant="destructive" className="text-[10px]">Vencida</Badge>}
                       </div>
-                      <div className="flex gap-0.5 flex-shrink-0">
-                        <Button size="sm" variant="outline" className="h-6 text-[10px] px-1.5" onClick={() => { setSelectedConvencao(conv.id); setPisoDialogOpen(true); }}>
-                          <Plus className="h-2.5 w-2.5 mr-0.5" />Piso
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="outline" onClick={() => { setSelectedConvencao(conv.id); setPisoDialogOpen(true); }}>
+                          <Plus className="h-3 w-3 mr-1" />Piso
                         </Button>
-                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => handleDelete(conv.id)}>
+                        <Button size="sm" variant="ghost" onClick={() => handleDelete(conv.id)}>
                           <Trash2 className="h-3 w-3 text-destructive" />
                         </Button>
                       </div>
                     </div>
-                    <p className="text-[10px] text-muted-foreground mb-1.5 leading-tight truncate">
+                    <p className="text-xs text-muted-foreground mb-2">
                       {conv.sindicato && `${conv.sindicato} · `}
-                      {format(new Date(conv.data_inicio), "dd/MM/yy")} a {format(new Date(conv.data_fim), "dd/MM/yy")}
+                      Vigência: {format(new Date(conv.data_inicio), "dd/MM/yyyy")} a {format(new Date(conv.data_fim), "dd/MM/yyyy")}
                     </p>
                     {pisosConv.length > 0 && (
                       <Table>
                         <TableHeader>
                           <TableRow>
-                            <TableHead className="text-[10px] py-1 h-auto">Cargo</TableHead>
-                            <TableHead className="text-[10px] py-1 h-auto text-right">Piso</TableHead>
-                            <TableHead className="text-[10px] py-1 h-auto text-right">Status</TableHead>
+                            <TableHead className="text-xs">Cargo</TableHead>
+                            <TableHead className="text-xs text-right">Piso Salarial</TableHead>
+                            <TableHead className="text-xs text-right">Status</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -182,16 +182,16 @@ export const ConvencoesColetivasCard = () => {
                             );
                             return (
                               <TableRow key={p.id}>
-                                <TableCell className="text-[11px] py-1 truncate max-w-[120px]">{p.cargo}</TableCell>
-                                <TableCell className="text-[11px] py-1 text-right font-mono">{fmt(p.piso_salarial)}</TableCell>
-                                <TableCell className="text-right py-1">
+                                <TableCell className="text-xs">{p.cargo}</TableCell>
+                                <TableCell className="text-xs text-right font-mono">{fmt(p.piso_salarial)}</TableCell>
+                                <TableCell className="text-right">
                                   {funcsAbaixo && funcsAbaixo.length > 0 ? (
-                                    <Badge variant="destructive" className="text-[9px] gap-0.5 px-1 py-0">
-                                      <AlertTriangle className="h-2 w-2" />
-                                      {funcsAbaixo.length}
+                                    <Badge variant="destructive" className="text-[10px] gap-1">
+                                      <AlertTriangle className="h-2.5 w-2.5" />
+                                      {funcsAbaixo.length} abaixo
                                     </Badge>
                                   ) : (
-                                    <Badge variant="outline" className="text-[9px] px-1 py-0">OK</Badge>
+                                    <Badge variant="outline" className="text-[10px]">OK</Badge>
                                   )}
                                 </TableCell>
                               </TableRow>
