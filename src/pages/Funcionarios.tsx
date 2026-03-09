@@ -156,6 +156,7 @@ const Funcionarios = () => {
   const [selectedDepartment, setSelectedDepartment] = useState("Todos");
   const [employees, setEmployees] = useState<Employee[]>([]);
   const employeesRef = useRef<Employee[]>([]);
+  const recentlyAddedRef = useRef(false);
   
   const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }>>({});
   const [employeeUpdates, setEmployeeUpdates] = useState<Record<string, { updated_at: string }>>({});
@@ -385,6 +386,10 @@ const Funcionarios = () => {
 
         if (targetIds.length === 0) {
           console.warn("fetchEmployees: Nenhum funcionário puro encontrado");
+          if (recentlyAddedRef.current) {
+            console.log("fetchEmployees: Ignorando lista vazia (adição recente)");
+            return;
+          }
           setEmployees([]);
           employeesRef.current = [];
           setEmployeeSalaries({});
@@ -416,6 +421,11 @@ const Funcionarios = () => {
           cpf: profile.cpf || null,
         })));
 
+        // Protect against race conditions: don't replace a larger list with a smaller one right after adding
+        if (recentlyAddedRef.current && formattedEmployees.length < employeesRef.current.length) {
+          console.log("fetchEmployees: Ignorando resultado menor (adição recente)", formattedEmployees.length, "vs", employeesRef.current.length);
+          return;
+        }
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
         setEmployees(formattedEmployees);
         employeesRef.current = formattedEmployees;
@@ -1143,6 +1153,7 @@ const Funcionarios = () => {
       });
       
       // Optimistic update: add employee to list immediately
+      recentlyAddedRef.current = true;
       if (newUserId) {
         const optimisticEmployee: Employee = {
           id: newUserId,
@@ -1155,6 +1166,7 @@ const Funcionarios = () => {
           admissionDate: newEmployee.dataAdmissao || new Date().toISOString().split('T')[0],
           foto_url: newPhotoPreview || undefined,
           matricula: undefined,
+          cpf: newEmployee.cpf || undefined,
         };
         setEmployees(prev => {
           const updated = [...prev, optimisticEmployee].sort((a, b) => a.name.localeCompare(b.name));
@@ -1173,8 +1185,11 @@ const Funcionarios = () => {
       setNewPhotoPreview(null);
       setIsAddDialogOpen(false);
       
-      // Background refresh to sync all data (non-blocking)
-      fetchEmployees().catch(console.error);
+      // Delayed background refresh to allow role propagation
+      setTimeout(() => {
+        recentlyAddedRef.current = false;
+        fetchEmployees().catch(console.error);
+      }, 3000);
     } catch (error: any) {
       console.error("Erro ao adicionar funcionário:", error);
       
