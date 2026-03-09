@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,10 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Stethoscope, Plus, AlertTriangle, CheckCircle, 
-  Clock, Baby, HeartPulse
+  Clock, Baby, HeartPulse, Upload, FileText, X, Paperclip
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import { useAfastamentos, useCriarAfastamento, useEncerrarAfastamento, TIPOS_AFASTAMENTO } from "@/hooks/useAfastamentos";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { format, parseISO, differenceInDays } from "date-fns";
