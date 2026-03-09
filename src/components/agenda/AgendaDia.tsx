@@ -10,9 +10,10 @@ interface AgendaDiaProps {
   eventos: EventoAgenda[];
   onEventoClick: (e: EventoAgenda) => void;
   onToggleConcluido: (id: string) => void;
+  onNovoEvento?: (data?: Date) => void;
 }
 
-export function AgendaDia({ data, eventos, onEventoClick, onToggleConcluido }: AgendaDiaProps) {
+export function AgendaDia({ data, eventos, onEventoClick, onToggleConcluido, onNovoEvento }: AgendaDiaProps) {
   const agora = new Date();
 
   const formatHora = (iso: string) =>
@@ -29,10 +30,17 @@ export function AgendaDia({ data, eventos, onEventoClick, onToggleConcluido }: A
 
   if (eventos.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        <Clock className="h-8 w-8 mx-auto mb-2 opacity-40" />
-        <p className="text-sm">Nenhum evento para este dia</p>
-        <p className="text-xs mt-1">Clique em "Novo Evento" para adicionar</p>
+      <div className="text-center py-8 text-muted-foreground space-y-3">
+        <div>
+          <Clock className="h-8 w-8 mx-auto mb-2 opacity-40" />
+          <p className="text-sm">Nenhum evento para este dia</p>
+          <p className="text-xs mt-1">Clique em "Novo Evento" para adicionar</p>
+        </div>
+        {onNovoEvento && (
+          <Button size="sm" variant="outline" onClick={() => onNovoEvento(data)}>
+            Novo Evento
+          </Button>
+        )}
       </div>
     );
   }

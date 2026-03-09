@@ -126,6 +126,7 @@ export function AgendaPanel({ open, onOpenChange }: AgendaPanelProps) {
                   eventos={eventosDia}
                   onEventoClick={handleEditarEvento}
                   onToggleConcluido={toggleConcluido}
+                  onNovoEvento={handleNovoEvento}
                 />
               </TabsContent>
 
