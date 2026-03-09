@@ -334,23 +334,86 @@ const Relatorios = () => {
             ],
           });
         } else if (selectedReport === "absenteismo") {
-          const deptStats: Record<string, { total: number; ausencias: number }> = {};
+          // Cross-reference registros with funcionarios for comprehensive analysis
+          const funcsAtivos = (funcionarios || []).filter((f: any) => {
+            const st = (f.status || "ativo").toLowerCase();
+            return st !== "demitido" && st !== "pediu_demissao";
+          });
+
+          const deptStats: Record<string, { total: number; ausencias: number; atrasos: number }> = {};
           data.forEach((r: any) => {
             const d = r.profiles?.departamento || "Sem Departamento";
-            if (!deptStats[d]) deptStats[d] = { total: 0, ausencias: 0 };
+            if (!deptStats[d]) deptStats[d] = { total: 0, ausencias: 0, atrasos: 0 };
             deptStats[d].total++;
-            if (!r.entrada) deptStats[d].ausencias++;
+            if (!r.entrada) {
+              deptStats[d].ausencias++;
+            } else {
+              try {
+                const entradaDate = new Date(r.entrada);
+                const h = entradaDate.getHours();
+                const m = entradaDate.getMinutes();
+                if (h > 8 || (h === 8 && m > 10)) deptStats[d].atrasos++;
+              } catch {}
+            }
           });
+
           const totalAusencias = data.filter((r: any) => !r.entrada).length;
+          const totalAtrasos = data.filter((r: any) => {
+            if (!r.entrada) return false;
+            try {
+              const d = new Date(r.entrada);
+              return d.getHours() > 8 || (d.getHours() === 8 && d.getMinutes() > 10);
+            } catch { return false; }
+          }).length;
           const totalColab = new Set(data.map((r: any) => r.user_id)).size;
+
+          // Período aquisitivo analysis per employee
+          const empComRegistro = new Set(data.map((r: any) => r.user_id));
+          const semRegistro = funcsAtivos.filter((f: any) => !empComRegistro.has(f.id));
+
+          // Per-employee absenteeism ranking
+          const empAusencias: Record<string, { nome: string; dept: string; cargo: string; ausencias: number; total: number }> = {};
+          data.forEach((r: any) => {
+            const uid = r.user_id;
+            if (!empAusencias[uid]) {
+              empAusencias[uid] = {
+                nome: r.profiles?.nome || funcMap.get(uid)?.nome || "-",
+                dept: r.profiles?.departamento || funcMap.get(uid)?.departamento || "-",
+                cargo: funcMap.get(uid)?.cargo || "-",
+                ausencias: 0,
+                total: 0,
+              };
+            }
+            empAusencias[uid].total++;
+            if (!r.entrada) empAusencias[uid].ausencias++;
+          });
+
+          const rankingAbsenteismo = Object.values(empAusencias)
+            .filter(e => e.ausencias > 0)
+            .sort((a, b) => b.ausencias - a.ausencias);
+
+          // Monthly trend
+          const mesTrend: Record<string, { total: number; ausencias: number }> = {};
+          data.forEach((r: any) => {
+            if (r.data) {
+              const mes = r.data.substring(0, 7);
+              if (!mesTrend[mes]) mesTrend[mes] = { total: 0, ausencias: 0 };
+              mesTrend[mes].total++;
+              if (!r.entrada) mesTrend[mes].ausencias++;
+            }
+          });
+
           setGeneratedData({
             generatedAt: now.toISOString(),
             summary: {
               "Período": periodoLabel,
               "Total Registros": data.length,
-              "Colaboradores": totalColab,
+              "Colaboradores com Registros": totalColab,
+              "Colaboradores Ativos": funcsAtivos.length,
               "Total Ausências": totalAusencias,
+              "Total Atrasos": totalAtrasos,
               "Taxa de Absenteísmo": data.length > 0 ? `${((totalAusencias / data.length) * 100).toFixed(1)}%` : "0%",
+              "Sem Registros no Período": semRegistro.length,
             },
             charts: [
               {
@@ -359,17 +422,36 @@ const Relatorios = () => {
                 description: "Taxa de ausências por departamento",
                 data: Object.entries(deptStats).map(([dept, stats]) => ({
                   departamento: dept,
+                  "Taxa (%)": stats.total > 0 ? parseFloat(((stats.ausencias / stats.total) * 100).toFixed(1)) : 0,
+                })),
+                dataName: "Taxa (%)",
+              },
+              {
+                type: "bar",
+                title: "Tendência Mensal de Absenteísmo",
+                description: "Evolução das ausências por mês",
+                data: Object.entries(mesTrend).sort(([a], [b]) => a.localeCompare(b)).map(([mes, stats]) => ({
+                  mês: mes,
                   valor: stats.total > 0 ? parseFloat(((stats.ausencias / stats.total) * 100).toFixed(1)) : 0,
                 })),
                 dataName: "Taxa (%)",
               },
             ],
-            details: data.filter((r: any) => !r.entrada).slice(0, 100).map((r: any) => ({
-              Funcionário: r.profiles?.nome || funcMap.get(r.user_id)?.nome || "-",
-              Data: r.data || "-",
-              Departamento: r.profiles?.departamento || funcMap.get(r.user_id)?.departamento || "-",
-              Cargo: funcMap.get(r.user_id)?.cargo || "-",
-            })),
+            details: rankingAbsenteismo.length > 0
+              ? rankingAbsenteismo.slice(0, 100).map(e => ({
+                  Funcionário: e.nome,
+                  Departamento: e.dept,
+                  Cargo: e.cargo,
+                  "Total Registros": e.total,
+                  Ausências: e.ausencias,
+                  "Taxa Individual": `${((e.ausencias / e.total) * 100).toFixed(1)}%`,
+                }))
+              : data.filter((r: any) => !r.entrada).slice(0, 100).map((r: any) => ({
+                  Funcionário: r.profiles?.nome || funcMap.get(r.user_id)?.nome || "-",
+                  Data: r.data || "-",
+                  Departamento: r.profiles?.departamento || funcMap.get(r.user_id)?.departamento || "-",
+                  Cargo: funcMap.get(r.user_id)?.cargo || "-",
+                })),
           });
         } else {
           // pontos
