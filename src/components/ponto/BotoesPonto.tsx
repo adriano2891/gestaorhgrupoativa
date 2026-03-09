@@ -163,30 +163,6 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
         setLoading(null);
         return;
       }
-      // Antifraude: bloquear marcações com menos de 5 minutos de intervalo (exceto saída)
-      if (campo !== "saida" && registroHoje) {
-        const camposMarcacao = [
-          "entrada", "saida_pausa_1", "retorno_pausa_1",
-          "saida_almoco", "retorno_almoco", "saida_pausa_2",
-          "retorno_pausa_2", "saida", "inicio_he", "fim_he"
-        ];
-        const timestamps = camposMarcacao
-          .map(c => registroHoje[c])
-          .filter(Boolean)
-          .map((t: string) => new Date(t).getTime());
-
-        if (timestamps.length > 0) {
-          const ultimaMarcacao = Math.max(...timestamps);
-          const diffMinutos = (Date.now() - ultimaMarcacao) / (1000 * 60);
-          if (diffMinutos < 5) {
-            toast.error("Intervalo mínimo de 5 minutos entre marcações", {
-              description: `Aguarde ${Math.ceil(5 - diffMinutos)} minuto(s) antes de registrar novamente. Medida antifraude.`,
-            });
-            setLoading(null);
-            return;
-          }
-        }
-      }
 
       // CLT validations on entry
       if (campo === "entrada") {

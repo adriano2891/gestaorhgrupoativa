@@ -8,7 +8,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { jsPDF } from "jspdf";
 import {
   Card,
   CardContent,
@@ -521,83 +520,35 @@ const BancoTalentos = () => {
   };
 
   const handleExportCandidateData = (candidate: Candidate) => {
-    const pdf = new jsPDF();
-    const pw = pdf.internal.pageSize.getWidth();
-    const margin = 14;
-
-    // Header
-    pdf.setFillColor(17, 188, 183);
-    pdf.rect(0, 0, pw, 32, "F");
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFontSize(16);
-    pdf.setFont("helvetica", "bold");
-    pdf.text("EXPORTAÇÃO DE DADOS — PORTABILIDADE LGPD", pw / 2, 14, { align: "center" });
-    pdf.setFontSize(9);
-    pdf.setFont("helvetica", "normal");
-    pdf.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, pw / 2, 22, { align: "center" });
-    pdf.text("Lei nº 13.709/2018 — Art. 18, V — Direito à portabilidade dos dados", pw / 2, 28, { align: "center" });
-
-    pdf.setTextColor(0, 0, 0);
-    let y = 42;
-
-    const statusMap: Record<string, string> = {
-      "disponivel": "Disponível",
-      "em-processo": "Em Processo",
-      "contratado": "Contratado",
+    const exportData = {
+      nome: candidate.name,
+      email: candidate.email,
+      telefone: candidate.phone,
+      cargo_desejado: candidate.position,
+      habilidades: candidate.skills,
+      experiencia: candidate.experience,
+      status: candidate.status,
+      data_candidatura: candidate.applied_date,
+      consentimento_lgpd: candidate.consentimento_lgpd,
+      data_consentimento: candidate.data_consentimento,
+      data_validade_dados: candidate.data_validade_dados,
+      finalidade_tratamento: candidate.finalidade_tratamento,
+      exportado_em: new Date().toISOString(),
     };
 
-    const fields = [
-      ["Nome", candidate.name],
-      ["E-mail", candidate.email],
-      ["Telefone", candidate.phone],
-      ["Cargo Desejado", candidate.position],
-      ["Habilidades", (candidate.skills || []).join(", ") || "—"],
-      ["Experiência", candidate.experience],
-      ["Status", statusMap[candidate.status] || candidate.status],
-      ["Data da Candidatura", candidate.applied_date ? new Date(candidate.applied_date).toLocaleDateString("pt-BR") : "—"],
-      ["Consentimento LGPD", candidate.consentimento_lgpd ? "Sim" : "Não"],
-      ["Data do Consentimento", candidate.data_consentimento ? new Date(candidate.data_consentimento).toLocaleDateString("pt-BR") : "—"],
-      ["Validade dos Dados", candidate.data_validade_dados ? new Date(candidate.data_validade_dados).toLocaleDateString("pt-BR") : "—"],
-      ["Finalidade do Tratamento", candidate.finalidade_tratamento || "—"],
-    ];
-
-    pdf.setFontSize(9);
-    fields.forEach(([label, value]) => {
-      pdf.setFont("helvetica", "bold");
-      pdf.text(`${label}:`, margin, y);
-      pdf.setFont("helvetica", "normal");
-      const lines = pdf.splitTextToSize(String(value), pw - 70);
-      pdf.text(lines, 65, y);
-      y += lines.length * 5 + 2;
-    });
-
-    // Footer
-    y += 10;
-    pdf.setDrawColor(17, 188, 183);
-    pdf.setLineWidth(0.3);
-    pdf.line(margin, y, pw - margin, y);
-    y += 6;
-    pdf.setFontSize(7);
-    pdf.setTextColor(120, 120, 120);
-    pdf.text("Este documento foi gerado automaticamente para fins de portabilidade de dados conforme a LGPD.", margin, y);
-    y += 4;
-    pdf.text(`Data/Hora da exportação: ${new Date().toLocaleString("pt-BR")}`, margin, y);
-
-    // Page footer
-    pdf.setFontSize(7);
-    pdf.setTextColor(150, 150, 150);
-    pdf.text(
-      "Portabilidade LGPD — Banco de Talentos",
-      pw / 2,
-      pdf.internal.pageSize.getHeight() - 8,
-      { align: "center" }
-    );
-
-    pdf.save(`dados-candidato-${candidate.name.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dados-candidato-${candidate.name.replace(/\s+/g, '-').toLowerCase()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
 
     toast({
-      title: "PDF exportado com sucesso!",
-      description: "Os dados do candidato foram exportados em PDF (portabilidade LGPD).",
+      title: "Dados exportados",
+      description: "Os dados do candidato foram exportados com sucesso (portabilidade LGPD).",
     });
   };
 
@@ -621,10 +572,10 @@ const BancoTalentos = () => {
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: '#000000' }}>
             Banco de Talentos
           </h1>
-          <p className="mt-1 text-xs sm:text-sm md:text-base text-muted-foreground">
+          <p className="mt-1 text-xs sm:text-sm md:text-base font-bold" style={{ color: '#000000' }}>
             Gerencie candidatos e processos seletivos
           </p>
         </div>
@@ -758,11 +709,11 @@ const BancoTalentos = () => {
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 pt-2">
+                    <div className="flex flex-wrap gap-2 pt-2">
                       <Button 
                         variant="default" 
                         size="sm" 
-                        className="flex-1 min-w-0"
+                        className="flex-1"
                         onClick={() => handleViewResume(candidate.resume_url)}
                         disabled={!candidate.resume_url}
                         title={!candidate.resume_url ? "Currículo não cadastrado" : "Visualizar currículo"}

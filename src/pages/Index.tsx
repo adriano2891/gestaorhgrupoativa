@@ -90,7 +90,7 @@ const Index = () => {
     const bottomModules = modules.slice(4);
     
     return (
-      <div className="min-h-[calc(100vh-180px)] relative overflow-hidden bg-primary">
+      <div className="min-h-[calc(100vh-180px)] relative overflow-hidden" style={{ backgroundColor: '#3EE0CF' }}>
         {/* Cabeçalho */}
         <div className="text-center pt-8 pb-6 space-y-1 relative z-10 px-4">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Dashboard</h1>
@@ -118,7 +118,7 @@ const Index = () => {
                 onClick={() => navigate(module.path)}
               >
                 <div className="bg-white rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center min-h-[120px]">
-                  <module.icon className="w-12 h-12 md:w-14 md:h-14 text-primary mb-2" />
+                  <module.icon className="w-12 h-12 md:w-14 md:h-14 text-[#3EE0CF] mb-2" />
                   <p className="text-center font-semibold text-gray-800 text-xs md:text-sm leading-tight">
                     {module.title}
                   </p>
@@ -137,7 +137,7 @@ const Index = () => {
                 onClick={() => navigate(module.path)}
               >
                 <div className="bg-white rounded-2xl shadow-lg p-4 md:p-6 flex flex-col items-center justify-center min-h-[110px] md:min-h-[120px]">
-                  <module.icon className="w-10 h-10 md:w-12 md:h-12 text-primary mb-1 md:mb-2" />
+                  <module.icon className="w-10 h-10 md:w-12 md:h-12 text-[#3EE0CF] mb-1 md:mb-2" />
                   <p className="text-center font-semibold text-gray-800 text-[10px] md:text-xs leading-tight">
                     {module.title}
                   </p>
@@ -152,7 +152,7 @@ const Index = () => {
 
   // Layout desktop (circular original)
   return (
-    <div className="min-h-[calc(100vh-180px)] relative overflow-hidden bg-primary">
+    <div className="min-h-[calc(100vh-180px)] relative overflow-hidden" style={{ backgroundColor: '#3EE0CF' }}>
       {/* Cabeçalho */}
       <div className="text-center pt-12 pb-8 space-y-2 relative z-10">
         <h1 className="text-4xl lg:text-5xl font-bold text-gray-900">Dashboard</h1>
@@ -183,7 +183,7 @@ const Index = () => {
             onClick={() => navigate("/funcionarios")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
-              <Users className="w-12 h-12 lg:w-16 lg:h-16 text-primary" />
+              <Users className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
             </div>
             <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Funcionários</p>
           </div>
@@ -195,7 +195,7 @@ const Index = () => {
             onClick={() => navigate("/banco-talentos")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
-              <Briefcase className="w-12 h-12 lg:w-16 lg:h-16 text-primary" />
+              <Briefcase className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
             </div>
             <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Banco de Talentos</p>
           </div>
@@ -207,7 +207,7 @@ const Index = () => {
             onClick={() => navigate("/relatorios")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
-              <BarChart3 className="w-12 h-12 lg:w-16 lg:h-16 text-primary" />
+              <BarChart3 className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
             </div>
             <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Relatórios e Análises</p>
           </div>
@@ -219,7 +219,7 @@ const Index = () => {
             onClick={() => navigate("/folha-ponto")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
-              <Clock className="w-12 h-12 lg:w-16 lg:h-16 text-primary" />
+              <Clock className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
             </div>
             <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Folha de Ponto</p>
           </div>
@@ -231,7 +231,7 @@ const Index = () => {
             onClick={() => navigate("/holerites")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
-              <FileText className="w-12 h-12 lg:w-16 lg:h-16 text-primary" />
+              <FileText className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
             </div>
             <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Holerites</p>
           </div>
@@ -244,7 +244,7 @@ const Index = () => {
               onClick={() => navigate("/admins")}
             >
               <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
-                <Settings className="w-12 h-12 lg:w-16 lg:h-16 text-primary" />
+                <Settings className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
               </div>
               <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Gerenciar Admins</p>
             </div>
@@ -257,7 +257,7 @@ const Index = () => {
             onClick={() => navigate("/comunicados")}
           >
             <div className="bg-white rounded-3xl shadow-lg p-6 lg:p-8 w-28 h-28 lg:w-32 lg:h-32 flex items-center justify-center">
-              <Bell className="w-12 h-12 lg:w-16 lg:h-16 text-primary" />
+              <Bell className="w-12 h-12 lg:w-16 lg:h-16 text-[#3EE0CF]" />
             </div>
             <p className="text-center mt-3 font-semibold text-gray-800 text-sm lg:text-base">Comunicados</p>
           </div>

@@ -25,10 +25,10 @@ const AppSelector = () => {
         {/* Funcionário */}
         <button
           onClick={() => navigate("/portal-funcionario")}
-          className="flex-1 group relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 flex flex-col items-center gap-4 transition-all duration-300 hover:bg-primary/20 hover:border-primary/50 hover:scale-105 hover:shadow-[0_0_40px_hsl(174_72%_56%/0.2)]"
+          className="flex-1 group relative bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-8 flex flex-col items-center gap-4 transition-all duration-300 hover:bg-[#3EE0CF]/20 hover:border-[#3EE0CF]/50 hover:scale-105 hover:shadow-[0_0_40px_rgba(62,224,207,0.2)]"
         >
-          <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center group-hover:bg-primary/30 transition-colors">
-            <Users className="w-8 h-8 text-primary" />
+          <div className="w-16 h-16 rounded-full bg-[#3EE0CF]/20 flex items-center justify-center group-hover:bg-[#3EE0CF]/30 transition-colors">
+            <Users className="w-8 h-8 text-[#3EE0CF]" />
           </div>
           <div className="text-center">
             <h2 className="text-lg font-bold text-white mb-1">Sou Funcionário</h2>

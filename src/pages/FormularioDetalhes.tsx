@@ -71,7 +71,7 @@ const FormularioDetalhes = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
@@ -106,7 +106,6 @@ const FormularioDetalhes = () => {
           </div>
         </div>
       </header>
-      <div className="h-[64px] sm:h-[72px]" />
 
       <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="campos" className="w-full">

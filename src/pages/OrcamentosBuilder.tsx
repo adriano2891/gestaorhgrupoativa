@@ -313,7 +313,7 @@ export default function OrcamentosBuilder() {
                     <Button
                       type="button"
                       onClick={() => navigate('/orcamentos/clientes/novo')}
-                      className="bg-primary hover:bg-primary-dark text-primary-foreground shrink-0"
+                      className="bg-[#3EE0CF] hover:bg-[#35c9ba] text-black shrink-0"
                     >
                       <UserPlus className="w-4 h-4 mr-2" />
                       Adicionar Cliente
@@ -404,7 +404,7 @@ export default function OrcamentosBuilder() {
 
               {isLoadingItens ? (
                 <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3EE0CF]"></div>
                 </div>
               ) : filteredDbItens.length === 0 ? (
                 <div className="text-center py-8 text-zinc-500">
@@ -426,7 +426,7 @@ export default function OrcamentosBuilder() {
                             "flex items-center gap-4 p-3 rounded-xl border transition-all",
                             isAdded 
                               ? "border-green-200 bg-green-50" 
-                              : "border-zinc-200 bg-white hover:border-primary/30 hover:shadow-sm"
+                              : "border-zinc-200 bg-white hover:border-[#3EE0CF]/30 hover:shadow-sm"
                           )}
                         >
                           {/* Product Image */}
@@ -470,7 +470,7 @@ export default function OrcamentosBuilder() {
                                 "h-8 px-3",
                                 isAdded 
                                   ? "bg-green-500 text-white cursor-default" 
-                                  : "bg-primary hover:bg-primary-dark text-primary-foreground"
+                                  : "bg-[#3EE0CF] hover:bg-[#35c9ba] text-black"
                               )}
                             >
                               {isAdded ? (
@@ -597,7 +597,7 @@ export default function OrcamentosBuilder() {
                 </div>
                 <div className="border-t border-zinc-200 pt-3 flex justify-between">
                   <span className="text-lg font-bold text-zinc-800">Total</span>
-                  <span className="text-lg font-bold text-primary">{formatCurrency(total)}</span>
+                  <span className="text-lg font-bold text-[#3EE0CF]">{formatCurrency(total)}</span>
                 </div>
               </div>
 
@@ -634,7 +634,7 @@ export default function OrcamentosBuilder() {
                 </DropdownMenu>
                 <Button
                   onClick={handleSave}
-                  className="flex-1 bg-primary hover:bg-primary-dark text-primary-foreground"
+                  className="flex-1 bg-[#3EE0CF] hover:bg-[#35c9ba] text-black"
                   disabled={!clientId || items.length === 0}
                 >
                   <Save className="w-4 h-4 mr-2" />

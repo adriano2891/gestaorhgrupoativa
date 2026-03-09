@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calendar, Clock, Download, Filter, AlertTriangle, CheckCircle, XCircle, FileText, Eye, FileSpreadsheet, Pencil, ShieldCheck } from "lucide-react";
+import { Calendar, Clock, Download, Filter, AlertTriangle, CheckCircle, XCircle, FileText, Eye, FileSpreadsheet, Pencil } from "lucide-react";
 import { BackButton } from "@/components/ui/back-button";
 import { usePontoRealtime, useFuncionariosRealtime } from "@/hooks/useRealtimeUpdates";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
@@ -55,15 +55,9 @@ import { useAuth } from "@/components/auth/AuthProvider";
 interface DayRecord {
   day: number;
   entrada?: string;
-  saida_pausa_1?: string;
-  retorno_pausa_1?: string;
+  saida?: string;
   saida_almoco?: string;
   retorno_almoco?: string;
-  saida_pausa_2?: string;
-  retorno_pausa_2?: string;
-  saida?: string;
-  inicio_he?: string;
-  fim_he?: string;
   total_horas?: string;
   horas_extras?: string;
   horas_noturnas?: string;
@@ -80,7 +74,6 @@ interface EmployeeMonthRecord {
   employee_id: string;
   employee_name: string;
   matricula?: string;
-  cpf?: string;
   departamento?: string;
   escala_trabalho?: string;
   turno?: string;
@@ -117,7 +110,6 @@ const FolhaPonto = () => {
   const [showFolgaDialog, setShowFolgaDialog] = useState(false);
   const [registrosFolga, setRegistrosFolga] = useState<any[]>([]);
   const [countFolga, setCountFolga] = useState(0);
-  const [assinaturasMap, setAssinaturasMap] = useState<Record<string, any>>({});
 
   const getAccessToken = (): string | null => {
     try {
@@ -168,32 +160,10 @@ const FolhaPonto = () => {
     }
   };
 
-  const loadAssinaturasAdmin = async () => {
-    try {
-      const mes = parseInt(selectedMonth);
-      const ano = parseInt(selectedYear);
-      const { data } = await (supabase as any)
-        .from("assinaturas_espelho_ponto")
-        .select("*")
-        .eq("mes_referencia", mes)
-        .eq("ano_referencia", ano);
-      if (data) {
-        const map: Record<string, any> = {};
-        (data as any[]).forEach((a: any) => {
-          map[a.funcionario_id] = a;
-        });
-        setAssinaturasMap(map);
-      }
-    } catch (err) {
-      console.error("Erro ao carregar assinaturas:", err);
-    }
-  };
-
   useEffect(() => {
     if (!loadingFuncionarios && employees.length >= 0) {
       loadMonthRecords();
       loadRegistrosFolga();
-      loadAssinaturasAdmin();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMonth, selectedYear, selectedEmployee, selectedDepartamento, loadingFuncionarios, employees.length]);
@@ -257,67 +227,12 @@ const FolhaPonto = () => {
         employeeList = employeeList.filter(e => e.departamento === selectedDepartamento);
       }
 
-      // === Feriados nacionais brasileiros ===
-      const year = parseInt(selectedYear);
-      const month = parseInt(selectedMonth);
-      
-      // Calcular Páscoa (algoritmo de Meeus/Jones/Butcher)
-      const calcEaster = (y: number) => {
-        const a = y % 19, b = Math.floor(y / 100), c = y % 100;
-        const d = Math.floor(b / 4), e = b % 4, f = Math.floor((b + 8) / 25);
-        const g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
-        const i = Math.floor(c / 4), k = c % 4;
-        const l = (32 + 2 * e + 2 * i - h - k) % 7;
-        const m = Math.floor((a + 11 * h + 22 * l) / 451);
-        const eMonth = Math.floor((h + l - 7 * m + 114) / 31);
-        const eDay = ((h + l - 7 * m + 114) % 31) + 1;
-        return new Date(y, eMonth - 1, eDay);
-      };
-      
-      const easter = calcEaster(year);
-      const addDays = (d: Date, n: number) => { const r = new Date(d); r.setDate(r.getDate() + n); return r; };
-      
-      const feriadosFixos: Array<[number, number]> = [
-        [1, 1],   // Confraternização Universal
-        [4, 21],  // Tiradentes
-        [5, 1],   // Dia do Trabalho
-        [9, 7],   // Independência
-        [10, 12], // Nossa Sra. Aparecida
-        [11, 2],  // Finados
-        [11, 15], // Proclamação da República
-        [12, 25], // Natal
-      ];
-      
-      const feriadosMoveis = [
-        addDays(easter, -47), // Carnaval (terça)
-        addDays(easter, -48), // Carnaval (segunda)
-        addDays(easter, -2),  // Sexta-feira Santa
-        addDays(easter, 60),  // Corpus Christi
-      ];
-      
-      const isFeriado = (day: number): boolean => {
-        for (const [m, d] of feriadosFixos) {
-          if (m === month && d === day) return true;
-        }
-        for (const dt of feriadosMoveis) {
-          if (dt.getMonth() + 1 === month && dt.getDate() === day) return true;
-        }
-        return false;
-      };
-      
-      const isDSR = (day: number): boolean => {
-        const dt = new Date(year, month - 1, day);
-        return dt.getDay() === 0; // Domingo
-      };
-
       employeeList.forEach(emp => {
         const days: DayRecord[] = [];
         for (let day = 1; day <= daysInMonth; day++) {
-          const tipoDia = isFeriado(day) ? 'feriado' : isDSR(day) ? 'dsr' : undefined;
           days.push({
             day,
-            status: "ausente",
-            tipo_dia: tipoDia,
+            status: "ausente"
           });
         }
 
@@ -325,7 +240,6 @@ const FolhaPonto = () => {
           employee_id: emp.id,
           employee_name: emp.nome,
           matricula: (emp as any).matricula || undefined,
-          cpf: (emp as any).cpf || undefined,
           departamento: emp.departamento,
           escala_trabalho: (emp as any).escala_trabalho || '8h',
           turno: (emp as any).turno || 'diurno',
@@ -398,15 +312,9 @@ const FolhaPonto = () => {
           empRecord.days[dayIndex] = {
             day,
             entrada: formatTime(reg.entrada),
-            saida_pausa_1: formatTime(reg.saida_pausa_1),
-            retorno_pausa_1: formatTime(reg.retorno_pausa_1),
+            saida: formatTime(reg.saida),
             saida_almoco: formatTime(reg.saida_almoco),
             retorno_almoco: formatTime(reg.retorno_almoco),
-            saida_pausa_2: formatTime(reg.saida_pausa_2),
-            retorno_pausa_2: formatTime(reg.retorno_pausa_2),
-            saida: formatTime(reg.saida),
-            inicio_he: formatTime(reg.inicio_he),
-            fim_he: formatTime(reg.fim_he),
             total_horas: formatInterval(reg.total_horas),
             horas_extras: formatInterval(reg.horas_extras),
             horas_noturnas: formatInterval(reg.horas_noturnas),
@@ -414,7 +322,7 @@ const FolhaPonto = () => {
             status: finalStatus,
             registro_folga: reg.registro_folga,
             status_validacao: reg.status_validacao,
-            tipo_dia: reg.tipo_dia || empRecord.days[dayIndex]?.tipo_dia,
+            tipo_dia: reg.tipo_dia,
             percentual_he: reg.percentual_he,
             horas_noturnas_fictas: formatInterval(reg.horas_noturnas_fictas),
           };
@@ -502,130 +410,88 @@ const FolhaPonto = () => {
   };
 
   const exportToPDF = () => {
-    const doc = new jsPDF('l', 'mm', 'a4'); // landscape A4: 297x210mm
+    const doc = new jsPDF('l', 'mm', 'a4'); // landscape
+    let yPos = 20;
     
     monthRecords.forEach((record, index) => {
       if (index > 0) {
         doc.addPage();
+        yPos = 20;
       }
       
-      let yPos = 8;
-
-      // === Cabeçalho compacto da Empresa (Portaria 671/2021) ===
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.text('GRUPO ATIVA TEC', 10, yPos);
-      doc.setFontSize(7);
-      doc.setFont('helvetica', 'normal');
-      doc.text('CNPJ: 42.523.488/0001-81 | R. Bela Cintra, 299, 3º Andar – Consolação, São Paulo – SP, 01415-001', 55, yPos);
-      yPos += 4;
-      doc.text(`Setor: ${record.departamento || 'Sede Principal'}`, 10, yPos);
-      
-      // Linha separadora
-      doc.setDrawColor(17, 188, 183);
-      doc.setLineWidth(0.4);
-      doc.line(10, yPos + 2, 287, yPos + 2);
+      // Cabeçalho do funcionário
+      doc.setFontSize(16);
+      doc.text(`${record.matricula ? `[${record.matricula}] ` : ''}${record.employee_name}`, 14, yPos);
       yPos += 6;
-
-      // Título + dados do funcionário em linha compacta
+      
+      doc.setFontSize(10);
+      doc.text(`Departamento: ${record.departamento || '-'} | Matrícula: ${record.matricula || '-'} | Período: ${selectedMonth}/${selectedYear}`, 14, yPos);
+      yPos += 8;
+      
+      // Resumo do funcionário
       doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(0, 0, 0);
-      doc.text(`ESPELHO DE PONTO – ${selectedMonth}/${selectedYear}`, 10, yPos);
+      doc.text(`Total Horas: ${record.total_horas_mes.toFixed(1)}h | Horas Extras: ${record.total_horas_extras.toFixed(1)}h | H. Noturnas: ${record.total_horas_noturnas.toFixed(1)}h | Faltas: ${record.total_faltas}`, 14, yPos);
       yPos += 5;
-
-      doc.setFontSize(8);
-      doc.setFont('helvetica', 'normal');
-      doc.text(`Funcionário: ${record.matricula ? `[${record.matricula}] ` : ''}${record.employee_name} | Depto: ${record.departamento || '-'} | Escala: ${record.escala_trabalho || '-'}`, 10, yPos);
-      yPos += 4;
-      doc.text(`Total Horas: ${record.total_horas_mes.toFixed(1)}h | Horas Extras: ${record.total_horas_extras.toFixed(1)}h | H. Noturnas: ${record.total_horas_noturnas.toFixed(1)}h | Faltas: ${record.total_faltas}`, 10, yPos);
-      yPos += 4;
       
       // Tabela detalhada - Espelho de Ponto (Portaria 671)
       const tableData = record.days.map(day => [
         day.day.toString().padStart(2, '0'),
         (day.tipo_dia === 'dsr' ? 'DSR' : day.tipo_dia === 'feriado' ? 'FER' : ''),
         day.entrada || '-',
-        day.saida_pausa_1 || '-',
-        day.retorno_pausa_1 || '-',
         day.saida_almoco || '-',
         day.retorno_almoco || '-',
-        day.saida_pausa_2 || '-',
-        day.retorno_pausa_2 || '-',
         day.saida || '-',
-        day.inicio_he || '-',
-        day.fim_he || '-',
         day.total_horas || '-',
         day.horas_extras ? `${day.horas_extras} (${day.percentual_he || 50}%)` : '-',
         day.horas_noturnas || '-',
-        day.status === 'completo' ? 'OK' : day.status === 'incompleto' ? 'Inc.' : day.status === 'atestado' ? 'At.' : day.status === 'falta' ? 'F' : day.status === 'pendente_folga' ? 'P' : day.status === 'invalidado' ? 'Inv.' : '-'
+        day.status === 'completo' ? 'OK' : day.status === 'incompleto' ? 'Inc.' : day.status === 'atestado' ? 'Atest.' : day.status === 'falta' ? 'Falta' : day.status === 'pendente_folga' ? 'Pend.' : day.status === 'invalidado' ? 'Inv.' : 'Aus.'
       ]);
       
       autoTable(doc, {
         startY: yPos,
-        margin: { left: 10, right: 10 },
-        head: [['Dia', 'Tipo', 'Entrada', 'Saída Pausa 1', 'Retorno Pausa 1', 'Saída Almoço', 'Retorno Almoço', 'Saída Pausa 2', 'Retorno Pausa 2', 'Saída', 'HE Início', 'HE Fim', 'Total', 'Horas Extras (%)', 'Horas Noturnas', 'Status']],
+        head: [['Dia', 'Tipo', 'Entrada', 'S.Almoço', 'R.Almoço', 'Saída', 'Total', 'HE (%)', 'H.Not.', 'Status']],
         body: tableData,
         theme: 'grid',
-        styles: { fontSize: 4.5, cellPadding: 0.8, lineWidth: 0.1 },
-        headStyles: { fillColor: [17, 188, 183], fontSize: 4.5, cellPadding: 1, fontStyle: 'bold' },
-        didParseCell: (data: any) => {
-          if (data.section === 'body') {
-            const tipo = data.row.raw?.[1];
-            if (tipo === 'FER') {
-              data.cell.styles.fillColor = [255, 243, 224]; // laranja claro
-              data.cell.styles.textColor = [180, 100, 0];
-            } else if (tipo === 'DSR') {
-              data.cell.styles.fillColor = [232, 245, 253]; // azul claro
-              data.cell.styles.textColor = [30, 100, 180];
-            }
-          }
-        },
+        styles: { fontSize: 6 },
+        headStyles: { fillColor: [17, 188, 183] },
         columnStyles: {
-          0: { cellWidth: 9 },
-          1: { cellWidth: 9 },
-          2: { cellWidth: 15 },
-          3: { cellWidth: 15 },
-          4: { cellWidth: 15 },
-          5: { cellWidth: 15 },
-          6: { cellWidth: 15 },
-          7: { cellWidth: 15 },
-          8: { cellWidth: 15 },
-          9: { cellWidth: 15 },
-          10: { cellWidth: 15 },
-          11: { cellWidth: 15 },
-          12: { cellWidth: 15 },
-          13: { cellWidth: 20 },
-          14: { cellWidth: 15 },
-          15: { cellWidth: 9 }
+          0: { cellWidth: 10 },
+          1: { cellWidth: 12 },
+          2: { cellWidth: 18 },
+          3: { cellWidth: 18 },
+          4: { cellWidth: 18 },
+          5: { cellWidth: 18 },
+          6: { cellWidth: 20 },
+          7: { cellWidth: 25 },
+          8: { cellWidth: 18 },
+          9: { cellWidth: 15 }
         }
       });
 
-      // Signature section compacta
+      // Signature section (Art. 74 CLT - employee acknowledgment)
       const finalY = (doc as any).lastAutoTable?.finalY || 180;
-      const sigY = finalY + 6;
+      const sigY = finalY + 15;
       
-      doc.setFontSize(6);
+      doc.setFontSize(8);
       doc.setTextColor(100, 100, 100);
-      doc.text('Declaro que os horários acima registrados correspondem fielmente à minha jornada de trabalho no período indicado.', 10, sigY);
-      doc.text(`Documento gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} — Sistema REP-A (Portaria 671/2021)`, 10, sigY + 3);
+      doc.text('Declaro que os horários acima registrados correspondem fielmente à minha jornada de trabalho no período indicado.', 14, sigY);
+      doc.text(`Documento gerado eletronicamente em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')} — Sistema REP-A (Portaria 671/2021)`, 14, sigY + 4);
 
-      const sigLineY = sigY + 10;
+      const sigLineY = sigY + 18;
       doc.setDrawColor(0, 0, 0);
       doc.setLineWidth(0.3);
 
       // Employee signature
-      doc.line(10, sigLineY, 120, sigLineY);
-      doc.setFontSize(6);
+      doc.line(14, sigLineY, 120, sigLineY);
+      doc.setFontSize(7);
       doc.setTextColor(0, 0, 0);
-      doc.text(`Assinatura do(a) Funcionário(a): ${record.employee_name}`, 10, sigLineY + 3);
-      doc.text(`Matrícula: ${record.matricula || '-'}`, 10, sigLineY + 6);
-      doc.text(`CPF: ${record.cpf || '-'}`, 10, sigLineY + 9);
+      doc.text(`Assinatura do(a) Funcionário(a): ${record.employee_name}`, 14, sigLineY + 4);
+      doc.text(`Matrícula: ${record.matricula || '-'}`, 14, sigLineY + 8);
 
       // Employer/Manager signature
-      doc.line(160, sigLineY, 287, sigLineY);
-      doc.text('Assinatura do Responsável / Empregador', 160, sigLineY + 3);
-      doc.text('Grupo Ativa Tec — CNPJ: 42.523.488/0001-81', 160, sigLineY + 6);
+      doc.line(160, sigLineY, 280, sigLineY);
+      doc.text('Assinatura do Responsável / Empregador', 160, sigLineY + 4);
+      doc.text('Grupo Ativa Tec — CNPJ: 42.523.488/0001-81', 160, sigLineY + 8);
     });
     
     const fileName = `folha-ponto-detalhada-${selectedMonth}-${selectedYear}.pdf`;
@@ -645,20 +511,14 @@ const FolhaPonto = () => {
         { header: 'Dia', key: 'dia', width: 8 },
         { header: 'Tipo Dia', key: 'tipo_dia', width: 12 },
         { header: 'Entrada', key: 'entrada', width: 12 },
-        { header: 'Saída Pausa 1', key: 'saida_pausa_1', width: 14 },
-        { header: 'Retorno Pausa 1', key: 'retorno_pausa_1', width: 16 },
         { header: 'Saída Almoço', key: 'saida_almoco', width: 14 },
         { header: 'Retorno Almoço', key: 'retorno_almoco', width: 16 },
-        { header: 'Saída Pausa 2', key: 'saida_pausa_2', width: 14 },
-        { header: 'Retorno Pausa 2', key: 'retorno_pausa_2', width: 16 },
         { header: 'Saída', key: 'saida', width: 12 },
-        { header: 'HE Início', key: 'inicio_he', width: 12 },
-        { header: 'HE Fim', key: 'fim_he', width: 12 },
         { header: 'Total Horas', key: 'total_horas', width: 12 },
-        { header: 'Horas Extras', key: 'horas_extras', width: 14 },
-        { header: 'Percentual HE', key: 'percentual_he', width: 14 },
-        { header: 'Horas Noturnas', key: 'horas_noturnas', width: 14 },
-        { header: 'Horas Noturnas Fictas', key: 'horas_noturnas_fictas', width: 18 },
+        { header: 'Horas Extras', key: 'horas_extras', width: 12 },
+        { header: '% HE', key: 'percentual_he', width: 8 },
+        { header: 'H. Noturnas', key: 'horas_noturnas', width: 12 },
+        { header: 'H. Not. Fictas', key: 'horas_noturnas_fictas', width: 14 },
         { header: 'Status', key: 'status', width: 14 },
       ];
 
@@ -678,15 +538,9 @@ const FolhaPonto = () => {
           dia: day.day.toString().padStart(2, '0'),
           tipo_dia: day.tipo_dia === 'dsr' ? 'DSR' : day.tipo_dia === 'feriado' ? 'Feriado' : 'Útil',
           entrada: day.entrada || '-',
-          saida_pausa_1: day.saida_pausa_1 || '-',
-          retorno_pausa_1: day.retorno_pausa_1 || '-',
           saida_almoco: day.saida_almoco || '-',
           retorno_almoco: day.retorno_almoco || '-',
-          saida_pausa_2: day.saida_pausa_2 || '-',
-          retorno_pausa_2: day.retorno_pausa_2 || '-',
           saida: day.saida || '-',
-          inicio_he: day.inicio_he || '-',
-          fim_he: day.fim_he || '-',
           total_horas: day.total_horas || '-',
           horas_extras: day.horas_extras || '-',
           percentual_he: day.percentual_he || '-',
@@ -910,10 +764,10 @@ const FolhaPonto = () => {
       {/* Cabeçalho */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: '#000000' }}>
             Folha de Ponto
           </h1>
-          <p className="mt-1 text-xs sm:text-sm md:text-base text-muted-foreground">
+          <p className="mt-1 text-xs sm:text-sm md:text-base font-bold" style={{ color: '#000000' }}>
             Controle mensal de ponto e horas trabalhadas
           </p>
         </div>
@@ -1030,7 +884,7 @@ const FolhaPonto = () => {
       </div>
 
       {/* Resumo Mensal */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -1161,12 +1015,6 @@ const FolhaPonto = () => {
                               12x36 {record.turno === 'noturno' ? '(Noturno)' : '(Diurno)'}
                             </Badge>
                           )}
-                          {assinaturasMap[record.employee_id] && (
-                            <Badge className="ml-2 bg-green-600 hover:bg-green-700 text-white text-xs">
-                              <ShieldCheck className="h-3 w-3 mr-1" />
-                              Assinado
-                            </Badge>
-                          )}
                         </CardDescription>
                       </div>
                     </div>
@@ -1189,36 +1037,19 @@ const FolhaPonto = () => {
                         <div className="text-muted-foreground">Faltas</div>
                         <div className="font-bold text-red-600">{record.total_faltas}</div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-muted-foreground">Assinatura</div>
-                        {assinaturasMap[record.employee_id] ? (
-                          <div className="font-bold text-green-600 flex items-center gap-1 justify-center">
-                            <ShieldCheck className="h-4 w-4" />
-                            Sim
-                          </div>
-                        ) : (
-                          <div className="font-bold text-muted-foreground">Pendente</div>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="overflow-x-auto">
                     <Table>
-                     <TableHeader>
+                       <TableHeader>
                         <TableRow>
                           <TableHead className="w-16">Dia</TableHead>
                           <TableHead>Entrada</TableHead>
-                          <TableHead>S. P1</TableHead>
-                          <TableHead>R. P1</TableHead>
-                          <TableHead>S. Almoço</TableHead>
-                          <TableHead>R. Almoço</TableHead>
-                          <TableHead>S. P2</TableHead>
-                          <TableHead>R. P2</TableHead>
+                          <TableHead>Saída Almoço</TableHead>
+                          <TableHead>Retorno Almoço</TableHead>
                           <TableHead>Saída</TableHead>
-                          <TableHead>HE Ini</TableHead>
-                          <TableHead>HE Fim</TableHead>
                           <TableHead>Total</TableHead>
                           <TableHead>HE</TableHead>
                           <TableHead>Status</TableHead>
@@ -1227,22 +1058,12 @@ const FolhaPonto = () => {
                       </TableHeader>
                       <TableBody>
                         {record.days.map((day) => (
-                          <TableRow key={day.day} className={
-                            day.tipo_dia === 'feriado' ? "bg-orange-50 dark:bg-orange-950/20" :
-                            day.tipo_dia === 'dsr' ? "bg-blue-50 dark:bg-blue-950/20" :
-                            day.status === "falta" ? "bg-red-50 dark:bg-red-950/20" : ""
-                          }>
+                          <TableRow key={day.day} className={day.status === "falta" ? "bg-red-50 dark:bg-red-950/20" : ""}>
                             <TableCell className="font-medium">{day.day}</TableCell>
                             <TableCell className="text-sm">{day.entrada || "-"}</TableCell>
-                            <TableCell className="text-sm">{day.saida_pausa_1 || "-"}</TableCell>
-                            <TableCell className="text-sm">{day.retorno_pausa_1 || "-"}</TableCell>
                             <TableCell className="text-sm">{day.saida_almoco || "-"}</TableCell>
                             <TableCell className="text-sm">{day.retorno_almoco || "-"}</TableCell>
-                            <TableCell className="text-sm">{day.saida_pausa_2 || "-"}</TableCell>
-                            <TableCell className="text-sm">{day.retorno_pausa_2 || "-"}</TableCell>
                             <TableCell className="text-sm">{day.saida || "-"}</TableCell>
-                            <TableCell className="text-sm">{day.inicio_he || "-"}</TableCell>
-                            <TableCell className="text-sm">{day.fim_he || "-"}</TableCell>
                             <TableCell className="text-sm font-medium">{day.total_horas || "-"}</TableCell>
                             <TableCell className="text-sm">
                               {editingCell?.empId === record.employee_id && editingCell?.day === day.day && editingCell?.field === 'horas_extras' ? (
@@ -1352,19 +1173,18 @@ const FolhaPonto = () => {
                     <TableHead className="text-right">Horas Extras</TableHead>
                     <TableHead className="text-right">Faltas</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Assinatura</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8">
+                      <TableCell colSpan={6} className="text-center py-8">
                         Carregando...
                       </TableCell>
                     </TableRow>
                   ) : monthRecords.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         Nenhum registro encontrado
                       </TableCell>
                     </TableRow>
@@ -1402,64 +1222,6 @@ const FolhaPonto = () => {
                           <Badge variant={record.status === "completo" ? "default" : "secondary"}>
                             {record.status}
                           </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {assinaturasMap[record.employee_id] ? (() => {
-                            const sig = assinaturasMap[record.employee_id];
-                            const sigDate = new Date(sig.data_assinatura);
-                            return (
-                              <Dialog>
-                                <DialogTrigger asChild>
-                                  <button className="flex flex-col items-start cursor-pointer hover:opacity-80 transition-opacity">
-                                    <Badge className="bg-green-600 hover:bg-green-700 text-white w-fit">
-                                      <ShieldCheck className="h-3 w-3 mr-1" />
-                                      Assinado
-                                    </Badge>
-                                    <span className="text-xs text-muted-foreground mt-1">
-                                      {sigDate.toLocaleDateString("pt-BR")}
-                                    </span>
-                                  </button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-md">
-                                  <DialogHeader>
-                                    <DialogTitle className="flex items-center gap-2">
-                                      <ShieldCheck className="h-5 w-5 text-green-600" />
-                                      Detalhes da Assinatura
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                      Registro de assinatura eletrônica do espelho de ponto
-                                    </DialogDescription>
-                                  </DialogHeader>
-                                  <div className="space-y-3 text-sm">
-                                    <div className="grid grid-cols-[120px_1fr] gap-2">
-                                      <span className="font-medium text-muted-foreground">Funcionário:</span>
-                                      <span>{sig.nome_funcionario}</span>
-                                      <span className="font-medium text-muted-foreground">CPF:</span>
-                                      <span>{sig.cpf || "Não informado"}</span>
-                                      <span className="font-medium text-muted-foreground">Data/Hora:</span>
-                                      <span>{sigDate.toLocaleDateString("pt-BR")} às {sigDate.toLocaleTimeString("pt-BR")}</span>
-                                      <span className="font-medium text-muted-foreground">Status:</span>
-                                      <Badge className="bg-green-600 text-white w-fit">{sig.status?.toUpperCase()}</Badge>
-                                    </div>
-                                    <div className="border-t pt-3 space-y-2">
-                                      <div>
-                                        <span className="font-medium text-muted-foreground text-xs">Hash do Documento (SHA-256):</span>
-                                        <p className="font-mono text-xs bg-muted p-2 rounded mt-1 break-all select-all">{sig.hash_documento}</p>
-                                      </div>
-                                      <div>
-                                        <span className="font-medium text-muted-foreground text-xs">Dispositivo:</span>
-                                        <p className="text-xs text-muted-foreground mt-1 break-all">{sig.user_agent || "N/A"}</p>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </DialogContent>
-                              </Dialog>
-                            );
-                          })() : (
-                            <Badge variant="outline" className="text-muted-foreground">
-                              Pendente
-                            </Badge>
-                          )}
                         </TableCell>
                       </TableRow>
                     ))

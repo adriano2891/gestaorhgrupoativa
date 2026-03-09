@@ -38,13 +38,13 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
   return (
     <div className="min-h-screen bg-white">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-primary shadow-md px-4 py-3 flex items-center justify-between">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#3EE0CF] shadow-md px-4 py-3 flex items-center justify-between">
         <button onClick={() => setSidebarOpen(true)} className="p-2">
-          <Menu className="w-6 h-6 text-primary-foreground" />
+          <Menu className="w-6 h-6 text-black" />
         </button>
-        <h1 className="text-lg font-semibold text-primary-foreground">Gestão de Orçamentos</h1>
+        <h1 className="text-lg font-semibold text-black">Gestão de Orçamentos</h1>
         <button onClick={() => navigate('/dashboard')} className="p-2">
-          <ChevronLeft className="w-6 h-6 text-primary-foreground" />
+          <ChevronLeft className="w-6 h-6 text-black" />
         </button>
       </div>
 
@@ -59,19 +59,19 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed top-0 left-0 h-full w-64 bg-primary shadow-xl z-50 transition-transform duration-300",
+          "fixed top-0 left-0 h-full w-64 bg-[#3EE0CF] shadow-xl z-50 transition-transform duration-300",
           "lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="p-6">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl font-bold text-primary-foreground">Orçamentos</h2>
+            <h2 className="text-xl font-bold text-black">Orçamentos</h2>
             <button 
               onClick={() => setSidebarOpen(false)}
-              className="lg:hidden p-1 hover:bg-primary-foreground/10 rounded"
+              className="lg:hidden p-1 hover:bg-black/10 rounded"
             >
-              <X className="w-5 h-5 text-primary-foreground" />
+              <X className="w-5 h-5 text-black" />
             </button>
           </div>
 
@@ -88,8 +88,8 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
                   className={cn(
                     "w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all text-left",
                     isActive 
-                      ? "bg-primary-foreground text-primary shadow-md" 
-                      : "text-primary-foreground hover:bg-primary-foreground/10"
+                      ? "bg-black text-white shadow-md" 
+                      : "text-black hover:bg-black/10"
                   )}
                 >
                   <item.icon className="w-5 h-5" />

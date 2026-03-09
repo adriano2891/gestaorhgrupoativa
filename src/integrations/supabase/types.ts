@@ -47,190 +47,6 @@ export type Database = {
         }
         Relationships: []
       }
-      afastamentos: {
-        Row: {
-          cat_id: string | null
-          cid: string | null
-          created_at: string | null
-          data_fim: string | null
-          data_inicio: string
-          data_retorno: string | null
-          dias_empresa: number | null
-          dias_inss: number | null
-          documento_url: string | null
-          id: string
-          numero_beneficio: string | null
-          observacoes: string | null
-          registrado_por: string | null
-          status: string
-          suspende_periodo_aquisitivo: boolean | null
-          tipo: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          cat_id?: string | null
-          cid?: string | null
-          created_at?: string | null
-          data_fim?: string | null
-          data_inicio: string
-          data_retorno?: string | null
-          dias_empresa?: number | null
-          dias_inss?: number | null
-          documento_url?: string | null
-          id?: string
-          numero_beneficio?: string | null
-          observacoes?: string | null
-          registrado_por?: string | null
-          status?: string
-          suspende_periodo_aquisitivo?: boolean | null
-          tipo: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          cat_id?: string | null
-          cid?: string | null
-          created_at?: string | null
-          data_fim?: string | null
-          data_inicio?: string
-          data_retorno?: string | null
-          dias_empresa?: number | null
-          dias_inss?: number | null
-          documento_url?: string | null
-          id?: string
-          numero_beneficio?: string | null
-          observacoes?: string | null
-          registrado_por?: string | null
-          status?: string
-          suspende_periodo_aquisitivo?: boolean | null
-          tipo?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "afastamentos_cat_id_fkey"
-            columns: ["cat_id"]
-            isOneToOne: false
-            referencedRelation: "cats"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "afastamentos_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      asos: {
-        Row: {
-          arquivo_url: string | null
-          created_at: string | null
-          crm: string | null
-          data_exame: string
-          data_vencimento: string | null
-          id: string
-          medico_nome: string | null
-          observacoes: string | null
-          resultado: string
-          tipo: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          arquivo_url?: string | null
-          created_at?: string | null
-          crm?: string | null
-          data_exame: string
-          data_vencimento?: string | null
-          id?: string
-          medico_nome?: string | null
-          observacoes?: string | null
-          resultado?: string
-          tipo?: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          arquivo_url?: string | null
-          created_at?: string | null
-          crm?: string | null
-          data_exame?: string
-          data_vencimento?: string | null
-          id?: string
-          medico_nome?: string | null
-          observacoes?: string | null
-          resultado?: string
-          tipo?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "asos_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      assinaturas_espelho_ponto: {
-        Row: {
-          ano_referencia: number
-          cpf: string | null
-          created_at: string
-          data_assinatura: string
-          funcionario_id: string
-          hash_documento: string
-          id: string
-          ip_address: string | null
-          mes_referencia: number
-          nome_funcionario: string
-          status: string
-          user_agent: string | null
-        }
-        Insert: {
-          ano_referencia: number
-          cpf?: string | null
-          created_at?: string
-          data_assinatura?: string
-          funcionario_id: string
-          hash_documento: string
-          id?: string
-          ip_address?: string | null
-          mes_referencia: number
-          nome_funcionario: string
-          status?: string
-          user_agent?: string | null
-        }
-        Update: {
-          ano_referencia?: number
-          cpf?: string | null
-          created_at?: string
-          data_assinatura?: string
-          funcionario_id?: string
-          hash_documento?: string
-          id?: string
-          ip_address?: string | null
-          mes_referencia?: number
-          nome_funcionario?: string
-          status?: string
-          user_agent?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "assinaturas_espelho_ponto_funcionario_id_fkey"
-            columns: ["funcionario_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       audit_trail_ponto: {
         Row: {
           acao: string
@@ -374,7 +190,6 @@ export type Database = {
           aprovado_por: string | null
           created_at: string
           data: string
-          data_vencimento: string | null
           horas: string
           id: string
           motivo: string | null
@@ -389,7 +204,6 @@ export type Database = {
           aprovado_por?: string | null
           created_at?: string
           data: string
-          data_vencimento?: string | null
           horas?: string
           id?: string
           motivo?: string | null
@@ -404,7 +218,6 @@ export type Database = {
           aprovado_por?: string | null
           created_at?: string
           data?: string
-          data_vencimento?: string | null
           horas?: string
           id?: string
           motivo?: string | null
@@ -558,77 +371,6 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
-      }
-      cats: {
-        Row: {
-          agente_causador: string | null
-          created_at: string | null
-          data_acidente: string
-          descricao: string
-          dias_afastamento: number | null
-          hora_acidente: string | null
-          houve_afastamento: boolean | null
-          id: string
-          local_acidente: string | null
-          numero_cat: string | null
-          observacoes: string | null
-          parte_corpo: string | null
-          status: string | null
-          testemunha_1: string | null
-          testemunha_2: string | null
-          tipo: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          agente_causador?: string | null
-          created_at?: string | null
-          data_acidente: string
-          descricao: string
-          dias_afastamento?: number | null
-          hora_acidente?: string | null
-          houve_afastamento?: boolean | null
-          id?: string
-          local_acidente?: string | null
-          numero_cat?: string | null
-          observacoes?: string | null
-          parte_corpo?: string | null
-          status?: string | null
-          testemunha_1?: string | null
-          testemunha_2?: string | null
-          tipo?: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          agente_causador?: string | null
-          created_at?: string | null
-          data_acidente?: string
-          descricao?: string
-          dias_afastamento?: number | null
-          hora_acidente?: string | null
-          houve_afastamento?: boolean | null
-          id?: string
-          local_acidente?: string | null
-          numero_cat?: string | null
-          observacoes?: string | null
-          parte_corpo?: string | null
-          status?: string | null
-          testemunha_1?: string | null
-          testemunha_2?: string | null
-          tipo?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cats_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       certificados: {
         Row: {
@@ -799,116 +541,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      cipa_membros: {
-        Row: {
-          ativo: boolean | null
-          cargo_cipa: string
-          created_at: string | null
-          id: string
-          mandato_fim: string
-          mandato_inicio: string
-          nome: string
-          representacao: string
-          tipo: string
-          user_id: string | null
-        }
-        Insert: {
-          ativo?: boolean | null
-          cargo_cipa?: string
-          created_at?: string | null
-          id?: string
-          mandato_fim: string
-          mandato_inicio: string
-          nome: string
-          representacao?: string
-          tipo?: string
-          user_id?: string | null
-        }
-        Update: {
-          ativo?: boolean | null
-          cargo_cipa?: string
-          created_at?: string | null
-          id?: string
-          mandato_fim?: string
-          mandato_inicio?: string
-          nome?: string
-          representacao?: string
-          tipo?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cipa_membros_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cipa_reuniao_participantes: {
-        Row: {
-          id: string
-          membro_id: string
-          presente: boolean | null
-          reuniao_id: string
-        }
-        Insert: {
-          id?: string
-          membro_id: string
-          presente?: boolean | null
-          reuniao_id: string
-        }
-        Update: {
-          id?: string
-          membro_id?: string
-          presente?: boolean | null
-          reuniao_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cipa_reuniao_participantes_membro_id_fkey"
-            columns: ["membro_id"]
-            isOneToOne: false
-            referencedRelation: "cipa_membros"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cipa_reuniao_participantes_reuniao_id_fkey"
-            columns: ["reuniao_id"]
-            isOneToOne: false
-            referencedRelation: "cipa_reunioes"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cipa_reunioes: {
-        Row: {
-          ata: string | null
-          created_at: string | null
-          data_reuniao: string
-          id: string
-          pauta: string | null
-          tipo: string | null
-        }
-        Insert: {
-          ata?: string | null
-          created_at?: string | null
-          data_reuniao: string
-          id?: string
-          pauta?: string | null
-          tipo?: string | null
-        }
-        Update: {
-          ata?: string | null
-          created_at?: string | null
-          data_reuniao?: string
-          id?: string
-          pauta?: string | null
-          tipo?: string | null
-        }
-        Relationships: []
       }
       clientes_orcamentos: {
         Row: {
@@ -1163,39 +795,6 @@ export type Database = {
           },
         ]
       }
-      convencoes_coletivas: {
-        Row: {
-          created_at: string | null
-          data_fim: string
-          data_inicio: string
-          id: string
-          nome: string
-          sindicato: string | null
-          tipo: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          data_fim: string
-          data_inicio: string
-          id?: string
-          nome: string
-          sindicato?: string | null
-          tipo?: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          data_fim?: string
-          data_inicio?: string
-          id?: string
-          nome?: string
-          sindicato?: string | null
-          tipo?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       cursos: {
         Row: {
           capa_url: string | null
@@ -1204,7 +803,6 @@ export type Database = {
           categoria_id: string | null
           created_at: string | null
           criado_por: string | null
-          curso_livre: boolean | null
           departamentos_permitidos: string[] | null
           descricao: string | null
           excluido: boolean
@@ -1229,7 +827,6 @@ export type Database = {
           categoria_id?: string | null
           created_at?: string | null
           criado_por?: string | null
-          curso_livre?: boolean | null
           departamentos_permitidos?: string[] | null
           descricao?: string | null
           excluido?: boolean
@@ -1254,7 +851,6 @@ export type Database = {
           categoria_id?: string | null
           created_at?: string | null
           criado_por?: string | null
-          curso_livre?: boolean | null
           departamentos_permitidos?: string[] | null
           descricao?: string | null
           excluido?: boolean
@@ -1743,45 +1339,6 @@ export type Database = {
           },
         ]
       }
-      documentos_sst_validade: {
-        Row: {
-          arquivo_url: string | null
-          created_at: string | null
-          data_emissao: string
-          data_validade: string
-          id: string
-          nome: string
-          observacoes: string | null
-          responsavel: string | null
-          tipo: string
-          updated_at: string | null
-        }
-        Insert: {
-          arquivo_url?: string | null
-          created_at?: string | null
-          data_emissao: string
-          data_validade: string
-          id?: string
-          nome: string
-          observacoes?: string | null
-          responsavel?: string | null
-          tipo: string
-          updated_at?: string | null
-        }
-        Update: {
-          arquivo_url?: string | null
-          created_at?: string | null
-          data_emissao?: string
-          data_validade?: string
-          id?: string
-          nome?: string
-          observacoes?: string | null
-          responsavel?: string | null
-          tipo?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       documentos_versoes: {
         Row: {
           alteracoes: string | null
@@ -1907,62 +1464,6 @@ export type Database = {
           },
         ]
       }
-      epi_entregas: {
-        Row: {
-          assinado: boolean | null
-          ca_numero: string | null
-          created_at: string | null
-          data_assinatura: string | null
-          data_devolucao: string | null
-          data_entrega: string
-          id: string
-          ip_assinatura: string | null
-          motivo_troca: string | null
-          nome_epi: string
-          observacoes: string | null
-          quantidade: number | null
-          user_id: string
-        }
-        Insert: {
-          assinado?: boolean | null
-          ca_numero?: string | null
-          created_at?: string | null
-          data_assinatura?: string | null
-          data_devolucao?: string | null
-          data_entrega: string
-          id?: string
-          ip_assinatura?: string | null
-          motivo_troca?: string | null
-          nome_epi: string
-          observacoes?: string | null
-          quantidade?: number | null
-          user_id: string
-        }
-        Update: {
-          assinado?: boolean | null
-          ca_numero?: string | null
-          created_at?: string | null
-          data_assinatura?: string | null
-          data_devolucao?: string | null
-          data_entrega?: string
-          id?: string
-          ip_assinatura?: string | null
-          motivo_troca?: string | null
-          nome_epi?: string
-          observacoes?: string | null
-          quantidade?: number | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "epi_entregas_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       escalas_trabalho: {
         Row: {
           ativo: boolean
@@ -2034,42 +1535,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      feriados: {
-        Row: {
-          ativo: boolean | null
-          cidade: string | null
-          created_at: string | null
-          data: string
-          estado: string | null
-          id: string
-          nome: string
-          recorrente: boolean | null
-          tipo: string
-        }
-        Insert: {
-          ativo?: boolean | null
-          cidade?: string | null
-          created_at?: string | null
-          data: string
-          estado?: string | null
-          id?: string
-          nome: string
-          recorrente?: boolean | null
-          tipo?: string
-        }
-        Update: {
-          ativo?: boolean | null
-          cidade?: string | null
-          created_at?: string | null
-          data?: string
-          estado?: string | null
-          id?: string
-          nome?: string
-          recorrente?: boolean | null
-          tipo?: string
-        }
-        Relationships: []
       }
       formulario_atribuicoes: {
         Row: {
@@ -2376,53 +1841,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      historico_cargos: {
-        Row: {
-          alterado_por: string | null
-          cargo_anterior: string | null
-          cargo_novo: string
-          created_at: string | null
-          data_alteracao: string
-          departamento_anterior: string | null
-          departamento_novo: string | null
-          id: string
-          motivo: string | null
-          user_id: string
-        }
-        Insert: {
-          alterado_por?: string | null
-          cargo_anterior?: string | null
-          cargo_novo: string
-          created_at?: string | null
-          data_alteracao?: string
-          departamento_anterior?: string | null
-          departamento_novo?: string | null
-          id?: string
-          motivo?: string | null
-          user_id: string
-        }
-        Update: {
-          alterado_por?: string | null
-          cargo_anterior?: string | null
-          cargo_novo?: string
-          created_at?: string | null
-          data_alteracao?: string
-          departamento_anterior?: string | null
-          departamento_novo?: string | null
-          id?: string
-          motivo?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "historico_cargos_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       historico_ferias: {
         Row: {
@@ -3514,38 +2932,6 @@ export type Database = {
           },
         ]
       }
-      pisos_salariais: {
-        Row: {
-          cargo: string
-          convencao_id: string
-          created_at: string | null
-          id: string
-          piso_salarial: number
-        }
-        Insert: {
-          cargo: string
-          convencao_id: string
-          created_at?: string | null
-          id?: string
-          piso_salarial?: number
-        }
-        Update: {
-          cargo?: string
-          convencao_id?: string
-          created_at?: string | null
-          id?: string
-          piso_salarial?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "pisos_salariais_convencao_id_fkey"
-            columns: ["convencao_id"]
-            isOneToOne: false
-            referencedRelation: "convencoes_coletivas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       profiles: {
         Row: {
           cargo: string | null
@@ -3828,56 +3214,6 @@ export type Database = {
           },
         ]
       }
-      registros_sobreaviso: {
-        Row: {
-          acionado: boolean | null
-          created_at: string | null
-          data: string
-          fim: string
-          horas_sobreaviso: string | null
-          id: string
-          inicio: string
-          observacoes: string | null
-          updated_at: string | null
-          user_id: string
-          valor_hora_sobreaviso: number | null
-        }
-        Insert: {
-          acionado?: boolean | null
-          created_at?: string | null
-          data: string
-          fim: string
-          horas_sobreaviso?: string | null
-          id?: string
-          inicio: string
-          observacoes?: string | null
-          updated_at?: string | null
-          user_id: string
-          valor_hora_sobreaviso?: number | null
-        }
-        Update: {
-          acionado?: boolean | null
-          created_at?: string | null
-          data?: string
-          fim?: string
-          horas_sobreaviso?: string | null
-          id?: string
-          inicio?: string
-          observacoes?: string | null
-          updated_at?: string | null
-          user_id?: string
-          valor_hora_sobreaviso?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "registros_sobreaviso_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       relatorios_customizados: {
         Row: {
           created_at: string | null
@@ -4107,7 +3443,6 @@ export type Database = {
           data_aprovacao: string | null
           data_fim: string
           data_inicio: string
-          data_pagamento: string | null
           dias_solicitados: number
           id: string
           motivo_reprovacao: string | null
@@ -4126,7 +3461,6 @@ export type Database = {
           data_aprovacao?: string | null
           data_fim: string
           data_inicio: string
-          data_pagamento?: string | null
           dias_solicitados: number
           id?: string
           motivo_reprovacao?: string | null
@@ -4145,7 +3479,6 @@ export type Database = {
           data_aprovacao?: string | null
           data_fim?: string
           data_inicio?: string
-          data_pagamento?: string | null
           dias_solicitados?: number
           id?: string
           motivo_reprovacao?: string | null
@@ -4181,42 +3514,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      sst_documentos: {
-        Row: {
-          arquivo_nome: string
-          arquivo_tamanho: number | null
-          arquivo_url: string
-          created_at: string | null
-          id: string
-          mime_type: string | null
-          registro_id: string
-          registro_tipo: string
-          uploaded_by: string | null
-        }
-        Insert: {
-          arquivo_nome: string
-          arquivo_tamanho?: number | null
-          arquivo_url: string
-          created_at?: string | null
-          id?: string
-          mime_type?: string | null
-          registro_id: string
-          registro_tipo: string
-          uploaded_by?: string | null
-        }
-        Update: {
-          arquivo_nome?: string
-          arquivo_tamanho?: number | null
-          arquivo_url?: string
-          created_at?: string | null
-          id?: string
-          mime_type?: string | null
-          registro_id?: string
-          registro_tipo?: string
-          uploaded_by?: string | null
-        }
-        Relationships: []
       }
       tentativas_avaliacao: {
         Row: {
@@ -4403,15 +3700,6 @@ export type Database = {
         }
         Returns: string
       }
-      calcular_saldo_banco_horas: {
-        Args: { p_user_id: string }
-        Returns: {
-          creditos_vencidos: number
-          saldo: number
-          total_credito: number
-          total_debito: number
-        }[]
-      }
       get_email_by_cpf: {
         Args: { cpf_input: string }
         Returns: {
@@ -4438,7 +3726,6 @@ export type Database = {
         Args: { _user_id: string; doc_id: string }
         Returns: boolean
       }
-      is_feriado: { Args: { p_data: string }; Returns: boolean }
       user_has_document_permission: {
         Args: { _user_id: string; doc_id: string }
         Returns: boolean

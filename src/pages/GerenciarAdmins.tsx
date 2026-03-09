@@ -131,10 +131,10 @@ const GerenciarAdmins = () => {
       
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+          <h1 className="text-3xl font-bold" style={{ color: '#000000' }}>
             Gerenciar Admins
           </h1>
-          <p className="mt-1 text-muted-foreground">
+          <p className="mt-1 font-bold" style={{ color: '#000000' }}>
             Gerencie administradores e suas permissões
           </p>
         </div>
@@ -230,15 +230,13 @@ const GerenciarAdmins = () => {
                     <div className="flex justify-end gap-2">
                       {isSuperAdmin && (
                         <>
-                          {!admin.roles.includes("admin") && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleEditAdmin(admin)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditAdmin(admin)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
                           {admin.email !== "admin@sistema.com" && (
                             <AlertDialog>
                               <AlertDialogTrigger asChild>

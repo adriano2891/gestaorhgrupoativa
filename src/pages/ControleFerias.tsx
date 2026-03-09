@@ -97,8 +97,8 @@ const ControleFerias = () => {
           {/* Cabeçalho */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground flex items-center gap-2 sm:gap-3">
-                <Calendar className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 text-primary flex-shrink-0" />
+              <h1 className="text-4xl font-bold text-foreground flex items-center gap-3">
+                <Calendar className="h-10 w-10 text-primary" />
                 Controle de Férias
               </h1>
               <p className="text-muted-foreground mt-2">

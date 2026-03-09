@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -23,10 +23,8 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { useCursoMutations, useCategoriasCurso } from "@/hooks/useCursos";
-import { supabase } from "@/integrations/supabase/client";
 import type { Curso } from "@/types/cursos";
-import { Loader2, ImagePlus, X, Upload } from "lucide-react";
-import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 
 const NR_OPTIONS = [
   { value: "", label: "Nenhuma (curso interno)" },
@@ -45,9 +43,6 @@ const NR_OPTIONS = [
   { value: "OUTRO", label: "Outra NR / Legislação" },
 ];
 
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-const ACCEPTED_TYPES = ["image/jpeg", "image/png", "image/webp"];
-
 const cursoSchema = z.object({
   titulo: z.string().min(3, "Título deve ter pelo menos 3 caracteres"),
   descricao: z.string().optional(),
@@ -57,7 +52,6 @@ const cursoSchema = z.object({
   carga_horaria: z.number().min(0),
   instrutor: z.string().optional(),
   obrigatorio: z.boolean(),
-  curso_livre: z.boolean(),
   recorrente: z.boolean(),
   meses_recorrencia: z.number().optional(),
   nota_minima: z.number().min(0).max(100),
@@ -72,18 +66,10 @@ interface CursoFormDialogProps {
   curso?: Curso | null;
 }
 
-const sanitizeFileName = (name: string) =>
-  name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
-
 export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogProps) => {
   const { createCurso, updateCurso } = useCursoMutations();
   const { data: categorias } = useCategoriasCurso();
   const isEditing = !!curso;
-
-  const [capaFile, setCapaFile] = useState<File | null>(null);
-  const [capaPreview, setCapaPreview] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<CursoFormData>({
     resolver: zodResolver(cursoSchema),
@@ -96,7 +82,6 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
       carga_horaria: 60,
       instrutor: "",
       obrigatorio: false,
-      curso_livre: false,
       recorrente: false,
       meses_recorrencia: 12,
       nota_minima: 70,
@@ -115,14 +100,11 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
         carga_horaria: curso.carga_horaria,
         instrutor: curso.instrutor || "",
         obrigatorio: curso.obrigatorio,
-        curso_livre: (curso as any).curso_livre || false,
         recorrente: curso.recorrente,
         meses_recorrencia: curso.meses_recorrencia || 12,
         nota_minima: curso.nota_minima,
         norma_regulamentadora: (curso as any).norma_regulamentadora || "",
       });
-      setCapaPreview(curso.capa_url || null);
-      setCapaFile(null);
     } else {
       form.reset({
         titulo: "",
@@ -133,60 +115,16 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
         carga_horaria: 60,
         instrutor: "",
         obrigatorio: false,
-        curso_livre: false,
         recorrente: false,
         meses_recorrencia: 12,
         nota_minima: 70,
         norma_regulamentadora: "",
       });
-      setCapaPreview(null);
-      setCapaFile(null);
     }
   }, [curso, form]);
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (!ACCEPTED_TYPES.includes(file.type)) {
-      toast.error("Formato não suportado. Use JPG, PNG ou WEBP.");
-      return;
-    }
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error("Imagem muito grande. Limite: 2MB.");
-      return;
-    }
-
-    setCapaFile(file);
-    const reader = new FileReader();
-    reader.onloadend = () => setCapaPreview(reader.result as string);
-    reader.readAsDataURL(file);
-  };
-
-  const removeCapa = () => {
-    setCapaFile(null);
-    setCapaPreview(null);
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
-  const uploadCapa = async (cursoId: string): Promise<string | null> => {
-    if (!capaFile) return capaPreview;
-
-    const ext = capaFile.name.split(".").pop() || "jpg";
-    const path = `capas/${cursoId}/${sanitizeFileName(`capa-${Date.now()}.${ext}`)}`;
-
-    const { error } = await supabase.storage.from("cursos").upload(path, capaFile, {
-      cacheControl: "3600",
-      upsert: true,
-    });
-    if (error) throw error;
-
-    return `storage:${path}`;
-  };
-
   const onSubmit = async (data: CursoFormData) => {
     try {
-      setUploading(true);
       const cursoData = {
         ...data,
         categoria_id: data.categoria_id || null,
@@ -194,32 +132,17 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
       } as any;
 
       if (isEditing && curso) {
-        if (capaFile) {
-          const capaUrl = await uploadCapa(curso.id);
-          cursoData.capa_url = capaUrl;
-        } else if (!capaPreview && curso.capa_url) {
-          cursoData.capa_url = null;
-        }
         await updateCurso.mutateAsync({ id: curso.id, ...cursoData });
       } else {
-        const created = await createCurso.mutateAsync(cursoData);
-        if (capaFile && created?.id) {
-          const capaUrl = await uploadCapa(created.id);
-          if (capaUrl) {
-            await supabase.from("cursos").update({ capa_url: capaUrl } as any).eq("id", created.id);
-          }
-        }
+        await createCurso.mutateAsync(cursoData);
       }
       onOpenChange(false);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao salvar curso:", error);
-      toast.error("Erro ao salvar curso", { description: error.message });
-    } finally {
-      setUploading(false);
     }
   };
 
-  const isLoading = createCurso.isPending || updateCurso.isPending || uploading;
+  const isLoading = createCurso.isPending || updateCurso.isPending;
   const watchRecorrente = form.watch("recorrente");
 
   return (
@@ -233,54 +156,6 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Capa do Curso */}
-            <div className="rounded-lg border p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">Imagem de Capa</p>
-                  <p className="text-xs text-muted-foreground">JPG, PNG ou WEBP · Máx. 2MB</p>
-                </div>
-                {capaPreview && (
-                  <Button type="button" variant="ghost" size="sm" onClick={removeCapa} className="gap-1 text-destructive hover:text-destructive">
-                    <X className="h-4 w-4" />Remover
-                  </Button>
-                )}
-              </div>
-
-              {capaPreview ? (
-                <div className="relative rounded-lg overflow-hidden h-40 bg-muted">
-                  <img
-                    src={capaPreview}
-                    alt="Pré-visualização da capa"
-                    className="w-full h-full object-cover"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity text-white text-sm font-medium gap-1"
-                  >
-                    <Upload className="h-4 w-4" />Trocar imagem
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full h-32 rounded-lg border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 transition-colors flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary"
-                >
-                  <ImagePlus className="h-8 w-8" />
-                  <span className="text-sm">Clique para enviar a capa do curso</span>
-                </button>
-              )}
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".jpg,.jpeg,.png,.webp"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -479,24 +354,6 @@ export const CursoFormDialog = ({ open, onOpenChange, curso }: CursoFormDialogPr
                       <FormLabel className="text-base">Curso Obrigatório</FormLabel>
                       <FormDescription>
                         Funcionários devem completar este curso
-                      </FormDescription>
-                    </div>
-                    <FormControl>
-                      <Switch checked={field.value} onCheckedChange={field.onChange} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="curso_livre"
-                render={({ field }) => (
-                  <FormItem className="flex items-center justify-between rounded-lg border p-4">
-                    <div className="space-y-0.5">
-                      <FormLabel className="text-base">Curso Livre</FormLabel>
-                      <FormDescription>
-                        Disponível para todos os funcionários sem restrições
                       </FormDescription>
                     </div>
                     <FormControl>

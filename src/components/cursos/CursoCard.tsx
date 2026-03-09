@@ -1,9 +1,7 @@
-import { useState, useEffect } from "react";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { supabase } from "@/integrations/supabase/client";
 import { 
   BookOpen, 
   Clock, 
@@ -56,19 +54,6 @@ export const CursoCard = ({
   onIniciar,
   onContinuar,
 }: CursoCardProps) => {
-  const [resolvedCapaUrl, setResolvedCapaUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!curso.capa_url) { setResolvedCapaUrl(null); return; }
-    if (curso.capa_url.startsWith("storage:")) {
-      const path = curso.capa_url.replace("storage:", "");
-      supabase.storage.from("cursos").createSignedUrl(path, 7200)
-        .then(({ data }) => { if (data?.signedUrl) setResolvedCapaUrl(data.signedUrl); });
-    } else {
-      setResolvedCapaUrl(curso.capa_url);
-    }
-  }, [curso.capa_url]);
-
   const formatDuration = (minutes: number) => {
     if (minutes < 60) return `${minutes}min`;
     const hours = Math.floor(minutes / 60);
@@ -84,12 +69,11 @@ export const CursoCard = ({
     <Card className="group overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30">
       {/* Cover Image */}
       <div className="relative h-40 bg-gradient-to-br from-primary/20 via-primary/10 to-background overflow-hidden">
-        {resolvedCapaUrl ? (
+        {curso.capa_url ? (
           <img 
-            src={resolvedCapaUrl} 
+            src={curso.capa_url} 
             alt={curso.titulo}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">

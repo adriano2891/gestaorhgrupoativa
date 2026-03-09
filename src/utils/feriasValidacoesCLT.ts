@@ -5,7 +5,6 @@
  * - Art. 130: Dias de férias conforme faltas injustificadas
  * - Art. 134 §1º: Fracionamento em até 3 períodos (1 >= 14 dias, demais >= 5 dias)
  * - Art. 134 §3º: Férias não podem iniciar nos 2 dias que antecedem feriado ou DSR
- * - Art. 137: Férias vencidas devem ser pagas em dobro
  * - Art. 143: Abono pecuniário limitado a 1/3 dos dias de direito
  * - Art. 145: Pagamento até 2 dias antes do início
  */
@@ -32,11 +31,12 @@ export const validarFracionamento = (
   solicitacoesExistentes: { dias_solicitados: number; status: string }[],
   diasDireito: number
 ): ValidacaoFracionamento => {
+  // Filtrar apenas solicitações ativas (pendente, aprovado, em_andamento)
   const ativas = solicitacoesExistentes.filter(
     (s) => ["pendente", "aprovado", "em_andamento"].includes(s.status)
   );
 
-  const numeroParcelas = ativas.length + 1;
+  const numeroParcelas = ativas.length + 1; // +1 para a nova solicitação
 
   if (numeroParcelas > 3) {
     return {
@@ -45,6 +45,7 @@ export const validarFracionamento = (
     };
   }
 
+  // Verificar regra dos mínimos
   const todosDias = [...ativas.map((s) => s.dias_solicitados), diasSolicitados].sort((a, b) => b - a);
   
   if (todosDias.length >= 1 && todosDias[0] < 14) {
@@ -67,61 +68,41 @@ export const validarFracionamento = (
 };
 
 // ========== Art. 134 §3º – Restrição de início de férias ==========
-// Feriados nacionais brasileiros fixos (fallback)
+// Feriados nacionais brasileiros fixos (simplificado)
 const FERIADOS_FIXOS = [
-  "01-01", "04-21", "05-01", "09-07", "10-12", "11-02", "11-15", "12-25",
+  "01-01", // Confraternização Universal
+  "04-21", // Tiradentes
+  "05-01", // Dia do Trabalho
+  "09-07", // Independência
+  "10-12", // Nossa Senhora Aparecida
+  "11-02", // Finados
+  "11-15", // Proclamação da República
+  "12-25", // Natal
 ];
 
-const isFeriadoNacionalFixo = (date: Date): boolean => {
+const isFeriadoNacional = (date: Date): boolean => {
   const mmdd = format(date, "MM-dd");
   return FERIADOS_FIXOS.includes(mmdd);
 };
 
 const isDSR = (date: Date): boolean => {
-  return getDay(date) === 0;
+  return getDay(date) === 0; // Domingo
 };
 
-export interface FeriadoDinamico {
-  data: string;
-  recorrente: boolean;
-}
-
-/**
- * Verifica se uma data é feriado usando lista dinâmica (se fornecida) ou fallback estático
- */
-const isFeriado = (date: Date, feriadosDinamicos?: FeriadoDinamico[]): boolean => {
-  if (feriadosDinamicos && feriadosDinamicos.length > 0) {
-    const dateStr = date.toISOString().split('T')[0];
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const dd = String(date.getDate()).padStart(2, '0');
-    return feriadosDinamicos.some(f => {
-      if (f.recorrente) {
-        const fDate = new Date(f.data + 'T12:00:00');
-        const fmm = String(fDate.getMonth() + 1).padStart(2, '0');
-        const fdd = String(fDate.getDate()).padStart(2, '0');
-        return fmm === mm && fdd === dd;
-      }
-      return f.data === dateStr;
-    });
-  }
-  return isFeriadoNacionalFixo(date);
-};
-
-export const validarDataInicio = (
-  dataInicio: Date,
-  feriadosDinamicos?: FeriadoDinamico[]
-): { valido: boolean; mensagem?: string } => {
+export const validarDataInicio = (dataInicio: Date): { valido: boolean; mensagem?: string } => {
+  // Verificar se os 2 dias seguintes à data de início incluem feriado ou DSR
+  // Na verdade, a regra é: férias NÃO podem INICIAR nos 2 dias que ANTECEDEM feriado ou DSR
   const dia1Depois = addDays(dataInicio, 1);
   const dia2Depois = addDays(dataInicio, 2);
 
-  if (isDSR(dia1Depois) || isFeriado(dia1Depois, feriadosDinamicos)) {
+  if (isDSR(dia1Depois) || isFeriadoNacional(dia1Depois)) {
     return {
       valido: false,
       mensagem: `Férias não podem iniciar em ${format(dataInicio, "dd/MM/yyyy")} pois antecede descanso/feriado (CLT Art. 134 §3º).`,
     };
   }
 
-  if (isDSR(dia2Depois) || isFeriado(dia2Depois, feriadosDinamicos)) {
+  if (isDSR(dia2Depois) || isFeriadoNacional(dia2Depois)) {
     return {
       valido: false,
       mensagem: `Férias não podem iniciar em ${format(dataInicio, "dd/MM/yyyy")} pois está a 2 dias de descanso/feriado (CLT Art. 134 §3º).`,
@@ -129,35 +110,6 @@ export const validarDataInicio = (
   }
 
   return { valido: true };
-};
-
-// ========== Art. 137 – Validação de período concessivo ==========
-export const validarPeriodoConcessivo = (
-  dataFimAquisitivo: string
-): { valido: boolean; mensagem?: string; vencida: boolean } => {
-  const fimAquisitivo = parseISO(dataFimAquisitivo);
-  const fimConcessivo = addDays(fimAquisitivo, 365);
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-
-  if (hoje > fimConcessivo) {
-    return {
-      valido: false,
-      vencida: true,
-      mensagem: `Férias VENCIDAS! Período concessivo expirou em ${format(fimConcessivo, "dd/MM/yyyy")}. Pagamento em dobro obrigatório (Art. 137 CLT).`,
-    };
-  }
-
-  const diasRestantes = differenceInDays(fimConcessivo, hoje);
-  if (diasRestantes <= 30) {
-    return {
-      valido: true,
-      vencida: false,
-      mensagem: `Atenção: Faltam ${diasRestantes} dias para vencer o período concessivo (${format(fimConcessivo, "dd/MM/yyyy")}).`,
-    };
-  }
-
-  return { valido: true, vencida: false };
 };
 
 // ========== Art. 143 – Abono Pecuniário ==========
@@ -218,26 +170,4 @@ export const calcularValorFerias = (
     adicionalTerco: Math.round(adicionalTerco * 100) / 100,
     totalBruto: Math.round(totalBruto * 100) / 100,
   };
-};
-
-// ========== Art. 139-141 – Validação de Férias Coletivas ==========
-export const validarFeriasColetivas = (
-  dataInicio: Date
-): { valido: boolean; avisos: string[] } => {
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  const diasAntecedencia = differenceInDays(dataInicio, hoje);
-  const avisos: string[] = [];
-
-  if (diasAntecedencia < 15) {
-    avisos.push(
-      `Férias coletivas devem ser comunicadas ao sindicato e MTb com 15 dias de antecedência (Art. 139 CLT). Dias disponíveis: ${diasAntecedencia}.`
-    );
-  }
-
-  avisos.push(
-    "Lembre-se: É obrigatória a comunicação ao sindicato da categoria e ao Ministério do Trabalho (Art. 139 §2º e §3º CLT)."
-  );
-
-  return { valido: diasAntecedencia >= 15, avisos };
 };

@@ -6,12 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shield, Download, ChevronDown, ChevronUp, Filter, X, FileSpreadsheet, FileText } from "lucide-react";
+import { Shield, Download, ChevronDown, ChevronUp, Filter, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import ExcelJS from "exceljs";
 
 export const AuditTrailCard = () => {
   const [logs, setLogs] = useState<any[]>([]);
@@ -49,29 +46,7 @@ export const AuditTrailCard = () => {
         }
       );
       if (!res.ok) throw new Error(`${res.status}`);
-      const data = await res.json() || [];
-
-      // Enrich with profile names
-      if (data.length > 0) {
-        const userIds = [...new Set(data.map((d: any) => d.user_id).filter(Boolean))];
-        if (userIds.length > 0) {
-          const idsParam = userIds.map(id => `"${id}"`).join(',');
-          try {
-            const pRes = await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/profiles?select=id,nome&id=in.(${idsParam})`,
-              { headers: { apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY, Authorization: `Bearer ${token}` } }
-            );
-            if (pRes.ok) {
-              const profiles = await pRes.json();
-              const nameMap: Record<string, string> = {};
-              profiles.forEach((p: any) => { nameMap[p.id] = p.nome; });
-              data.forEach((d: any) => { d._nome = nameMap[d.user_id] || "—"; });
-            }
-          } catch { /* ignore */ }
-        }
-      }
-
-      setLogs(data);
+      setLogs(await res.json() || []);
     } catch (e) {
       console.error("Erro ao carregar audit trail:", e);
     } finally {
@@ -89,16 +64,18 @@ export const AuditTrailCard = () => {
   }, []);
 
   const exportAuditCSV = () => {
-    if (filteredLogs.length === 0) { toast.error("Sem dados para exportar"); return; }
-    const headers = ['Funcionário', 'Data/Hora', 'Ação', 'IP', 'Dispositivo', 'Detalhes'];
-    const rows = filteredLogs.map(log => [
-      log._nome || log.user_id,
+    if (logs.length === 0) { toast.error("Sem dados para exportar"); return; }
+
+    const headers = ['Data/Hora', 'Usuário', 'Ação', 'IP', 'Dispositivo', 'Detalhes'];
+    const rows = logs.map(log => [
       new Date(log.created_at).toLocaleString("pt-BR"),
+      log.user_id,
       log.acao,
       log.ip_address || '-',
       (log.user_agent || '-').substring(0, 80),
       JSON.stringify(log.detalhes || {}),
     ]);
+
     const csv = [headers.join(';'), ...rows.map(r => r.map(v => `"${v}"`).join(';'))].join('\n');
     const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
     const link = document.createElement('a');
@@ -106,79 +83,7 @@ export const AuditTrailCard = () => {
     link.download = `audit-trail-ponto-${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
-    toast.success("Exportado em CSV");
-  };
-
-  const exportAuditExcel = async () => {
-    if (filteredLogs.length === 0) { toast.error("Sem dados para exportar"); return; }
-    try {
-      const wb = new ExcelJS.Workbook();
-      const ws = wb.addWorksheet("Trilha de Auditoria");
-      ws.columns = [
-        { header: "Funcionário", key: "func", width: 28 },
-        { header: "Data/Hora", key: "data", width: 22 },
-        { header: "Ação", key: "acao", width: 28 },
-        { header: "IP", key: "ip", width: 18 },
-        { header: "Dispositivo", key: "device", width: 40 },
-        { header: "Detalhes", key: "detalhes", width: 60 },
-      ];
-      ws.getRow(1).eachCell(cell => {
-        cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-        cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: "FF1E1E1E" } };
-      });
-      filteredLogs.forEach(log => {
-        ws.addRow({
-          func: log._nome || log.user_id,
-          data: new Date(log.created_at).toLocaleString("pt-BR"),
-          acao: log.acao,
-          ip: log.ip_address || "-",
-          device: (log.user_agent || "-").substring(0, 80),
-          detalhes: JSON.stringify(log.detalhes || {}),
-        });
-      });
-      const buf = await wb.xlsx.writeBuffer();
-      const blob = new Blob([buf], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = `audit-trail-ponto-${new Date().toISOString().split("T")[0]}.xlsx`;
-      link.click();
-      URL.revokeObjectURL(link.href);
-      toast.success("Exportado em Excel");
-    } catch (e: any) {
-      toast.error("Erro ao exportar Excel", { description: e.message });
-    }
-  };
-
-  const exportAuditPDF = () => {
-    if (filteredLogs.length === 0) { toast.error("Sem dados para exportar"); return; }
-    const doc = new jsPDF({ orientation: "landscape" });
-    doc.setFontSize(14);
-    doc.text("Trilha de Auditoria — Ponto Eletrônico", 14, 16);
-    doc.setFontSize(8);
-    doc.text(`Gerado em: ${new Date().toLocaleString("pt-BR")}`, 14, 22);
-    doc.text("Ref. Legal: Portaria MTP nº 671/2021 — CLT Art. 74", 14, 26);
-    autoTable(doc, {
-      startY: 30,
-      head: [["Funcionário", "Data/Hora", "Ação", "IP", "Dispositivo", "Detalhes"]],
-      body: filteredLogs.map(log => [
-        log._nome || log.user_id,
-        new Date(log.created_at).toLocaleString("pt-BR"),
-        log.acao,
-        log.ip_address || "-",
-        (log.user_agent || "-").substring(0, 60),
-        JSON.stringify(log.detalhes || {}).substring(0, 80),
-      ]),
-      styles: { fontSize: 7 },
-      headStyles: { fillColor: [30, 30, 30] },
-    });
-    const pages = doc.getNumberOfPages();
-    for (let i = 1; i <= pages; i++) {
-      doc.setPage(i);
-      doc.setFontSize(7);
-      doc.text(`Página ${i}/${pages} — Documento para fins de auditoria trabalhista`, 14, doc.internal.pageSize.height - 8);
-    }
-    doc.save(`audit-trail-ponto-${new Date().toISOString().split("T")[0]}.pdf`);
-    toast.success("Exportado em PDF");
+    toast.success("Trilha de auditoria exportada");
   };
 
   const exportFiscalizacaoJSON = async () => {
@@ -303,15 +208,9 @@ export const AuditTrailCard = () => {
               <CardDescription>Registro imutável de todas as ações - Portaria 671/2021</CardDescription>
             </div>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2">
             <Button size="sm" variant="outline" onClick={exportAuditCSV}>
               <Download className="h-4 w-4 mr-1" /> CSV
-            </Button>
-            <Button size="sm" variant="outline" onClick={exportAuditExcel}>
-              <FileSpreadsheet className="h-4 w-4 mr-1" /> Excel
-            </Button>
-            <Button size="sm" variant="outline" onClick={exportAuditPDF}>
-              <FileText className="h-4 w-4 mr-1" /> PDF
             </Button>
             <Button size="sm" variant="default" onClick={exportFiscalizacaoJSON}>
               <Download className="h-4 w-4 mr-1" /> Fiscalização
@@ -376,27 +275,25 @@ export const AuditTrailCard = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                     <TableHead>Funcionário</TableHead>
-                     <TableHead>Data/Hora</TableHead>
-                     <TableHead>Ação</TableHead>
-                     <TableHead>IP</TableHead>
-                     <TableHead>Detalhes</TableHead>
-                   </TableRow>
-                 </TableHeader>
-                 <TableBody>
-                   {displayedLogs.map((log) => (
-                     <TableRow key={log.id}>
-                       <TableCell className="text-sm font-medium whitespace-nowrap">{log._nome || "—"}</TableCell>
-                       <TableCell className="whitespace-nowrap text-sm">
-                         {new Date(log.created_at).toLocaleString("pt-BR")}
-                       </TableCell>
-                       <TableCell>{getActionBadge(log.acao)}</TableCell>
-                       <TableCell className="text-sm text-muted-foreground">{log.ip_address || '-'}</TableCell>
-                       <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate">
-                         {log.detalhes ? JSON.stringify(log.detalhes).substring(0, 100) : '-'}
-                       </TableCell>
-                     </TableRow>
-                   ))}
+                    <TableHead>Data/Hora</TableHead>
+                    <TableHead>Ação</TableHead>
+                    <TableHead>IP</TableHead>
+                    <TableHead>Detalhes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {displayedLogs.map((log) => (
+                    <TableRow key={log.id}>
+                      <TableCell className="whitespace-nowrap text-sm">
+                        {new Date(log.created_at).toLocaleString("pt-BR")}
+                      </TableCell>
+                      <TableCell>{getActionBadge(log.acao)}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground">{log.ip_address || '-'}</TableCell>
+                      <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate">
+                        {log.detalhes ? JSON.stringify(log.detalhes).substring(0, 100) : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </div>

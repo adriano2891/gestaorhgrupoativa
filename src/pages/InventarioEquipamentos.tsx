@@ -114,22 +114,22 @@ const InventarioEquipamentos = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-md">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex items-center justify-between py-2.5 sm:py-0 sm:h-16 gap-2">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-              <BackButton to="/dashboard" variant="light" className="text-primary-foreground hover:bg-primary-foreground/10 flex-shrink-0" />
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center flex-shrink-0">
-                <Monitor className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
+      <header className="sticky top-0 z-50 bg-[#3EE0CF] shadow-md">
+        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-0 sm:h-16 gap-2 sm:gap-0">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <BackButton to="/dashboard" variant="light" className="text-black hover:bg-black/10" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex items-center justify-center flex-shrink-0">
+                <Monitor className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-xs sm:text-lg font-bold text-primary-foreground truncate">Gestão de Inventário</h1>
-                <p className="text-[9px] sm:text-xs text-primary-foreground/70 truncate">Controle de equipamentos</p>
+                <h1 className="text-sm sm:text-lg font-bold text-black truncate">Gestão de Inventário</h1>
+                <p className="text-[10px] sm:text-xs text-black/70 truncate">Controle de equipamentos</p>
               </div>
             </div>
-            <Button onClick={() => handleOpenDialog()} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground touch-target flex-shrink-0">
+            <Button onClick={() => handleOpenDialog()} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-black hover:bg-black/90 text-white">
               <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
               <span className="hidden sm:inline">Novo Equipamento</span>
               <span className="sm:hidden">Novo</span>
@@ -154,7 +154,7 @@ const InventarioEquipamentos = () => {
                       placeholder="Ex: EQ-001"
                       required
                       readOnly={!editingEquipamento}
-                    className={!editingEquipamento ? "bg-muted cursor-not-allowed" : ""}
+                      className={!editingEquipamento ? "bg-gray-100 cursor-not-allowed" : ""}
                     />
                     {!editingEquipamento && (
                       <p className="text-xs text-gray-500">Gerado automaticamente</p>
@@ -232,7 +232,7 @@ const InventarioEquipamentos = () => {
                     <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                       Cancelar
                     </Button>
-                    <Button type="submit" className="bg-primary hover:bg-primary/90 text-primary-foreground">
+                    <Button type="submit" className="bg-black hover:bg-black/90 text-white">
                       {editingEquipamento ? "Salvar" : "Cadastrar"}
                     </Button>
                   </div>
@@ -242,63 +242,62 @@ const InventarioEquipamentos = () => {
           </div>
         </div>
       </header>
-      <div className="h-[52px] sm:h-[60px] md:h-[64px]" />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         {/* Stats Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-          <Card className="bg-card border-2 border-primary/30 shadow-sm">
-            <CardContent className="p-3 sm:p-4 flex items-center gap-3">
-              <div className="p-2 bg-primary/20 rounded-full flex-shrink-0">
-                <Monitor className="h-5 w-5 text-primary" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 bg-[#3EE0CF]/20 rounded-full flex-shrink-0">
+                <Monitor className="h-5 w-5 text-[#3EE0CF]" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+                <p className="text-sm text-black/60">Total</p>
+                <p className="text-2xl font-bold text-black">{stats.total}</p>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-card border-2 border-primary/30 shadow-sm">
-            <CardContent className="p-3 sm:p-4 flex items-center gap-3">
-              <div className="p-2 bg-primary/20 rounded-full flex-shrink-0">
-                <Building2 className="h-5 w-5 text-primary" />
+          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 bg-[#3EE0CF]/20 rounded-full flex-shrink-0">
+                <Building2 className="h-5 w-5 text-[#3EE0CF]" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Central</p>
-                <p className="text-2xl font-bold text-foreground">{stats.central}</p>
+                <p className="text-sm text-black/60">Central</p>
+                <p className="text-2xl font-bold text-black">{stats.central}</p>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-card border-2 border-primary/30 shadow-sm">
-            <CardContent className="p-3 sm:p-4 flex items-center gap-3">
-              <div className="p-2 bg-primary/20 rounded-full flex-shrink-0">
-                <Home className="h-5 w-5 text-primary" />
+          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 bg-[#3EE0CF]/20 rounded-full flex-shrink-0">
+                <Home className="h-5 w-5 text-[#3EE0CF]" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Home Office</p>
-                <p className="text-2xl font-bold text-foreground">{stats.homeOffice}</p>
+                <p className="text-sm text-black/60">Home Office</p>
+                <p className="text-2xl font-bold text-black">{stats.homeOffice}</p>
               </div>
             </CardContent>
           </Card>
-          <Card className="bg-card border-2 border-primary/30 shadow-sm">
-            <CardContent className="p-3 sm:p-4 flex items-center gap-3">
-              <div className="p-2 bg-primary/20 rounded-full flex-shrink-0">
-                <Users className="h-5 w-5 text-primary" />
+          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 bg-[#3EE0CF]/20 rounded-full flex-shrink-0">
+                <Users className="h-5 w-5 text-[#3EE0CF]" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Cliente</p>
-                <p className="text-2xl font-bold text-foreground">{stats.cliente}</p>
+                <p className="text-sm text-black/60">Cliente</p>
+                <p className="text-2xl font-bold text-black">{stats.cliente}</p>
               </div>
             </CardContent>
           </Card>
         </div>
 
         {/* Filters */}
-        <Card className="bg-card/95 backdrop-blur-sm border-border shadow-lg">
+        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg">
           <CardContent className="p-3 sm:p-4">
             <div className="flex flex-col gap-3 sm:gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
                   placeholder="Buscar..."
                   value={search}
@@ -322,15 +321,15 @@ const InventarioEquipamentos = () => {
         </Card>
 
         {/* Table */}
-        <Card className="bg-card/95 backdrop-blur-sm border-border shadow-lg overflow-hidden">
+        <Card className="bg-white/95 backdrop-blur-sm border-0 shadow-lg overflow-hidden">
           <CardHeader className="p-3 sm:p-4 md:p-6">
             <CardTitle className="text-base sm:text-lg">Lista de Equipamentos</CardTitle>
           </CardHeader>
           <CardContent className="p-0 sm:p-4 md:p-6 pt-0">
             {isLoading ? (
-              <div className="text-center py-8 text-muted-foreground text-sm">Carregando...</div>
+              <div className="text-center py-8 text-gray-500 text-sm">Carregando...</div>
             ) : filteredEquipamentos.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground text-sm px-4">
+              <div className="text-center py-8 text-gray-500 text-sm px-4">
                 {search || filterLocalizacao !== "todos" 
                   ? "Nenhum equipamento encontrado."
                   : "Nenhum equipamento cadastrado."}

@@ -235,6 +235,72 @@ export const UploadHolerite = ({
             </p>
           </div>
 
+          {/* CLT Fields Toggle */}
+          <Button
+            type="button"
+            variant="ghost"
+            className="w-full justify-between text-sm"
+            onClick={() => setShowCltFields(!showCltFields)}
+          >
+            <span>📋 Detalhamento CLT (Art. 464)</span>
+            {showCltFields ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </Button>
+
+          {showCltFields && (
+            <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+              <p className="text-xs text-muted-foreground">
+                Preencha para discriminação completa no contracheque conforme legislação vigente.
+              </p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <Label className="text-xs">INSS (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={inss} onChange={(e) => setInss(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">IRRF (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={irrf} onChange={(e) => setIrrf(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">FGTS (R$) — informativo</Label>
+                  <Input type="number" step="0.01" min="0" value={fgts} onChange={(e) => setFgts(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Base Cálc. INSS (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={baseCalculoInss} onChange={(e) => setBaseCalculoInss(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Base Cálc. IRRF (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={baseCalculoIrrf} onChange={(e) => setBaseCalculoIrrf(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Horas Extras (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={horasExtrasValor} onChange={(e) => setHorasExtrasValor(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Ad. Noturno (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={adicionalNoturnoValor} onChange={(e) => setAdicionalNoturnoValor(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Vale Transporte (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={valeTransporte} onChange={(e) => setValeTransporte(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Outros Proventos (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={outrosProventos} onChange={(e) => setOutrosProventos(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-xs">Outros Descontos (R$)</Label>
+                  <Input type="number" step="0.01" min="0" value={outrosDescontos} onChange={(e) => setOutrosDescontos(e.target.value)} placeholder="0,00" />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-xs">Observações</Label>
+                <Textarea value={observacoes} onChange={(e) => setObservacoes(e.target.value)} placeholder="Observações adicionais..." rows={2} />
+              </div>
+            </div>
+          )}
         </div>
 
         <DialogFooter>

@@ -92,7 +92,7 @@ export const FormularioCard = ({ formulario, isTemplate }: FormularioCardProps) 
     <>
       <Card className="group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30">
         <CardHeader className="pb-3">
-          <div className="flex items-start justify-between gap-2 overflow-hidden">
+          <div className="flex items-start justify-between">
             <div className="flex items-center gap-3 flex-1 min-w-0">
               <div className="p-2 rounded-lg bg-primary/10 shrink-0">
                 {isTemplate ? (
@@ -173,11 +173,11 @@ export const FormularioCard = ({ formulario, isTemplate }: FormularioCardProps) 
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 flex-wrap">
-            <Button variant="outline" size="sm" className="text-xs h-8 shrink-0" onClick={handleView}>
+            <Button variant="outline" size="sm" className="text-xs h-8" onClick={handleView}>
               <Eye className="h-3.5 w-3.5 mr-1" />
               Ver
             </Button>
-            <Button variant="outline" size="sm" className="text-xs h-8 shrink-0" onClick={handleEdit}>
+            <Button variant="outline" size="sm" className="text-xs h-8" onClick={handleEdit}>
               <Edit className="h-3.5 w-3.5 mr-1" />
               Editar
             </Button>
