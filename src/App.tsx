@@ -373,6 +373,14 @@ const App = () => {
                         </ProtectedRoute>
                       }
                     />
+                    <Route
+                      path="/checklist-trabalhista"
+                      element={
+                        <ProtectedRoute>
+                          <ChecklistTrabalhista />
+                        </ProtectedRoute>
+                      }
+                    />
                     {/* Redirect old /afastamentos to SST */}
                     <Route path="/afastamentos" element={<Navigate to="/saude-seguranca" replace />} />
                     <Route path="*" element={<NotFound />} />
