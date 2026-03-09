@@ -625,15 +625,27 @@ const Relatorios = () => {
         }
 
         const total = filtered.length;
-        const ativos = filtered.filter((f: any) => {
-          const st = (f.status || "ativo").toLowerCase();
-          return st !== "demitido" && st !== "pediu_demissao" && st !== "em_ferias";
+        const statusNorm = (f: any) => (f.status || "ativo").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+        const desligados = filtered.filter((f: any) => {
+          const st = statusNorm(f);
+          return st === "demitido" || st === "pediu_demissao" || st === "demissao";
         });
-        const emFerias = filtered.filter((f: any) => {
-          const st = (f.status || "").toLowerCase();
-          return st === "em_ferias";
+        const naoDesligados = filtered.filter((f: any) => {
+          const st = statusNorm(f);
+          return st !== "demitido" && st !== "pediu_demissao" && st !== "demissao";
         });
-        // Também contar quem tem férias aprovadas/em andamento
+        const ativos = naoDesligados.filter((f: any) => {
+          const st = statusNorm(f);
+          return st === "ativo" || st === "";
+        });
+        const emFerias = naoDesligados.filter((f: any) => statusNorm(f) === "em_ferias");
+        const afastados = naoDesligados.filter((f: any) => statusNorm(f) === "afastado");
+        const outrosStatus = naoDesligados.filter((f: any) => {
+          const st = statusNorm(f);
+          return st !== "ativo" && st !== "" && st !== "em_ferias" && st !== "afastado";
+        });
+
         const feriasData = ferias || [];
         const feriasPorFunc: Record<string, number> = {};
         feriasData.forEach((f: any) => {
@@ -645,36 +657,28 @@ const Relatorios = () => {
         const totalFeriasAtivas = feriasData.filter((f: any) => filteredIds.has(f.user_id) && ["aprovado", "em_andamento"].includes(f.status)).length;
         const totalDiasFerias = feriasData.filter((f: any) => filteredIds.has(f.user_id) && ["aprovado", "em_andamento", "concluido"].includes(f.status)).reduce((acc: number, f: any) => acc + (f.dias_solicitados || 0), 0);
 
-        const desligados = filtered.filter((f: any) => {
-          const st = (f.status || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-          return st === "demitido" || st === "pediu_demissao" || st === "demissao";
-        });
+        const taxaTurnover = total > 0 ? ((desligados.length / total) * 100).toFixed(1) : "0";
+        const taxaRetencao = total > 0 ? ((naoDesligados.length / total) * 100).toFixed(1) : "0";
 
-        // Filter by motivo/tipo de movimentação
-        let movimentacoes = filtered;
+        // Filter by motivo/tipo
+        let filteredForDetails = filtered;
         if (filters.tipoMovimentacao && filters.tipoMovimentacao !== "todos") {
-          if (filters.tipoMovimentacao === "admissao") {
-            movimentacoes = ativos;
-          } else if (filters.tipoMovimentacao === "desligamento") {
-            movimentacoes = desligados;
-          }
+          if (filters.tipoMovimentacao === "desligamento") filteredForDetails = desligados;
+          else if (filters.tipoMovimentacao === "admissao") filteredForDetails = naoDesligados;
         }
         if (filters.motivo && filters.motivo !== "todos") {
-          movimentacoes = movimentacoes.filter((f: any) => {
-            const st = (f.status || "").toLowerCase();
+          filteredForDetails = filteredForDetails.filter((f: any) => {
+            const st = statusNorm(f);
             if (filters.motivo === "pedido") return st === "pediu_demissao";
             if (filters.motivo === "justa-causa" || filters.motivo === "sem-justa-causa") return st === "demitido";
             return true;
           });
         }
 
-        const taxaTurnover = total > 0 ? ((desligados.length / total) * 100).toFixed(1) : "0";
-        const taxaRetencao = total > 0 ? (((ativos.length + emFerias.length) / total) * 100).toFixed(1) : "0";
-
         const motivoCount: Record<string, number> = {};
         desligados.forEach((f: any) => {
-          const st = (f.status || "").toLowerCase();
-          const label = st === "pediu_demissao" ? "Pedido de Demissão" : st === "demitido" ? "Demissão pela Empresa" : "Outro";
+          const st = statusNorm(f);
+          const label = st === "pediu_demissao" ? "Pedido de Demissão" : "Demissão pela Empresa";
           motivoCount[label] = (motivoCount[label] || 0) + 1;
         });
 
@@ -683,23 +687,26 @@ const Relatorios = () => {
           const d = f.departamento || "Sem Departamento";
           deptDesligamentos[d] = (deptDesligamentos[d] || 0) + 1;
         });
-
         const deptAtivos: Record<string, number> = {};
-        ativos.forEach((f: any) => {
+        naoDesligados.forEach((f: any) => {
           const d = f.departamento || "Sem Departamento";
           deptAtivos[d] = (deptAtivos[d] || 0) + 1;
         });
 
-        // Admissões por mês
-        const admissoesMes: Record<string, number> = {};
-        filtered.forEach((f: any) => {
-          if (f.data_admissao) {
-            const mes = f.data_admissao.substring(0, 7);
-            admissoesMes[mes] = (admissoesMes[mes] || 0) + 1;
-          }
-        });
-
         const allDepts = [...new Set([...Object.keys(deptDesligamentos), ...Object.keys(deptAtivos)])];
+        const deptTurnover = allDepts.map(dept => ({
+          departamento: dept,
+          Ativos: deptAtivos[dept] || 0,
+          Desligados: deptDesligamentos[dept] || 0,
+        }));
+
+        const statusDistrib = [
+          { status: "Ativos", valor: ativos.length },
+          ...(emFerias.length > 0 ? [{ status: "Em Férias", valor: emFerias.length }] : []),
+          ...(afastados.length > 0 ? [{ status: "Afastados", valor: afastados.length }] : []),
+          ...(outrosStatus.length > 0 ? [{ status: "Outros", valor: outrosStatus.length }] : []),
+          ...(desligados.length > 0 ? [{ status: "Desligados", valor: desligados.length }] : []),
+        ];
 
         setGeneratedData({
           generatedAt: now.toISOString(),
@@ -709,27 +716,26 @@ const Relatorios = () => {
             "Total de Funcionários": total,
             "Ativos": ativos.length,
             "Em Férias": emFerias.length,
+            "Afastados": afastados.length,
+            "Desligamentos": desligados.length,
+            "Pedidos de Demissão": motivoCount["Pedido de Demissão"] || 0,
+            "Demissões pela Empresa": motivoCount["Demissão pela Empresa"] || 0,
             "Férias Aprovadas/Andamento": totalFeriasAtivas,
             "Total Dias de Férias": totalDiasFerias,
-            "Desligamentos": desligados.length,
           },
           charts: [
             {
               type: "pie",
-              title: "1. Distribuição Geral",
-              description: "Ativos, em férias e desligados",
-              data: [
-                { tipo: "Ativos", valor: ativos.length },
-                ...(emFerias.length > 0 ? [{ tipo: "Em Férias", valor: emFerias.length }] : []),
-                ...(desligados.length > 0 ? [{ tipo: "Desligados", valor: desligados.length }] : []),
-              ],
+              title: "1. Distribuição por Status",
+              description: "Status atual de todos os funcionários cadastrados",
+              data: statusDistrib,
             },
             {
               type: "bar",
-              title: "2. Funcionários por Departamento",
-              description: "Distribuição atual de colaboradores por área",
-              data: Object.entries(deptAtivos).map(([dept, count]) => ({ departamento: dept, valor: count })),
-              dataName: "Funcionários",
+              title: "2. Turnover por Departamento",
+              description: "Ativos vs Desligados por área",
+              data: deptTurnover,
+              dataName: "Colaboradores",
             },
             ...(Object.keys(motivoCount).length > 0 ? [{
               type: "pie",
@@ -737,23 +743,30 @@ const Relatorios = () => {
               description: "Distribuição dos motivos de saída",
               data: Object.entries(motivoCount).map(([motivo, count]) => ({ motivo, valor: count })),
             }] : []),
+            {
+              type: "bar",
+              title: "4. Funcionários por Departamento",
+              description: "Distribuição atual de colaboradores ativos por área",
+              data: Object.entries(deptAtivos).map(([dept, count]) => ({ departamento: dept, valor: count })),
+              dataName: "Funcionários",
+            },
           ],
-          details: filtered.slice(0, 200).map((f: any) => {
+          details: filteredForDetails.slice(0, 200).map((f: any) => {
             const diasFerias = feriasPorFunc[f.id] || 0;
+            const st = statusNorm(f);
+            let statusLabel = f.status || "Ativo";
+            if (st === "em_ferias") statusLabel = "Em férias";
+            else if (st === "ativo" || st === "") statusLabel = "Ativo";
+            else if (st === "demitido" || st === "demissao") statusLabel = "Demitido";
+            else if (st === "pediu_demissao") statusLabel = "Pediu demissão";
+            else if (st === "afastado") statusLabel = "Afastado";
             return {
               nome: f.nome || "-",
               departamento: f.departamento || "-",
               cargo: f.cargo || "-",
               "data Admissao": f.data_admissao ? format(new Date(f.data_admissao + 'T12:00:00'), 'dd/MM/yyyy') : "-",
               "dias Ferias": diasFerias > 0 ? `${diasFerias}d` : "-",
-              status: (() => {
-                const st = (f.status || "ativo").toLowerCase();
-                if (st === "em_ferias") return "Em férias";
-                if (st === "ativo") return "Ativo";
-                if (st === "demitido") return "Demitido";
-                if (st === "pediu_demissao") return "Pediu demissão";
-                return f.status || "Ativo";
-              })(),
+              status: statusLabel,
             };
           }),
         });
