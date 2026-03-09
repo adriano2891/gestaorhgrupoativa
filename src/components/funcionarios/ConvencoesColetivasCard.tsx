@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, BookOpen, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, BookOpen, AlertTriangle, Paperclip, FileText, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { toast } from "sonner";
