@@ -211,6 +211,8 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                   <SelectItem value="vale_refeicao">Vale-Refeição</SelectItem>
                   <SelectItem value="plano_saude">Plano de Saúde</SelectItem>
                   <SelectItem value="plano_odontologico">Plano Odontológico</SelectItem>
+                  <SelectItem value="insalubridade">Insalubridade (CLT Art. 192)</SelectItem>
+                  <SelectItem value="periculosidade">Periculosidade (CLT Art. 193)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
