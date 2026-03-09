@@ -915,20 +915,23 @@ const Relatorios = () => {
           return a.status === "ativo" || a.status === "em_andamento" || !a.data_retorno;
         });
 
-        // Dias sem acidentes (from last CAT)
+        // CATs
         const catsData = (cats || []).filter((c: any) => filteredIds.has(c.user_id));
-        let diasSemAcidentes = 120; // default
+        let diasSemAcidentes = 120;
         if (catsData.length > 0) {
-          const ultimaCat = catsData.sort((a: any, b: any) => b.data_acidente.localeCompare(a.data_acidente))[0];
-          try {
-            diasSemAcidentes = differenceInDays(new Date(), new Date(ultimaCat.data_acidente));
-          } catch {}
+          const ultimaCat = [...catsData].sort((a: any, b: any) => b.data_acidente.localeCompare(a.data_acidente))[0];
+          try { diasSemAcidentes = differenceInDays(new Date(), new Date(ultimaCat.data_acidente)); } catch {}
         }
-
-        // Taxa de incidentes
         const taxaIncidentes = filtered.length > 0 ? ((catsData.length / filtered.length) * 100).toFixed(1) : "0.0";
 
-        // ASO data for last exam date
+        // CATs por tipo
+        const catTipoCount: Record<string, number> = {};
+        catsData.forEach((c: any) => {
+          const t = c.tipo || "Típico";
+          catTipoCount[t] = (catTipoCount[t] || 0) + 1;
+        });
+
+        // ASOs
         const asosData = (asos || []).filter((a: any) => filteredIds.has(a.user_id));
         const lastExamByUser: Record<string, string> = {};
         asosData.forEach((a: any) => {
@@ -936,6 +939,26 @@ const Relatorios = () => {
             lastExamByUser[a.user_id] = a.data_exame;
           }
         });
+
+        // ASOs por tipo
+        const asoTipoCount: Record<string, number> = {};
+        asosData.forEach((a: any) => {
+          const t = a.tipo || "Periódico";
+          asoTipoCount[t] = (asoTipoCount[t] || 0) + 1;
+        });
+
+        // ASOs vencidos
+        const hoje = new Date();
+        const asosVencidos = asosData.filter((a: any) => a.data_vencimento && new Date(a.data_vencimento) < hoje).length;
+
+        // EPIs
+        const episData = (epiEntregas || []).filter((e: any) => filteredIds.has(e.user_id));
+        const totalEPIs = episData.length;
+        const episAssinados = episData.filter((e: any) => e.assinado).length;
+
+        // CIPA
+        const cipaAtivos = (cipaMembros || []).filter((m: any) => m.ativo).length;
+        const cipaTotal = (cipaMembros || []).length;
 
         // Dept stats for exams chart
         const deptExames: Record<string, number> = {};
@@ -958,8 +981,14 @@ const Relatorios = () => {
           generatedAt: now.toISOString(),
           summary: {
             "Dias sem Acidentes": diasSemAcidentes,
-            "Afastamentos Ativos": afastAtivos.length,
+            "Total CATs": catsData.length,
             "Taxa de Incidentes": `${taxaIncidentes}%`,
+            "Afastamentos Ativos": afastAtivos.length,
+            "Total ASOs": asosData.length,
+            "ASOs Vencidos": asosVencidos,
+            "EPIs Entregues": totalEPIs,
+            "EPIs Assinados": episAssinados,
+            "Membros CIPA Ativos": cipaAtivos,
             "Colaboradores Monitorados": filtered.length,
           },
           charts: [
@@ -971,22 +1000,40 @@ const Relatorios = () => {
             },
             {
               type: "bar",
-              title: "2. Exames Periódicos por Departamento",
+              title: "2. Exames (ASOs) por Departamento",
               description: "Quantidade de exames realizados por área",
               data: Object.entries(deptExames).map(([dept, count]) => ({ departamento: dept, valor: count })),
               dataName: "Exames",
-              insight: "Exames periódicos são obrigatórios e devem ser realizados anualmente.",
+              insight: "Exames periódicos são obrigatórios conforme NR-7.",
             },
+            ...(Object.keys(asoTipoCount).length > 0 ? [{
+              type: "pie",
+              title: "3. ASOs por Tipo de Exame",
+              description: "Distribuição dos exames ocupacionais por tipo",
+              data: Object.entries(asoTipoCount).map(([tipo, count]) => ({ tipo, valor: count })),
+            }] : []),
+            ...(Object.keys(catTipoCount).length > 0 ? [{
+              type: "pie",
+              title: "4. CATs por Tipo de Acidente",
+              description: "Distribuição das Comunicações de Acidentes de Trabalho",
+              data: Object.entries(catTipoCount).map(([tipo, count]) => ({ tipo, valor: count })),
+            }] : []),
           ],
-          details: filtered.slice(0, 100).map((f: any) => {
+          details: filtered.slice(0, 200).map((f: any) => {
             const hasAfastamento = afastAtivos.some((a: any) => a.user_id === f.id);
             const ultimoExame = lastExamByUser[f.id];
+            const episFunc = episData.filter((e: any) => e.user_id === f.id);
+            const catsFunc = catsData.filter((c: any) => c.user_id === f.id);
+            const asosFunc = asosData.filter((a: any) => a.user_id === f.id);
             return {
               nome: f.nome || "-",
               departamento: f.departamento || "-",
               cargo: f.cargo || "-",
               "status Saude": hasAfastamento ? "Afastado" : "Ativo",
-              "ultimo Exame": ultimoExame ? format(new Date(ultimoExame), 'dd/MM/yyyy') : "-",
+              "ultimo ASO": ultimoExame ? format(new Date(ultimoExame), 'dd/MM/yyyy') : "Sem exame",
+              "total ASOs": asosFunc.length,
+              "total EPIs": episFunc.length,
+              "total CATs": catsFunc.length,
             };
           }),
         });
