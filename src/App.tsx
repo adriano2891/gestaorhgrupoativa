@@ -46,7 +46,7 @@ const HRFlowPro = lazy(() => import("./pages/HRFlowPro"));
 const Documentacoes = lazy(() => import("./pages/Documentacoes"));
 const CursosAdmin = lazy(() => import("./pages/CursosAdmin"));
 const SuporteFuncionarios = lazy(() => import("./pages/SuporteFuncionarios"));
-
+const Afastamentos = lazy(() => import("./pages/Afastamentos"));
 
 const PortalCursoPlayerLazy = lazy(() => import("./components/ponto/PortalCursoPlayer").then(m => ({ default: m.PortalCursoPlayer })));
 const VerificarComprovante = lazy(() => import("./pages/VerificarComprovante"));
