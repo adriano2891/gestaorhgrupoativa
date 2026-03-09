@@ -109,27 +109,43 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
 
   const getChartPngDataUrl = async (chartIndex: number): Promise<{ dataUrl: string; width: number; height: number } | null> => {
     const container = document.getElementById(`report-chart-${chartIndex}`);
-    const svg = container?.querySelector("svg");
-    if (!container || !svg) return null;
+    if (!container) return null;
 
-    // Clone the SVG and inline all computed styles
-    const svgClone = svg.cloneNode(true) as SVGElement;
-    inlineStyles(svgClone, svg);
-    
-    // Resolve CSS variables in all SVG attributes (fill, stroke, etc.)
-    resolveAllCssVarsInElement(svgClone);
-    
-    // Ensure SVG has proper namespace
-    if (!svgClone.getAttribute("xmlns")) {
-      svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    }
-    
-    // Get the actual rendered dimensions
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+
     const rect = container.getBoundingClientRect();
     const width = Math.max(1, Math.round(rect.width));
     const height = Math.max(1, Math.round(rect.height));
-    
-    // Set explicit dimensions on the SVG
+
+    try {
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
+
+      if (canvas.width > 0 && canvas.height > 0) {
+        return { dataUrl: canvas.toDataURL("image/png", 1.0), width, height };
+      }
+    } catch (error) {
+      console.warn(`Falha no html2canvas para gráfico ${chartIndex}, tentando fallback SVG`, error);
+    }
+
+    const svg = container.querySelector("svg");
+    if (!svg) return null;
+
+    // Fallback SVG -> Canvas
+    const svgClone = svg.cloneNode(true) as SVGElement;
+    inlineStyles(svgClone, svg);
+    resolveAllCssVarsInElement(svgClone);
+
+    if (!svgClone.getAttribute("xmlns")) {
+      svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    }
+
     svgClone.setAttribute("width", String(width));
     svgClone.setAttribute("height", String(height));
 
@@ -147,7 +163,7 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
         img.src = url;
       });
 
-      const scale = 2; // High resolution for PDF
+      const scale = 2;
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       if (!ctx) return null;
@@ -155,10 +171,8 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
       canvas.width = width * scale;
       canvas.height = height * scale;
 
-      // Fill with white background for legibility
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
       ctx.setTransform(scale, 0, 0, scale, 0, 0);
       ctx.drawImage(img, 0, 0, width, height);
 
