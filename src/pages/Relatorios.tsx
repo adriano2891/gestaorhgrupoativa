@@ -449,6 +449,16 @@ const Relatorios = () => {
                 })),
                 dataName: "Taxa (%)",
               },
+              {
+                type: "pie",
+                title: "Presença vs Ausência",
+                description: "Proporção geral de presença e ausências",
+                data: [
+                  { tipo: "Presentes", valor: data.length - totalAusencias },
+                  { tipo: "Ausentes", valor: totalAusencias },
+                  { tipo: "Atrasados", valor: totalAtrasos },
+                ],
+              },
             ],
             details: rankingAbsenteismo.length > 0
               ? rankingAbsenteismo.slice(0, 100).map(e => ({
@@ -475,6 +485,14 @@ const Relatorios = () => {
           });
           const totalColab = new Set(data.map((r: any) => r.user_id)).size;
           const comHE = data.filter((r: any) => r.horas_extras && r.horas_extras !== "00:00:00").length;
+          const tipoRegistro: Record<string, number> = {};
+          data.forEach((r: any) => {
+            const tem_entrada = !!r.entrada;
+            const tem_saida = !!r.saida;
+            if (tem_entrada && tem_saida) tipoRegistro["Completo"] = (tipoRegistro["Completo"] || 0) + 1;
+            else if (tem_entrada) tipoRegistro["Só Entrada"] = (tipoRegistro["Só Entrada"] || 0) + 1;
+            else tipoRegistro["Sem Registro"] = (tipoRegistro["Sem Registro"] || 0) + 1;
+          });
           setGeneratedData({
             generatedAt: now.toISOString(),
             summary: {
@@ -490,6 +508,12 @@ const Relatorios = () => {
                 description: "Quantidade de pontos registrados por departamento",
                 data: Object.entries(deptHoras).map(([dept, count]) => ({ departamento: dept, valor: count })),
                 dataName: "Registros",
+              },
+              {
+                type: "pie",
+                title: "Tipo de Registro",
+                description: "Distribuição entre registros completos, parciais e ausentes",
+                data: Object.entries(tipoRegistro).map(([tipo, count]) => ({ tipo, valor: count })),
               },
             ],
             details: data.slice(0, 100).map((r: any) => {
@@ -641,22 +665,38 @@ const Relatorios = () => {
           const d = f.departamento || "Sem Departamento";
           deptCount[d] = (deptCount[d] || 0) + 1;
         });
-        setGeneratedData({
-          generatedAt: now.toISOString(),
-          summary: {
-            "Período": periodoLabel,
-            "Total Avaliados": filtered.length,
-            "Departamentos": Object.keys(deptCount).length,
-          },
-          charts: [
-            {
-              type: "bar",
-              title: "Colaboradores por Departamento",
-              description: "Distribuição para avaliação de desempenho",
-              data: Object.entries(deptCount).map(([dept, count]) => ({ departamento: dept, valor: count })),
-              dataName: "Colaboradores",
+          const cargoCount: Record<string, number> = {};
+          filtered.forEach((f: any) => {
+            const c = f.cargo || "Sem Cargo";
+            cargoCount[c] = (cargoCount[c] || 0) + 1;
+          });
+          const statusDesempenho: Record<string, number> = {};
+          filtered.forEach((f: any) => {
+            const s = f.status || "Ativo";
+            statusDesempenho[s] = (statusDesempenho[s] || 0) + 1;
+          });
+          setGeneratedData({
+            generatedAt: now.toISOString(),
+            summary: {
+              "Período": periodoLabel,
+              "Total Avaliados": filtered.length,
+              "Departamentos": Object.keys(deptCount).length,
             },
-          ],
+            charts: [
+              {
+                type: "bar",
+                title: "Colaboradores por Departamento",
+                description: "Distribuição para avaliação de desempenho",
+                data: Object.entries(deptCount).map(([dept, count]) => ({ departamento: dept, valor: count })),
+                dataName: "Colaboradores",
+              },
+              {
+                type: "pie",
+                title: "Distribuição por Status",
+                description: "Status dos colaboradores avaliados",
+                data: Object.entries(statusDesempenho).map(([status, count]) => ({ status, valor: count })),
+              },
+            ],
           details: filtered.slice(0, 100).map((f: any) => ({
             Nome: f.nome || "-",
             Cargo: f.cargo || "-",
@@ -778,22 +818,33 @@ const Relatorios = () => {
           const d = f.departamento || "Sem Departamento";
           deptCount[d] = (deptCount[d] || 0) + 1;
         });
-        setGeneratedData({
-          generatedAt: now.toISOString(),
-          summary: {
-            "Período": periodoLabel,
-            "Total Colaboradores": filtered.length,
-            "Departamentos": Object.keys(deptCount).length,
-          },
-          charts: [
-            {
-              type: "bar",
-              title: "Colaboradores por Departamento (SST)",
-              description: "Distribuição por departamento",
-              data: Object.entries(deptCount).map(([dept, count]) => ({ departamento: dept, valor: count })),
-              dataName: "Colaboradores",
+          const statusSST: Record<string, number> = {};
+          filtered.forEach((f: any) => {
+            const s = f.status || "Ativo";
+            statusSST[s] = (statusSST[s] || 0) + 1;
+          });
+          setGeneratedData({
+            generatedAt: now.toISOString(),
+            summary: {
+              "Período": periodoLabel,
+              "Total Colaboradores": filtered.length,
+              "Departamentos": Object.keys(deptCount).length,
             },
-          ],
+            charts: [
+              {
+                type: "bar",
+                title: "Colaboradores por Departamento (SST)",
+                description: "Distribuição por departamento",
+                data: Object.entries(deptCount).map(([dept, count]) => ({ departamento: dept, valor: count })),
+                dataName: "Colaboradores",
+              },
+              {
+                type: "pie",
+                title: "Distribuição por Status (SST)",
+                description: "Status dos colaboradores monitorados",
+                data: Object.entries(statusSST).map(([status, count]) => ({ status, valor: count })),
+              },
+            ],
           details: filtered.slice(0, 100).map((f: any) => ({
             Nome: f.nome || "-",
             Cargo: f.cargo || "-",
