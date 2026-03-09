@@ -181,7 +181,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                     )}
                   </TableCell>
                   <TableCell>
-                    {isPlanoType(b.tipo) ? "—" : `${b.desconto_percentual}%`}
+                    {isPlanoType(b.tipo) || isAdicionalType(b.tipo) ? "—" : `${b.desconto_percentual}%`}
                   </TableCell>
                   <TableCell>
                     <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleRemove(b.id)}>
