@@ -192,7 +192,6 @@ const Relatorios = () => {
     },
       category: "Bem-estar",
       description: "Incidentes e afastamentos",
-    },
   ];
 
   const handleSelectReport = (reportId: string) => {
