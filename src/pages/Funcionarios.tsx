@@ -71,7 +71,6 @@ interface Employee {
   admissionDate: string;
   foto_url?: string;
   matricula?: string;
-  cpf?: string;
 }
 
 const employeeSchema = z.object({
@@ -156,10 +155,7 @@ const Funcionarios = () => {
   const [selectedDepartment, setSelectedDepartment] = useState("Todos");
   const [employees, setEmployees] = useState<Employee[]>([]);
   const employeesRef = useRef<Employee[]>([]);
-  const recentlyAddedRef = useRef(false);
-  const pendingNewEmployeeIdRef = useRef<string | null>(null);
-  const propagationGuardUntilRef = useRef(0);
-  const propagationRetryTimeoutRef = useRef<number | null>(null);
+  
   const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }>>({});
   const [employeeUpdates, setEmployeeUpdates] = useState<Record<string, { updated_at: string }>>({});
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
@@ -364,22 +360,6 @@ const Funcionarios = () => {
         return;
       }
 
-      if (recentlyAddedRef.current && propagationGuardUntilRef.current > 0 && Date.now() >= propagationGuardUntilRef.current) {
-        recentlyAddedRef.current = false;
-        propagationGuardUntilRef.current = 0;
-        pendingNewEmployeeIdRef.current = null;
-      }
-
-      const isInPropagationWindow = () => recentlyAddedRef.current || Date.now() < propagationGuardUntilRef.current;
-      const schedulePropagationRetry = (delayMs = 1200) => {
-        if (propagationRetryTimeoutRef.current !== null) {
-          window.clearTimeout(propagationRetryTimeoutRef.current);
-        }
-        propagationRetryTimeoutRef.current = window.setTimeout(() => {
-          fetchEmployees().catch(console.error);
-        }, delayMs);
-      };
-
       // Step 1: Get all roles via REST
       let allRoles: { user_id: string; role: string }[] = [];
       try {
@@ -404,11 +384,6 @@ const Funcionarios = () => {
 
         if (targetIds.length === 0) {
           console.warn("fetchEmployees: Nenhum funcionário puro encontrado");
-          if (isInPropagationWindow() && employeesRef.current.length > 0) {
-            console.log("fetchEmployees: Preservando lista atual durante propagação de role");
-            schedulePropagationRetry();
-            return;
-          }
           setEmployees([]);
           employeesRef.current = [];
           setEmployeeSalaries({});
@@ -419,7 +394,7 @@ const Funcionarios = () => {
         const inFilter = targetIds.map(id => `"${id}"`).join(',');
         const profilesData = await restFetch(
           'profiles',
-          `?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula,cpf&id=in.(${inFilter})&tipo_perfil=eq.funcionario&order=nome.asc`
+          `?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula&id=in.(${inFilter})&tipo_perfil=eq.funcionario&order=nome.asc`
         );
 
         console.log("fetchEmployees: Profiles retornados:", profilesData?.length || 0);
@@ -437,28 +412,11 @@ const Funcionarios = () => {
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
           foto_url: await resolveFotoUrl(profile.foto_url),
           matricula: profile.matricula || null,
-          cpf: profile.cpf || null,
         })));
-
-        if (isInPropagationWindow() && employeesRef.current.length > 0 && formattedEmployees.length < employeesRef.current.length) {
-          console.log("fetchEmployees: Ignorando resultado parcial durante propagação", formattedEmployees.length, "vs", employeesRef.current.length);
-          schedulePropagationRetry();
-          return;
-        }
 
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
         setEmployees(formattedEmployees);
         employeesRef.current = formattedEmployees;
-
-        if (pendingNewEmployeeIdRef.current && formattedEmployees.some((emp) => emp.id === pendingNewEmployeeIdRef.current)) {
-          recentlyAddedRef.current = false;
-          propagationGuardUntilRef.current = 0;
-          pendingNewEmployeeIdRef.current = null;
-          if (propagationRetryTimeoutRef.current !== null) {
-            window.clearTimeout(propagationRetryTimeoutRef.current);
-            propagationRetryTimeoutRef.current = null;
-          }
-        }
 
         const salaries: Record<string, { salario: number | null; ultimaAlteracao?: { valor: number; data: string } }> = {};
         const updates: Record<string, { updated_at: string }> = {};
@@ -475,7 +433,7 @@ const Funcionarios = () => {
         console.log("fetchEmployees: Fallback - buscando profiles diretamente...");
         const fallbackProfiles = await restFetch(
           'profiles',
-          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula,cpf&tipo_perfil=eq.funcionario&order=nome.asc'
+          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula&tipo_perfil=eq.funcionario&order=nome.asc'
         );
 
         const allProfiles = fallbackProfiles || [];
@@ -491,7 +449,6 @@ const Funcionarios = () => {
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
           foto_url: await resolveFotoUrl(profile.foto_url),
           matricula: profile.matricula || null,
-          cpf: profile.cpf || null,
         })));
 
         const updates: Record<string, { updated_at: string }> = {};
@@ -540,19 +497,7 @@ const Funcionarios = () => {
     const channel = supabase
       .channel('profiles-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-        if (!mounted) return;
-
-        if (recentlyAddedRef.current || Date.now() < propagationGuardUntilRef.current) {
-          if (propagationRetryTimeoutRef.current !== null) {
-            window.clearTimeout(propagationRetryTimeoutRef.current);
-          }
-          propagationRetryTimeoutRef.current = window.setTimeout(() => {
-            if (mounted) fetchEmployees().catch(console.error);
-          }, 1200);
-          return;
-        }
-
-        fetchEmployees().catch(console.error);
+        if (mounted) fetchEmployees();
       })
       .subscribe();
 
@@ -560,10 +505,6 @@ const Funcionarios = () => {
       mounted = false;
       clearTimeout(t1);
       clearTimeout(t2);
-      if (propagationRetryTimeoutRef.current !== null) {
-        window.clearTimeout(propagationRetryTimeoutRef.current);
-        propagationRetryTimeoutRef.current = null;
-      }
       authSub.unsubscribe();
       supabase.removeChannel(channel);
     };
@@ -700,12 +641,10 @@ const Funcionarios = () => {
   }, [employees]);
 
   const filteredEmployees = employees.filter((emp) => {
-    const term = searchTerm.toLowerCase();
     const matchesSearch =
-      emp.name.toLowerCase().includes(term) ||
-      emp.email.toLowerCase().includes(term) ||
-      (emp.matricula && emp.matricula.toLowerCase().includes(term)) ||
-      (emp.cpf && emp.cpf.toLowerCase().includes(term));
+      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (emp.matricula && emp.matricula.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesDepartment =
       selectedDepartment === "Todos" || emp.department === selectedDepartment;
     return matchesSearch && matchesDepartment;
@@ -1198,14 +1137,7 @@ const Funcionarios = () => {
         tipo_contrato: "CLT",
       });
       
-      // Optimistic update: add employee to list imediatamente e proteger sincronização
-      recentlyAddedRef.current = true;
-      propagationGuardUntilRef.current = Date.now() + 20000;
-      pendingNewEmployeeIdRef.current = newUserId || null;
-      if (propagationRetryTimeoutRef.current !== null) {
-        window.clearTimeout(propagationRetryTimeoutRef.current);
-      }
-
+      // Optimistic update: add employee to list immediately
       if (newUserId) {
         const optimisticEmployee: Employee = {
           id: newUserId,
@@ -1218,7 +1150,6 @@ const Funcionarios = () => {
           admissionDate: newEmployee.dataAdmissao || new Date().toISOString().split('T')[0],
           foto_url: newPhotoPreview || undefined,
           matricula: undefined,
-          cpf: newEmployee.cpf || undefined,
         };
         setEmployees(prev => {
           const updated = [...prev, optimisticEmployee].sort((a, b) => a.name.localeCompare(b.name));
@@ -1236,11 +1167,9 @@ const Funcionarios = () => {
       setNewPhotoFile(null);
       setNewPhotoPreview(null);
       setIsAddDialogOpen(false);
-
-      // Inicia revalidação em background sem limpar lista durante propagação
-      propagationRetryTimeoutRef.current = window.setTimeout(() => {
-        fetchEmployees().catch(console.error);
-      }, 1200);
+      
+      // Background refresh to sync all data (non-blocking)
+      fetchEmployees().catch(console.error);
     } catch (error: any) {
       console.error("Erro ao adicionar funcionário:", error);
       
@@ -1315,7 +1244,7 @@ const Funcionarios = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 <Input
-                  placeholder="Buscar por nome, email, matrícula ou CPF..."
+                  placeholder="Buscar por nome, email ou matrícula..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 text-sm h-10"
