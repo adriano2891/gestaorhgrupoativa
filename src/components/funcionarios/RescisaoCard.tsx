@@ -324,8 +324,20 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao, cpf,
                       <TableRow><TableCell>13º Proporcional (regra 15 dias)</TableCell><TableCell className="text-right">{fmt(resultado.decimoTerceiro)}</TableCell></TableRow>
                       <TableRow><TableCell>Multa FGTS</TableCell><TableCell className="text-right">{fmt(resultado.multaFgts)}</TableCell></TableRow>
                       <TableRow className="font-bold border-t-2">
-                        <TableCell>TOTAL RESCISÃO</TableCell>
-                        <TableCell className="text-right text-primary">{fmt(resultado.total)}</TableCell>
+                        <TableCell>TOTAL BRUTO</TableCell>
+                        <TableCell className="text-right">{fmt(resultado.totalBruto)}</TableCell>
+                      </TableRow>
+                      <TableRow className="bg-destructive/5">
+                        <TableCell className="text-destructive">INSS ({resultado.inssAliquota}%)</TableCell>
+                        <TableCell className="text-right text-destructive">- {fmt(resultado.inss)}</TableCell>
+                      </TableRow>
+                      <TableRow className="bg-destructive/5">
+                        <TableCell className="text-destructive">IRRF (faixa {resultado.irrfFaixa})</TableCell>
+                        <TableCell className="text-right text-destructive">- {fmt(resultado.irrfValor)}</TableCell>
+                      </TableRow>
+                      <TableRow className="font-bold border-t-2">
+                        <TableCell>VALOR LÍQUIDO</TableCell>
+                        <TableCell className="text-right text-primary">{fmt(resultado.totalLiquido)}</TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
