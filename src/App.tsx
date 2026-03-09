@@ -362,6 +362,14 @@ const App = () => {
                         </ProtectedRoute>
                       }
                     />
+                    <Route
+                      path="/afastamentos"
+                      element={
+                        <ProtectedRoute>
+                          <Afastamentos />
+                        </ProtectedRoute>
+                      }
+                    />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
