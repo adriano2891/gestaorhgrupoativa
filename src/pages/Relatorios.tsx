@@ -28,7 +28,7 @@ const Relatorios = () => {
   const { data: funcionarios } = useFuncionarios();
   const { data: registros } = useRegistrosPonto();
   const { data: holerites } = useHolerites();
-  const { data: ferias } = useFerias();
+  const { data: ferias } = useSolicitacoesFerias();
 
   const getReportData = () => {
     switch (selectedReport) {
