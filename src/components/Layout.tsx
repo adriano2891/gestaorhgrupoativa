@@ -30,6 +30,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const [isDark, setIsDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [agendaOpen, setAgendaOpen] = useState(false);
   const { signOut, profile, roles } = useAuth();
 
   const navItems = allNavItems.filter((item) => {
