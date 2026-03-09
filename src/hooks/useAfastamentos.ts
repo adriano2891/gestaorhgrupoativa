@@ -81,6 +81,7 @@ export const useCriarAfastamento = () => {
       documento_url?: string;
       observacoes?: string;
       suspende_periodo_aquisitivo?: boolean;
+      documento_url?: string;
     }) => {
       // Validação eSocial S-2230
       const validacao = validarAfastamento({
