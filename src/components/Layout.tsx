@@ -10,6 +10,7 @@ import loginBackground from "@/assets/login-background.png";
 import { AdminNotificationBell } from "./AdminNotificationBell";
 import { RHModuleBar, RH_PATHS } from "./RHModuleBar";
 import { RadioPlayer } from "./RadioPlayer";
+import { AgendaPanel } from "./agenda";
 
 const allNavItems = [
   { path: "/", label: "Dashboard", icon: "📊", allowedRoles: ["admin", "rh", "gestor"] },
