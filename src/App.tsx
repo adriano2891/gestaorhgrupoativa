@@ -46,6 +46,7 @@ const HRFlowPro = lazy(() => import("./pages/HRFlowPro"));
 const Documentacoes = lazy(() => import("./pages/Documentacoes"));
 const CursosAdmin = lazy(() => import("./pages/CursosAdmin"));
 const SuporteFuncionarios = lazy(() => import("./pages/SuporteFuncionarios"));
+const SaudeSeguranca = lazy(() => import("./pages/SaudeSeguranca"));
 
 
 const PortalCursoPlayerLazy = lazy(() => import("./components/ponto/PortalCursoPlayer").then(m => ({ default: m.PortalCursoPlayer })));
@@ -362,6 +363,18 @@ const App = () => {
                         </ProtectedRoute>
                       }
                     />
+                    <Route
+                      path="/saude-seguranca"
+                      element={
+                        <ProtectedRoute>
+                          <LazyLayout>
+                            <SaudeSeguranca />
+                          </LazyLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    {/* Redirect old /afastamentos to SST */}
+                    <Route path="/afastamentos" element={<Navigate to="/saude-seguranca" replace />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
