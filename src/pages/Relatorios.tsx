@@ -59,7 +59,12 @@ const Relatorios = () => {
   const { data: todosFuncionarios } = useQuery({
     queryKey: ["todos-funcionarios-turnover"],
     queryFn: async () => {
-      const roles: { user_id: string; role: string }[] = await restGet('user_roles?select=user_id,role');
+      // Step 1: Get all roles
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
+      if (rolesError) throw rolesError;
+
       const employeeIds = new Set<string>();
       const adminIds = new Set<string>();
       (roles || []).forEach(r => {
@@ -68,8 +73,15 @@ const Relatorios = () => {
       });
       const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
       if (targetIds.length === 0) return [];
-      const idsParam = targetIds.map(id => `"${id}"`).join(',');
-      const profiles: any[] = await restGet(`profiles?select=*&id=in.(${idsParam})&tipo_perfil=eq.funcionario&order=nome.asc&limit=2000`);
+
+      // Step 2: Fetch ALL profiles for these employees (no status filter for turnover)
+      const { data: profiles, error: profilesError } = await supabase
+        .from("profiles")
+        .select("*")
+        .in("id", targetIds)
+        .order("nome", { ascending: true });
+      if (profilesError) throw profilesError;
+
       return (profiles || []) as any[];
     },
     retry: 2,
