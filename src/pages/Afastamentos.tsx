@@ -42,10 +42,11 @@ const Afastamentos = () => {
   const encerrarAfastamento = useEncerrarAfastamento();
 
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [asoDialogOpen, setAsoDialogOpen] = useState(false);
   const [encerrarDialog, setEncerrarDialog] = useState<{ id: string; user_id: string } | null>(null);
   const [dataRetorno, setDataRetorno] = useState(new Date().toISOString().split("T")[0]);
 
-  // Form state
+  // Form state - Afastamento
   const [userId, setUserId] = useState("");
   const [tipo, setTipo] = useState("medico");
   const [dataInicio, setDataInicio] = useState(new Date().toISOString().split("T")[0]);
@@ -53,6 +54,16 @@ const Afastamentos = () => {
   const [cid, setCid] = useState("");
   const [numeroBeneficio, setNumeroBeneficio] = useState("");
   const [observacoes, setObservacoes] = useState("");
+
+  // Form state - ASO
+  const [asoUserId, setAsoUserId] = useState("");
+  const [asoTipo, setAsoTipo] = useState("periodico");
+  const [asoDataExame, setAsoDataExame] = useState(new Date().toISOString().split("T")[0]);
+  const [asoDataVencimento, setAsoDataVencimento] = useState("");
+  const [asoResultado, setAsoResultado] = useState("apto");
+  const [asoMedico, setAsoMedico] = useState("");
+  const [asoCrm, setAsoCrm] = useState("");
+  const [asoObs, setAsoObs] = useState("");
   const [suspende, setSuspende] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
