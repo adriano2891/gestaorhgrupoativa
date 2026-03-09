@@ -25,6 +25,7 @@ import iconFerias from "@/assets/icon-rh-ferias.png";
 import iconSuporte from "@/assets/icon-rh-suporte.png";
 import iconDocumentos from "@/assets/icon-rh-documentos.png";
 import iconSST from "@/assets/icon-rh-sst.png";
+import iconChecklist from "@/assets/icon-rh-checklist.png";
 
 interface ModuleItem {
   title: string;
@@ -82,6 +83,7 @@ const GestaoRH = () => {
     { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.4]", badgeKey: "/suporte-funcionarios" },
     { title: "Documentos", description: "Gestão de documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.4]" },
     { title: "Saúde e Segurança", description: "SST, Afastamentos e Licenças", iconSrc: iconSST, path: "/saude-seguranca", iconScale: "scale-[1.4]" },
+    { title: "Checklist Trabalhista", description: "Conformidade CLT e eSocial", iconSrc: iconChecklist, path: "/checklist-trabalhista", iconScale: "scale-[1.4]" },
   ];
 
   if (isSuperAdmin) {
@@ -117,6 +119,7 @@ const GestaoRH = () => {
     '/suporte-funcionarios': () => import("./SuporteFuncionarios"),
     '/documentacoes': () => import("./Documentacoes"),
     '/saude-seguranca': () => import("./SaudeSeguranca"),
+    '/checklist-trabalhista': () => import("./ChecklistTrabalhista"),
     '/admins': () => import("./GerenciarAdmins"),
   }), []);
 
