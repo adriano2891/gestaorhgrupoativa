@@ -660,11 +660,24 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                      (data.details && data.details.length > 0) || 
                      (data.charts && data.charts.length > 0);
 
+  // Period info from data (if available)
+  const periodInfo = data.summary?.["Período"] || data.summary?.["periodo"] || null;
+  const generatedDate = new Date(data.generatedAt);
+
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
-      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
-        <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
-        <span>Relatório gerado em {new Date(data.generatedAt).toLocaleString('pt-BR')}</span>
+      {/* Report header with period filter */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-card rounded-lg border border-border p-3 sm:p-4">
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+          <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+          <span>Relatório gerado em {generatedDate.toLocaleString('pt-BR')}</span>
+        </div>
+        {periodInfo && (
+          <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
+            <CalendarDays className="w-3.5 h-3.5" />
+            <span>Período: {periodInfo}</span>
+          </div>
+        )}
       </div>
       {!hasContent ? (
         <Card className="p-6 sm:p-8 text-center">
