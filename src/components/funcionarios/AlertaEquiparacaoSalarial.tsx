@@ -49,18 +49,18 @@ export const AlertaEquiparacaoSalarial = () => {
 
   return (
     <Card className="border-amber-300/50 h-full" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
-      <CardHeader className="p-2.5 sm:p-3 pb-1.5">
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <DollarSign className="h-4 w-4 text-amber-600 flex-shrink-0" />
-          <CardTitle className="text-sm font-semibold truncate">
-            Alerta Equiparação Salarial (CLT Art. 461)
+      <CardHeader className="p-2 pb-1">
+        <div className="flex items-center gap-1 flex-wrap">
+          <DollarSign className="h-3 w-3 text-amber-600 flex-shrink-0" />
+          <CardTitle className="text-[11px] font-semibold truncate">
+            Equiparação Salarial (Art. 461)
           </CardTitle>
-          <Badge className="bg-amber-500/10 text-amber-700 border-amber-300 text-[10px] px-1.5 py-0" variant="outline">
+          <Badge className="bg-amber-500/10 text-amber-700 border-amber-300 text-[9px] px-1 py-0" variant="outline">
             {alertas.length} cargo{alertas.length > 1 ? "s" : ""}
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="p-2.5 sm:p-3 pt-0">
+      <CardContent className="p-2 pt-0">
         <p className="text-[11px] text-muted-foreground mb-2 leading-tight">
           Funcionários com mesma função e diferenças salariais &gt;5%. Risco de ação judicial (CLT Art. 461).
         </p>
