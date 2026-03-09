@@ -1,7 +1,7 @@
 export const GlobalFooter = () => {
   return (
     <footer
-      className="py-1 text-center relative z-10 bg-gradient-to-r from-primary to-primary-dark safe-bottom px-3 sm:px-4 lg:px-6"
+      className="py-2 sm:py-2.5 text-center relative z-10 bg-gradient-to-r from-primary to-primary-dark safe-bottom px-3 sm:px-4 lg:px-6"
       role="contentinfo"
     >
       <p className="text-xs sm:text-sm text-primary-foreground/90 leading-tight" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
