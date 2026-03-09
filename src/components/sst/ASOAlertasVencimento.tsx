@@ -34,7 +34,19 @@ export const ASOAlertasVencimento = ({ asos }: ASOAlertasVencimentoProps) => {
 
   const total = alertas.vencidos.length + alertas.vencendo30.length + alertas.vencendo60.length;
 
-  if (asos.length === 0) return null;
+  if (asos.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+            <Stethoscope className="h-12 w-12 text-muted-foreground/40" />
+            <p className="text-lg font-medium text-muted-foreground">Nenhum ASO cadastrado</p>
+            <p className="text-sm text-muted-foreground/70">Cadastre exames ocupacionais (ASOs) no módulo de SST para visualizar alertas de vencimento aqui.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className={total > 0 ? "border-destructive/50" : "border-green-500/30"}>
