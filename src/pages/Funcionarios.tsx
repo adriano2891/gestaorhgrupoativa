@@ -414,6 +414,8 @@ const Funcionarios = () => {
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
           foto_url: await resolveFotoUrl(profile.foto_url),
           matricula: profile.matricula || null,
+          tipo_contrato: profile.tipo_contrato || "CLT",
+          cpf: profile.cpf || undefined,
         })));
 
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
