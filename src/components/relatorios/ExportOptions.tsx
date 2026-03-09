@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import ExcelJS from "exceljs";
+import html2canvas from "html2canvas";
 
 interface ExportOptionsProps {
   data: Record<string, unknown>[];
