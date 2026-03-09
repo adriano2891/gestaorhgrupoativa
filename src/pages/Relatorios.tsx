@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BackButton } from "@/components/ui/back-button";
-import { BarChart3, Download, Users, Clock, FileText, DollarSign, TrendingDown, Briefcase, Receipt, AlertCircle, CalendarDays, Heart, HardHat } from "lucide-react";
+import { BarChart3, Download, Users, Clock, FileText, TrendingDown, Briefcase, Receipt, AlertCircle, CalendarDays, Heart, HardHat } from "lucide-react";
 import { ReportSelector } from "@/components/relatorios/ReportSelector";
 import { ReportViewer } from "@/components/relatorios/ReportViewer";
 import { ReportFilters } from "@/components/relatorios/ReportFilters";
