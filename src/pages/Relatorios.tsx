@@ -1082,8 +1082,13 @@ const Relatorios = () => {
             return ref <= filters.dataFim.substring(0, 7);
           });
         }
+        if (filters.mes) {
+          data = data.filter((h: any) => String(h.mes) === filters.mes);
+        }
+        if (filters.ano) {
+          data = data.filter((h: any) => String(h.ano) === filters.ano);
+        }
 
-        // Enrich with employee data
         const funcMap = new Map((funcionarios || []).map((f: any) => [f.id, f]));
         if (filters.departamento && filters.departamento !== "todos") {
           data = data.filter((h: any) => {
@@ -1092,20 +1097,44 @@ const Relatorios = () => {
           });
         }
 
-        const totalProventos = data.reduce((acc: number, h: any) => acc + (parseFloat(h.salario_bruto) || 0), 0);
+        const totalBruto = data.reduce((acc: number, h: any) => acc + (parseFloat(h.salario_bruto) || 0), 0);
         const totalDescontos = data.reduce((acc: number, h: any) => acc + (parseFloat(h.descontos) || 0), 0);
         const totalLiquido = data.reduce((acc: number, h: any) => acc + (parseFloat(h.salario_liquido) || 0), 0);
         const totalINSS = data.reduce((acc: number, h: any) => acc + (parseFloat(h.inss) || 0), 0);
         const totalIRRF = data.reduce((acc: number, h: any) => acc + (parseFloat(h.irrf) || 0), 0);
         const totalFGTS = data.reduce((acc: number, h: any) => acc + (parseFloat(h.fgts) || 0), 0);
+        const encargosEstimados = totalBruto * 0.368;
         const totalColab = new Set(data.map((h: any) => h.user_id)).size;
 
-        // By department
-        const deptCusto: Record<string, number> = {};
+        // Benefícios dos funcionários presentes na folha
+        const empIds = new Set(data.map((h: any) => h.user_id));
+        const bensAtivos = (beneficios || []).filter((b: any) => empIds.has(b.user_id));
+        const totalBeneficios = bensAtivos.reduce((acc: number, b: any) => {
+          if (["plano_saude", "plano_odontologico"].includes(b.tipo)) return acc;
+          return acc + (b.valor || 0);
+        }, 0);
+        const totalPlanos = bensAtivos.filter((b: any) => ["plano_saude", "plano_odontologico"].includes(b.tipo)).length;
+
+        const custoTotal = totalBruto + encargosEstimados + totalBeneficios;
+        const custoMedio = totalColab > 0 ? custoTotal / totalColab : 0;
+        const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+
+        // Custo por departamento
+        const deptCusto: Record<string, { bruto: number; liquido: number; beneficios: number }> = {};
         data.forEach((h: any) => {
           const func = funcMap.get(h.user_id);
           const d = func?.departamento || "Sem Departamento";
-          deptCusto[d] = (deptCusto[d] || 0) + (parseFloat(h.salario_bruto) || 0);
+          if (!deptCusto[d]) deptCusto[d] = { bruto: 0, liquido: 0, beneficios: 0 };
+          deptCusto[d].bruto += parseFloat(h.salario_bruto) || 0;
+          deptCusto[d].liquido += parseFloat(h.salario_liquido) || 0;
+        });
+        bensAtivos.forEach((b: any) => {
+          const func = funcMap.get(b.user_id);
+          const d = func?.departamento || "Sem Departamento";
+          if (!deptCusto[d]) deptCusto[d] = { bruto: 0, liquido: 0, beneficios: 0 };
+          if (!["plano_saude", "plano_odontologico"].includes(b.tipo)) {
+            deptCusto[d].beneficios += b.valor || 0;
+          }
         });
 
         // Monthly trend
@@ -1117,20 +1146,34 @@ const Relatorios = () => {
           mesTrend[ref].liquido += parseFloat(h.salario_liquido) || 0;
         });
 
-        const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
+        // Tipo de benefício custo
+        const tipoBenCusto: Record<string, number> = {};
+        const tipoLabels: Record<string, string> = {
+          vale_transporte: "VT", vale_alimentacao: "VA", vale_refeicao: "VR",
+          plano_saude: "Plano Saúde", plano_odontologico: "Plano Odonto",
+        };
+        bensAtivos.forEach((b: any) => {
+          const t = tipoLabels[b.tipo] || b.tipo || "Outro";
+          tipoBenCusto[t] = (tipoBenCusto[t] || 0) + (b.valor || 0);
+        });
 
         setGeneratedData({
           generatedAt: now.toISOString(),
           summary: {
-            "Período": periodoLabel,
+            "Período": filters.mes && filters.ano ? `${filters.mes}/${filters.ano}` : periodoLabel,
             "Total Pagamentos": data.length,
             "Colaboradores": totalColab,
-            "Total Proventos": fmt(totalProventos),
+            "Total Proventos": fmt(totalBruto),
             "Total Descontos": fmt(totalDescontos),
             "INSS": fmt(totalINSS),
             "IRRF": fmt(totalIRRF),
             "FGTS": fmt(totalFGTS),
             "Remuneração Líquida": fmt(totalLiquido),
+            "Benefícios (VT/VA/VR)": fmt(totalBeneficios),
+            "Planos de Saúde/Odonto": `${totalPlanos} ativos`,
+            "Encargos Estimados (36.8%)": fmt(encargosEstimados),
+            "Custo Total Estimado": fmt(custoTotal),
+            "Custo Médio/Colaborador": fmt(custoMedio),
           },
           charts: [
             {
@@ -1138,7 +1181,7 @@ const Relatorios = () => {
               title: "Composição da Folha",
               description: "Proventos vs Descontos vs Líquido",
               data: [
-                { categoria: "Proventos", valor: parseFloat(totalProventos.toFixed(2)) },
+                { categoria: "Proventos", valor: parseFloat(totalBruto.toFixed(2)) },
                 { categoria: "Descontos", valor: parseFloat(totalDescontos.toFixed(2)) },
                 { categoria: "Líquido", valor: parseFloat(totalLiquido.toFixed(2)) },
               ],
@@ -1146,11 +1189,43 @@ const Relatorios = () => {
             },
             {
               type: "bar",
-              title: "Custo por Departamento",
-              description: "Salário bruto total por departamento",
-              data: Object.entries(deptCusto).map(([dept, valor]) => ({ departamento: dept, valor: parseFloat(valor.toFixed(2)) })),
+              title: "Custo Total por Departamento",
+              description: "Folha bruta + benefícios por departamento",
+              data: Object.entries(deptCusto).map(([dept, v]) => ({
+                departamento: dept,
+                Folha: parseFloat(v.bruto.toFixed(2)),
+                Benefícios: parseFloat(v.beneficios.toFixed(2)),
+              })),
               dataName: "R$",
             },
+            {
+              type: "pie",
+              title: "Composição do Custo Total",
+              description: "Distribuição entre proventos, encargos e benefícios",
+              data: [
+                { categoria: "Proventos", valor: parseFloat(totalBruto.toFixed(2)) },
+                { categoria: "Descontos", valor: parseFloat(totalDescontos.toFixed(2)) },
+                { categoria: "Encargos (36.8%)", valor: parseFloat(encargosEstimados.toFixed(2)) },
+                { categoria: "Benefícios", valor: parseFloat(totalBeneficios.toFixed(2)) },
+              ],
+            },
+            {
+              type: "pie",
+              title: "Encargos Trabalhistas",
+              description: "Distribuição INSS, IRRF e FGTS",
+              data: [
+                ...(totalINSS > 0 ? [{ encargo: "INSS", valor: parseFloat(totalINSS.toFixed(2)) }] : []),
+                ...(totalIRRF > 0 ? [{ encargo: "IRRF", valor: parseFloat(totalIRRF.toFixed(2)) }] : []),
+                ...(totalFGTS > 0 ? [{ encargo: "FGTS", valor: parseFloat(totalFGTS.toFixed(2)) }] : []),
+              ],
+            },
+            ...(Object.keys(tipoBenCusto).length > 0 ? [{
+              type: "bar",
+              title: "Custo por Tipo de Benefício",
+              description: "Distribuição dos custos com benefícios",
+              data: Object.entries(tipoBenCusto).map(([tipo, valor]) => ({ tipo, valor: parseFloat(valor.toFixed(2)) })),
+              dataName: "R$",
+            }] : []),
             {
               type: "bar",
               title: "Evolução Mensal",
@@ -1165,6 +1240,12 @@ const Relatorios = () => {
           ],
           details: data.slice(0, 100).map((h: any) => {
             const func = funcMap.get(h.user_id);
+            const empBens = bensAtivos.filter((b: any) => b.user_id === h.user_id);
+            const empBenTotal = empBens.reduce((acc: number, b: any) => {
+              if (["plano_saude", "plano_odontologico"].includes(b.tipo)) return acc;
+              return acc + (b.valor || 0);
+            }, 0);
+            const empEncargos = (parseFloat(h.salario_bruto) || 0) * 0.368;
             return {
               Funcionário: func?.nome || "-",
               Departamento: func?.departamento || "-",
@@ -1174,15 +1255,16 @@ const Relatorios = () => {
               INSS: fmt(parseFloat(h.inss) || 0),
               IRRF: fmt(parseFloat(h.irrf) || 0),
               FGTS: fmt(parseFloat(h.fgts) || 0),
+              Benefícios: fmt(empBenTotal),
+              Encargos: fmt(empEncargos),
               Descontos: fmt(parseFloat(h.descontos) || 0),
               Líquido: fmt(parseFloat(h.salario_liquido) || 0),
+              "Custo Total": fmt((parseFloat(h.salario_bruto) || 0) + empEncargos + empBenTotal),
             };
           }),
         });
         break;
       }
-
-      case "custo-folha": {
         let data = holerites || [];
         if (filters.mes) {
           data = data.filter((h: any) => String(h.mes) === filters.mes);
