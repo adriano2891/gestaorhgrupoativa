@@ -49,34 +49,34 @@ export const AlertaEquiparacaoSalarial = () => {
 
   return (
     <Card className="border-amber-300/50 h-full" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
-      <CardHeader className="p-2 pb-1">
-        <div className="flex items-center gap-1 flex-wrap">
-          <DollarSign className="h-3 w-3 text-amber-600 flex-shrink-0" />
-          <CardTitle className="text-[11px] font-semibold truncate">
+      <CardHeader className="p-3 pb-1.5">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <DollarSign className="h-4 w-4 text-amber-600 flex-shrink-0" />
+          <CardTitle className="text-sm font-semibold truncate">
             Equiparação Salarial (Art. 461)
           </CardTitle>
-          <Badge className="bg-amber-500/10 text-amber-700 border-amber-300 text-[9px] px-1 py-0" variant="outline">
+          <Badge className="bg-amber-500/10 text-amber-700 border-amber-300 text-[11px] px-1.5 py-0" variant="outline">
             {alertas.length} cargo{alertas.length > 1 ? "s" : ""}
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="p-2 pt-0">
-        <p className="text-[11px] text-muted-foreground mb-2 leading-tight">
+      <CardContent className="p-3 pt-0">
+        <p className="text-xs text-muted-foreground mb-2.5 leading-snug">
           Funcionários com mesma função e diferenças salariais &gt;5%. Risco de ação judicial (CLT Art. 461).
         </p>
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {alertas.map((alerta) => (
-            <div key={alerta.cargo} className="p-2 rounded-md border bg-amber-50/50 dark:bg-amber-950/10">
-              <div className="flex items-center gap-1.5 mb-1">
-                <AlertTriangle className="h-3 w-3 text-amber-600 flex-shrink-0" />
-                <span className="font-medium text-xs capitalize truncate">{alerta.cargo}</span>
-                <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+            <div key={alerta.cargo} className="p-2.5 rounded-md border bg-amber-50/50 dark:bg-amber-950/10">
+              <div className="flex items-center gap-1.5 mb-1.5">
+                <AlertTriangle className="h-3.5 w-3.5 text-amber-600 flex-shrink-0" />
+                <span className="font-medium text-sm capitalize truncate">{alerta.cargo}</span>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">
                   — {fmt(alerta.diferencaMax)}
                 </span>
               </div>
-              <div className="grid gap-0.5">
+              <div className="grid gap-1">
                 {alerta.funcionarios.map((f) => (
-                  <div key={f.nome} className="flex justify-between text-[11px]">
+                  <div key={f.nome} className="flex justify-between text-xs">
                     <span className="truncate mr-2">{f.nome}</span>
                     <span className="font-mono flex-shrink-0">{fmt(f.salario)}</span>
                   </div>
