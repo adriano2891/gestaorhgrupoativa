@@ -277,10 +277,36 @@ export const ConvencoesColetivasCard = () => {
                 <Input type="date" value={form.data_fim} onChange={e => setForm(p => ({ ...p, data_fim: e.target.value }))} />
               </div>
             </div>
+            <div>
+              <Label>Documento (PDF, DOC)</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx"
+                className="hidden"
+                onChange={e => setArquivo(e.target.files?.[0] || null)}
+              />
+              {arquivo ? (
+                <div className="flex items-center gap-2 mt-1 p-2 rounded-md border bg-muted/50">
+                  <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+                  <span className="text-xs truncate flex-1">{arquivo.name}</span>
+                  <Button type="button" variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => { setArquivo(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <Button type="button" variant="outline" size="sm" className="w-full mt-1 gap-1.5 text-xs" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="h-3.5 w-3.5" />
+                  Anexar documento
+                </Button>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAddConvencao}>Salvar</Button>
+            <Button onClick={handleAddConvencao} disabled={uploading}>
+              {uploading ? "Enviando..." : "Salvar"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
