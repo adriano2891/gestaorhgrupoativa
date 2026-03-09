@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,10 @@ import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { 
   Stethoscope, Plus, AlertTriangle, CheckCircle, 
-  Clock, Baby, HeartPulse
+  Clock, Baby, HeartPulse, Upload, FileText, X, Paperclip
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "@/hooks/use-toast";
 import { useAfastamentos, useCriarAfastamento, useEncerrarAfastamento, TIPOS_AFASTAMENTO } from "@/hooks/useAfastamentos";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { format, parseISO, differenceInDays } from "date-fns";
@@ -46,10 +48,36 @@ export const AfastamentosTab = () => {
   const [numeroBeneficio, setNumeroBeneficio] = useState("");
   const [observacoes, setObservacoes] = useState("");
   const [suspende, setSuspende] = useState(false);
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const sanitizeFileName = (name: string) =>
+    name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
+
+  const uploadDocumento = async (file: File): Promise<string | null> => {
+    const ext = file.name.split(".").pop();
+    const path = `afastamentos/${Date.now()}-${sanitizeFileName(file.name)}`;
+    const { error } = await supabase.storage.from("sst-documentos").upload(path, file);
+    if (error) {
+      toast({ title: "Erro no upload", description: error.message, variant: "destructive" });
+      return null;
+    }
+    return path;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId || !tipo || !dataInicio) return;
+
+    setUploading(true);
+    let documentoUrl: string | undefined;
+
+    if (arquivo) {
+      const path = await uploadDocumento(arquivo);
+      if (!path) { setUploading(false); return; }
+      documentoUrl = path;
+    }
 
     await criarAfastamento.mutateAsync({
       user_id: userId,
@@ -60,8 +88,10 @@ export const AfastamentosTab = () => {
       numero_beneficio: numeroBeneficio || undefined,
       observacoes: observacoes || undefined,
       suspende_periodo_aquisitivo: suspende,
+      documento_url: documentoUrl,
     });
 
+    setUploading(false);
     setDialogOpen(false);
     resetForm();
   };
@@ -75,6 +105,8 @@ export const AfastamentosTab = () => {
     setNumeroBeneficio("");
     setObservacoes("");
     setSuspende(false);
+    setArquivo(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const ativos = afastamentos?.filter(a => a.status === 'ativo') || [];
@@ -338,14 +370,47 @@ export const AfastamentosTab = () => {
             </div>
 
             <div className="space-y-2">
+              <Label>Documento / Atestado</Label>
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="hidden"
+                  onChange={(e) => setArquivo(e.target.files?.[0] || null)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4" />
+                  {arquivo ? "Trocar arquivo" : "Anexar documento"}
+                </Button>
+                {arquivo && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md">
+                    <FileText className="h-3 w-3" />
+                    <span className="max-w-[140px] truncate">{arquivo.name}</span>
+                    <button type="button" onClick={() => { setArquivo(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
+                      <X className="h-3 w-3 text-destructive" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground">PDF, JPG ou PNG (máx. 20MB)</p>
+            </div>
+
+            <div className="space-y-2">
               <Label>Observações</Label>
               <Textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} rows={2} />
             </div>
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={!userId || criarAfastamento.isPending}>
-                {criarAfastamento.isPending ? "Salvando..." : "Registrar"}
+              <Button type="submit" disabled={!userId || criarAfastamento.isPending || uploading}>
+                {uploading ? "Enviando..." : criarAfastamento.isPending ? "Salvando..." : "Registrar"}
               </Button>
             </DialogFooter>
           </form>

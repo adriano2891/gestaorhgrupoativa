@@ -121,6 +121,7 @@ export const useCriarAfastamento = () => {
         dias_inss: diasInss,
         registrado_por: registradoPor,
         status: 'ativo',
+        documento_url: data.documento_url || null,
       });
 
       // Update profile status to 'afastado'
