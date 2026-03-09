@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { FileText, Calculator } from "lucide-react";
+import { FileText, Calculator, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -26,6 +26,31 @@ const tipoRescisaoLabels: Record<string, string> = {
   acordo_mutuo: "Acordo Mútuo (Art. 484-A CLT)",
 };
 
+/**
+ * Verifica se o mês deve ser contado para 13º (regra dos 15 dias)
+ * Se trabalhou >= 15 dias no mês, conta o mês inteiro
+ */
+const calcularMeses13Proporcional = (admissao: Date, demissao: Date): number => {
+  const anoAtual = demissao.getFullYear();
+  const inicioAno = new Date(anoAtual, 0, 1);
+  const dataRef = admissao > inicioAno ? admissao : inicioAno;
+  
+  let meses = 0;
+  for (let m = dataRef.getMonth(); m <= demissao.getMonth(); m++) {
+    const inicioMes = new Date(anoAtual, m, 1);
+    const fimMes = new Date(anoAtual, m + 1, 0);
+    
+    const diaInicio = m === dataRef.getMonth() ? dataRef.getDate() : 1;
+    const diaFim = m === demissao.getMonth() ? demissao.getDate() : fimMes.getDate();
+    
+    const diasTrabalhados = diaFim - diaInicio + 1;
+    if (diasTrabalhados >= 15) {
+      meses++;
+    }
+  }
+  return meses;
+};
+
 export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: RescisaoCardProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tipoRescisao, setTipoRescisao] = useState("sem_justa_causa");
@@ -33,6 +58,7 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: Re
   const [avisoTrabalhado, setAvisoTrabalhado] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [resultado, setResultado] = useState<any>(null);
+  const [feriasVencidas, setFeriasVencidas] = useState(0); // Períodos completos não gozados
   const [saving, setSaving] = useState(false);
 
   const calcularRescisao = () => {
@@ -51,17 +77,24 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: Re
     const diasUltimoMes = demissao.getDate();
     const saldoSalario = salarioDiario * diasUltimoMes;
 
-    // Aviso prévio (30 dias + 3 dias por ano trabalhado, máx 90 dias)
+    // Aviso prévio (30 dias + 3 dias por ano trabalhado, máx 90 dias) - Art. 477 §1º
     const avisoPrevioDias = Math.min(30 + anosTrabalhados * 3, 90);
     let avisoPrevioValor = 0;
     if (tipoRescisao === "sem_justa_causa" && !avisoTrabalhado) {
       avisoPrevioValor = salarioDiario * avisoPrevioDias;
     } else if (tipoRescisao === "acordo_mutuo" && !avisoTrabalhado) {
-      avisoPrevioValor = (salarioDiario * avisoPrevioDias) * 0.5; // 50% no acordo
+      avisoPrevioValor = (salarioDiario * avisoPrevioDias) * 0.5;
+    }
+
+    // Projeção do aviso prévio indenizado (Súmula 371 TST)
+    // O período de aviso prévio indenizado projeta para cálculos de férias e 13º
+    let mesesProjetados = mesesTrabalhados;
+    if (!avisoTrabalhado && (tipoRescisao === "sem_justa_causa" || tipoRescisao === "acordo_mutuo")) {
+      mesesProjetados += Math.floor(avisoPrevioDias / 30);
     }
 
     // Férias proporcionais
-    const mesesDesdeUltimaFerias = mesesTrabalhados % 12;
+    const mesesDesdeUltimaFerias = mesesProjetados % 12;
     let feriasProp = 0;
     let tercoFerias = 0;
     if (tipoRescisao !== "com_justa_causa") {
@@ -69,10 +102,18 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: Re
       tercoFerias = feriasProp / 3;
     }
 
-    // 13º proporcional
-    const meses13 = demissao.getMonth() + 1;
+    // Férias vencidas em dobro (Art. 137 CLT)
+    let feriasVencidasValor = 0;
+    let tercoFeriasVencidas = 0;
+    if (feriasVencidas > 0) {
+      feriasVencidasValor = salarioBase * feriasVencidas * 2; // Pagamento em DOBRO
+      tercoFeriasVencidas = (salarioBase * feriasVencidas * 2) / 3; // 1/3 sobre o dobro
+    }
+
+    // 13º proporcional - Regra dos 15 dias (Art. 1º Lei 4.090/62)
     let decimoTerceiro = 0;
     if (tipoRescisao !== "com_justa_causa") {
+      const meses13 = calcularMeses13Proporcional(admissao, demissao);
       decimoTerceiro = (salarioBase / 12) * meses13;
     }
 
@@ -82,10 +123,10 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: Re
     if (tipoRescisao === "sem_justa_causa") {
       multaFgts = fgtsTotal * 0.4;
     } else if (tipoRescisao === "acordo_mutuo") {
-      multaFgts = fgtsTotal * 0.2; // 20% no acordo
+      multaFgts = fgtsTotal * 0.2;
     }
 
-    const total = saldoSalario + avisoPrevioValor + feriasProp + tercoFerias + decimoTerceiro + multaFgts;
+    const total = saldoSalario + avisoPrevioValor + feriasProp + tercoFerias + feriasVencidasValor + tercoFeriasVencidas + decimoTerceiro + multaFgts;
 
     setResultado({
       saldoSalario: Math.round(saldoSalario * 100) / 100,
@@ -93,10 +134,13 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: Re
       avisoPrevioValor: Math.round(avisoPrevioValor * 100) / 100,
       feriasProp: Math.round(feriasProp * 100) / 100,
       tercoFerias: Math.round(tercoFerias * 100) / 100,
+      feriasVencidasValor: Math.round(feriasVencidasValor * 100) / 100,
+      tercoFeriasVencidas: Math.round(tercoFeriasVencidas * 100) / 100,
       decimoTerceiro: Math.round(decimoTerceiro * 100) / 100,
       multaFgts: Math.round(multaFgts * 100) / 100,
       total: Math.round(total * 100) / 100,
       mesesTrabalhados,
+      projecaoAviso: !avisoTrabalhado && (tipoRescisao === "sem_justa_causa" || tipoRescisao === "acordo_mutuo"),
     });
   };
 
@@ -178,6 +222,21 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: Re
             </div>
 
             <div className="space-y-1.5">
+              <Label>Períodos de férias vencidas (não gozadas)</Label>
+              <Input 
+                type="number" 
+                min="0" 
+                value={feriasVencidas} 
+                onChange={(e) => setFeriasVencidas(parseInt(e.target.value) || 0)}
+                placeholder="0"
+              />
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3 text-amber-500" />
+                Férias vencidas são pagas em dobro (Art. 137 CLT)
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
               <Label>Motivo</Label>
               <Textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Motivo da rescisão..." className="min-h-[60px]" />
             </div>
@@ -190,6 +249,11 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: Re
               <Card className="border-primary/30">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm">Resultado — {resultado.mesesTrabalhados} meses trabalhados</CardTitle>
+                  {resultado.projecaoAviso && (
+                    <p className="text-xs text-muted-foreground">
+                      * Aviso prévio indenizado projeta tempo de serviço para férias e 13º (Súmula 371 TST)
+                    </p>
+                  )}
                 </CardHeader>
                 <CardContent>
                   <Table>
@@ -197,8 +261,24 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: Re
                       <TableRow><TableCell>Saldo de Salário</TableCell><TableCell className="text-right">{fmt(resultado.saldoSalario)}</TableCell></TableRow>
                       <TableRow><TableCell>Aviso Prévio ({resultado.avisoPrevioDias} dias)</TableCell><TableCell className="text-right">{fmt(resultado.avisoPrevioValor)}</TableCell></TableRow>
                       <TableRow><TableCell>Férias Proporcionais</TableCell><TableCell className="text-right">{fmt(resultado.feriasProp)}</TableCell></TableRow>
-                      <TableRow><TableCell>1/3 Constitucional</TableCell><TableCell className="text-right">{fmt(resultado.tercoFerias)}</TableCell></TableRow>
-                      <TableRow><TableCell>13º Proporcional</TableCell><TableCell className="text-right">{fmt(resultado.decimoTerceiro)}</TableCell></TableRow>
+                      <TableRow><TableCell>1/3 Constitucional (proporcionais)</TableCell><TableCell className="text-right">{fmt(resultado.tercoFerias)}</TableCell></TableRow>
+                      {resultado.feriasVencidasValor > 0 && (
+                        <>
+                          <TableRow className="bg-amber-50 dark:bg-amber-950/30">
+                            <TableCell className="text-amber-700 dark:text-amber-400">
+                              Férias Vencidas em Dobro (Art. 137)
+                            </TableCell>
+                            <TableCell className="text-right text-amber-700 dark:text-amber-400">{fmt(resultado.feriasVencidasValor)}</TableCell>
+                          </TableRow>
+                          <TableRow className="bg-amber-50 dark:bg-amber-950/30">
+                            <TableCell className="text-amber-700 dark:text-amber-400">
+                              1/3 Constitucional (vencidas)
+                            </TableCell>
+                            <TableCell className="text-right text-amber-700 dark:text-amber-400">{fmt(resultado.tercoFeriasVencidas)}</TableCell>
+                          </TableRow>
+                        </>
+                      )}
+                      <TableRow><TableCell>13º Proporcional (regra 15 dias)</TableCell><TableCell className="text-right">{fmt(resultado.decimoTerceiro)}</TableCell></TableRow>
                       <TableRow><TableCell>Multa FGTS</TableCell><TableCell className="text-right">{fmt(resultado.multaFgts)}</TableCell></TableRow>
                       <TableRow className="font-bold border-t-2">
                         <TableCell>TOTAL RESCISÃO</TableCell>
