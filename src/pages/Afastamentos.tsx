@@ -66,6 +66,9 @@ const Afastamentos = () => {
   const [asoMedico, setAsoMedico] = useState("");
   const [asoCrm, setAsoCrm] = useState("");
   const [asoObs, setAsoObs] = useState("");
+  const [asoArquivo, setAsoArquivo] = useState<File | null>(null);
+  const [asoUploading, setAsoUploading] = useState(false);
+  const asoFileInputRef = useRef<HTMLInputElement>(null);
   const [suspende, setSuspende] = useState(false);
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
