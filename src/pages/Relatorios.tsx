@@ -226,43 +226,112 @@ const Relatorios = () => {
         if (filters.colaborador && filters.colaborador !== "todos") {
           data = data.filter((r: any) => r.user_id === filters.colaborador);
         }
+        if (filters.escala && filters.escala !== "todos") {
+          const funcIds = new Set((funcionarios || []).filter((f: any) => f.escala === filters.escala).map((f: any) => f.id));
+          data = data.filter((r: any) => funcIds.has(r.user_id));
+        }
+        if (filters.turno && filters.turno !== "todos") {
+          const funcIds = new Set((funcionarios || []).filter((f: any) => f.turno === filters.turno).map((f: any) => f.id));
+          data = data.filter((r: any) => funcIds.has(r.user_id));
+        }
+
+        // Build employee lookup for enrichment
+        const funcMap = new Map((funcionarios || []).map((f: any) => [f.id, f]));
 
         if (selectedReport === "faltas") {
+          // Faltas: days without entry record
           const faltas = data.filter((r: any) => !r.entrada);
+          // Atrasos: extract hour from timestamptz entrada
           const atrasos = data.filter((r: any) => {
             if (!r.entrada) return false;
-            const hora = parseInt(r.entrada.split(":")[0] || "0");
-            return hora > 8;
+            try {
+              const entradaDate = new Date(r.entrada);
+              const hora = entradaDate.getHours();
+              const minutos = entradaDate.getMinutes();
+              // Consider late if arrived after 08:10 (10min tolerance per CLT Art. 58 §1º)
+              return hora > 8 || (hora === 8 && minutos > 10);
+            } catch {
+              return false;
+            }
           });
+
+          // Cross-reference: employees with NO records at all in the period
+          const empComRegistro = new Set(data.map((r: any) => r.user_id));
+          const funcsAtivos = (funcionarios || []).filter((f: any) => {
+            const st = (f.status || "ativo").toLowerCase();
+            return st !== "demitido" && st !== "pediu_demissao";
+          });
+          const semRegistro = funcsAtivos.filter((f: any) => !empComRegistro.has(f.id));
+
           const deptFaltas: Record<string, number> = {};
           faltas.forEach((r: any) => {
             const d = r.profiles?.departamento || "Sem Departamento";
             deptFaltas[d] = (deptFaltas[d] || 0) + 1;
           });
+
+          const deptAtrasos: Record<string, number> = {};
+          atrasos.forEach((r: any) => {
+            const d = r.profiles?.departamento || "Sem Departamento";
+            deptAtrasos[d] = (deptAtrasos[d] || 0) + 1;
+          });
+
+          // Combined chart data
+          const allDepts = [...new Set([...Object.keys(deptFaltas), ...Object.keys(deptAtrasos)])];
+
           setGeneratedData({
             generatedAt: now.toISOString(),
             summary: {
               "Período": periodoLabel,
               "Total Registros": data.length,
+              "Colaboradores Analisados": new Set(data.map((r: any) => r.user_id)).size,
               "Faltas": faltas.length,
               "Atrasos": atrasos.length,
               "Taxa de Faltas": data.length > 0 ? `${((faltas.length / data.length) * 100).toFixed(1)}%` : "0%",
+              "Sem Registros no Período": semRegistro.length,
             },
             charts: [
               {
                 type: "bar",
                 title: "Faltas por Departamento",
                 description: "Distribuição de faltas por departamento",
-                data: Object.entries(deptFaltas).map(([dept, count]) => ({ departamento: dept, valor: count })),
+                data: allDepts.map(dept => ({ departamento: dept, Faltas: deptFaltas[dept] || 0, Atrasos: deptAtrasos[dept] || 0 })),
                 dataName: "Faltas",
               },
+              {
+                type: "pie",
+                title: "Proporção Faltas vs Atrasos",
+                description: "Comparativo entre faltas e atrasos",
+                data: [
+                  { tipo: "Faltas", valor: faltas.length },
+                  { tipo: "Atrasos", valor: atrasos.length },
+                ],
+              },
             ],
-            details: faltas.slice(0, 100).map((r: any) => ({
-              Funcionário: r.profiles?.nome || "-",
-              Data: r.data || "-",
-              Departamento: r.profiles?.departamento || "-",
-              Tipo: "Falta",
-            })),
+            details: [
+              ...faltas.slice(0, 50).map((r: any) => ({
+                Funcionário: r.profiles?.nome || funcMap.get(r.user_id)?.nome || "-",
+                Data: r.data || "-",
+                Departamento: r.profiles?.departamento || funcMap.get(r.user_id)?.departamento || "-",
+                Cargo: funcMap.get(r.user_id)?.cargo || "-",
+                Ocorrência: "Falta",
+                "Horário Entrada": "-",
+              })),
+              ...atrasos.slice(0, 50).map((r: any) => {
+                let horaStr = "-";
+                try {
+                  const d = new Date(r.entrada);
+                  horaStr = `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+                } catch {}
+                return {
+                  Funcionário: r.profiles?.nome || funcMap.get(r.user_id)?.nome || "-",
+                  Data: r.data || "-",
+                  Departamento: r.profiles?.departamento || funcMap.get(r.user_id)?.departamento || "-",
+                  Cargo: funcMap.get(r.user_id)?.cargo || "-",
+                  Ocorrência: "Atraso",
+                  "Horário Entrada": horaStr,
+                };
+              }),
+            ],
           });
         } else if (selectedReport === "absenteismo") {
           const deptStats: Record<string, { total: number; ausencias: number }> = {};
@@ -273,11 +342,13 @@ const Relatorios = () => {
             if (!r.entrada) deptStats[d].ausencias++;
           });
           const totalAusencias = data.filter((r: any) => !r.entrada).length;
+          const totalColab = new Set(data.map((r: any) => r.user_id)).size;
           setGeneratedData({
             generatedAt: now.toISOString(),
             summary: {
               "Período": periodoLabel,
               "Total Registros": data.length,
+              "Colaboradores": totalColab,
               "Total Ausências": totalAusencias,
               "Taxa de Absenteísmo": data.length > 0 ? `${((totalAusencias / data.length) * 100).toFixed(1)}%` : "0%",
             },
@@ -294,9 +365,10 @@ const Relatorios = () => {
               },
             ],
             details: data.filter((r: any) => !r.entrada).slice(0, 100).map((r: any) => ({
-              Funcionário: r.profiles?.nome || "-",
+              Funcionário: r.profiles?.nome || funcMap.get(r.user_id)?.nome || "-",
               Data: r.data || "-",
-              Departamento: r.profiles?.departamento || "-",
+              Departamento: r.profiles?.departamento || funcMap.get(r.user_id)?.departamento || "-",
+              Cargo: funcMap.get(r.user_id)?.cargo || "-",
             })),
           });
         } else {
@@ -306,12 +378,15 @@ const Relatorios = () => {
             const d = r.profiles?.departamento || "Sem Departamento";
             deptHoras[d] = (deptHoras[d] || 0) + 1;
           });
+          const totalColab = new Set(data.map((r: any) => r.user_id)).size;
+          const comHE = data.filter((r: any) => r.horas_extras && r.horas_extras !== "00:00:00").length;
           setGeneratedData({
             generatedAt: now.toISOString(),
             summary: {
               "Período": periodoLabel,
               "Total Registros": data.length,
-              "Colaboradores": new Set(data.map((r: any) => r.user_id)).size,
+              "Colaboradores": totalColab,
+              "Registros com Horas Extras": comHE,
             },
             charts: [
               {
@@ -322,16 +397,24 @@ const Relatorios = () => {
                 dataName: "Registros",
               },
             ],
-            details: data.slice(0, 100).map((r: any) => ({
-              Funcionário: r.profiles?.nome || "-",
-              Data: r.data || "-",
-              Entrada: r.entrada || "-",
-              "Saída Almoço": r.saida_almoco || "-",
-              "Retorno Almoço": r.retorno_almoco || "-",
-              Saída: r.saida || "-",
-              "Total Horas": r.total_horas || "-",
-              "Horas Extras": r.horas_extras || "-",
-            })),
+            details: data.slice(0, 100).map((r: any) => {
+              let entradaStr = "-", saidaStr = "-", sAlmocoStr = "-", rAlmocoStr = "-";
+              try { if (r.entrada) { const d = new Date(r.entrada); entradaStr = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; } } catch {}
+              try { if (r.saida) { const d = new Date(r.saida); saidaStr = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; } } catch {}
+              try { if (r.saida_almoco) { const d = new Date(r.saida_almoco); sAlmocoStr = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; } } catch {}
+              try { if (r.retorno_almoco) { const d = new Date(r.retorno_almoco); rAlmocoStr = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; } } catch {}
+              return {
+                Funcionário: r.profiles?.nome || funcMap.get(r.user_id)?.nome || "-",
+                Data: r.data || "-",
+                Departamento: r.profiles?.departamento || funcMap.get(r.user_id)?.departamento || "-",
+                Entrada: entradaStr,
+                "S. Almoço": sAlmocoStr,
+                "R. Almoço": rAlmocoStr,
+                Saída: saidaStr,
+                "Total Horas": r.total_horas || "-",
+                "Horas Extras": r.horas_extras || "-",
+              };
+            }),
           });
         }
         break;
