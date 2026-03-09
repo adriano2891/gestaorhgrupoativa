@@ -55,7 +55,7 @@ const calcularMeses13Proporcional = (admissao: Date, demissao: Date): number => 
   return meses;
 };
 
-export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: RescisaoCardProps) => {
+export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao, cpf, cargo }: RescisaoCardProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tipoRescisao, setTipoRescisao] = useState("sem_justa_causa");
   const [dataDemissao, setDataDemissao] = useState(new Date().toISOString().split("T")[0]);
