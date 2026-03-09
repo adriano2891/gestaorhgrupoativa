@@ -14,8 +14,9 @@ import { BackButton } from "@/components/ui/back-button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Stethoscope, Plus, Calendar, AlertTriangle, CheckCircle, 
-  Clock, Baby, HeartPulse, Shield, FileText
+  Clock, Baby, HeartPulse, Shield, FileText, Paperclip, X, Upload, Loader2
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAfastamentos, useCriarAfastamento, useEncerrarAfastamento, TIPOS_AFASTAMENTO } from "@/hooks/useAfastamentos";
 import { useASOs, useCreateASO } from "@/hooks/useSST";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
