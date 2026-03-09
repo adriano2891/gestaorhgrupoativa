@@ -169,6 +169,13 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                   <TableCell>
                     {isPlanoType(b.tipo) ? (
                       <span className="text-sm font-medium">{b.observacoes || "—"}</span>
+                    ) : isAdicionalType(b.tipo) ? (
+                      <span className="text-sm font-medium">
+                        {b.tipo === "insalubridade" 
+                          ? `Grau ${b.observacoes === "minimo" ? "Mínimo (10%)": b.observacoes === "maximo" ? "Máximo (40%)" : "Médio (20%)"}`
+                          : "30% do salário base"
+                        }
+                      </span>
                     ) : (
                       <>R$ {b.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</>
                     )}
