@@ -540,7 +540,19 @@ const Funcionarios = () => {
     const channel = supabase
       .channel('profiles-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-        if (mounted) fetchEmployees();
+        if (!mounted) return;
+
+        if (recentlyAddedRef.current || Date.now() < propagationGuardUntilRef.current) {
+          if (propagationRetryTimeoutRef.current !== null) {
+            window.clearTimeout(propagationRetryTimeoutRef.current);
+          }
+          propagationRetryTimeoutRef.current = window.setTimeout(() => {
+            if (mounted) fetchEmployees().catch(console.error);
+          }, 1200);
+          return;
+        }
+
+        fetchEmployees().catch(console.error);
       })
       .subscribe();
 
@@ -548,6 +560,10 @@ const Funcionarios = () => {
       mounted = false;
       clearTimeout(t1);
       clearTimeout(t2);
+      if (propagationRetryTimeoutRef.current !== null) {
+        window.clearTimeout(propagationRetryTimeoutRef.current);
+        propagationRetryTimeoutRef.current = null;
+      }
       authSub.unsubscribe();
       supabase.removeChannel(channel);
     };
