@@ -1198,8 +1198,14 @@ const Funcionarios = () => {
         tipo_contrato: "CLT",
       });
       
-      // Optimistic update: add employee to list immediately
+      // Optimistic update: add employee to list imediatamente e proteger sincronização
       recentlyAddedRef.current = true;
+      propagationGuardUntilRef.current = Date.now() + 20000;
+      pendingNewEmployeeIdRef.current = newUserId || null;
+      if (propagationRetryTimeoutRef.current !== null) {
+        window.clearTimeout(propagationRetryTimeoutRef.current);
+      }
+
       if (newUserId) {
         const optimisticEmployee: Employee = {
           id: newUserId,
@@ -1230,12 +1236,11 @@ const Funcionarios = () => {
       setNewPhotoFile(null);
       setNewPhotoPreview(null);
       setIsAddDialogOpen(false);
-      
-      // Delayed background refresh to allow role propagation
-      setTimeout(() => {
-        recentlyAddedRef.current = false;
+
+      // Inicia revalidação em background sem limpar lista durante propagação
+      propagationRetryTimeoutRef.current = window.setTimeout(() => {
         fetchEmployees().catch(console.error);
-      }, 3000);
+      }, 1200);
     } catch (error: any) {
       console.error("Erro ao adicionar funcionário:", error);
       
