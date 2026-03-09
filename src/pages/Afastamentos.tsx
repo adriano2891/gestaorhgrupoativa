@@ -66,10 +66,34 @@ const Afastamentos = () => {
   const [asoCrm, setAsoCrm] = useState("");
   const [asoObs, setAsoObs] = useState("");
   const [suspende, setSuspende] = useState(false);
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const sanitizeFileName = (name: string) =>
+    name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '-').toLowerCase();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId || !tipo || !dataInicio) return;
+
+    let documentoUrl: string | undefined;
+
+    if (arquivo) {
+      setUploading(true);
+      try {
+        const sanitized = sanitizeFileName(arquivo.name);
+        const path = `afastamentos/${userId}/${Date.now()}_${sanitized}`;
+        const { error } = await supabase.storage.from('documentos').upload(path, arquivo);
+        if (error) throw error;
+        documentoUrl = path;
+      } catch (err: any) {
+        toast({ title: "Erro no upload", description: err.message, variant: "destructive" });
+        setUploading(false);
+        return;
+      }
+      setUploading(false);
+    }
 
     await criarAfastamento.mutateAsync({
       user_id: userId,
@@ -80,6 +104,7 @@ const Afastamentos = () => {
       numero_beneficio: numeroBeneficio || undefined,
       observacoes: observacoes || undefined,
       suspende_periodo_aquisitivo: suspende,
+      documento_url: documentoUrl,
     });
 
     setDialogOpen(false);
@@ -95,6 +120,7 @@ const Afastamentos = () => {
     setNumeroBeneficio("");
     setObservacoes("");
     setSuspende(false);
+    setArquivo(null);
   };
 
   const ativos = afastamentos?.filter(a => a.status === 'ativo') || [];
