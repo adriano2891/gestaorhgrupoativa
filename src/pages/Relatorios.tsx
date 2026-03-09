@@ -38,6 +38,17 @@ const Relatorios = () => {
   const { data: registros } = useRegistrosPonto();
   const { data: holerites } = useHolerites();
   const { data: ferias } = useSolicitacoesFerias();
+  const { data: beneficios } = useQuery({
+    queryKey: ["beneficios-relatorio"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("beneficios_funcionario")
+        .select("*")
+        .eq("ativo", true);
+      if (error) throw error;
+      return data || [];
+    },
+  });
 
   const selectedReportInfo = reportOptions.find(r => r.id === selectedReport);
 
