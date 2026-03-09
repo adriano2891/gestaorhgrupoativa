@@ -646,6 +646,7 @@ const Relatorios = () => {
 
         const total = filtered.length;
         const statusNorm = (f: any) => (f.status || "ativo").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const isEmFerias = (st: string) => st === "em_ferias" || st === "ferias";
 
         const desligados = filtered.filter((f: any) => {
           const st = statusNorm(f);
@@ -659,7 +660,7 @@ const Relatorios = () => {
           const st = statusNorm(f);
           return st === "ativo" || st === "";
         });
-        const emFerias = naoDesligados.filter((f: any) => statusNorm(f) === "em_ferias");
+        const emFerias = naoDesligados.filter((f: any) => isEmFerias(statusNorm(f)));
         const afastados = naoDesligados.filter((f: any) => statusNorm(f) === "afastado");
         const outrosStatus = naoDesligados.filter((f: any) => {
           const st = statusNorm(f);
