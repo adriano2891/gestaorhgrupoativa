@@ -76,24 +76,6 @@ const Relatorios = () => {
         </div>
       </div>
 
-      {/* Checklist de Conformidade */}
-      <Card className="border-primary/30 bg-primary/5">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center gap-2" style={{ fontFamily: 'Arial, sans-serif' }}>
-            <ShieldCheck className="h-5 w-5 text-primary" />
-            Checklist de Conformidade CLT
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground mb-3" style={{ fontFamily: 'Arial, sans-serif' }}>
-            66 requisitos legais · 59 implementados (89%) · Jornada, Remuneração, Férias, Rescisão, SST e mais
-          </p>
-          <Button size="sm" className="gap-2" onClick={() => gerarPdfChecklistConformidade()}>
-            <Download className="h-4 w-4" />
-            Baixar PDF Completo
-          </Button>
-        </CardContent>
-      </Card>
 
       {/* Report Selector com cards categorizados */}
       <ReportSelector reports={reportOptions} onSelectReport={setSelectedReport} />
