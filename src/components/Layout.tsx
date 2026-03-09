@@ -263,6 +263,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           {children}
         </main>
       </div>
+
+      <AgendaPanel open={agendaOpen} onOpenChange={setAgendaOpen} />
     </div>
   );
 };
