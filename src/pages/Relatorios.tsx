@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BackButton } from "@/components/ui/back-button";
-import { BarChart3, Download, ShieldCheck, Users, Clock, FileText, DollarSign, TrendingDown, HeartPulse, Briefcase, Receipt, AlertCircle, CalendarDays, Heart } from "lucide-react";
+import { BarChart3, Download, ShieldCheck, Users, Clock, FileText, DollarSign, TrendingDown, HeartPulse, Briefcase, Receipt, AlertCircle, CalendarDays, Heart, HardHat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { gerarPdfChecklistConformidade } from "@/utils/checklistConformidadePdf";
 import { ReportSelector } from "@/components/relatorios/ReportSelector";
@@ -21,6 +21,7 @@ const reportOptions = [
   { id: "desempenho", name: "Desempenho", icon: BarChart3, category: "Indicadores", description: "Avaliações de performance e metas dos colaboradores" },
   { id: "beneficios", name: "Benefícios", icon: Heart, category: "Bem-estar", description: "Relatório de benefícios por funcionário" },
   { id: "clima", name: "Clima Organizacional", icon: HeartPulse, category: "Bem-estar", description: "Pesquisas de clima e índices de satisfação" },
+  { id: "sst", name: "Saúde e Segurança", icon: HardHat, category: "Bem-estar", description: "Relatório de SST, ASOs, EPIs e CATs" },
   { id: "holerites", name: "Folha de Pagamento", icon: FileText, category: "Custos", description: "Resumo da folha com proventos, descontos e líquido" },
   { id: "custo-folha", name: "Custo de Folha de Ponto", icon: DollarSign, category: "Custos", description: "Análise de custos com folha, encargos e benefícios" },
 ];
