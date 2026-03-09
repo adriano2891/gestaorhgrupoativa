@@ -35,16 +35,14 @@ const rhModules: RHModule[] = [
   { title: "Formulários", iconSrc: iconFormularios, path: "/hrflow-pro", iconScale: "scale-[1.3]" },
   { title: "Cursos", iconSrc: iconCursos, path: "/cursos", iconScale: "scale-[1.3]" },
   { title: "Controle de Férias", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
-  { title: "Suporte", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.3]" },
-  { title: "Documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.3]" },
-  { title: "Saúde e Segurança", iconSrc: iconSST, path: "/saude-seguranca", iconScale: "scale-[1.3]" },
-];
+   { title: "Suporte", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.3]" },
+   { title: "Documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.3]" },
+ ];
 
 const rhPaths = new Set(rhModules.map(m => m.path));
 rhPaths.add("/admins");
-rhPaths.add("/gestao-rh");
-rhPaths.add("/formularios-rh");
-rhPaths.add("/saude-seguranca");
+ rhPaths.add("/gestao-rh");
+ rhPaths.add("/formularios-rh");
 
 export const RH_PATHS = rhPaths;
 
@@ -81,11 +79,10 @@ export const RHModuleBar = () => {
     '/hrflow-pro': () => import("@/pages/HRFlowPro"),
     '/cursos': () => import("@/pages/CursosAdmin"),
     '/controle-ferias': () => import("@/pages/ControleFerias"),
-    '/suporte-funcionarios': () => import("@/pages/SuporteFuncionarios"),
-    '/documentacoes': () => import("@/pages/Documentacoes"),
-    '/saude-seguranca': () => import("@/pages/SaudeSeguranca"),
-    '/admins': () => import("@/pages/GerenciarAdmins"),
-  }), []);
+     '/suporte-funcionarios': () => import("@/pages/SuporteFuncionarios"),
+     '/documentacoes': () => import("@/pages/Documentacoes"),
+     '/admins': () => import("@/pages/GerenciarAdmins"),
+   }), []);
 
   const handlePrefetch = useCallback((path: string) => {
     prefetchMap[path]?.();

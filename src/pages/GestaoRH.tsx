@@ -82,7 +82,6 @@ const GestaoRH = () => {
     { title: "Controle de Férias", description: "Férias e licenças", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
     { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.4]", badgeKey: "/suporte-funcionarios" },
     { title: "Documentos", description: "Gestão de documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.4]" },
-    { title: "Saúde e Segurança", description: "SST, Afastamentos e Licenças", iconSrc: iconSST, path: "/saude-seguranca", iconScale: "scale-[1.4]" },
     
   ];
 
@@ -118,7 +117,6 @@ const GestaoRH = () => {
     '/controle-ferias': () => import("./ControleFerias"),
     '/suporte-funcionarios': () => import("./SuporteFuncionarios"),
     '/documentacoes': () => import("./Documentacoes"),
-    '/saude-seguranca': () => import("./SaudeSeguranca"),
     
     '/admins': () => import("./GerenciarAdmins"),
   }), []);
