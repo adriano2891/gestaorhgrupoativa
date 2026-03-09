@@ -190,10 +190,6 @@ const Relatorios = () => {
       category: "Custos",
       description: "Custos detalhados por colaborador",
     },
-    {
-      id: "saude-seguranca",
-      name: "Saúde e Segurança",
-      icon: Heart,
       category: "Bem-estar",
       description: "Incidentes e afastamentos",
     },
