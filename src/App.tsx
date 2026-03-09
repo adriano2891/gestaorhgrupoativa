@@ -372,6 +372,16 @@ const App = () => {
                         </ProtectedRoute>
                       }
                     />
+                    <Route
+                      path="/afastamentos"
+                      element={
+                        <ProtectedRoute>
+                          <LazyLayout>
+                            <Afastamentos />
+                          </LazyLayout>
+                        </ProtectedRoute>
+                      }
+                    />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
