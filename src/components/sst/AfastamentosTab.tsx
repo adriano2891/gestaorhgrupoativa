@@ -370,14 +370,47 @@ export const AfastamentosTab = () => {
             </div>
 
             <div className="space-y-2">
+              <Label>Documento / Atestado</Label>
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  className="hidden"
+                  onChange={(e) => setArquivo(e.target.files?.[0] || null)}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-2"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4" />
+                  {arquivo ? "Trocar arquivo" : "Anexar documento"}
+                </Button>
+                {arquivo && (
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground bg-muted px-2 py-1 rounded-md">
+                    <FileText className="h-3 w-3" />
+                    <span className="max-w-[140px] truncate">{arquivo.name}</span>
+                    <button type="button" onClick={() => { setArquivo(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
+                      <X className="h-3 w-3 text-destructive" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground">PDF, JPG ou PNG (máx. 20MB)</p>
+            </div>
+
+            <div className="space-y-2">
               <Label>Observações</Label>
               <Textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} rows={2} />
             </div>
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-              <Button type="submit" disabled={!userId || criarAfastamento.isPending}>
-                {criarAfastamento.isPending ? "Salvando..." : "Registrar"}
+              <Button type="submit" disabled={!userId || criarAfastamento.isPending || uploading}>
+                {uploading ? "Enviando..." : criarAfastamento.isPending ? "Salvando..." : "Registrar"}
               </Button>
             </DialogFooter>
           </form>
