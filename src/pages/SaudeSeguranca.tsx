@@ -1,12 +1,13 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BackButton } from "@/components/ui/back-button";
-import { Shield, Stethoscope, HardHat, AlertTriangle, Users, HeartPulse } from "lucide-react";
+import { Shield, Stethoscope, HardHat, AlertTriangle, Users, HeartPulse, FileCheck } from "lucide-react";
 import { ASOTab } from "@/components/sst/ASOTab";
 import { EPITab } from "@/components/sst/EPITab";
 import { CATTab } from "@/components/sst/CATTab";
 import { CIPATab } from "@/components/sst/CIPATab";
 import { AfastamentosTab } from "@/components/sst/AfastamentosTab";
 import { AlertasVencimentoSST } from "@/components/sst/AlertasVencimentoSST";
+import { DocumentosSSTValidadeCard } from "@/components/sst/DocumentosSSTValidadeCard";
 
 const SaudeSeguranca = () => {
   return (
@@ -23,6 +24,7 @@ const SaudeSeguranca = () => {
       </div>
 
       <AlertasVencimentoSST />
+      <DocumentosSSTValidadeCard />
 
       <Tabs defaultValue="aso" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
