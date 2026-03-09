@@ -420,6 +420,32 @@ const Afastamentos = () => {
             </div>
 
             <div className="space-y-2">
+              <Label>Documento / Atestado</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+                className="hidden"
+                onChange={(e) => setArquivo(e.target.files?.[0] || null)}
+              />
+              {arquivo ? (
+                <div className="flex items-center gap-2 rounded-md border border-border p-2 text-sm">
+                  <Paperclip className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <span className="truncate flex-1">{arquivo.name}</span>
+                  <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => { setArquivo(null); if (fileInputRef.current) fileInputRef.current.value = ''; }}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <Button type="button" variant="outline" className="w-full gap-2" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="h-4 w-4" />
+                  Anexar documento
+                </Button>
+              )}
+              <p className="text-xs text-muted-foreground">PDF, imagem ou documento (máx. 20MB)</p>
+            </div>
+
+            <div className="space-y-2">
               <Label>Observações</Label>
               <Textarea value={observacoes} onChange={e => setObservacoes(e.target.value)} rows={2} />
             </div>
