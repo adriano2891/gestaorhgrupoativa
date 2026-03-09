@@ -346,6 +346,22 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao, cpf,
               </p>
             </div>
 
+            {/* Alertas de Estabilidade */}
+            {estabilidades.length > 0 && (
+              <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-semibold text-destructive">
+                  <ShieldAlert className="h-4 w-4" />
+                  ATENÇÃO: Estabilidades Detectadas
+                </div>
+                {estabilidades.map((msg, i) => (
+                  <p key={i} className="text-xs text-destructive/90">{msg}</p>
+                ))}
+                <p className="text-xs text-muted-foreground mt-1">
+                  A demissão sem justa causa de empregado estável pode gerar reintegração ou indenização do período.
+                </p>
+              </div>
+            )}
+
             <div className="space-y-1.5">
               <Label>Motivo</Label>
               <Textarea value={motivo} onChange={(e) => setMotivo(e.target.value)} placeholder="Motivo da rescisão..." className="min-h-[60px]" />
