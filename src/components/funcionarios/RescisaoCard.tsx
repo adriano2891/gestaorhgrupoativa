@@ -130,7 +130,13 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao, cpf,
       multaFgts = fgtsTotal * 0.2;
     }
 
-    const total = saldoSalario + avisoPrevioValor + feriasProp + tercoFerias + feriasVencidasValor + tercoFeriasVencidas + decimoTerceiro + multaFgts;
+    const totalBruto = saldoSalario + avisoPrevioValor + feriasProp + tercoFerias + feriasVencidasValor + tercoFeriasVencidas + decimoTerceiro + multaFgts;
+
+    // Cálculos de INSS e IRRF
+    const inssCalc = calcularINSS(totalBruto);
+    const irrfCalc = calcularIRRF(totalBruto, inssCalc.valor, 0);
+    const totalDescontos = inssCalc.valor + irrfCalc.valor;
+    const totalLiquido = totalBruto - totalDescontos;
 
     setResultado({
       saldoSalario: Math.round(saldoSalario * 100) / 100,
@@ -142,10 +148,43 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao, cpf,
       tercoFeriasVencidas: Math.round(tercoFeriasVencidas * 100) / 100,
       decimoTerceiro: Math.round(decimoTerceiro * 100) / 100,
       multaFgts: Math.round(multaFgts * 100) / 100,
-      total: Math.round(total * 100) / 100,
+      totalBruto: Math.round(totalBruto * 100) / 100,
+      inss: inssCalc.valor,
+      irrfValor: irrfCalc.valor,
+      irrfFaixa: irrfCalc.faixa,
+      inssAliquota: inssCalc.aliquotaEfetiva,
+      totalDescontos: Math.round(totalDescontos * 100) / 100,
+      totalLiquido: Math.round(totalLiquido * 100) / 100,
       mesesTrabalhados,
       projecaoAviso: !avisoTrabalhado && (tipoRescisao === "sem_justa_causa" || tipoRescisao === "acordo_mutuo"),
     });
+  };
+
+  const handleGerarTRCT = () => {
+    if (!resultado) return;
+    gerarTRCT({
+      empregadorRazaoSocial: "Empresa (configurar)",
+      empregadorCNPJ: "",
+      nomeEmpregado: userName,
+      cpfEmpregado: cpf || "",
+      cargoEmpregado: cargo || "",
+      dataAdmissao,
+      dataDemissao,
+      tipoRescisao,
+      avisoTrabalhado,
+      avisoPrevioDias: resultado.avisoPrevioDias,
+      salarioBase,
+      saldoSalario: resultado.saldoSalario,
+      avisoPrevioValor: resultado.avisoPrevioValor,
+      feriasProp: resultado.feriasProp,
+      tercoFerias: resultado.tercoFerias,
+      feriasVencidasValor: resultado.feriasVencidasValor,
+      tercoFeriasVencidas: resultado.tercoFeriasVencidas,
+      decimoTerceiro: resultado.decimoTerceiro,
+      multaFgts: resultado.multaFgts,
+      totalBruto: resultado.totalBruto,
+    });
+    toast.success("TRCT gerado com sucesso");
   };
 
   const salvarRescisao = async () => {
