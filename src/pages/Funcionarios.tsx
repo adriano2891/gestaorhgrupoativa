@@ -71,7 +71,6 @@ interface Employee {
   admissionDate: string;
   foto_url?: string;
   matricula?: string;
-  cpf?: string;
 }
 
 const employeeSchema = z.object({
@@ -156,7 +155,6 @@ const Funcionarios = () => {
   const [selectedDepartment, setSelectedDepartment] = useState("Todos");
   const [employees, setEmployees] = useState<Employee[]>([]);
   const employeesRef = useRef<Employee[]>([]);
-  const recentlyAddedRef = useRef(false);
   
   const [employeeSalaries, setEmployeeSalaries] = useState<Record<string, { salario: number | null, ultimaAlteracao?: { valor: number, data: string } }>>({});
   const [employeeUpdates, setEmployeeUpdates] = useState<Record<string, { updated_at: string }>>({});
@@ -386,10 +384,6 @@ const Funcionarios = () => {
 
         if (targetIds.length === 0) {
           console.warn("fetchEmployees: Nenhum funcionário puro encontrado");
-          if (recentlyAddedRef.current) {
-            console.log("fetchEmployees: Ignorando lista vazia (adição recente)");
-            return;
-          }
           setEmployees([]);
           employeesRef.current = [];
           setEmployeeSalaries({});
@@ -418,14 +412,8 @@ const Funcionarios = () => {
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
           foto_url: await resolveFotoUrl(profile.foto_url),
           matricula: profile.matricula || null,
-          cpf: profile.cpf || null,
         })));
 
-        // Protect against race conditions: don't replace a larger list with a smaller one right after adding
-        if (recentlyAddedRef.current && formattedEmployees.length < employeesRef.current.length) {
-          console.log("fetchEmployees: Ignorando resultado menor (adição recente)", formattedEmployees.length, "vs", employeesRef.current.length);
-          return;
-        }
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
         setEmployees(formattedEmployees);
         employeesRef.current = formattedEmployees;
@@ -461,7 +449,6 @@ const Funcionarios = () => {
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
           foto_url: await resolveFotoUrl(profile.foto_url),
           matricula: profile.matricula || null,
-          cpf: profile.cpf || null,
         })));
 
         const updates: Record<string, { updated_at: string }> = {};
@@ -654,12 +641,10 @@ const Funcionarios = () => {
   }, [employees]);
 
   const filteredEmployees = employees.filter((emp) => {
-    const term = searchTerm.toLowerCase();
     const matchesSearch =
-      emp.name.toLowerCase().includes(term) ||
-      emp.email.toLowerCase().includes(term) ||
-      (emp.matricula && emp.matricula.toLowerCase().includes(term)) ||
-      (emp.cpf && emp.cpf.toLowerCase().includes(term));
+      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (emp.matricula && emp.matricula.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesDepartment =
       selectedDepartment === "Todos" || emp.department === selectedDepartment;
     return matchesSearch && matchesDepartment;
@@ -1153,7 +1138,6 @@ const Funcionarios = () => {
       });
       
       // Optimistic update: add employee to list immediately
-      recentlyAddedRef.current = true;
       if (newUserId) {
         const optimisticEmployee: Employee = {
           id: newUserId,
@@ -1166,7 +1150,6 @@ const Funcionarios = () => {
           admissionDate: newEmployee.dataAdmissao || new Date().toISOString().split('T')[0],
           foto_url: newPhotoPreview || undefined,
           matricula: undefined,
-          cpf: newEmployee.cpf || undefined,
         };
         setEmployees(prev => {
           const updated = [...prev, optimisticEmployee].sort((a, b) => a.name.localeCompare(b.name));
@@ -1185,11 +1168,8 @@ const Funcionarios = () => {
       setNewPhotoPreview(null);
       setIsAddDialogOpen(false);
       
-      // Delayed background refresh to allow role propagation
-      setTimeout(() => {
-        recentlyAddedRef.current = false;
-        fetchEmployees().catch(console.error);
-      }, 3000);
+      // Background refresh to sync all data (non-blocking)
+      fetchEmployees().catch(console.error);
     } catch (error: any) {
       console.error("Erro ao adicionar funcionário:", error);
       
@@ -1264,7 +1244,7 @@ const Funcionarios = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 <Input
-                  placeholder="Buscar por nome, email, matrícula ou CPF..."
+                  placeholder="Buscar por nome, email ou matrícula..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 text-sm h-10"
