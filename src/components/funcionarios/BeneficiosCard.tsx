@@ -229,6 +229,40 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                   Informe o nome do plano contratado
                 </p>
               </div>
+            ) : tipo === "insalubridade" ? (
+              <div className="space-y-1.5">
+                <Label>Grau de Insalubridade</Label>
+                <Select value={grauInsalubridade} onValueChange={setGrauInsalubridade}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="minimo">Mínimo — 10% sobre salário mínimo</SelectItem>
+                    <SelectItem value="medio">Médio — 20% sobre salário mínimo</SelectItem>
+                    <SelectItem value="maximo">Máximo — 40% sobre salário mínimo</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Base de cálculo: Salário Mínimo (CLT Art. 192). Necessário laudo técnico.
+                </p>
+              </div>
+            ) : tipo === "periculosidade" ? (
+              <div className="space-y-1.5">
+                <p className="text-sm p-3 rounded-lg bg-muted/50 border">
+                  <strong>Periculosidade:</strong> 30% sobre o salário base do funcionário (CLT Art. 193).
+                  Necessário laudo técnico de engenheiro de segurança.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <Label>Nome do Plano</Label>
+                <Input
+                  value={nomePlano}
+                  onChange={(e) => setNomePlano(e.target.value)}
+                  placeholder="Ex: Unimed, Amil, OdontoPrev..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  Informe o nome do plano contratado
+                </p>
+              </div>
             ) : (
               <>
                 <div className="space-y-1.5">
