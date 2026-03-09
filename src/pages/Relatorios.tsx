@@ -127,7 +127,10 @@ const Relatorios = () => {
         if (filters.cargo && filters.cargo !== "todos") {
           data = data.filter((f: any) => f.cargo?.toLowerCase().includes(filters.cargo.toLowerCase()));
         }
-        const ativos = data.filter((f: any) => f.status === "ativo" || !f.status).length;
+        const ativos = data.filter((f: any) => {
+          const st = (f.status || "ativo").toLowerCase();
+          return st === "ativo" || st === "em_ferias";
+        }).length;
         const deptCount: Record<string, number> = {};
         data.forEach((f: any) => {
           const d = f.departamento || "Sem Departamento";
@@ -135,7 +138,7 @@ const Relatorios = () => {
         });
         const statusCount: Record<string, number> = {};
         data.forEach((f: any) => {
-          const s = f.status || "Ativo";
+          const s = f.status || "ativo";
           statusCount[s] = (statusCount[s] || 0) + 1;
         });
         setGeneratedData({
@@ -149,14 +152,14 @@ const Relatorios = () => {
           charts: [
             {
               type: "bar",
-              title: "Funcionários por Departamento",
+              title: "1. Funcionários por Departamento",
               description: "Distribuição dos colaboradores por departamento",
               data: Object.entries(deptCount).map(([dept, count]) => ({ departamento: dept, valor: count })),
               dataName: "Funcionários",
             },
             {
               type: "pie",
-              title: "Distribuição por Status",
+              title: "2. Distribuição por Status",
               description: "Status atual dos colaboradores",
               data: Object.entries(statusCount).map(([status, count]) => ({ status, valor: count })),
             },
@@ -165,7 +168,7 @@ const Relatorios = () => {
             Nome: f.nome || "-",
             Cargo: f.cargo || "-",
             Departamento: f.departamento || "-",
-            Status: f.status || "Ativo",
+            Status: f.status || "ativo",
             "Data Admissão": f.data_admissao || "-",
           })),
         });
