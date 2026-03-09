@@ -483,6 +483,15 @@ const Relatorios = () => {
               "Colaboradores": totalColab,
               "Registros com Horas Extras": comHE,
             },
+          const tipoRegistro: Record<string, number> = {};
+          data.forEach((r: any) => {
+            const tem_entrada = !!r.entrada;
+            const tem_saida = !!r.saida;
+            if (tem_entrada && tem_saida) tipoRegistro["Completo"] = (tipoRegistro["Completo"] || 0) + 1;
+            else if (tem_entrada) tipoRegistro["Só Entrada"] = (tipoRegistro["Só Entrada"] || 0) + 1;
+            else tipoRegistro["Sem Registro"] = (tipoRegistro["Sem Registro"] || 0) + 1;
+          });
+
             charts: [
               {
                 type: "bar",
@@ -490,6 +499,12 @@ const Relatorios = () => {
                 description: "Quantidade de pontos registrados por departamento",
                 data: Object.entries(deptHoras).map(([dept, count]) => ({ departamento: dept, valor: count })),
                 dataName: "Registros",
+              },
+              {
+                type: "pie",
+                title: "Tipo de Registro",
+                description: "Distribuição entre registros completos, parciais e ausentes",
+                data: Object.entries(tipoRegistro).map(([tipo, count]) => ({ tipo, valor: count })),
               },
             ],
             details: data.slice(0, 100).map((r: any) => {
