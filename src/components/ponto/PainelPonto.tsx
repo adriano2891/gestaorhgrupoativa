@@ -165,6 +165,8 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
             loading={loading}
           />
 
+          <SobreavisoCard userId={profile?.id} />
+
           <HistoricoPonto key={refreshKey} />
 
           <HistoricoComprovantes />

@@ -1226,6 +1226,9 @@ const Funcionarios = () => {
         </Button>
       </div>
 
+      <AlertaEquiparacaoSalarial />
+      <ConvencoesColetivasCard />
+
       <Card>
         <CardHeader className="p-3 sm:p-4 md:p-6">
           <div className="flex flex-col gap-3 sm:gap-4">
