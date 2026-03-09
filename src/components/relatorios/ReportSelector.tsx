@@ -48,9 +48,9 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
                     <div className="relative">
                       <div className="flex items-start gap-3 sm:gap-4 mb-2 sm:mb-3">
                         <div className="relative flex-shrink-0">
-                          <div className="absolute inset-0 bg-destructive/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-destructive/10 to-destructive/5 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                            <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-destructive group-hover:text-destructive transition-colors" />
+                          <div className="absolute inset-0 bg-primary/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                            <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary group-hover:text-primary transition-colors" />
                           </div>
                         </div>
                         

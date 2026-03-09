@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BackButton } from "@/components/ui/back-button";
-import { BarChart3, Download, ShieldCheck, Users, Clock, FileText, DollarSign, TrendingDown, HeartPulse, Briefcase, Receipt } from "lucide-react";
+import { BarChart3, Download, ShieldCheck, Users, Clock, FileText, DollarSign, TrendingDown, HeartPulse, Briefcase, Receipt, AlertCircle, CalendarDays, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { gerarPdfChecklistConformidade } from "@/utils/checklistConformidadePdf";
 import { ReportSelector } from "@/components/relatorios/ReportSelector";
@@ -12,15 +12,15 @@ import { useHolerites } from "@/hooks/useHolerites";
 import { useSolicitacoesFerias } from "@/hooks/useFerias";
 
 const reportOptions = [
-  { id: "funcionarios", name: "Funcionários Ativos", icon: Users, category: "RH", description: "Relatório completo de colaboradores ativos, cargos e departamentos" },
-  { id: "pontos", name: "Pontos Registrados", icon: Clock, category: "Ponto", description: "Análise de jornadas, horas extras e banco de horas" },
-  { id: "holerites", name: "Folha de Pagamento", icon: FileText, category: "Folha", description: "Resumo da folha com proventos, descontos e líquido" },
-  { id: "ferias", name: "Férias e Afastamentos", icon: Briefcase, category: "RH", description: "Controle de férias, licenças e afastamentos" },
-  { id: "desempenho", name: "Desempenho", icon: TrendingDown, category: "Desempenho", description: "Avaliações de performance e metas dos colaboradores" },
-  { id: "turnover", name: "Turnover", icon: TrendingDown, category: "RH", description: "Taxa de rotatividade, admissões e desligamentos" },
+  { id: "funcionarios", name: "Relatório de Funcionários", icon: Users, category: "Gestão de Pessoas", description: "Informações completas dos colaboradores" },
+  { id: "pontos", name: "Pontos Registrados", icon: Clock, category: "Frequência", description: "Registro detalhado de ponto eletrônico" },
+  { id: "faltas", name: "Faltas e Atrasos", icon: AlertCircle, category: "Frequência", description: "Análise de ausências e pontualidade" },
+  { id: "turnover", name: "Turnover", icon: TrendingDown, category: "Indicadores", description: "Taxa de rotatividade e movimentações" },
+  { id: "absenteismo", name: "Absenteísmo", icon: CalendarDays, category: "Indicadores", description: "Índices e tendências de ausências" },
+  { id: "beneficios", name: "Benefícios", icon: Heart, category: "Bem-estar", description: "Relatório de benefícios por funcionário" },
   { id: "clima", name: "Clima Organizacional", icon: HeartPulse, category: "Bem-estar", description: "Pesquisas de clima e índices de satisfação" },
+  { id: "holerites", name: "Folha de Pagamento", icon: FileText, category: "Custos", description: "Resumo da folha com proventos, descontos e líquido" },
   { id: "custo-folha", name: "Custo de Folha de Ponto", icon: DollarSign, category: "Custos", description: "Análise de custos com folha, encargos e benefícios" },
-  { id: "beneficios", name: "Benefícios", icon: Receipt, category: "Custos", description: "Relatório de benefícios concedidos e custos associados" },
 ];
 
 const Relatorios = () => {
