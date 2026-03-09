@@ -502,9 +502,27 @@ const Afastamentos = () => {
           <DialogHeader>
             <DialogTitle>Registrar ASO</DialogTitle>
           </DialogHeader>
-          <form onSubmit={(e) => {
+          <form onSubmit={async (e) => {
             e.preventDefault();
             if (!asoUserId) return;
+
+            let arquivoUrl: string | null = null;
+            if (asoArquivo) {
+              setAsoUploading(true);
+              try {
+                const sanitized = sanitizeFileName(asoArquivo.name);
+                const path = `asos/${asoUserId}/${Date.now()}_${sanitized}`;
+                const { error } = await supabase.storage.from('sst-documentos').upload(path, asoArquivo);
+                if (error) throw error;
+                arquivoUrl = path;
+              } catch (err: any) {
+                toast({ title: "Erro no upload", description: err.message, variant: "destructive" });
+                setAsoUploading(false);
+                return;
+              }
+              setAsoUploading(false);
+            }
+
             createASO.mutate({
               user_id: asoUserId,
               tipo: asoTipo,
@@ -514,12 +532,14 @@ const Afastamentos = () => {
               medico_nome: asoMedico || null,
               crm: asoCrm || null,
               observacoes: asoObs || null,
+              arquivo_url: arquivoUrl,
             }, {
               onSuccess: () => {
                 setAsoDialogOpen(false);
                 setAsoUserId(""); setAsoTipo("periodico"); setAsoResultado("apto");
                 setAsoDataExame(new Date().toISOString().split("T")[0]);
                 setAsoDataVencimento(""); setAsoMedico(""); setAsoCrm(""); setAsoObs("");
+                setAsoArquivo(null);
               }
             });
           }} className="space-y-4">
