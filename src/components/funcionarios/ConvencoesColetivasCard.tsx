@@ -109,8 +109,8 @@ export const ConvencoesColetivasCard = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader className="p-3 sm:p-4 pb-2">
+      <Card className="h-full" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
+        <CardHeader className="p-2.5 sm:p-3 pb-1.5">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="min-w-0">
               <CardTitle className="flex items-center gap-1.5 text-sm font-semibold">
