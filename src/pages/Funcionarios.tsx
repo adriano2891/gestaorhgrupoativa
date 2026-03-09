@@ -71,6 +71,7 @@ interface Employee {
   admissionDate: string;
   foto_url?: string;
   matricula?: string;
+  cpf?: string;
 }
 
 const employeeSchema = z.object({
@@ -412,6 +413,7 @@ const Funcionarios = () => {
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
           foto_url: await resolveFotoUrl(profile.foto_url),
           matricula: profile.matricula || null,
+          cpf: profile.cpf || null,
         })));
 
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
@@ -449,6 +451,7 @@ const Funcionarios = () => {
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
           foto_url: await resolveFotoUrl(profile.foto_url),
           matricula: profile.matricula || null,
+          cpf: profile.cpf || null,
         })));
 
         const updates: Record<string, { updated_at: string }> = {};
@@ -641,10 +644,12 @@ const Funcionarios = () => {
   }, [employees]);
 
   const filteredEmployees = employees.filter((emp) => {
+    const term = searchTerm.toLowerCase();
     const matchesSearch =
-      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (emp.matricula && emp.matricula.toLowerCase().includes(searchTerm.toLowerCase()));
+      emp.name.toLowerCase().includes(term) ||
+      emp.email.toLowerCase().includes(term) ||
+      (emp.matricula && emp.matricula.toLowerCase().includes(term)) ||
+      (emp.cpf && emp.cpf.toLowerCase().includes(term));
     const matchesDepartment =
       selectedDepartment === "Todos" || emp.department === selectedDepartment;
     return matchesSearch && matchesDepartment;
@@ -1244,7 +1249,7 @@ const Funcionarios = () => {
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 <Input
-                  placeholder="Buscar por nome, email ou matrícula..."
+                  placeholder="Buscar por nome, email, matrícula ou CPF..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 text-sm h-10"
