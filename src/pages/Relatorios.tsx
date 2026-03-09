@@ -664,7 +664,7 @@ const Relatorios = () => {
         const afastados = naoDesligados.filter((f: any) => statusNorm(f) === "afastado");
         const outrosStatus = naoDesligados.filter((f: any) => {
           const st = statusNorm(f);
-          return st !== "ativo" && st !== "" && st !== "em_ferias" && st !== "afastado";
+          return st !== "ativo" && st !== "" && !isEmFerias(st) && st !== "afastado";
         });
 
         const feriasData = ferias || [];
