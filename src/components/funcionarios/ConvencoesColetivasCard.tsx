@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { Plus, Trash2, BookOpen, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, BookOpen, AlertTriangle, Paperclip, FileText, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { toast } from "sonner";
@@ -21,6 +21,8 @@ interface Convencao {
   sindicato: string | null;
   data_inicio: string;
   data_fim: string;
+  documento_url: string | null;
+  documento_nome: string | null;
 }
 
 interface PisoSalarial {
@@ -41,6 +43,9 @@ export const ConvencoesColetivasCard = () => {
 
   const [form, setForm] = useState({ nome: "", tipo: "cct", sindicato: "", data_inicio: "", data_fim: "" });
   const [pisoForm, setPisoForm] = useState({ cargo: "", piso_salarial: "" });
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     try {
@@ -57,19 +62,48 @@ export const ConvencoesColetivasCard = () => {
 
   useEffect(() => { load(); }, []);
 
+  const sanitizeFileName = (name: string) =>
+    name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
+
   const handleAddConvencao = async () => {
     if (!form.nome || !form.data_inicio || !form.data_fim) { toast.error("Preencha todos os campos obrigatórios"); return; }
     try {
+      setUploading(true);
+      let documento_url: string | null = null;
+      let documento_nome: string | null = null;
+
+      if (arquivo) {
+        const safeName = sanitizeFileName(arquivo.name);
+        const path = `convencoes/${Date.now()}-${safeName}`;
+        const { error: upErr } = await supabase.storage.from("documentos").upload(path, arquivo);
+        if (upErr) throw upErr;
+        documento_url = path;
+        documento_nome = arquivo.name;
+      }
+
       const { error } = await (supabase as any).from("convencoes_coletivas").insert({
-        ...form, sindicato: form.sindicato || null,
+        ...form, sindicato: form.sindicato || null, documento_url, documento_nome,
       });
       if (error) throw error;
       toast.success("Convenção registrada");
       setDialogOpen(false);
       setForm({ nome: "", tipo: "cct", sindicato: "", data_inicio: "", data_fim: "" });
+      setArquivo(null);
       load();
     } catch (e: any) {
       toast.error("Erro", { description: e.message });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDownloadDoc = async (url: string, nome: string) => {
+    try {
+      const { data, error } = await supabase.storage.from("documentos").createSignedUrl(url, 300);
+      if (error) throw error;
+      window.open(data.signedUrl, "_blank");
+    } catch (e: any) {
+      toast.error("Erro ao abrir documento", { description: e.message });
     }
   };
 
@@ -165,6 +199,15 @@ export const ConvencoesColetivasCard = () => {
                     <p className="text-[10px] text-muted-foreground mb-1.5 leading-tight truncate">
                       {conv.sindicato && `${conv.sindicato} · `}
                       {format(new Date(conv.data_inicio), "dd/MM/yy")} a {format(new Date(conv.data_fim), "dd/MM/yy")}
+                      {conv.documento_nome && (
+                        <button
+                          onClick={() => handleDownloadDoc(conv.documento_url!, conv.documento_nome!)}
+                          className="inline-flex items-center gap-0.5 ml-1.5 text-primary hover:underline"
+                        >
+                          <Paperclip className="h-2.5 w-2.5" />
+                          {conv.documento_nome}
+                        </button>
+                      )}
                     </p>
                     {pisosConv.length > 0 && (
                       <Table>
@@ -243,10 +286,36 @@ export const ConvencoesColetivasCard = () => {
                 <Input type="date" value={form.data_fim} onChange={e => setForm(p => ({ ...p, data_fim: e.target.value }))} />
               </div>
             </div>
+            <div>
+              <Label>Documento (PDF, DOC)</Label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.doc,.docx,.xls,.xlsx"
+                className="hidden"
+                onChange={e => setArquivo(e.target.files?.[0] || null)}
+              />
+              {arquivo ? (
+                <div className="flex items-center gap-2 mt-1 p-2 rounded-md border bg-muted/50">
+                  <FileText className="h-4 w-4 text-primary flex-shrink-0" />
+                  <span className="text-xs truncate flex-1">{arquivo.name}</span>
+                  <Button type="button" variant="ghost" size="sm" className="h-5 w-5 p-0" onClick={() => { setArquivo(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
+              ) : (
+                <Button type="button" variant="outline" size="sm" className="w-full mt-1 gap-1.5 text-xs" onClick={() => fileInputRef.current?.click()}>
+                  <Upload className="h-3.5 w-3.5" />
+                  Anexar documento
+                </Button>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleAddConvencao}>Salvar</Button>
+            <Button onClick={handleAddConvencao} disabled={uploading}>
+              {uploading ? "Enviando..." : "Salvar"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
