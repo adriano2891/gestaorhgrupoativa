@@ -11,14 +11,18 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BackButton } from "@/components/ui/back-button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Stethoscope, Plus, Calendar, AlertTriangle, CheckCircle, 
-  Clock, Baby, HeartPulse, Shield
+  Clock, Baby, HeartPulse, Shield, FileText
 } from "lucide-react";
 import { useAfastamentos, useCriarAfastamento, useEncerrarAfastamento, TIPOS_AFASTAMENTO } from "@/hooks/useAfastamentos";
+import { useASOs } from "@/hooks/useSST";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { format, parseISO, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ASOAlertasVencimento } from "@/components/sst/ASOAlertasVencimento";
+import { DocumentosSSTPanel } from "@/components/sst/DocumentosSSTPanel";
 
 const tipoIcons: Record<string, any> = {
   medico: Stethoscope,
