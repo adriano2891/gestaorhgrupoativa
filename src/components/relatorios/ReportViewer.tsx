@@ -480,6 +480,7 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                     </BarChart>
                     );
                   })()
+                  )}
                     </ResponsiveContainer>
                   </div>
                   {chart.insight && (
