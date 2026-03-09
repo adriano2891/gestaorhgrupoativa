@@ -35,10 +35,9 @@ const rhModules: RHModule[] = [
   { title: "Formulários", iconSrc: iconFormularios, path: "/hrflow-pro", iconScale: "scale-[1.3]" },
   { title: "Cursos", iconSrc: iconCursos, path: "/cursos", iconScale: "scale-[1.3]" },
   { title: "Controle de Férias", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
-  { title: "Suporte", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.3]" },
-  { title: "Documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.3]" },
-  { title: "Saúde e Segurança", iconSrc: iconSST, path: "/saude-seguranca", iconScale: "scale-[1.3]" },
-];
+   { title: "Suporte", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.3]" },
+   { title: "Documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.3]" },
+ ];
 
 const rhPaths = new Set(rhModules.map(m => m.path));
 rhPaths.add("/admins");
