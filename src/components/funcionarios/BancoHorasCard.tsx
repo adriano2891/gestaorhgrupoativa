@@ -29,17 +29,29 @@ export const BancoHorasCard = ({ userId, userName }: { userId: string; userName:
 
   const loadBancoHoras = async () => {
     try {
-      // Use backend function for accurate saldo calculation (no limit issues)
-      const { data: saldoData, error: saldoErr } = await supabase
-        .rpc('calcular_saldo_banco_horas', { p_user_id: userId });
+      // Use REST call for backend saldo calculation (bypasses type restrictions)
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID || supabaseUrl?.match(/\/\/([^.]+)/)?.[1];
+      const storageKey = `sb-${projectRef}-auth-token`;
+      let token = anonKey;
+      try { const raw = localStorage.getItem(storageKey); if (raw) token = JSON.parse(raw).access_token || anonKey; } catch {}
 
-      if (!saldoErr && saldoData && saldoData.length > 0) {
-        const s = saldoData[0];
-        setSaldo({
-          credito: Math.round((s.total_credito || 0) * 100) / 100,
-          debito: Math.round((s.total_debito || 0) * 100) / 100,
-          creditosVencidos: Math.round((s.creditos_vencidos || 0) * 100) / 100,
-        });
+      const saldoRes = await fetch(`${supabaseUrl}/rest/v1/rpc/calcular_saldo_banco_horas`, {
+        method: 'POST',
+        headers: { 'apikey': anonKey, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_user_id: userId }),
+      });
+      if (saldoRes.ok) {
+        const saldoData = await saldoRes.json();
+        if (saldoData && saldoData.length > 0) {
+          const s = saldoData[0];
+          setSaldo({
+            credito: Math.round((s.total_credito || 0) * 100) / 100,
+            debito: Math.round((s.total_debito || 0) * 100) / 100,
+            creditosVencidos: Math.round((s.creditos_vencidos || 0) * 100) / 100,
+          });
+        }
       }
 
       // Fetch recent entries for display
