@@ -36,6 +36,7 @@ const tipoIcons: Record<string, any> = {
 const Afastamentos = () => {
   const { data: afastamentos, isLoading } = useAfastamentos();
   const { data: funcionarios } = useFuncionarios();
+  const { data: asos } = useASOs();
   const criarAfastamento = useCriarAfastamento();
   const encerrarAfastamento = useEncerrarAfastamento();
 
