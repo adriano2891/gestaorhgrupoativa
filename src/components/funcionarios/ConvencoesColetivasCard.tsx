@@ -21,6 +21,8 @@ interface Convencao {
   sindicato: string | null;
   data_inicio: string;
   data_fim: string;
+  documento_url: string | null;
+  documento_nome: string | null;
 }
 
 interface PisoSalarial {
