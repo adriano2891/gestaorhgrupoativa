@@ -1,4 +1,4 @@
-import { Moon, Sun, LogOut, Menu } from "lucide-react";
+import { Moon, Sun, LogOut, Menu, CalendarDays } from "lucide-react";
 import logoHeader from "@/assets/logo-header.png";
 import logoAtivaRHQ from "@/assets/logo-ativarhq-header.png";
 import { Link, useLocation } from "react-router-dom";
@@ -10,6 +10,7 @@ import loginBackground from "@/assets/login-background.png";
 import { AdminNotificationBell } from "./AdminNotificationBell";
 import { RHModuleBar, RH_PATHS } from "./RHModuleBar";
 import { RadioPlayer } from "./RadioPlayer";
+import { AgendaPanel } from "./agenda";
 
 const allNavItems = [
   { path: "/", label: "Dashboard", icon: "📊", allowedRoles: ["admin", "rh", "gestor"] },
@@ -29,6 +30,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
   const location = useLocation();
   const [isDark, setIsDark] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [agendaOpen, setAgendaOpen] = useState(false);
   const { signOut, profile, roles } = useAuth();
 
   const navItems = allNavItems.filter((item) => {
@@ -109,6 +111,15 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <span className="text-xs md:text-sm font-medium text-foreground hidden md:inline max-w-[150px] truncate">
                 {profile?.nome || "Usuário"}
               </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setAgendaOpen(true)}
+                className="h-8 w-8 md:h-10 md:w-10 focus-ring"
+                aria-label="Abrir agenda"
+              >
+                <CalendarDays className="h-4 w-4 md:h-5 md:w-5" />
+              </Button>
               <AdminNotificationBell />
               <Button
                 variant="ghost"
@@ -252,6 +263,8 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           {children}
         </main>
       </div>
+
+      <AgendaPanel open={agendaOpen} onOpenChange={setAgendaOpen} />
     </div>
   );
 };
