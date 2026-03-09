@@ -1,5 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +7,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { FileText, CheckCircle, Clock, Users } from "lucide-react";
+import { useEffect } from "react";
 
 interface ConfirmacoesLeituraDialogProps {
   open: boolean;
@@ -19,6 +20,25 @@ export const ConfirmacoesLeituraDialog = ({
   onOpenChange,
   comunicadoId,
 }: ConfirmacoesLeituraDialogProps) => {
+  const queryClient = useQueryClient();
+
+  // Realtime subscription for comunicados_lidos changes
+  useEffect(() => {
+    if (!comunicadoId || !open) return;
+    const channel = supabase
+      .channel(`comunicados-lidos-${comunicadoId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'comunicados_lidos', filter: `comunicado_id=eq.${comunicadoId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["comunicado-confirmacoes", comunicadoId] });
+          queryClient.invalidateQueries({ queryKey: ["comunicado-destinatarios-count", comunicadoId] });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [comunicadoId, open, queryClient]);
+
   // Fetch the comunicado to know its destinatarios
   const { data: comunicado } = useQuery({
     queryKey: ["comunicado-detalhes", comunicadoId],
