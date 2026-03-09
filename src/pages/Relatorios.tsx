@@ -708,14 +708,17 @@ const Relatorios = () => {
           ...(desligados.length > 0 ? [{ status: "Desligados", valor: desligados.length }] : []),
         ];
 
+        const ativosComFerias = ativos.length + emFerias.length;
+
         setGeneratedData({
           generatedAt: now.toISOString(),
           summary: {
             "Taxa de Turnover": `${taxaTurnover}%`,
             "Taxa de Retenção": `${taxaRetencao}%`,
             "Total de Funcionários": total,
-            "Ativos": ativos.length,
-            "Em Férias": emFerias.length,
+            "Ativos (total)": ativosComFerias,
+            "  ↳ Em Atividade": ativos.length,
+            "  ↳ Em Férias": emFerias.length,
             "Afastados": afastados.length,
             "Desligamentos": desligados.length,
             "Pedidos de Demissão": motivoCount["Pedido de Demissão"] || 0,
