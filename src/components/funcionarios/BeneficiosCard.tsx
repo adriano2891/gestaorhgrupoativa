@@ -67,16 +67,20 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
 
   const handleAdd = async () => {
     const isPlano = isPlanoType(tipo);
+    const isAdicional = isAdicionalType(tipo);
 
     if (isPlano) {
-      if (!nomePlano.trim()) {
-        toast.error("Informe o nome do plano");
-        return;
-      }
-    } else {
+      if (!nomePlano.trim()) { toast.error("Informe o nome do plano"); return; }
+    } else if (!isAdicional) {
       const valorNum = parseFloat(valor.replace(",", "."));
-      if (!valorNum || valorNum <= 0) {
-        toast.error("Informe um valor válido");
+      if (!valorNum || valorNum <= 0) { toast.error("Informe um valor válido"); return; }
+    }
+
+    // Verificar se já existe insalubridade ou periculosidade ativo (não cumuláveis)
+    if (isAdicional) {
+      const jaTemAdicional = beneficios.some(b => isAdicionalType(b.tipo));
+      if (jaTemAdicional) {
+        toast.error("Insalubridade e Periculosidade não são cumuláveis (CLT Art. 193 §2º)");
         return;
       }
     }
@@ -85,9 +89,9 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
       const insertData: any = {
         user_id: userId,
         tipo,
-        valor: isPlano ? 0 : parseFloat(valor.replace(",", ".")),
-        desconto_percentual: isPlano ? 0 : (parseFloat(desconto) || 0),
-        observacoes: isPlano ? nomePlano.trim() : null,
+        valor: isPlano ? 0 : isAdicional ? 0 : parseFloat(valor.replace(",", ".")),
+        desconto_percentual: isPlano || isAdicional ? 0 : (parseFloat(desconto) || 0),
+        observacoes: isPlano ? nomePlano.trim() : isAdicional ? grauInsalubridade : null,
       };
 
       const { error } = await (supabase as any)
