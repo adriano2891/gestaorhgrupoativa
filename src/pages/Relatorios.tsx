@@ -779,7 +779,7 @@ const Relatorios = () => {
             const diasFerias = feriasPorFunc[f.id] || 0;
             const st = statusNorm(f);
             let statusLabel = f.status || "Ativo";
-            if (st === "em_ferias") statusLabel = "Em férias";
+            if (isEmFerias(st)) statusLabel = "Em férias";
             else if (st === "ativo" || st === "") statusLabel = "Ativo";
             else if (st === "demitido" || st === "demissao") statusLabel = "Demitido";
             else if (st === "pediu_demissao") statusLabel = "Pediu demissão";
