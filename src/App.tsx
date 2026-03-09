@@ -59,9 +59,10 @@ import PWAInstallPrompt from "./components/PWAInstallPrompt";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 2, // 2 minutes - avoid refetching on every navigation
+      staleTime: 1000 * 60 * 2, // 2 minutes
       gcTime: 1000 * 60 * 5, // 5 minutes garbage collection
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true, // refetch when user returns to tab
+      refetchOnMount: true, // always refetch on component mount
       retry: 1,
     },
   },
