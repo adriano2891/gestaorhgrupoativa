@@ -144,16 +144,16 @@ export const ConvencoesColetivasCard = () => {
   return (
     <>
       <Card className="h-full" style={{ fontFamily: "Arial, Helvetica, sans-serif" }}>
-        <CardHeader className="p-2.5 sm:p-3 pb-1.5">
-          <div className="flex items-center justify-between gap-2 flex-wrap">
+        <CardHeader className="p-2 pb-1">
+          <div className="flex items-center justify-between gap-1 flex-wrap">
             <div className="min-w-0">
-              <CardTitle className="flex items-center gap-1.5 text-sm font-semibold">
-                <BookOpen className="h-4 w-4 text-primary flex-shrink-0" />
-                <span className="truncate">CCT / ACT — Convenções Coletivas</span>
+              <CardTitle className="flex items-center gap-1 text-[11px] font-semibold">
+                <BookOpen className="h-3 w-3 text-primary flex-shrink-0" />
+                <span className="truncate">CCT / ACT — Convenções</span>
               </CardTitle>
-              <CardDescription className="text-[11px] mt-0.5">CLT Art. 611-A — Pisos salariais por categoria</CardDescription>
+              <CardDescription className="text-[9px] mt-0.5">Art. 611-A — Pisos por categoria</CardDescription>
             </div>
-            <Button onClick={() => setDialogOpen(true)} size="sm" className="gap-1 h-7 text-xs px-2.5 flex-shrink-0"><Plus className="h-3 w-3" />Nova CCT/ACT</Button>
+            <Button onClick={() => setDialogOpen(true)} size="sm" className="gap-0.5 h-6 text-[9px] px-2 flex-shrink-0"><Plus className="h-2.5 w-2.5" />Nova CCT/ACT</Button>
           </div>
           {violacoes.length > 0 && (
             <div className="mt-2 p-2 rounded-md bg-destructive/5 border border-destructive/30">
