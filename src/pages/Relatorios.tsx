@@ -1240,7 +1240,7 @@ const Relatorios = () => {
           charts: [
             {
               type: "bar",
-              title: "Custo Total por Departamento",
+              title: "1. Custo Total por Departamento",
               description: "Folha bruta + benefícios por departamento",
               data: Object.entries(deptCusto).map(([dept, v]) => ({
                 departamento: dept,
@@ -1251,8 +1251,8 @@ const Relatorios = () => {
             },
             {
               type: "pie",
-              title: "Composição do Custo Total",
-              description: "Proventos, Encargos e Benefícios",
+              title: "2. Composição do Custo Total",
+              description: "Distribuição entre proventos, encargos e benefícios",
               data: [
                 { categoria: "Proventos", valor: parseFloat(totalBruto.toFixed(2)) },
                 { categoria: "Descontos", valor: parseFloat(totalDescontos.toFixed(2)) },
@@ -1261,10 +1261,41 @@ const Relatorios = () => {
               ],
             },
             {
+              type: "pie",
+              title: "3. Encargos Trabalhistas",
+              description: "Distribuição INSS, IRRF e FGTS",
+              data: [
+                ...(totalINSS > 0 ? [{ encargo: "INSS", valor: parseFloat(totalINSS.toFixed(2)) }] : []),
+                ...(totalIRRF > 0 ? [{ encargo: "IRRF", valor: parseFloat(totalIRRF.toFixed(2)) }] : []),
+                ...(totalFGTS > 0 ? [{ encargo: "FGTS", valor: parseFloat(totalFGTS.toFixed(2)) }] : []),
+              ],
+            },
+            ...(Object.keys(tipoBenCusto).length > 0 ? [{
               type: "bar",
-              title: "Custo por Tipo de Benefício",
+              title: "4. Custo por Tipo de Benefício",
               description: "Distribuição dos custos com benefícios",
               data: Object.entries(tipoBenCusto).map(([tipo, valor]) => ({ tipo, valor: parseFloat(valor.toFixed(2)) })),
+              dataName: "R$",
+            }] : []),
+            {
+              type: "bar",
+              title: "5. Bruto vs Líquido por Departamento",
+              description: "Comparativo entre salário bruto e líquido",
+              data: (() => {
+                const deptLiq: Record<string, { bruto: number; liquido: number }> = {};
+                data.forEach((h: any) => {
+                  const func = funcMap.get(h.user_id);
+                  const d = func?.departamento || "Sem Departamento";
+                  if (!deptLiq[d]) deptLiq[d] = { bruto: 0, liquido: 0 };
+                  deptLiq[d].bruto += parseFloat(h.salario_bruto) || 0;
+                  deptLiq[d].liquido += parseFloat(h.salario_liquido) || 0;
+                });
+                return Object.entries(deptLiq).map(([dept, v]) => ({
+                  departamento: dept,
+                  Bruto: parseFloat(v.bruto.toFixed(2)),
+                  Líquido: parseFloat(v.liquido.toFixed(2)),
+                }));
+              })(),
               dataName: "R$",
             },
           ],
