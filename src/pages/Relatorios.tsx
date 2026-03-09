@@ -12,7 +12,7 @@ import { useRegistrosPonto } from "@/hooks/useRegistrosPonto";
 import { useHolerites } from "@/hooks/useHolerites";
 import { useSolicitacoesFerias } from "@/hooks/useFerias";
 import { supabase } from "@/integrations/supabase/client";
-import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const reportOptions = [
