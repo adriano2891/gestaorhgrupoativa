@@ -15,6 +15,7 @@ import iconCursos from "@/assets/icon-rh-cursos.png";
 import iconFerias from "@/assets/icon-rh-ferias.png";
 import iconSuporte from "@/assets/icon-rh-suporte.png";
 import iconDocumentos from "@/assets/icon-rh-documentos.png";
+import iconSST from "@/assets/icon-rh-sst.png";
 
 
 interface RHModule {
@@ -37,6 +38,7 @@ const rhModules: RHModule[] = [
   { title: "Controle de Férias", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
    { title: "Suporte", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.3]" },
    { title: "Documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.3]" },
+   { title: "Saúde e Segurança", iconSrc: iconSST, path: "/afastamentos", iconScale: "scale-[1.3]" },
  ];
 
 const rhPaths = new Set(rhModules.map(m => m.path));
