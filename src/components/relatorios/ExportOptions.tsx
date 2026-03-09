@@ -23,25 +23,95 @@ interface ExportOptionsProps {
 export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComplete }: ExportOptionsProps) => {
   const { toast } = useToast();
 
+  // Resolve CSS variables to their computed values
+  const resolveCssVariables = (value: string): string => {
+    if (!value || !value.includes("var(")) return value;
+    
+    // Handle hsl(var(--xxx)) pattern
+    const hslVarMatch = value.match(/hsl\(var\(--([^)]+)\)\)/);
+    if (hslVarMatch) {
+      const varName = hslVarMatch[1];
+      const computedValue = getComputedStyle(document.documentElement).getPropertyValue(`--${varName}`).trim();
+      if (computedValue) {
+        return `hsl(${computedValue})`;
+      }
+    }
+    
+    // Handle simple var(--xxx) pattern
+    const varMatch = value.match(/var\(--([^)]+)\)/);
+    if (varMatch) {
+      const varName = varMatch[1];
+      const computedValue = getComputedStyle(document.documentElement).getPropertyValue(`--${varName}`).trim();
+      if (computedValue) {
+        return computedValue;
+      }
+    }
+    
+    return value;
+  };
+
+  // Inline all computed styles into SVG elements for proper rendering
+  const inlineStyles = (svgClone: SVGElement, originalSvg: SVGElement) => {
+    const styleProps = [
+      "fill", "stroke", "stroke-width", "stroke-dasharray", "stroke-linecap", "stroke-linejoin",
+      "font-family", "font-size", "font-weight", "font-style",
+      "text-anchor", "dominant-baseline", "alignment-baseline",
+      "opacity", "fill-opacity", "stroke-opacity",
+      "transform", "visibility", "display"
+    ];
+    
+    const processElement = (clone: Element, original: Element) => {
+      const computed = window.getComputedStyle(original);
+      
+      styleProps.forEach((prop) => {
+        const val = computed.getPropertyValue(prop);
+        if (val && val !== "none" && val !== "") {
+          const resolved = resolveCssVariables(val);
+          (clone as HTMLElement).style.setProperty(prop, resolved);
+        }
+      });
+      
+      // Process children recursively
+      const cloneChildren = clone.children;
+      const originalChildren = original.children;
+      for (let i = 0; i < cloneChildren.length && i < originalChildren.length; i++) {
+        processElement(cloneChildren[i], originalChildren[i]);
+      }
+    };
+    
+    processElement(svgClone, originalSvg);
+  };
+
   const getChartPngDataUrl = async (chartIndex: number): Promise<{ dataUrl: string; width: number; height: number } | null> => {
     const container = document.getElementById(`report-chart-${chartIndex}`);
     const svg = container?.querySelector("svg");
     if (!container || !svg) return null;
 
-    const serialized = new XMLSerializer().serializeToString(svg);
+    // Clone the SVG and inline all computed styles
+    const svgClone = svg.cloneNode(true) as SVGElement;
+    inlineStyles(svgClone, svg);
+    
+    // Ensure SVG has proper namespace
+    if (!svgClone.getAttribute("xmlns")) {
+      svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    }
+    
+    // Get the actual rendered dimensions
+    const rect = container.getBoundingClientRect();
+    const width = Math.max(1, Math.round(rect.width));
+    const height = Math.max(1, Math.round(rect.height));
+    
+    // Set explicit dimensions on the SVG
+    svgClone.setAttribute("width", String(width));
+    svgClone.setAttribute("height", String(height));
 
-    // Ensure SVG has namespaces to render in Image
-    const svgWithNs = serialized.includes("http://www.w3.org/2000/svg")
-      ? serialized
-      : serialized.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
-
-    const blob = new Blob([svgWithNs], { type: "image/svg+xml;charset=utf-8" });
+    const serialized = new XMLSerializer().serializeToString(svgClone);
+    const blob = new Blob([serialized], { type: "image/svg+xml;charset=utf-8" });
     const url = URL.createObjectURL(blob);
 
     try {
       const img = new Image();
       img.decoding = "async";
-      img.crossOrigin = "anonymous";
 
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
@@ -49,30 +119,22 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
         img.src = url;
       });
 
-      const scale = 2;
+      const scale = 2; // High resolution for PDF
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       if (!ctx) return null;
 
-      const rect = container.getBoundingClientRect();
-      const width = Math.max(1, Math.round(rect.width));
-      const height = Math.max(1, Math.round(rect.height));
-
       canvas.width = width * scale;
       canvas.height = height * scale;
 
-      // Fill background so exports are legible even on transparent charts
-      const computed = window.getComputedStyle(container);
-      const bg = computed.backgroundColor && computed.backgroundColor !== "rgba(0, 0, 0, 0)"
-        ? computed.backgroundColor
-        : "#ffffff";
-      ctx.fillStyle = bg;
+      // Fill with white background for legibility
+      ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.setTransform(scale, 0, 0, scale, 0, 0);
       ctx.drawImage(img, 0, 0, width, height);
 
-      return { dataUrl: canvas.toDataURL("image/png"), width, height };
+      return { dataUrl: canvas.toDataURL("image/png", 1.0), width, height };
     } finally {
       URL.revokeObjectURL(url);
     }
