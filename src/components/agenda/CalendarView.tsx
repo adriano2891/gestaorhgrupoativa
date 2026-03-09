@@ -122,14 +122,14 @@ export function CalendarView({
         </div>
       </div>
 
-      {/* Dias da semana header */}
-      <div className="grid grid-cols-7 gap-px">
-        {DIAS_SEMANA.map(d => (
-          <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1.5">
-            {d}
-          </div>
-        ))}
-      </div>
+       {/* Dias da semana header */}
+       <div className="grid grid-cols-7 gap-px" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+         {DIAS_SEMANA.map(d => (
+           <div key={d} className="text-center text-xs font-medium text-muted-foreground py-1.5">
+             {d}
+           </div>
+         ))}
+       </div>
 
       {/* Grid */}
       {visualizacao === 'mensal' ? (
