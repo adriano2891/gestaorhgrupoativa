@@ -1168,8 +1168,6 @@ export type Database = {
           created_at: string | null
           data_fim: string
           data_inicio: string
-          documento_nome: string | null
-          documento_url: string | null
           id: string
           nome: string
           sindicato: string | null
@@ -1180,8 +1178,6 @@ export type Database = {
           created_at?: string | null
           data_fim: string
           data_inicio: string
-          documento_nome?: string | null
-          documento_url?: string | null
           id?: string
           nome: string
           sindicato?: string | null
@@ -1192,8 +1188,6 @@ export type Database = {
           created_at?: string | null
           data_fim?: string
           data_inicio?: string
-          documento_nome?: string | null
-          documento_url?: string | null
           id?: string
           nome?: string
           sindicato?: string | null

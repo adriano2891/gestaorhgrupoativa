@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Plus, Trash2, BookOpen, AlertTriangle, Paperclip, FileText, Download, X } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Plus, Trash2, BookOpen, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useFuncionarios } from "@/hooks/useFuncionarios";
 import { toast } from "sonner";
@@ -20,8 +21,6 @@ interface Convencao {
   sindicato: string | null;
   data_inicio: string;
   data_fim: string;
-  documento_url: string | null;
-  documento_nome: string | null;
 }
 
 interface PisoSalarial {
@@ -38,18 +37,10 @@ export const ConvencoesColetivasCard = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [pisoDialogOpen, setPisoDialogOpen] = useState(false);
   const [selectedConvencao, setSelectedConvencao] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
   const { data: funcionarios } = useFuncionarios();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const attachFileInputRef = useRef<HTMLInputElement>(null);
-  const [attachingToId, setAttachingToId] = useState<string | null>(null);
 
   const [form, setForm] = useState({ nome: "", tipo: "cct", sindicato: "", data_inicio: "", data_fim: "" });
   const [pisoForm, setPisoForm] = useState({ cargo: "", piso_salarial: "" });
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-  const sanitizeFileName = (name: string) =>
-    name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
 
   const load = async () => {
     try {
@@ -66,86 +57,19 @@ export const ConvencoesColetivasCard = () => {
 
   useEffect(() => { load(); }, []);
 
-  const uploadFile = async (file: File): Promise<{ url: string; nome: string } | null> => {
-    const safeName = sanitizeFileName(file.name);
-    const path = `convencoes/${Date.now()}-${safeName}`;
-    const { error } = await supabase.storage.from("documentos").upload(path, file);
-    if (error) { toast.error("Erro ao enviar arquivo", { description: error.message }); return null; }
-    return { url: path, nome: file.name };
-  };
-
-  const getSignedUrl = async (path: string) => {
-    const { data } = await supabase.storage.from("documentos").createSignedUrl(path, 300);
-    return data?.signedUrl;
-  };
-
   const handleAddConvencao = async () => {
     if (!form.nome || !form.data_inicio || !form.data_fim) { toast.error("Preencha todos os campos obrigatórios"); return; }
-    setUploading(true);
     try {
-      let docData: { documento_url?: string; documento_nome?: string } = {};
-      if (selectedFile) {
-        const result = await uploadFile(selectedFile);
-        if (result) { docData = { documento_url: result.url, documento_nome: result.nome }; }
-      }
       const { error } = await (supabase as any).from("convencoes_coletivas").insert({
-        ...form, sindicato: form.sindicato || null, ...docData,
+        ...form, sindicato: form.sindicato || null,
       });
       if (error) throw error;
       toast.success("Convenção registrada");
       setDialogOpen(false);
       setForm({ nome: "", tipo: "cct", sindicato: "", data_inicio: "", data_fim: "" });
-      setSelectedFile(null);
       load();
     } catch (e: any) {
       toast.error("Erro", { description: e.message });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const handleAttachToExisting = async (file: File, convId: string) => {
-    setUploading(true);
-    try {
-      const result = await uploadFile(file);
-      if (!result) return;
-      const { error } = await (supabase as any).from("convencoes_coletivas").update({
-        documento_url: result.url, documento_nome: result.nome,
-      }).eq("id", convId);
-      if (error) throw error;
-      toast.success("Documento anexado");
-      load();
-    } catch (e: any) {
-      toast.error("Erro", { description: e.message });
-    } finally {
-      setUploading(false);
-      setAttachingToId(null);
-    }
-  };
-
-  const handleRemoveDoc = async (convId: string, docUrl: string) => {
-    try {
-      await supabase.storage.from("documentos").remove([docUrl]);
-      await (supabase as any).from("convencoes_coletivas").update({
-        documento_url: null, documento_nome: null,
-      }).eq("id", convId);
-      toast.success("Documento removido");
-      load();
-    } catch (e: any) {
-      toast.error("Erro", { description: e.message });
-    }
-  };
-
-  const handleDownloadDoc = async (docUrl: string, docNome: string) => {
-    const url = await getSignedUrl(docUrl);
-    if (url) {
-      const a = document.createElement("a");
-      a.href = url;
-      a.target = "_blank";
-      a.download = docNome;
-      a.click();
-    } else {
-      toast.error("Erro ao gerar link do documento");
     }
   };
 
@@ -168,15 +92,12 @@ export const ConvencoesColetivasCard = () => {
   };
 
   const handleDelete = async (id: string) => {
-    const conv = convencoes.find(c => c.id === id);
-    if (conv?.documento_url) {
-      await supabase.storage.from("documentos").remove([conv.documento_url]);
-    }
     await (supabase as any).from("convencoes_coletivas").delete().eq("id", id);
     toast.success("Convenção removida");
     load();
   };
 
+  // Verificar violações de piso
   const violacoes = pisos.filter(p => {
     const funcsComCargo = funcionarios?.filter(f =>
       f.cargo?.toLowerCase().trim() === p.cargo.toLowerCase().trim()
@@ -188,7 +109,7 @@ export const ConvencoesColetivasCard = () => {
 
   return (
     <>
-      <Card style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+      <Card>
         <CardHeader className="p-3 sm:p-4 pb-2">
           <div className="flex items-center justify-between gap-2 flex-wrap">
             <div className="min-w-0">
@@ -233,13 +154,6 @@ export const ConvencoesColetivasCard = () => {
                         {vencida && <Badge variant="destructive" className="text-[9px] px-1 py-0">Vencida</Badge>}
                       </div>
                       <div className="flex gap-0.5 flex-shrink-0">
-                        <Button
-                          size="sm" variant="outline" className="h-6 text-[10px] px-1.5"
-                          onClick={() => { setAttachingToId(conv.id); attachFileInputRef.current?.click(); }}
-                          disabled={uploading}
-                        >
-                          <Paperclip className="h-2.5 w-2.5 mr-0.5" />Anexar
-                        </Button>
                         <Button size="sm" variant="outline" className="h-6 text-[10px] px-1.5" onClick={() => { setSelectedConvencao(conv.id); setPisoDialogOpen(true); }}>
                           <Plus className="h-2.5 w-2.5 mr-0.5" />Piso
                         </Button>
@@ -252,21 +166,6 @@ export const ConvencoesColetivasCard = () => {
                       {conv.sindicato && `${conv.sindicato} · `}
                       {format(new Date(conv.data_inicio), "dd/MM/yy")} a {format(new Date(conv.data_fim), "dd/MM/yy")}
                     </p>
-
-                    {/* Documento anexado */}
-                    {conv.documento_url && conv.documento_nome && (
-                      <div className="flex items-center gap-1.5 mb-1.5 p-1.5 rounded bg-muted/50 border">
-                        <FileText className="h-3 w-3 text-primary flex-shrink-0" />
-                        <span className="text-[10px] truncate flex-1">{conv.documento_nome}</span>
-                        <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => handleDownloadDoc(conv.documento_url!, conv.documento_nome!)}>
-                          <Download className="h-2.5 w-2.5 text-primary" />
-                        </Button>
-                        <Button size="sm" variant="ghost" className="h-5 w-5 p-0" onClick={() => handleRemoveDoc(conv.id, conv.documento_url!)}>
-                          <X className="h-2.5 w-2.5 text-destructive" />
-                        </Button>
-                      </div>
-                    )}
-
                     {pisosConv.length > 0 && (
                       <Table>
                         <TableHeader>
@@ -309,19 +208,6 @@ export const ConvencoesColetivasCard = () => {
         </CardContent>
       </Card>
 
-      {/* Hidden file input for attaching to existing */}
-      <input
-        ref={attachFileInputRef}
-        type="file"
-        className="hidden"
-        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-        onChange={(e) => {
-          const file = e.target.files?.[0];
-          if (file && attachingToId) handleAttachToExisting(file, attachingToId);
-          e.target.value = "";
-        }}
-      />
-
       {/* Dialog Nova Convenção */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-w-md">
@@ -357,39 +243,10 @@ export const ConvencoesColetivasCard = () => {
                 <Input type="date" value={form.data_fim} onChange={e => setForm(p => ({ ...p, data_fim: e.target.value }))} />
               </div>
             </div>
-            {/* Upload de documento */}
-            <div>
-              <Label>Documento (opcional)</Label>
-              <div className="mt-1">
-                {selectedFile ? (
-                  <div className="flex items-center gap-2 p-2 rounded-md border bg-muted/50">
-                    <FileText className="h-4 w-4 text-primary flex-shrink-0" />
-                    <span className="text-xs truncate flex-1">{selectedFile.name}</span>
-                    <Button size="sm" variant="ghost" className="h-6 w-6 p-0" onClick={() => { setSelectedFile(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}>
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ) : (
-                  <Button variant="outline" size="sm" className="w-full gap-1.5 text-xs" onClick={() => fileInputRef.current?.click()}>
-                    <Paperclip className="h-3.5 w-3.5" />
-                    Anexar documento
-                  </Button>
-                )}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                  onChange={e => { if (e.target.files?.[0]) setSelectedFile(e.target.files[0]); }}
-                />
-              </div>
-            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDialogOpen(false); setSelectedFile(null); }}>Cancelar</Button>
-            <Button onClick={handleAddConvencao} disabled={uploading}>
-              {uploading ? "Enviando..." : "Salvar"}
-            </Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAddConvencao}>Salvar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

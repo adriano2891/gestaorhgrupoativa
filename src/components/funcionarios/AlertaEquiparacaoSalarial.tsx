@@ -48,7 +48,7 @@ export const AlertaEquiparacaoSalarial = () => {
     v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
   return (
-    <Card className="border-amber-300/50" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+    <Card className="border-amber-300/50">
       <CardHeader className="p-3 sm:p-4 pb-2">
         <div className="flex items-center gap-1.5 flex-wrap">
           <DollarSign className="h-4 w-4 text-amber-600 flex-shrink-0" />
