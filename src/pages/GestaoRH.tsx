@@ -119,7 +119,7 @@ const GestaoRH = () => {
     '/suporte-funcionarios': () => import("./SuporteFuncionarios"),
     '/documentacoes': () => import("./Documentacoes"),
     '/saude-seguranca': () => import("./SaudeSeguranca"),
-    '/checklist-trabalhista': () => import("./ChecklistTrabalhista"),
+    
     '/admins': () => import("./GerenciarAdmins"),
   }), []);
 
