@@ -717,13 +717,13 @@ const Relatorios = () => {
           charts: [
             {
               type: "pie",
-              title: "1. Turnover vs Retenção",
-              description: "Proporção entre rotatividade e retenção de colaboradores",
+              title: "1. Distribuição Geral",
+              description: "Ativos, em férias e desligados",
               data: [
-                { tipo: "Retenção", valor: ativos.length },
-                { tipo: "Turnover", valor: desligados.length },
+                { tipo: "Ativos", valor: ativos.length },
+                ...(emFerias.length > 0 ? [{ tipo: "Em Férias", valor: emFerias.length }] : []),
+                ...(desligados.length > 0 ? [{ tipo: "Desligados", valor: desligados.length }] : []),
               ],
-              insight: "Departamentos menores podem ter maior impacto no turnover geral.",
             },
             {
               type: "bar",
@@ -731,23 +731,32 @@ const Relatorios = () => {
               description: "Distribuição atual de colaboradores por área",
               data: Object.entries(deptAtivos).map(([dept, count]) => ({ departamento: dept, valor: count })),
               dataName: "Funcionários",
-              insight: "Departamentos menores podem ter maior impacto no turnover geral.",
             },
+            ...(Object.keys(motivoCount).length > 0 ? [{
+              type: "pie",
+              title: "3. Motivos de Desligamento",
+              description: "Distribuição dos motivos de saída",
+              data: Object.entries(motivoCount).map(([motivo, count]) => ({ motivo, valor: count })),
+            }] : []),
           ],
-          details: filtered.slice(0, 100).map((f: any) => ({
-            nome: f.nome || "-",
-            departamento: f.departamento || "-",
-            cargo: f.cargo || "-",
-            "data Admissao": f.data_admissao ? format(new Date(f.data_admissao + 'T12:00:00'), 'dd/MM/yyyy') : "-",
-            status: (() => {
-              const st = (f.status || "ativo").toLowerCase();
-              if (st === "em_ferias") return "Em férias";
-              if (st === "ativo") return "Ativo";
-              if (st === "demitido") return "Demitido";
-              if (st === "pediu_demissao") return "Pediu demissão";
-              return f.status || "Ativo";
-            })(),
-          })),
+          details: filtered.slice(0, 200).map((f: any) => {
+            const diasFerias = feriasPorFunc[f.id] || 0;
+            return {
+              nome: f.nome || "-",
+              departamento: f.departamento || "-",
+              cargo: f.cargo || "-",
+              "data Admissao": f.data_admissao ? format(new Date(f.data_admissao + 'T12:00:00'), 'dd/MM/yyyy') : "-",
+              "dias Ferias": diasFerias > 0 ? `${diasFerias}d` : "-",
+              status: (() => {
+                const st = (f.status || "ativo").toLowerCase();
+                if (st === "em_ferias") return "Em férias";
+                if (st === "ativo") return "Ativo";
+                if (st === "demitido") return "Demitido";
+                if (st === "pediu_demissao") return "Pediu demissão";
+                return f.status || "Ativo";
+              })(),
+            };
+          }),
         });
         break;
       }
