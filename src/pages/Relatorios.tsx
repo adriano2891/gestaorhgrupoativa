@@ -667,7 +667,106 @@ const Relatorios = () => {
         break;
       }
 
-      case "beneficios":
+      case "beneficios": {
+        const funcsAtivos = (funcionarios || []).filter((f: any) => {
+          const st = (f.status || "ativo").toLowerCase();
+          return st !== "demitido" && st !== "pediu_demissao";
+        });
+        let filtered = funcsAtivos;
+        if (filters.departamento && filters.departamento !== "todos") {
+          filtered = filtered.filter((f: any) => f.departamento?.toLowerCase().includes(filters.departamento.toLowerCase()));
+        }
+        const filteredIds = new Set(filtered.map((f: any) => f.id));
+        const funcMap = new Map(filtered.map((f: any) => [f.id, f]));
+
+        // Filter benefits by active employees
+        const bens = (beneficios || []).filter((b: any) => filteredIds.has(b.user_id));
+
+        // Stats by type
+        const tipoCount: Record<string, number> = {};
+        const tipoCusto: Record<string, number> = {};
+        bens.forEach((b: any) => {
+          const t = b.tipo || "Outro";
+          tipoCount[t] = (tipoCount[t] || 0) + 1;
+          if (!["plano_saude", "plano_odontologico"].includes(t)) {
+            tipoCusto[t] = (tipoCusto[t] || 0) + (b.valor || 0);
+          }
+        });
+
+        // By department
+        const deptBens: Record<string, number> = {};
+        bens.forEach((b: any) => {
+          const func = funcMap.get(b.user_id);
+          const d = func?.departamento || "Sem Departamento";
+          deptBens[d] = (deptBens[d] || 0) + 1;
+        });
+
+        // Employees without benefits
+        const empComBen = new Set(bens.map((b: any) => b.user_id));
+        const semBeneficio = filtered.filter((f: any) => !empComBen.has(f.id));
+
+        const totalCusto = bens.reduce((acc: number, b: any) => {
+          if (["plano_saude", "plano_odontologico"].includes(b.tipo)) return acc;
+          return acc + (b.valor || 0);
+        }, 0);
+
+        const tipoLabels: Record<string, string> = {
+          vale_transporte: "Vale Transporte",
+          vale_alimentacao: "Vale Alimentação",
+          vale_refeicao: "Vale Refeição",
+          plano_saude: "Plano de Saúde",
+          plano_odontologico: "Plano Odontológico",
+        };
+
+        setGeneratedData({
+          generatedAt: now.toISOString(),
+          summary: {
+            "Período": periodoLabel,
+            "Colaboradores Ativos": filtered.length,
+            "Total de Benefícios Ativos": bens.length,
+            "Custo Total (sem planos)": `R$ ${totalCusto.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+            "Sem Benefícios": semBeneficio.length,
+            "Tipos Distintos": Object.keys(tipoCount).length,
+          },
+          charts: [
+            {
+              type: "pie",
+              title: "Distribuição por Tipo de Benefício",
+              description: "Quantidade de benefícios por tipo",
+              data: Object.entries(tipoCount).map(([tipo, count]) => ({ tipo: tipoLabels[tipo] || tipo, valor: count })),
+            },
+            {
+              type: "bar",
+              title: "Benefícios por Departamento",
+              description: "Quantidade de benefícios ativos por departamento",
+              data: Object.entries(deptBens).map(([dept, count]) => ({ departamento: dept, valor: count })),
+              dataName: "Benefícios",
+            },
+            {
+              type: "bar",
+              title: "Custo por Tipo de Benefício",
+              description: "Valores monetários (exceto planos de saúde/odontológico)",
+              data: Object.entries(tipoCusto).map(([tipo, valor]) => ({ tipo: tipoLabels[tipo] || tipo, valor: parseFloat(valor.toFixed(2)) })),
+              dataName: "R$",
+            },
+          ],
+          details: bens.slice(0, 100).map((b: any) => {
+            const func = funcMap.get(b.user_id);
+            const isPlano = ["plano_saude", "plano_odontologico"].includes(b.tipo);
+            return {
+              Funcionário: func?.nome || "-",
+              Departamento: func?.departamento || "-",
+              Cargo: func?.cargo || "-",
+              Benefício: tipoLabels[b.tipo] || b.tipo || "-",
+              Valor: isPlano ? (b.observacoes || "Plano ativo") : `R$ ${(b.valor || 0).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`,
+              "Desconto (%)": b.desconto_percentual ? `${b.desconto_percentual}%` : "-",
+              "Data Início": b.data_inicio || "-",
+            };
+          }),
+        });
+        break;
+      }
+
       case "sst": {
         const data = funcionarios || [];
         let filtered = data;
@@ -679,7 +778,6 @@ const Relatorios = () => {
           const d = f.departamento || "Sem Departamento";
           deptCount[d] = (deptCount[d] || 0) + 1;
         });
-        const title = selectedReport === "beneficios" ? "Benefícios por Departamento" : "Colaboradores por Departamento (SST)";
         setGeneratedData({
           generatedAt: now.toISOString(),
           summary: {
@@ -690,7 +788,7 @@ const Relatorios = () => {
           charts: [
             {
               type: "bar",
-              title,
+              title: "Colaboradores por Departamento (SST)",
               description: "Distribuição por departamento",
               data: Object.entries(deptCount).map(([dept, count]) => ({ departamento: dept, valor: count })),
               dataName: "Colaboradores",
