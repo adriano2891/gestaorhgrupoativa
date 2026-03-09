@@ -1259,6 +1259,8 @@ const Funcionarios = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 text-sm h-10"
                   aria-label="Buscar funcionários"
+                  autoComplete="off"
+                  name="search-funcionarios"
                 />
               </div>
               <Select
