@@ -318,9 +318,9 @@ const Relatorios = () => {
         }
       }
 
-      // Fetch metricas via REST for produtividade/desempenho/turnover/clima/saude reports
-      let freshMetricas = metricas;
-      if (!freshMetricas || freshMetricas.length === 0 || ['produtividade', 'desempenho', 'turnover', 'clima', 'saude-seguranca', 'custo-folha'].includes(selectedReport || '')) {
+       // Fetch metricas via REST for produtividade/desempenho/turnover/clima reports
+       let freshMetricas = metricas;
+       if (!freshMetricas || freshMetricas.length === 0 || ['produtividade', 'desempenho', 'turnover', 'clima', 'custo-folha'].includes(selectedReport || '')) {
         try {
           freshMetricas = await fetchDirectREST("metricas", "select=*&order=periodo.desc&limit=1");
         } catch (e) {
