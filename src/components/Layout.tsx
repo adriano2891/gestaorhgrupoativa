@@ -111,6 +111,15 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <span className="text-xs md:text-sm font-medium text-foreground hidden md:inline max-w-[150px] truncate">
                 {profile?.nome || "Usuário"}
               </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setAgendaOpen(true)}
+                className="h-8 w-8 md:h-10 md:w-10 focus-ring"
+                aria-label="Abrir agenda"
+              >
+                <CalendarDays className="h-4 w-4 md:h-5 md:w-5" />
+              </Button>
               <AdminNotificationBell />
               <Button
                 variant="ghost"
