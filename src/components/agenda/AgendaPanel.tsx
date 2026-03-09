@@ -97,11 +97,11 @@ export function AgendaPanel({ open, onOpenChange }: AgendaPanelProps) {
            </div>
 
           <Tabs value={tab} onValueChange={setTab} className="flex-1 flex flex-col min-h-0">
-            <TabsList className="mx-4 mt-2 grid grid-cols-3 h-9">
-              <TabsTrigger value="calendario" className="text-xs">Calendário</TabsTrigger>
-              <TabsTrigger value="dia" className="text-xs">Dia</TabsTrigger>
-              <TabsTrigger value="proximos" className="text-xs">Próximos</TabsTrigger>
-            </TabsList>
+             <TabsList className="mx-4 mt-2 grid grid-cols-3 h-9" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+               <TabsTrigger value="calendario" className="text-xs" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>Calendário</TabsTrigger>
+               <TabsTrigger value="dia" className="text-xs" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>Dia</TabsTrigger>
+               <TabsTrigger value="proximos" className="text-xs" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>Próximos</TabsTrigger>
+             </TabsList>
 
             <ScrollArea className="flex-1">
               <TabsContent value="calendario" className="p-4 mt-0">
