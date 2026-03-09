@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import ExcelJS from "exceljs";
+import html2canvas from "html2canvas";
 
 interface ExportOptionsProps {
   data: Record<string, unknown>[];
@@ -108,27 +109,43 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
 
   const getChartPngDataUrl = async (chartIndex: number): Promise<{ dataUrl: string; width: number; height: number } | null> => {
     const container = document.getElementById(`report-chart-${chartIndex}`);
-    const svg = container?.querySelector("svg");
-    if (!container || !svg) return null;
+    if (!container) return null;
 
-    // Clone the SVG and inline all computed styles
-    const svgClone = svg.cloneNode(true) as SVGElement;
-    inlineStyles(svgClone, svg);
-    
-    // Resolve CSS variables in all SVG attributes (fill, stroke, etc.)
-    resolveAllCssVarsInElement(svgClone);
-    
-    // Ensure SVG has proper namespace
-    if (!svgClone.getAttribute("xmlns")) {
-      svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-    }
-    
-    // Get the actual rendered dimensions
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+    });
+
     const rect = container.getBoundingClientRect();
     const width = Math.max(1, Math.round(rect.width));
     const height = Math.max(1, Math.round(rect.height));
-    
-    // Set explicit dimensions on the SVG
+
+    try {
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+      });
+
+      if (canvas.width > 0 && canvas.height > 0) {
+        return { dataUrl: canvas.toDataURL("image/png", 1.0), width, height };
+      }
+    } catch (error) {
+      console.warn(`Falha no html2canvas para gráfico ${chartIndex}, tentando fallback SVG`, error);
+    }
+
+    const svg = container.querySelector("svg");
+    if (!svg) return null;
+
+    // Fallback SVG -> Canvas
+    const svgClone = svg.cloneNode(true) as SVGElement;
+    inlineStyles(svgClone, svg);
+    resolveAllCssVarsInElement(svgClone);
+
+    if (!svgClone.getAttribute("xmlns")) {
+      svgClone.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    }
+
     svgClone.setAttribute("width", String(width));
     svgClone.setAttribute("height", String(height));
 
@@ -146,7 +163,7 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
         img.src = url;
       });
 
-      const scale = 2; // High resolution for PDF
+      const scale = 2;
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       if (!ctx) return null;
@@ -154,10 +171,8 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
       canvas.width = width * scale;
       canvas.height = height * scale;
 
-      // Fill with white background for legibility
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-
       ctx.setTransform(scale, 0, 0, scale, 0, 0);
       ctx.drawImage(img, 0, 0, width, height);
 
@@ -236,161 +251,167 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
 
     // Gráficos (imagens)
     if (charts && charts.length > 0) {
-      if (yPos > pageHeight - 120) {
-        doc.addPage();
-        yPos = 20;
-      }
+      const exportableCharts = charts
+        .map((chart, originalIndex) => ({ chart, originalIndex }))
+        .filter(({ chart }) => chart.data && chart.data.length > 0);
 
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.setTextColor(17, 188, 183);
-      doc.text("Análise Gráfica", margin, yPos);
-      yPos += 3;
-
-      doc.setDrawColor(17, 188, 183);
-      doc.setLineWidth(0.5);
-      doc.line(margin, yPos, pageWidth - margin, yPos);
-      yPos += 10;
-
-      doc.setTextColor(0, 0, 0);
-
-      for (let chartIndex = 0; chartIndex < charts.length; chartIndex++) {
-        const chart = charts[chartIndex];
-
-        if (yPos > pageHeight - 110) {
+      if (exportableCharts.length > 0) {
+        if (yPos > pageHeight - 120) {
           doc.addPage();
           yPos = 20;
         }
 
-        doc.setFontSize(11);
+        doc.setFontSize(14);
         doc.setFont("helvetica", "bold");
-        doc.setTextColor(50, 50, 50);
-        doc.text(`${chartIndex + 1}. ${chart.title}`, margin, yPos);
-        yPos += 6;
+        doc.setTextColor(17, 188, 183);
+        doc.text("Análise Gráfica", margin, yPos);
+        yPos += 3;
 
-        if (chart.description) {
-          doc.setFontSize(9);
-          doc.setFont("helvetica", "italic");
-          doc.setTextColor(100, 100, 100);
-          doc.text(chart.description, margin, yPos);
-          yPos += 6;
-        }
-
-        // Try to embed chart image from the on-screen SVG
-        const chartImg = await getChartPngDataUrl(chartIndex);
-        if (chartImg) {
-          const maxWidth = pageWidth - margin * 2;
-          const aspect = chartImg.height / chartImg.width;
-          const imgWidth = maxWidth;
-          const imgHeight = Math.min(90, imgWidth * aspect);
-
-          if (yPos + imgHeight > pageHeight - 20) {
-            doc.addPage();
-            yPos = 20;
-          }
-
-          doc.addImage(chartImg.dataUrl, "PNG", margin, yPos, imgWidth, imgHeight, undefined, "FAST");
-          yPos += imgHeight + 8;
-        }
-
-        // Add explicit legend below chart image for PDF clarity
-        if (chartImg && chart.data && chart.data.length > 0 && chart.data.length <= 8) {
-          const labelKey = Object.keys(chart.data[0])[0];
-          const legendColors = chart.type === "pie"
-            ? ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"]
-            : ["#4cdecf", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
-          
-          const legendItems = chart.data.map((item: any, li: number) => ({
-            label: String(item[labelKey] || "-"),
-            color: legendColors[li % legendColors.length],
-          }));
-
-          const legendX = margin;
-          const itemWidth = Math.min(50, (pageWidth - margin * 2) / legendItems.length);
-          
-          legendItems.forEach((item: any, li: number) => {
-            const x = legendX + li * itemWidth;
-            if (x + itemWidth <= pageWidth - margin) {
-              doc.setFillColor(
-                parseInt(item.color.slice(1, 3), 16),
-                parseInt(item.color.slice(3, 5), 16),
-                parseInt(item.color.slice(5, 7), 16)
-              );
-              doc.circle(x + 2, yPos + 1, 2, "F");
-              doc.setFontSize(7);
-              doc.setFont("helvetica", "normal");
-              doc.setTextColor(80, 80, 80);
-              const truncLabel = item.label.length > 12 ? item.label.substring(0, 11) + "…" : item.label;
-              doc.text(truncLabel, x + 6, yPos + 2.5);
-            }
-          });
-          yPos += 8;
-        }
-
-        // Fallback: include a small table of the chart data
-        if (!chartImg && chart.data && chart.data.length > 0) {
-          const chartDataKeys = Object.keys(chart.data[0]);
-          const labelKey = chartDataKeys[0];
-          const valueKey = chartDataKeys.find((k) => k === "valor" || k === "value") || chartDataKeys[1];
-
-          const chartHeaders = [
-            labelKey.charAt(0).toUpperCase() + labelKey.slice(1),
-            chart.dataName || "Valor",
-          ];
-          const chartRows = chart.data.slice(0, 10).map((item) => {
-            const labelVal = (item as any)[labelKey];
-            const numVal = (item as any)[valueKey];
-            return [
-              String(labelVal || "-"),
-              typeof numVal === "number"
-                ? numVal.toLocaleString("pt-BR", { maximumFractionDigits: 2 })
-                : String(numVal || "-"),
-            ];
-          });
-
-          autoTable(doc, {
-            startY: yPos,
-            head: [chartHeaders],
-            body: chartRows,
-            theme: "grid",
-            styles: { fontSize: 8, cellPadding: 2 },
-            headStyles: {
-              fillColor: [17, 188, 183],
-              textColor: [255, 255, 255],
-              fontStyle: "bold",
-              halign: "center",
-            },
-            tableWidth: "wrap",
-            margin: { left: margin },
-          });
-
-          const lastTable = doc as unknown as { lastAutoTable?: { finalY: number } };
-          yPos = (lastTable.lastAutoTable?.finalY || yPos) + 8;
-        }
-
-        if (chart.insight) {
-          if (yPos > pageHeight - 30) {
-            doc.addPage();
-            yPos = 20;
-          }
-
-          doc.setFillColor(240, 253, 250);
-          const insightLines = doc.splitTextToSize(
-            `Insight: ${chart.insight}`,
-            pageWidth - margin * 2 - 10
-          );
-          const insightHeight = insightLines.length * 5 + 6;
-          doc.roundedRect(margin, yPos - 2, pageWidth - margin * 2, insightHeight, 2, 2, "F");
-
-          doc.setFontSize(8);
-          doc.setFont("helvetica", "normal");
-          doc.setTextColor(17, 94, 89);
-          doc.text(insightLines, margin + 5, yPos + 4);
-          yPos += insightHeight + 10;
-        }
+        doc.setDrawColor(17, 188, 183);
+        doc.setLineWidth(0.5);
+        doc.line(margin, yPos, pageWidth - margin, yPos);
+        yPos += 10;
 
         doc.setTextColor(0, 0, 0);
-        yPos += 4;
+
+        for (let chartNumber = 0; chartNumber < exportableCharts.length; chartNumber++) {
+          const { chart, originalIndex } = exportableCharts[chartNumber];
+
+          if (yPos > pageHeight - 110) {
+            doc.addPage();
+            yPos = 20;
+          }
+
+          doc.setFontSize(11);
+          doc.setFont("helvetica", "bold");
+          doc.setTextColor(50, 50, 50);
+          doc.text(`${chartNumber + 1}. ${chart.title}`, margin, yPos);
+          yPos += 6;
+
+          if (chart.description) {
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "italic");
+            doc.setTextColor(100, 100, 100);
+            doc.text(chart.description, margin, yPos);
+            yPos += 6;
+          }
+
+          // Capture chart image from the on-screen chart container
+          const chartImg = await getChartPngDataUrl(originalIndex);
+          if (chartImg) {
+            const maxWidth = pageWidth - margin * 2;
+            const aspect = chartImg.height / chartImg.width;
+            const imgWidth = maxWidth;
+            const imgHeight = Math.min(90, imgWidth * aspect);
+
+            if (yPos + imgHeight > pageHeight - 20) {
+              doc.addPage();
+              yPos = 20;
+            }
+
+            doc.addImage(chartImg.dataUrl, "PNG", margin, yPos, imgWidth, imgHeight, undefined, "FAST");
+            yPos += imgHeight + 8;
+          }
+
+          // Add explicit legend below chart image for PDF clarity
+          if (chartImg && chart.data && chart.data.length > 0 && chart.data.length <= 8) {
+            const labelKey = Object.keys(chart.data[0])[0];
+            const legendColors = chart.type === "pie"
+              ? ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"]
+              : ["#4cdecf", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
+
+            const legendItems = chart.data.map((item: any, li: number) => ({
+              label: String(item[labelKey] || "-"),
+              color: legendColors[li % legendColors.length],
+            }));
+
+            const legendX = margin;
+            const itemWidth = Math.min(50, (pageWidth - margin * 2) / legendItems.length);
+
+            legendItems.forEach((item: any, li: number) => {
+              const x = legendX + li * itemWidth;
+              if (x + itemWidth <= pageWidth - margin) {
+                doc.setFillColor(
+                  parseInt(item.color.slice(1, 3), 16),
+                  parseInt(item.color.slice(3, 5), 16),
+                  parseInt(item.color.slice(5, 7), 16)
+                );
+                doc.circle(x + 2, yPos + 1, 2, "F");
+                doc.setFontSize(7);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(80, 80, 80);
+                const truncLabel = item.label.length > 12 ? item.label.substring(0, 11) + "…" : item.label;
+                doc.text(truncLabel, x + 6, yPos + 2.5);
+              }
+            });
+            yPos += 8;
+          }
+
+          // Fallback: include a small table of the chart data
+          if (!chartImg && chart.data && chart.data.length > 0) {
+            const chartDataKeys = Object.keys(chart.data[0]);
+            const labelKey = chartDataKeys[0];
+            const valueKey = chartDataKeys.find((k) => k === "valor" || k === "value") || chartDataKeys[1];
+
+            const chartHeaders = [
+              labelKey.charAt(0).toUpperCase() + labelKey.slice(1),
+              chart.dataName || "Valor",
+            ];
+            const chartRows = chart.data.slice(0, 10).map((item) => {
+              const labelVal = (item as any)[labelKey];
+              const numVal = (item as any)[valueKey];
+              return [
+                String(labelVal || "-"),
+                typeof numVal === "number"
+                  ? numVal.toLocaleString("pt-BR", { maximumFractionDigits: 2 })
+                  : String(numVal || "-"),
+              ];
+            });
+
+            autoTable(doc, {
+              startY: yPos,
+              head: [chartHeaders],
+              body: chartRows,
+              theme: "grid",
+              styles: { fontSize: 8, cellPadding: 2 },
+              headStyles: {
+                fillColor: [17, 188, 183],
+                textColor: [255, 255, 255],
+                fontStyle: "bold",
+                halign: "center",
+              },
+              tableWidth: "wrap",
+              margin: { left: margin },
+            });
+
+            const lastTable = doc as unknown as { lastAutoTable?: { finalY: number } };
+            yPos = (lastTable.lastAutoTable?.finalY || yPos) + 8;
+          }
+
+          if (chart.insight) {
+            if (yPos > pageHeight - 30) {
+              doc.addPage();
+              yPos = 20;
+            }
+
+            doc.setFillColor(240, 253, 250);
+            const insightLines = doc.splitTextToSize(
+              `Insight: ${chart.insight}`,
+              pageWidth - margin * 2 - 10
+            );
+            const insightHeight = insightLines.length * 5 + 6;
+            doc.roundedRect(margin, yPos - 2, pageWidth - margin * 2, insightHeight, 2, 2, "F");
+
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(17, 94, 89);
+            doc.text(insightLines, margin + 5, yPos + 4);
+            yPos += insightHeight + 10;
+          }
+
+          doc.setTextColor(0, 0, 0);
+          yPos += 4;
+        }
       }
     }
 

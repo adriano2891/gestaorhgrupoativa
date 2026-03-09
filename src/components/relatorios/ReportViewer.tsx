@@ -387,131 +387,134 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
           Análise Gráfica
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-          {data.charts.filter((chart: any) => chart.data && chart.data.length > 0).map((chart: any, index: number) => (
-            <Card key={index} className="overflow-hidden hover:shadow-lg transition-all duration-300">
-              <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b p-3 sm:p-4 md:p-6">
-                <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                  {chart.type === 'pie' ? <Target className="w-4 h-4 text-primary" /> :
-                   chart.type === 'line' ? <TrendingUp className="w-4 h-4 text-primary" /> :
-                   <BarChart className="w-4 h-4 text-primary" />}
-                  <span className="truncate">{chart.title}</span>
-                </CardTitle>
-                {chart.description && (
-                  <CardDescription className="text-xs sm:text-sm mt-1">{chart.description}</CardDescription>
-                )}
-              </CardHeader>
-                <CardContent className="p-3 sm:p-4 md:pt-6">
-                  <div id={`report-chart-${index}`} data-chart-index={index} className="-mx-2 sm:mx-0">
-                    <ResponsiveContainer width="100%" height={240} minWidth={280}>
-                      {chart.type === "line" ? (
-                        <AreaChart data={chart.data}>
-                          <defs>
-                            <linearGradient id={`colorGradient${index}`} x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor={CHART_COLORS[0]} stopOpacity={0.3}/>
-                              <stop offset="95%" stopColor={CHART_COLORS[0]} stopOpacity={0}/>
-                            </linearGradient>
-                          </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis 
-                        dataKey={Object.keys(chart.data[0])[0]} 
-                        tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                        axisLine={{ stroke: 'hsl(var(--border))' }}
-                      />
-                      <YAxis 
-                        tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                        axisLine={{ stroke: 'hsl(var(--border))' }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend 
-                        wrapperStyle={{ paddingTop: '20px' }}
-                        formatter={(value) => <span className="text-sm text-foreground">{value}</span>}
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="valor" 
-                        stroke={CHART_COLORS[0]}
-                        strokeWidth={3}
-                        fill={`url(#colorGradient${index})`}
-                        name="Valor"
-                        dot={{ fill: CHART_COLORS[0], strokeWidth: 2, r: 4 }}
-                        activeDot={{ r: 6, strokeWidth: 0 }}
-                      />
-                    </AreaChart>
-                  ) : chart.type === "pie" ? (
-                    <PieChart>
-                      <Pie
-                        data={chart.data}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={70}
-                        innerRadius={35}
-                        fill="#8884d8"
-                        dataKey="valor"
-                        nameKey={Object.keys(chart.data[0])[0]}
-                        label={({ cx, cy, midAngle, outerRadius, percent }) => {
-                          const RADIAN = Math.PI / 180;
-                          const radius = outerRadius + 18;
-                          const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                          const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                          return (
-                            <text x={x} y={y} fill="hsl(var(--foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={12} fontFamily="Arial, Helvetica, sans-serif">
-                              {`${(percent * 100).toFixed(0)}%`}
-                            </text>
-                          );
-                        }}
-                      >
-                        {chart.data.map((entry: any, i: number) => (
-                          <Cell key={`cell-${i}`} fill={PIE_COLORS[i % PIE_COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend 
-                        wrapperStyle={{ fontSize: '12px', paddingTop: '4px' }}
-                        formatter={(value) => <span className="text-xs sm:text-sm text-foreground">{value}</span>}
-                      />
-                    </PieChart>
-                  ) : chart.type === "radar" ? (
-                    <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chart.data}>
-                      <PolarGrid stroke="hsl(var(--border))" />
-                      <PolarAngleAxis 
-                        dataKey={Object.keys(chart.data[0])[0]} 
-                        tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
-                      />
-                      <PolarRadiusAxis 
-                        angle={30} 
-                        domain={[0, 100]}
-                        tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
-                      />
-                      <Radar
-                        name="Valor"
-                        dataKey="valor"
-                        stroke={CHART_COLORS[0]}
-                        fill={CHART_COLORS[0]}
-                        fillOpacity={0.3}
-                        strokeWidth={2}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend />
-                    </RadarChart>
-                  ) : chart.type === "composed" ? (
-                    <ComposedChart data={chart.data}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis 
-                        dataKey={Object.keys(chart.data[0])[0]}
-                        tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                      />
-                      <YAxis 
-                        tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Legend />
-                      <Bar dataKey="valor" fill={CHART_COLORS[0]} name="Valor" radius={[4, 4, 0, 0]} />
-                      <Line type="monotone" dataKey="meta" stroke={CHART_COLORS[1]} strokeWidth={2} name="Meta" />
-                    </ComposedChart>
-                  ) : renderBarChart(chart, index)}
-                    </ResponsiveContainer>
-                  </div>
+          {data.charts
+            .map((chart: any, originalIndex: number) => ({ chart, originalIndex }))
+            .filter(({ chart }) => chart.data && chart.data.length > 0)
+            .map(({ chart, originalIndex }) => (
+              <Card key={originalIndex} className="overflow-hidden hover:shadow-lg transition-all duration-300">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b p-3 sm:p-4 md:p-6">
+                  <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+                    {chart.type === 'pie' ? <Target className="w-4 h-4 text-primary" /> :
+                     chart.type === 'line' ? <TrendingUp className="w-4 h-4 text-primary" /> :
+                     <BarChart className="w-4 h-4 text-primary" />}
+                    <span className="truncate">{chart.title}</span>
+                  </CardTitle>
+                  {chart.description && (
+                    <CardDescription className="text-xs sm:text-sm mt-1">{chart.description}</CardDescription>
+                  )}
+                </CardHeader>
+                  <CardContent className="p-3 sm:p-4 md:pt-6">
+                    <div id={`report-chart-${originalIndex}`} data-chart-index={originalIndex} className="-mx-2 sm:mx-0">
+                      <ResponsiveContainer width="100%" height={240} minWidth={280}>
+                        {chart.type === "line" ? (
+                          <AreaChart data={chart.data}>
+                            <defs>
+                              <linearGradient id={`colorGradient${originalIndex}`} x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor={CHART_COLORS[0]} stopOpacity={0.3}/>
+                                <stop offset="95%" stopColor={CHART_COLORS[0]} stopOpacity={0}/>
+                              </linearGradient>
+                            </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis 
+                          dataKey={Object.keys(chart.data[0])[0]} 
+                          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                          axisLine={{ stroke: 'hsl(var(--border))' }}
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                          axisLine={{ stroke: 'hsl(var(--border))' }}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend 
+                          wrapperStyle={{ paddingTop: '20px' }}
+                          formatter={(value) => <span className="text-sm text-foreground">{value}</span>}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="valor" 
+                          stroke={CHART_COLORS[0]}
+                          strokeWidth={3}
+                          fill={`url(#colorGradient${originalIndex})`}
+                          name="Valor"
+                          dot={{ fill: CHART_COLORS[0], strokeWidth: 2, r: 4 }}
+                          activeDot={{ r: 6, strokeWidth: 0 }}
+                        />
+                      </AreaChart>
+                    ) : chart.type === "pie" ? (
+                      <PieChart>
+                        <Pie
+                          data={chart.data}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          outerRadius={70}
+                          innerRadius={35}
+                          fill="#8884d8"
+                          dataKey="valor"
+                          nameKey={Object.keys(chart.data[0])[0]}
+                          label={({ cx, cy, midAngle, outerRadius, percent }) => {
+                            const RADIAN = Math.PI / 180;
+                            const radius = outerRadius + 18;
+                            const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                            const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                            return (
+                              <text x={x} y={y} fill="hsl(var(--foreground))" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize={12} fontFamily="Arial, Helvetica, sans-serif">
+                                {`${(percent * 100).toFixed(0)}%`}
+                              </text>
+                            );
+                          }}
+                        >
+                          {chart.data.map((entry: any, i: number) => (
+                            <Cell key={`cell-${i}`} fill={PIE_COLORS[i % PIE_COLORS.length]} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend 
+                          wrapperStyle={{ fontSize: '12px', paddingTop: '4px' }}
+                          formatter={(value) => <span className="text-xs sm:text-sm text-foreground">{value}</span>}
+                        />
+                      </PieChart>
+                    ) : chart.type === "radar" ? (
+                      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={chart.data}>
+                        <PolarGrid stroke="hsl(var(--border))" />
+                        <PolarAngleAxis 
+                          dataKey={Object.keys(chart.data[0])[0]} 
+                          tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                        />
+                        <PolarRadiusAxis 
+                          angle={30} 
+                          domain={[0, 100]}
+                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                        />
+                        <Radar
+                          name="Valor"
+                          dataKey="valor"
+                          stroke={CHART_COLORS[0]}
+                          fill={CHART_COLORS[0]}
+                          fillOpacity={0.3}
+                          strokeWidth={2}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend />
+                      </RadarChart>
+                    ) : chart.type === "composed" ? (
+                      <ComposedChart data={chart.data}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis 
+                          dataKey={Object.keys(chart.data[0])[0]}
+                          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                        />
+                        <YAxis 
+                          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend />
+                        <Bar dataKey="valor" fill={CHART_COLORS[0]} name="Valor" radius={[4, 4, 0, 0]} />
+                        <Line type="monotone" dataKey="meta" stroke={CHART_COLORS[1]} strokeWidth={2} name="Meta" />
+                      </ComposedChart>
+                    ) : renderBarChart(chart, originalIndex)}
+                      </ResponsiveContainer>
+                    </div>
                   {chart.insight && (
                     <div className="mt-3 sm:mt-4 p-2 sm:p-3 bg-muted/50 rounded-lg border border-border">
                       <div className="flex items-start gap-2">
