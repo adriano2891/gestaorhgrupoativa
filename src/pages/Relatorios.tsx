@@ -628,8 +628,24 @@ const Relatorios = () => {
         const total = filtered.length;
         const ativos = filtered.filter((f: any) => {
           const st = (f.status || "ativo").toLowerCase();
-          return st !== "demitido" && st !== "pediu_demissao";
+          return st !== "demitido" && st !== "pediu_demissao" && st !== "em_ferias";
         });
+        const emFerias = filtered.filter((f: any) => {
+          const st = (f.status || "").toLowerCase();
+          return st === "em_ferias";
+        });
+        // Também contar quem tem férias aprovadas/em andamento
+        const feriasData = ferias || [];
+        const feriasPorFunc: Record<string, number> = {};
+        feriasData.forEach((f: any) => {
+          if (["aprovado", "em_andamento"].includes(f.status)) {
+            feriasPorFunc[f.user_id] = (feriasPorFunc[f.user_id] || 0) + (f.dias_solicitados || 0);
+          }
+        });
+        const filteredIds = new Set(filtered.map((f: any) => f.id));
+        const totalFeriasAtivas = feriasData.filter((f: any) => filteredIds.has(f.user_id) && ["aprovado", "em_andamento"].includes(f.status)).length;
+        const totalDiasFerias = feriasData.filter((f: any) => filteredIds.has(f.user_id) && ["aprovado", "em_andamento", "concluido"].includes(f.status)).reduce((acc: number, f: any) => acc + (f.dias_solicitados || 0), 0);
+
         const desligados = filtered.filter((f: any) => {
           const st = (f.status || "").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
           return st === "demitido" || st === "pediu_demissao" || st === "demissao";
@@ -654,7 +670,7 @@ const Relatorios = () => {
         }
 
         const taxaTurnover = total > 0 ? ((desligados.length / total) * 100).toFixed(1) : "0";
-        const taxaRetencao = total > 0 ? ((ativos.length / total) * 100).toFixed(1) : "0";
+        const taxaRetencao = total > 0 ? (((ativos.length + emFerias.length) / total) * 100).toFixed(1) : "0";
 
         const motivoCount: Record<string, number> = {};
         desligados.forEach((f: any) => {
@@ -675,11 +691,11 @@ const Relatorios = () => {
           deptAtivos[d] = (deptAtivos[d] || 0) + 1;
         });
 
-        // Admissões por mês (últimos 6 meses)
+        // Admissões por mês
         const admissoesMes: Record<string, number> = {};
         filtered.forEach((f: any) => {
           if (f.data_admissao) {
-            const mes = f.data_admissao.substring(0, 7); // YYYY-MM
+            const mes = f.data_admissao.substring(0, 7);
             admissoesMes[mes] = (admissoesMes[mes] || 0) + 1;
           }
         });
@@ -692,6 +708,10 @@ const Relatorios = () => {
             "Taxa de Turnover": `${taxaTurnover}%`,
             "Taxa de Retenção": `${taxaRetencao}%`,
             "Total de Funcionários": total,
+            "Ativos": ativos.length,
+            "Em Férias": emFerias.length,
+            "Férias Aprovadas/Andamento": totalFeriasAtivas,
+            "Total Dias de Férias": totalDiasFerias,
             "Desligamentos": desligados.length,
           },
           charts: [
