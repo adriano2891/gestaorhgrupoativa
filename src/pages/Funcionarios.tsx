@@ -1153,6 +1153,7 @@ const Funcionarios = () => {
       });
       
       // Optimistic update: add employee to list immediately
+      recentlyAddedRef.current = true;
       if (newUserId) {
         const optimisticEmployee: Employee = {
           id: newUserId,
@@ -1165,6 +1166,7 @@ const Funcionarios = () => {
           admissionDate: newEmployee.dataAdmissao || new Date().toISOString().split('T')[0],
           foto_url: newPhotoPreview || undefined,
           matricula: undefined,
+          cpf: newEmployee.cpf || undefined,
         };
         setEmployees(prev => {
           const updated = [...prev, optimisticEmployee].sort((a, b) => a.name.localeCompare(b.name));
@@ -1183,8 +1185,11 @@ const Funcionarios = () => {
       setNewPhotoPreview(null);
       setIsAddDialogOpen(false);
       
-      // Background refresh to sync all data (non-blocking)
-      fetchEmployees().catch(console.error);
+      // Delayed background refresh to allow role propagation
+      setTimeout(() => {
+        recentlyAddedRef.current = false;
+        fetchEmployees().catch(console.error);
+      }, 3000);
     } catch (error: any) {
       console.error("Erro ao adicionar funcionário:", error);
       
