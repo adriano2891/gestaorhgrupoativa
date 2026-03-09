@@ -20,6 +20,25 @@ export const ConfirmacoesLeituraDialog = ({
   onOpenChange,
   comunicadoId,
 }: ConfirmacoesLeituraDialogProps) => {
+  const queryClient = useQueryClient();
+
+  // Realtime subscription for comunicados_lidos changes
+  useEffect(() => {
+    if (!comunicadoId || !open) return;
+    const channel = supabase
+      .channel(`comunicados-lidos-${comunicadoId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'comunicados_lidos', filter: `comunicado_id=eq.${comunicadoId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["comunicado-confirmacoes", comunicadoId] });
+          queryClient.invalidateQueries({ queryKey: ["comunicado-destinatarios-count", comunicadoId] });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [comunicadoId, open, queryClient]);
+
   // Fetch the comunicado to know its destinatarios
   const { data: comunicado } = useQuery({
     queryKey: ["comunicado-detalhes", comunicadoId],
