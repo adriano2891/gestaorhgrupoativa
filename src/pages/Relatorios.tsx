@@ -631,7 +631,7 @@ const Relatorios = () => {
       }
 
       case "turnover": {
-        const tdata = funcionarios || [];
+        const tdata = todosFuncionarios || [];
         let filtered = tdata;
         if (filters.departamento && filters.departamento !== "todos") {
           filtered = filtered.filter((f: any) => f.departamento?.toLowerCase().includes(filters.departamento.toLowerCase()));
