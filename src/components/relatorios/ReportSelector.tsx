@@ -55,7 +55,7 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
                         </div>
                         
                         <div className="flex-1 min-w-0 pt-0.5 sm:pt-1">
-                          <h4 className="font-bold text-foreground dark:text-gray-100 mb-1 sm:mb-1.5 group-hover:text-primary transition-colors text-sm sm:text-base leading-tight" style={{ fontFamily: 'Arial, sans-serif' }}>
+                          <h4 className="font-bold mb-1 sm:mb-1.5 group-hover:text-primary transition-colors text-sm sm:text-base leading-tight" style={{ fontFamily: 'Arial, sans-serif', color: '#19b2b0' }}>
                             {report.name}
                           </h4>
                           <p className="text-xs sm:text-sm text-muted-foreground dark:text-gray-400 line-clamp-2 leading-relaxed" style={{ fontFamily: 'Arial, sans-serif' }}>
