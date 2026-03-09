@@ -36,6 +36,25 @@ const Relatorios = () => {
   const [filters, setFilters] = useState<any>({ departamento: "todos" });
   const [generatedData, setGeneratedData] = useState<any>(null);
 
+  const queryClient = useQueryClient();
+
+  // Realtime: atualiza dados do turnover quando profiles ou user_roles mudam
+  useEffect(() => {
+    const channel = supabase
+      .channel('relatorios-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["todos-funcionarios-turnover"] });
+        queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, () => {
+        queryClient.invalidateQueries({ queryKey: ["todos-funcionarios-turnover"] });
+        queryClient.invalidateQueries({ queryKey: ["funcionarios"] });
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
+
   const { data: funcionarios } = useFuncionarios();
   const { data: todosFuncionarios } = useQuery({
     queryKey: ["todos-funcionarios-turnover"],
@@ -54,7 +73,7 @@ const Relatorios = () => {
       return (profiles || []) as any[];
     },
     retry: 2,
-    staleTime: 1000 * 30,
+    staleTime: 1000 * 15,
   });
   const { data: registros } = useRegistrosPonto();
   const { data: holerites } = useHolerites();
