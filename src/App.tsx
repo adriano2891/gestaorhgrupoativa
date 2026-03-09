@@ -47,7 +47,7 @@ const Documentacoes = lazy(() => import("./pages/Documentacoes"));
 const CursosAdmin = lazy(() => import("./pages/CursosAdmin"));
 const SuporteFuncionarios = lazy(() => import("./pages/SuporteFuncionarios"));
 const SaudeSeguranca = lazy(() => import("./pages/SaudeSeguranca"));
-const Afastamentos = lazy(() => import("./pages/Afastamentos"));
+
 const PortalCursoPlayerLazy = lazy(() => import("./components/ponto/PortalCursoPlayer").then(m => ({ default: m.PortalCursoPlayer })));
 const VerificarComprovante = lazy(() => import("./pages/VerificarComprovante"));
 
@@ -372,16 +372,8 @@ const App = () => {
                         </ProtectedRoute>
                       }
                     />
-                    <Route
-                      path="/afastamentos"
-                      element={
-                        <ProtectedRoute>
-                          <LazyLayout>
-                            <Afastamentos />
-                          </LazyLayout>
-                        </ProtectedRoute>
-                      }
-                    />
+                    {/* Redirect old /afastamentos to SST */}
+                    <Route path="/afastamentos" element={<Navigate to="/saude-seguranca" replace />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
