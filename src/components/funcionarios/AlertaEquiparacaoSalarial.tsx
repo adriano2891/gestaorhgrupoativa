@@ -60,7 +60,7 @@ export const AlertaEquiparacaoSalarial = () => {
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="p-3 sm:p-4 pt-0">
+      <CardContent className="p-2.5 sm:p-3 pt-0">
         <p className="text-[11px] text-muted-foreground mb-2 leading-tight">
           Funcionários com mesma função e diferenças salariais &gt;5%. Risco de ação judicial (CLT Art. 461).
         </p>

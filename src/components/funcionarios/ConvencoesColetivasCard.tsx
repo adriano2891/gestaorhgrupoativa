@@ -135,7 +135,7 @@ export const ConvencoesColetivasCard = () => {
             </div>
           )}
         </CardHeader>
-        <CardContent className="p-3 sm:p-4 pt-0">
+        <CardContent className="p-2.5 sm:p-3 pt-0">
           {loading ? (
             <p className="text-xs text-muted-foreground text-center py-3">Carregando...</p>
           ) : convencoes.length === 0 ? (
