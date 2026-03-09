@@ -364,6 +364,22 @@ const Funcionarios = () => {
         return;
       }
 
+      if (recentlyAddedRef.current && propagationGuardUntilRef.current > 0 && Date.now() >= propagationGuardUntilRef.current) {
+        recentlyAddedRef.current = false;
+        propagationGuardUntilRef.current = 0;
+        pendingNewEmployeeIdRef.current = null;
+      }
+
+      const isInPropagationWindow = () => recentlyAddedRef.current || Date.now() < propagationGuardUntilRef.current;
+      const schedulePropagationRetry = (delayMs = 1200) => {
+        if (propagationRetryTimeoutRef.current !== null) {
+          window.clearTimeout(propagationRetryTimeoutRef.current);
+        }
+        propagationRetryTimeoutRef.current = window.setTimeout(() => {
+          fetchEmployees().catch(console.error);
+        }, delayMs);
+      };
+
       // Step 1: Get all roles via REST
       let allRoles: { user_id: string; role: string }[] = [];
       try {
@@ -388,8 +404,9 @@ const Funcionarios = () => {
 
         if (targetIds.length === 0) {
           console.warn("fetchEmployees: Nenhum funcionário puro encontrado");
-          if (recentlyAddedRef.current) {
-            console.log("fetchEmployees: Ignorando lista vazia (adição recente)");
+          if (isInPropagationWindow() && employeesRef.current.length > 0) {
+            console.log("fetchEmployees: Preservando lista atual durante propagação de role");
+            schedulePropagationRetry();
             return;
           }
           setEmployees([]);
@@ -402,7 +419,7 @@ const Funcionarios = () => {
         const inFilter = targetIds.map(id => `"${id}"`).join(',');
         const profilesData = await restFetch(
           'profiles',
-          `?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula&id=in.(${inFilter})&tipo_perfil=eq.funcionario&order=nome.asc`
+          `?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula,cpf&id=in.(${inFilter})&tipo_perfil=eq.funcionario&order=nome.asc`
         );
 
         console.log("fetchEmployees: Profiles retornados:", profilesData?.length || 0);
@@ -423,14 +440,25 @@ const Funcionarios = () => {
           cpf: profile.cpf || null,
         })));
 
-        // Protect against race conditions: don't replace a larger list with a smaller one right after adding
-        if (recentlyAddedRef.current && formattedEmployees.length < employeesRef.current.length) {
-          console.log("fetchEmployees: Ignorando resultado menor (adição recente)", formattedEmployees.length, "vs", employeesRef.current.length);
+        if (isInPropagationWindow() && employeesRef.current.length > 0 && formattedEmployees.length < employeesRef.current.length) {
+          console.log("fetchEmployees: Ignorando resultado parcial durante propagação", formattedEmployees.length, "vs", employeesRef.current.length);
+          schedulePropagationRetry();
           return;
         }
+
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
         setEmployees(formattedEmployees);
         employeesRef.current = formattedEmployees;
+
+        if (pendingNewEmployeeIdRef.current && formattedEmployees.some((emp) => emp.id === pendingNewEmployeeIdRef.current)) {
+          recentlyAddedRef.current = false;
+          propagationGuardUntilRef.current = 0;
+          pendingNewEmployeeIdRef.current = null;
+          if (propagationRetryTimeoutRef.current !== null) {
+            window.clearTimeout(propagationRetryTimeoutRef.current);
+            propagationRetryTimeoutRef.current = null;
+          }
+        }
 
         const salaries: Record<string, { salario: number | null; ultimaAlteracao?: { valor: number; data: string } }> = {};
         const updates: Record<string, { updated_at: string }> = {};
@@ -447,7 +475,7 @@ const Funcionarios = () => {
         console.log("fetchEmployees: Fallback - buscando profiles diretamente...");
         const fallbackProfiles = await restFetch(
           'profiles',
-          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula&tipo_perfil=eq.funcionario&order=nome.asc'
+          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula,cpf&tipo_perfil=eq.funcionario&order=nome.asc'
         );
 
         const allProfiles = fallbackProfiles || [];
