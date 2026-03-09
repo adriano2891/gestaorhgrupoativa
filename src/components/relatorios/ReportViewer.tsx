@@ -427,17 +427,30 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                       <Bar dataKey="valor" fill={CHART_COLORS[0]} name="Valor" radius={[4, 4, 0, 0]} />
                       <Line type="monotone" dataKey="meta" stroke={CHART_COLORS[1]} strokeWidth={2} name="Meta" />
                     </ComposedChart>
-                  ) : (
+                  ) : (() => {
+                    // Dynamically detect all numeric data keys (exclude the label key)
+                    const labelKey = Object.keys(chart.data[0])[0];
+                    const allKeys = Object.keys(chart.data[0]).filter(k => k !== labelKey);
+                    const numericKeys = allKeys.filter(k => 
+                      chart.data.some((row: any) => typeof row[k] === 'number')
+                    );
+                    // If only "valor" exists, use single bar with gradient
+                    const isSingleBar = numericKeys.length <= 1;
+                    const barKeys = numericKeys.length > 0 ? numericKeys : ["valor"];
+
+                    return (
                     <BarChart data={chart.data}>
                       <defs>
-                        <linearGradient id={`barGradient${index}`} x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={BAR_CHART_COLOR} stopOpacity={1}/>
-                          <stop offset="100%" stopColor={BAR_CHART_COLOR} stopOpacity={0.7}/>
-                        </linearGradient>
+                        {barKeys.map((key, bIdx) => (
+                          <linearGradient key={key} id={`barGradient${index}_${bIdx}`} x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor={CHART_COLORS[bIdx % CHART_COLORS.length]} stopOpacity={1}/>
+                            <stop offset="100%" stopColor={CHART_COLORS[bIdx % CHART_COLORS.length]} stopOpacity={0.7}/>
+                          </linearGradient>
+                        ))}
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
                       <XAxis 
-                        dataKey={Object.keys(chart.data[0])[0]} 
+                        dataKey={labelKey} 
                         tick={{ fontSize: 10, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                         axisLine={{ stroke: 'hsl(var(--border))' }}
                         angle={-30}
@@ -454,24 +467,19 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                         wrapperStyle={{ paddingTop: '20px' }}
                         formatter={(value) => <span className="text-sm text-foreground">{value}</span>}
                       />
-                      <Bar 
-                        dataKey="valor" 
-                        fill={`url(#barGradient${index})`}
-                        name={chart.dataName || "Valor"}
-                        radius={[6, 6, 0, 0]}
-                        maxBarSize={60}
-                      />
-                      {chart.data[0]?.meta !== undefined && (
+                      {barKeys.map((key, bIdx) => (
                         <Bar 
-                          dataKey="meta" 
-                          fill={CHART_COLORS[1]}
-                          name="Meta"
+                          key={key}
+                          dataKey={key} 
+                          fill={`url(#barGradient${index}_${bIdx})`}
+                          name={isSingleBar ? (chart.dataName || "Valor") : key}
                           radius={[6, 6, 0, 0]}
                           maxBarSize={60}
-                          opacity={0.6}
                         />
-                      )}
+                      ))}
                     </BarChart>
+                    );
+                  })()
                   )}
                     </ResponsiveContainer>
                   </div>
