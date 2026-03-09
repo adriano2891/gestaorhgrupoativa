@@ -607,8 +607,12 @@ const Relatorios = () => {
             }),
           });
         }
-        const data = funcionarios || [];
-        let filtered = data;
+        break;
+      }
+
+      case "turnover": {
+        const tdata = funcionarios || [];
+        let filtered = tdata;
         if (filters.departamento && filters.departamento !== "todos") {
           filtered = filtered.filter((f: any) => f.departamento?.toLowerCase().includes(filters.departamento.toLowerCase()));
         }
