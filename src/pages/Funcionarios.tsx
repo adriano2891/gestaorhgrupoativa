@@ -55,6 +55,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BeneficiosCard } from "@/components/funcionarios/BeneficiosCard";
 import { RescisaoCard } from "@/components/funcionarios/RescisaoCard";
 import { BancoHorasCard } from "@/components/funcionarios/BancoHorasCard";
+import { AlertaEquiparacaoSalarial } from "@/components/funcionarios/AlertaEquiparacaoSalarial";
+import { ConvencoesColetivasCard } from "@/components/funcionarios/ConvencoesColetivasCard";
 
 type EmployeeStatus = "ativo" | "afastado" | "demitido" | "em_ferias" | "pediu_demissao";
 
