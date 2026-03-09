@@ -19,6 +19,8 @@ interface RescisaoCardProps {
   userName: string;
   salarioBase: number;
   dataAdmissao: string;
+  cpf?: string;
+  cargo?: string;
 }
 
 const tipoRescisaoLabels: Record<string, string> = {
