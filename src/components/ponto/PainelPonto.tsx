@@ -12,6 +12,7 @@ import { FolhasPontoCard } from "./FolhasPontoCard";
 import { HistoricoComprovantes } from "./HistoricoComprovantes";
 import { PortalBackground } from "./PortalBackground";
 import { SolicitarAjustePontoDialog } from "./SolicitarAjustePontoDialog";
+import { SobreavisoCard } from "./SobreavisoCard";
 import { supabase } from "@/integrations/supabase/client";
 
 const getRestHeaders = () => {
@@ -163,6 +164,8 @@ export const PainelPonto = ({ onBack }: PainelPontoProps) => {
             registro={registroHoje} 
             loading={loading}
           />
+
+          <SobreavisoCard />
 
           <HistoricoPonto key={refreshKey} />
 

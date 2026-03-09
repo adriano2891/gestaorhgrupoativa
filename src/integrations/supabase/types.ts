@@ -1163,6 +1163,45 @@ export type Database = {
           },
         ]
       }
+      convencoes_coletivas: {
+        Row: {
+          created_at: string | null
+          data_fim: string
+          data_inicio: string
+          documento_nome: string | null
+          documento_url: string | null
+          id: string
+          nome: string
+          sindicato: string | null
+          tipo: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          data_fim: string
+          data_inicio: string
+          documento_nome?: string | null
+          documento_url?: string | null
+          id?: string
+          nome: string
+          sindicato?: string | null
+          tipo?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          data_fim?: string
+          data_inicio?: string
+          documento_nome?: string | null
+          documento_url?: string | null
+          id?: string
+          nome?: string
+          sindicato?: string | null
+          tipo?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       cursos: {
         Row: {
           capa_url: string | null
@@ -1709,6 +1748,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      documentos_sst_validade: {
+        Row: {
+          arquivo_url: string | null
+          created_at: string | null
+          data_emissao: string
+          data_validade: string
+          id: string
+          nome: string
+          observacoes: string | null
+          responsavel: string | null
+          tipo: string
+          updated_at: string | null
+        }
+        Insert: {
+          arquivo_url?: string | null
+          created_at?: string | null
+          data_emissao: string
+          data_validade: string
+          id?: string
+          nome: string
+          observacoes?: string | null
+          responsavel?: string | null
+          tipo: string
+          updated_at?: string | null
+        }
+        Update: {
+          arquivo_url?: string | null
+          created_at?: string | null
+          data_emissao?: string
+          data_validade?: string
+          id?: string
+          nome?: string
+          observacoes?: string | null
+          responsavel?: string | null
+          tipo?: string
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       documentos_versoes: {
         Row: {
@@ -3442,6 +3520,38 @@ export type Database = {
           },
         ]
       }
+      pisos_salariais: {
+        Row: {
+          cargo: string
+          convencao_id: string
+          created_at: string | null
+          id: string
+          piso_salarial: number
+        }
+        Insert: {
+          cargo: string
+          convencao_id: string
+          created_at?: string | null
+          id?: string
+          piso_salarial?: number
+        }
+        Update: {
+          cargo?: string
+          convencao_id?: string
+          created_at?: string | null
+          id?: string
+          piso_salarial?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pisos_salariais_convencao_id_fkey"
+            columns: ["convencao_id"]
+            isOneToOne: false
+            referencedRelation: "convencoes_coletivas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           cargo: string | null
@@ -3717,6 +3827,56 @@ export type Database = {
           },
           {
             foreignKeyName: "registros_ponto_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      registros_sobreaviso: {
+        Row: {
+          acionado: boolean | null
+          created_at: string | null
+          data: string
+          fim: string
+          horas_sobreaviso: string | null
+          id: string
+          inicio: string
+          observacoes: string | null
+          updated_at: string | null
+          user_id: string
+          valor_hora_sobreaviso: number | null
+        }
+        Insert: {
+          acionado?: boolean | null
+          created_at?: string | null
+          data: string
+          fim: string
+          horas_sobreaviso?: string | null
+          id?: string
+          inicio: string
+          observacoes?: string | null
+          updated_at?: string | null
+          user_id: string
+          valor_hora_sobreaviso?: number | null
+        }
+        Update: {
+          acionado?: boolean | null
+          created_at?: string | null
+          data?: string
+          fim?: string
+          horas_sobreaviso?: string | null
+          id?: string
+          inicio?: string
+          observacoes?: string | null
+          updated_at?: string | null
+          user_id?: string
+          valor_hora_sobreaviso?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "registros_sobreaviso_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
