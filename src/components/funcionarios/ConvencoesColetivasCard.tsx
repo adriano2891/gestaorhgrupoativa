@@ -199,6 +199,15 @@ export const ConvencoesColetivasCard = () => {
                     <p className="text-[10px] text-muted-foreground mb-1.5 leading-tight truncate">
                       {conv.sindicato && `${conv.sindicato} · `}
                       {format(new Date(conv.data_inicio), "dd/MM/yy")} a {format(new Date(conv.data_fim), "dd/MM/yy")}
+                      {conv.documento_nome && (
+                        <button
+                          onClick={() => handleDownloadDoc(conv.documento_url!, conv.documento_nome!)}
+                          className="inline-flex items-center gap-0.5 ml-1.5 text-primary hover:underline"
+                        >
+                          <Paperclip className="h-2.5 w-2.5" />
+                          {conv.documento_nome}
+                        </button>
+                      )}
                     </p>
                     {pisosConv.length > 0 && (
                       <Table>
