@@ -897,49 +897,93 @@ const Relatorios = () => {
       }
 
       case "sst": {
-        const data = funcionarios || [];
-        let filtered = data;
+        const sstFuncs = funcionarios || [];
+        let filtered = sstFuncs;
         if (filters.departamento && filters.departamento !== "todos") {
           filtered = filtered.filter((f: any) => f.departamento?.toLowerCase().includes(filters.departamento.toLowerCase()));
         }
-        const deptCount: Record<string, number> = {};
+        const filteredIds = new Set(filtered.map((f: any) => f.id));
+
+        // Afastamentos ativos
+        const afastAtivos = (afastamentos || []).filter((a: any) => {
+          if (!filteredIds.has(a.user_id)) return false;
+          return a.status === "ativo" || a.status === "em_andamento" || !a.data_retorno;
+        });
+
+        // Dias sem acidentes (from last CAT)
+        const catsData = (cats || []).filter((c: any) => filteredIds.has(c.user_id));
+        let diasSemAcidentes = 120; // default
+        if (catsData.length > 0) {
+          const ultimaCat = catsData.sort((a: any, b: any) => b.data_acidente.localeCompare(a.data_acidente))[0];
+          try {
+            diasSemAcidentes = differenceInDays(new Date(), new Date(ultimaCat.data_acidente));
+          } catch {}
+        }
+
+        // Taxa de incidentes
+        const taxaIncidentes = filtered.length > 0 ? ((catsData.length / filtered.length) * 100).toFixed(1) : "0.0";
+
+        // ASO data for last exam date
+        const asosData = (asos || []).filter((a: any) => filteredIds.has(a.user_id));
+        const lastExamByUser: Record<string, string> = {};
+        asosData.forEach((a: any) => {
+          if (!lastExamByUser[a.user_id] || a.data_exame > lastExamByUser[a.user_id]) {
+            lastExamByUser[a.user_id] = a.data_exame;
+          }
+        });
+
+        // Dept stats for exams chart
+        const deptExames: Record<string, number> = {};
         filtered.forEach((f: any) => {
           const d = f.departamento || "Sem Departamento";
-          deptCount[d] = (deptCount[d] || 0) + 1;
+          if (lastExamByUser[f.id]) {
+            deptExames[d] = (deptExames[d] || 0) + 1;
+          }
         });
-          const statusSST: Record<string, number> = {};
-          filtered.forEach((f: any) => {
-            const s = f.status || "Ativo";
-            statusSST[s] = (statusSST[s] || 0) + 1;
-          });
-          setGeneratedData({
-            generatedAt: now.toISOString(),
-            summary: {
-              "Período": periodoLabel,
-              "Total Colaboradores": filtered.length,
-              "Departamentos": Object.keys(deptCount).length,
+
+        // Status distribution
+        const statusSaude: Record<string, number> = {};
+        filtered.forEach((f: any) => {
+          const hasAfastamento = afastAtivos.some((a: any) => a.user_id === f.id);
+          const label = hasAfastamento ? "Afastado" : "Ativo";
+          statusSaude[label] = (statusSaude[label] || 0) + 1;
+        });
+
+        setGeneratedData({
+          generatedAt: now.toISOString(),
+          summary: {
+            "Dias sem Acidentes": diasSemAcidentes,
+            "Afastamentos Ativos": afastAtivos.length,
+            "Taxa de Incidentes": `${taxaIncidentes}%`,
+            "Colaboradores Monitorados": filtered.length,
+          },
+          charts: [
+            {
+              type: "pie",
+              title: "1. Status de Saúde dos Colaboradores",
+              description: "Proporção de colaboradores ativos vs afastados",
+              data: Object.entries(statusSaude).map(([status, count]) => ({ status, valor: count })),
             },
-            charts: [
-              {
-                type: "bar",
-                title: "Colaboradores por Departamento (SST)",
-                description: "Distribuição por departamento",
-                data: Object.entries(deptCount).map(([dept, count]) => ({ departamento: dept, valor: count })),
-                dataName: "Colaboradores",
-              },
-              {
-                type: "pie",
-                title: "Distribuição por Status (SST)",
-                description: "Status dos colaboradores monitorados",
-                data: Object.entries(statusSST).map(([status, count]) => ({ status, valor: count })),
-              },
-            ],
-          details: filtered.slice(0, 100).map((f: any) => ({
-            Nome: f.nome || "-",
-            Cargo: f.cargo || "-",
-            Departamento: f.departamento || "-",
-            Status: f.status || "Ativo",
-          })),
+            {
+              type: "bar",
+              title: "2. Exames Periódicos por Departamento",
+              description: "Quantidade de exames realizados por área",
+              data: Object.entries(deptExames).map(([dept, count]) => ({ departamento: dept, valor: count })),
+              dataName: "Exames",
+              insight: "Exames periódicos são obrigatórios e devem ser realizados anualmente.",
+            },
+          ],
+          details: filtered.slice(0, 100).map((f: any) => {
+            const hasAfastamento = afastAtivos.some((a: any) => a.user_id === f.id);
+            const ultimoExame = lastExamByUser[f.id];
+            return {
+              nome: f.nome || "-",
+              departamento: f.departamento || "-",
+              cargo: f.cargo || "-",
+              "status Saude": hasAfastamento ? "Afastado" : "Ativo",
+              "ultimo Exame": ultimoExame ? format(new Date(ultimoExame), 'dd/MM/yyyy') : "-",
+            };
+          }),
         });
         break;
       }
