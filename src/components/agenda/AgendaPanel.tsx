@@ -66,9 +66,9 @@ export function AgendaPanel({ open, onOpenChange }: AgendaPanelProps) {
   return (
     <>
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col">
+        <SheetContent side="right" className="w-full sm:max-w-lg p-0 flex flex-col" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
           <SheetHeader className="p-4 pb-2 border-b">
-            <SheetTitle className="flex items-center gap-2 text-lg">
+            <SheetTitle className="flex items-center gap-2 text-lg" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
               <CalendarDays className="h-5 w-5 text-primary" />
               Agenda
             </SheetTitle>
