@@ -43,8 +43,37 @@ const Relatorios = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("beneficios_funcionario")
-        .select("*")
-        .eq("ativo", true);
+        .select("*");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const { data: afastamentos } = useQuery({
+    queryKey: ["afastamentos-relatorio"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("afastamentos")
+        .select("*");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const { data: asos } = useQuery({
+    queryKey: ["asos-relatorio"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("asos")
+        .select("*");
+      if (error) throw error;
+      return data || [];
+    },
+  });
+  const { data: cats } = useQuery({
+    queryKey: ["cats-relatorio"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("cats")
+        .select("*");
       if (error) throw error;
       return data || [];
     },
