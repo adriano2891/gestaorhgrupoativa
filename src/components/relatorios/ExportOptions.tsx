@@ -293,6 +293,40 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
           yPos += imgHeight + 8;
         }
 
+        // Add explicit legend below chart image for PDF clarity
+        if (chartImg && chart.data && chart.data.length > 0 && chart.data.length <= 8) {
+          const labelKey = Object.keys(chart.data[0])[0];
+          const legendColors = chart.type === "pie"
+            ? ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"]
+            : ["#4cdecf", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
+          
+          const legendItems = chart.data.map((item: any, li: number) => ({
+            label: String(item[labelKey] || "-"),
+            color: legendColors[li % legendColors.length],
+          }));
+
+          const legendX = margin;
+          const itemWidth = Math.min(50, (pageWidth - margin * 2) / legendItems.length);
+          
+          legendItems.forEach((item: any, li: number) => {
+            const x = legendX + li * itemWidth;
+            if (x + itemWidth <= pageWidth - margin) {
+              doc.setFillColor(
+                parseInt(item.color.slice(1, 3), 16),
+                parseInt(item.color.slice(3, 5), 16),
+                parseInt(item.color.slice(5, 7), 16)
+              );
+              doc.circle(x + 2, yPos + 1, 2, "F");
+              doc.setFontSize(7);
+              doc.setFont("helvetica", "normal");
+              doc.setTextColor(80, 80, 80);
+              const truncLabel = item.label.length > 12 ? item.label.substring(0, 11) + "…" : item.label;
+              doc.text(truncLabel, x + 6, yPos + 2.5);
+            }
+          });
+          yPos += 8;
+        }
+
         // Fallback: include a small table of the chart data
         if (!chartImg && chart.data && chart.data.length > 0) {
           const chartDataKeys = Object.keys(chart.data[0]);

@@ -238,13 +238,42 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
     }
 
     // Fallback: generic grid for non-financial reports
+    // Compact: 1 row when ≤4 items, otherwise multi-row
+    const isCompact = summaryItems.length <= 4;
+    const gridCols = isCompact
+      ? `grid-cols-2 sm:grid-cols-${summaryItems.length} lg:grid-cols-${summaryItems.length}`
+      : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-6";
+
+    // Mini sparkline SVG (decorative trend indicator)
+    const renderSparkline = (idx: number) => {
+      const patterns = [
+        [2, 5, 3, 7, 4, 8, 6],
+        [6, 4, 5, 3, 7, 5, 8],
+        [3, 6, 4, 7, 5, 6, 9],
+        [5, 3, 6, 4, 8, 7, 9],
+        [4, 7, 5, 8, 6, 7, 10],
+        [7, 5, 6, 4, 8, 6, 9],
+        [2, 4, 3, 6, 5, 7, 8],
+      ];
+      const pts = patterns[idx % patterns.length];
+      const max = Math.max(...pts);
+      const h = 16;
+      const w = 40;
+      const points = pts.map((v, i) => `${(i / (pts.length - 1)) * w},${h - (v / max) * h}`).join(" ");
+      return (
+        <svg width={w} height={h} className="opacity-40 mt-1">
+          <polyline fill="none" stroke="hsl(var(--primary))" strokeWidth="1.5" points={points} />
+        </svg>
+      );
+    };
+
     return (
       <div className="mb-6 sm:mb-8">
         <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
           <Target className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           Resumo Executivo
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3">
+        <div className={`grid ${gridCols} gap-2 sm:gap-3`}>
           {summaryItems.map(([key, value], index) => (
             <div
               key={key}
@@ -257,6 +286,7 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                 <p className="mt-1 text-lg sm:text-xl font-bold text-primary break-words leading-tight" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
                   {value as string}
                 </p>
+                {renderSparkline(index)}
               </div>
               <div className="flex-shrink-0 mt-0.5">
                 <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-primary/30 bg-primary/5 flex items-center justify-center">
@@ -630,11 +660,24 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                      (data.details && data.details.length > 0) || 
                      (data.charts && data.charts.length > 0);
 
+  // Period info from data (if available)
+  const periodInfo = data.summary?.["Período"] || data.summary?.["periodo"] || null;
+  const generatedDate = new Date(data.generatedAt);
+
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in">
-      <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
-        <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
-        <span>Relatório gerado em {new Date(data.generatedAt).toLocaleString('pt-BR')}</span>
+      {/* Report header with period filter */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-card rounded-lg border border-border p-3 sm:p-4">
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+          <CheckCircle2 className="w-3 h-3 sm:w-4 sm:h-4 text-green-500 flex-shrink-0" />
+          <span>Relatório gerado em {generatedDate.toLocaleString('pt-BR')}</span>
+        </div>
+        {periodInfo && (
+          <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
+            <CalendarDays className="w-3.5 h-3.5" />
+            <span>Período: {periodInfo}</span>
+          </div>
+        )}
       </div>
       {!hasContent ? (
         <Card className="p-6 sm:p-8 text-center">
