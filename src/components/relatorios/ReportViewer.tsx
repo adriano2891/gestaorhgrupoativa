@@ -1,6 +1,9 @@
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { 
   BarChart, 
   Bar, 
@@ -24,7 +27,7 @@ import {
   Radar,
   ComposedChart
 } from "recharts";
-import { TrendingUp, TrendingDown, Minus, Users, Clock, Target, AlertCircle, CheckCircle2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Users, Clock, Target, AlertCircle, CheckCircle2, DollarSign, Percent, CreditCard, Building2, Receipt, Wallet, HeartPulse, Bus, UserMinus, FileText, Briefcase, CircleDollarSign, BadgeDollarSign, Landmark, ShieldCheck, CalendarDays, Banknote, PiggyBank, Filter, Search, X } from "lucide-react";
 
 interface ReportViewerProps {
   reportType: string;
@@ -48,6 +51,9 @@ const CHART_COLORS = [
 const PIE_COLORS = ["#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899"];
 
 export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
+  const [showTableFilters, setShowTableFilters] = useState(false);
+  const [columnFilters, setColumnFilters] = useState<Record<string, string>>({});
+
   const getTrendIcon = (value: number) => {
     if (value > 0) return <TrendingUp className="w-4 h-4 text-green-500" />;
     if (value < 0) return <TrendingDown className="w-4 h-4 text-red-500" />;
@@ -69,11 +75,169 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
     return "text-primary bg-primary/10";
   };
 
+  const getItemIcon = (key: string) => {
+    const k = key.toLowerCase();
+    if (k.includes("período") || k.includes("periodo")) return CalendarDays;
+    if (k.includes("pagamento")) return Users;
+    if (k.includes("proventos") || k.includes("bruto")) return Banknote;
+    if (k.includes("horas extras")) return Clock;
+    if (k.includes("noturno")) return Clock;
+    if (k.includes("dsr") || k.includes("reflexo")) return FileText;
+    if (k.includes("inss")) return ShieldCheck;
+    if (k.includes("irrf")) return Landmark;
+    if (k.includes("fgts")) return PiggyBank;
+    if (k.includes("vt") || k.includes("transporte")) return Bus;
+    if (k.includes("saúde") || k.includes("saude")) return HeartPulse;
+    if (k.includes("odonto")) return HeartPulse;
+    if (k.includes("faltas")) return UserMinus;
+    if (k.includes("desconto")) return Receipt;
+    if (k.includes("líquida") || k.includes("liquida")) return Wallet;
+    if (k.includes("encargos")) return Building2;
+    if (k.includes("custo")) return CircleDollarSign;
+    return DollarSign;
+  };
+
+  const categorizeItems = (items: [string, unknown][]) => {
+    const rendaKeys = ["período", "periodo", "pagamento", "proventos", "horas extras", "noturno", "dsr", "reflexo"];
+    const descontoKeys = ["inss", "irrf", "fgts", "vt", "transporte", "saúde", "saude", "odonto", "faltas", "desconto"];
+    const resultadoKeys = ["líquida", "liquida", "encargos", "custo"];
+
+    const matchGroup = (key: string, groupKeys: string[]) => {
+      const k = key.toLowerCase();
+      return groupKeys.some(gk => k.includes(gk));
+    };
+
+    const renda = items.filter(([k]) => matchGroup(k, rendaKeys));
+    const descontos = items.filter(([k]) => matchGroup(k, descontoKeys));
+    const resultado = items.filter(([k]) => matchGroup(k, resultadoKeys));
+
+    // Items that don't match any group
+    const categorized = new Set([...renda, ...descontos, ...resultado].map(([k]) => k));
+    const outros = items.filter(([k]) => !categorized.has(k));
+
+    return { renda, descontos, resultado, outros };
+  };
+
+  const renderSummaryCard = (key: string, value: unknown, isHighlighted: boolean = false) => {
+    const Icon = getItemIcon(key);
+    if (isHighlighted) {
+      return (
+        <div key={key} className="bg-card rounded-xl border-2 border-primary/40 p-3 sm:p-4 flex items-start justify-between gap-2 shadow-sm">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 mb-1">
+              <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center">
+                <Icon className="w-3 h-3 text-primary" />
+              </div>
+              <p className="text-[9px] sm:text-[10px] font-bold text-foreground uppercase tracking-[0.2em]">
+                {key}
+              </p>
+            </div>
+            <p className="text-lg sm:text-xl font-bold text-primary leading-tight">
+              {value as string}
+            </p>
+          </div>
+        </div>
+      );
+    }
+    return (
+      <div key={key} className="flex items-center gap-2 py-1.5 px-1">
+        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+          <Icon className="w-3.5 h-3.5 text-primary/70" />
+        </div>
+        <span className="text-xs sm:text-sm text-foreground/80 flex-1 truncate">{key}</span>
+        <span className="text-xs sm:text-sm font-bold text-foreground whitespace-nowrap">{value as string}</span>
+      </div>
+    );
+  };
+
+  const renderColumn = (title: string, items: [string, unknown][], highlightKeys: string[]) => {
+    if (items.length === 0) return null;
+    const highlighted = items.filter(([k]) => highlightKeys.some(hk => k.toLowerCase().includes(hk)));
+    const regular = items.filter(([k]) => !highlightKeys.some(hk => k.toLowerCase().includes(hk)));
+
+    return (
+      <div className="flex flex-col gap-2">
+        <h4 className="text-xs sm:text-sm font-bold text-primary uppercase tracking-[0.15em]">
+          {title}
+        </h4>
+        {highlighted.map(([k, v]) => renderSummaryCard(k, v, true))}
+        <div className="flex flex-col">
+          {regular.map(([k, v]) => renderSummaryCard(k, v, false))}
+        </div>
+      </div>
+    );
+  };
+
   const renderEnhancedSummary = () => {
     if (!data.summary || Object.keys(data.summary).length === 0) return null;
 
     const summaryItems = Object.entries(data.summary);
+    const { renda, descontos, resultado, outros } = categorizeItems(summaryItems);
+    const hasGroups = renda.length > 0 || descontos.length > 0 || resultado.length > 0;
 
+    // If items can be grouped into financial categories, use 3-column layout
+    if (hasGroups) {
+      // Find period item for header
+      const periodItem = summaryItems.find(([k]) => k.toLowerCase().includes("período") || k.toLowerCase().includes("periodo"));
+      const pagamentosItem = summaryItems.find(([k]) => k.toLowerCase().includes("pagamento"));
+
+      return (
+        <div className="mb-6 sm:mb-8">
+          {/* Header with period info */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+            {periodItem && (
+              <div className="bg-card rounded-xl border-2 border-primary/40 px-4 py-3 inline-flex flex-col shadow-sm">
+                <span className="text-[9px] font-bold text-foreground uppercase tracking-[0.2em]">PERÍODO</span>
+                <span className="text-base sm:text-lg font-bold text-primary">{periodItem[1] as string}</span>
+              </div>
+            )}
+            <div>
+              <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">
+                SUMÁRIO FINANCEIRO
+              </h3>
+              <div className="flex items-center gap-3 text-xs sm:text-sm text-muted-foreground mt-0.5">
+                {periodItem && (
+                  <span className="flex items-center gap-1">
+                    <CalendarDays className="w-3.5 h-3.5 text-primary/60" />
+                    {periodItem[1] as string}
+                  </span>
+                )}
+                {pagamentosItem && (
+                  <span className="flex items-center gap-1">
+                    <Users className="w-3.5 h-3.5 text-primary/60" />
+                    Pagamentos: {pagamentosItem[1] as string}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* 3-column grouped layout */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+            {renderColumn("RENDA E GANHOS", renda.filter(([k]) => {
+              const kl = k.toLowerCase();
+              return !kl.includes("período") && !kl.includes("periodo") && !kl.includes("pagamento");
+            }), ["proventos", "bruto"])}
+            {renderColumn("DESCONTOS", descontos, ["total desconto", "total descontos"])}
+            {renderColumn("RESULTADO LÍQUIDO E CUSTO", resultado, ["líquida", "liquida", "custo"])}
+          </div>
+
+          {/* Uncategorized items */}
+          {outros.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              {outros.map(([k, v]) => (
+                <div key={k} className="bg-card rounded-lg border border-border border-l-[3px] border-l-primary px-3 py-3 min-h-[70px]">
+                  <p className="text-[9px] font-semibold text-foreground/80 uppercase tracking-[0.25em]">{k}</p>
+                  <p className="mt-1 text-base font-bold text-primary">{v as string}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Fallback: generic grid for non-financial reports
     return (
       <div className="mb-6 sm:mb-8">
         <h3 className="text-base sm:text-lg font-semibold text-foreground mb-3 sm:mb-4 flex items-center gap-2">
@@ -84,21 +248,21 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
           {summaryItems.map(([key, value], index) => (
             <div
               key={key}
-              className="bg-card rounded-lg border-l-[3px] border-l-primary border border-border px-3 py-3 sm:px-4 sm:py-4 flex items-start justify-between gap-1 hover:shadow-md transition-shadow group"
+              className="bg-card rounded-lg border border-border border-l-[3px] border-l-primary px-3 py-3 sm:px-3.5 sm:py-3.5 min-h-[84px] flex items-start justify-between gap-2"
             >
-              <div className="min-w-0 flex-1 space-y-1">
-                <p className="text-[9px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest leading-tight break-words">
-                  {key.replace(/([A-Z])/g, " $1").trim()}
+              <div className="min-w-0 flex-1">
+                <p className="text-[11px] sm:text-xs font-semibold text-foreground/80 uppercase tracking-[0.18em] leading-tight" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
+                  {key}
                 </p>
-                <p className="text-sm sm:text-base md:text-lg font-bold text-primary break-words group-hover:scale-[1.03] transition-transform origin-left">
+                <p className="mt-1 text-lg sm:text-xl font-bold text-primary break-words leading-tight" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
                   {value as string}
                 </p>
               </div>
               <div className="flex-shrink-0 mt-0.5">
-                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-primary/30 flex items-center justify-center">
-                  {index === 0 ? <Users className="w-3 h-3 text-primary/60" /> :
-                   index === 1 ? <Clock className="w-3 h-3 text-primary/60" /> :
-                   <CheckCircle2 className="w-3 h-3 text-primary/60" />}
+                <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full border border-primary/30 bg-primary/5 flex items-center justify-center">
+                  {index === 0 ? <Users className="w-3 h-3 text-primary/50" /> :
+                   index === 1 ? <Clock className="w-3 h-3 text-primary/50" /> :
+                   <CheckCircle2 className="w-3 h-3 text-primary/50" />}
                 </div>
               </div>
             </div>
@@ -332,6 +496,20 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
 
     const columns = Object.keys(data.details[0]);
 
+    const filteredDetails = data.details.filter((row: any) => {
+      return columns.every(col => {
+        const filter = columnFilters[col];
+        if (!filter) return true;
+        return String(row[col] ?? "").toLowerCase().includes(filter.toLowerCase());
+      });
+    });
+
+    const activeFilters = Object.values(columnFilters).filter(v => v).length;
+
+    const updateColumnFilter = (col: string, value: string) => {
+      setColumnFilters(prev => ({ ...prev, [col]: value }));
+    };
+
     return (
       <Card className="overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b p-3 sm:p-4 md:p-6">
@@ -342,12 +520,39 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                 Dados Detalhados
               </CardTitle>
               <CardDescription className="text-xs sm:text-sm">
-                {data.details.length} registro{data.details.length !== 1 ? 's' : ''} encontrado{data.details.length !== 1 ? 's' : ''}
+                {filteredDetails.length} de {data.details.length} registro{data.details.length !== 1 ? 's' : ''}
               </CardDescription>
             </div>
-            <Badge variant="secondary" className="text-[10px] sm:text-xs self-start sm:self-auto">
-              Atualizado agora
-            </Badge>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <Button
+                variant={showTableFilters ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowTableFilters(!showTableFilters)}
+                className="text-xs gap-1.5"
+              >
+                <Filter className="w-3.5 h-3.5" />
+                Filtros
+                {activeFilters > 0 && (
+                  <span className="ml-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[10px] flex items-center justify-center">
+                    {activeFilters}
+                  </span>
+                )}
+              </Button>
+              {activeFilters > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setColumnFilters({})}
+                  className="text-xs gap-1 text-destructive hover:text-destructive h-8"
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Limpar
+                </Button>
+              )}
+              <Badge variant="secondary" className="text-[10px] sm:text-xs">
+                Atualizado agora
+              </Badge>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -361,39 +566,51 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                     </TableHead>
                   ))}
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data.details.map((row: any, idx: number) => (
-                  <TableRow 
-                    key={idx} 
-                    className="hover:bg-muted/30 transition-colors"
-                  >
+                {showTableFilters && (
+                  <TableRow className="bg-muted/30 hover:bg-muted/30">
                     {columns.map(col => (
-                      <TableCell key={col} className="py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">
-                        {col.toLowerCase().includes('status') ? (
-                          <Badge 
-                            variant={
-                              String(row[col]).toLowerCase().includes('ativo') ? 'default' : 
-                              String(row[col]).toLowerCase().includes('pendente') ? 'secondary' : 'outline'
-                            }
-                            className="text-[10px] sm:text-xs"
-                          >
-                            {row[col]}
-                          </Badge>
-                        ) : col.toLowerCase().includes('taxa') || col.toLowerCase().includes('percentual') ? (
-                          <span className={`font-medium ${
-                            parseFloat(row[col]) > 80 ? 'text-green-600' : 
-                            parseFloat(row[col]) > 50 ? 'text-yellow-600' : 'text-red-600'
-                          }`}>
-                            {row[col]}
-                          </span>
-                        ) : (
-                          <span className="text-foreground">{row[col]}</span>
-                        )}
-                      </TableCell>
+                      <TableHead key={`filter-${col}`} className="px-1 sm:px-2 py-1.5">
+                        <Input
+                          placeholder="Filtrar..."
+                          value={columnFilters[col] || ""}
+                          onChange={e => updateColumnFilter(col, e.target.value)}
+                          className="h-7 text-[10px] sm:text-xs min-w-[60px] bg-background"
+                        />
+                      </TableHead>
                     ))}
                   </TableRow>
-                ))}
+                )}
+              </TableHeader>
+              <TableBody>
+                {filteredDetails.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="text-center py-8 text-sm text-muted-foreground">
+                      Nenhum registro encontrado com os filtros aplicados.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredDetails.map((row: any, idx: number) => (
+                    <TableRow key={idx} className="hover:bg-muted/30 transition-colors">
+                      {columns.map(col => (
+                        <TableCell key={col} className="py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm">
+                          {col.toLowerCase().includes('status') ? (
+                            <Badge
+                              variant={
+                                String(row[col]).toLowerCase().includes('ativo') ? 'default' :
+                                String(row[col]).toLowerCase().includes('pendente') ? 'secondary' : 'outline'
+                              }
+                              className="text-[10px] sm:text-xs"
+                            >
+                              {row[col]}
+                            </Badge>
+                          ) : (
+                            <span className="text-foreground">{row[col]}</span>
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>

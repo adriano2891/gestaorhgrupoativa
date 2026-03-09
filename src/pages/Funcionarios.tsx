@@ -1211,15 +1211,15 @@ const Funcionarios = () => {
       
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: '#000000' }}>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
             Funcionários
           </h1>
-          <p className="mt-1 text-xs sm:text-sm md:text-base font-bold" style={{ color: '#000000' }}>
+          <p className="mt-1 text-xs sm:text-sm md:text-base text-muted-foreground">
             Gerencie todos os funcionários da empresa
           </p>
         </div>
-        <Button onClick={handleAddEmployee} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={handleAddEmployee} className="w-full sm:w-auto touch-target focus-ring" aria-label="Adicionar novo funcionário">
+          <Plus className="h-4 w-4 mr-2" aria-hidden="true" />
           Adicionar Funcionário
         </Button>
       </div>
@@ -1235,12 +1235,13 @@ const Funcionarios = () => {
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
                 <Input
-                  placeholder="Buscar..."
+                  placeholder="Buscar por nome, email ou matrícula..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-9 text-sm"
+                  className="pl-9 text-sm h-10"
+                  aria-label="Buscar funcionários"
                 />
               </div>
               <Select
@@ -1263,8 +1264,8 @@ const Funcionarios = () => {
           </div>
         </CardHeader>
         <CardContent className="p-0 sm:p-4 md:p-6 pt-0">
-          <div className="overflow-x-auto">
-            <Table className="min-w-[700px]">
+          <div className="overflow-x-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+            <Table className="min-w-[700px]" aria-label="Lista de funcionários">
               <TableHeader>
                 <TableRow>
                 <TableHead className="text-xs sm:text-sm w-[80px]">ID</TableHead>
@@ -1345,8 +1346,8 @@ const Funcionarios = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => handleEdit(employee.id)}>
-                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 focus-ring" onClick={() => handleEdit(employee.id)} aria-label={`Editar ${employee.name}`}>
+                          <Edit className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                         </Button>
                         <RescisaoCard
                           userId={employee.id}
@@ -1354,8 +1355,8 @@ const Funcionarios = () => {
                           salarioBase={employeeSalaries[employee.id]?.salario || 0}
                           dataAdmissao={employee.admissionDate}
                         />
-                        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8" onClick={() => handleDelete(employee.id)}>
-                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 focus-ring" onClick={() => handleDelete(employee.id)} aria-label={`Excluir ${employee.name}`}>
+                          <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />
                         </Button>
                       </div>
                     </TableCell>
@@ -1428,7 +1429,7 @@ const Funcionarios = () => {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 md:grid-cols-[140px_1fr_180px] gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-sm">ID (Matrícula)</Label>
                   <Input
@@ -1716,8 +1717,8 @@ const Funcionarios = () => {
               <div className="border-t pt-3 mt-2">
                 <Tabs defaultValue="beneficios" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="beneficios" className="data-[state=active]:bg-[#3ee0cf] data-[state=active]:text-white">Benefícios (VT/VA/VR)</TabsTrigger>
-                    <TabsTrigger value="banco_horas" className="data-[state=active]:bg-[#3ee0cf] data-[state=active]:text-white">Banco de Horas</TabsTrigger>
+                    <TabsTrigger value="beneficios" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Benefícios (VT/VA/VR)</TabsTrigger>
+                    <TabsTrigger value="banco_horas" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Banco de Horas</TabsTrigger>
                   </TabsList>
                   <TabsContent value="beneficios">
                     <BeneficiosCard userId={editingEmployee.id} userName={editingEmployee.name} />

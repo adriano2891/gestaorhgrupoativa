@@ -517,6 +517,44 @@ export const useCreateCategoria = () => {
   });
 };
 
+// Atualizar categoria
+export const useUpdateCategoria = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...data }: { id: string; nome?: string; descricao?: string; cor?: string; categoria_pai_id?: string | null }) => {
+      const rows = await restPatch('documentos_categorias', `?id=eq.${id}`, data);
+      return rows[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documentos-categorias"] });
+      toast({ title: "Categoria atualizada!" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erro ao atualizar categoria", description: error.message, variant: "destructive" });
+    },
+  });
+};
+
+// Deletar categoria
+export const useDeleteCategoria = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await restDelete('documentos_categorias', `?id=eq.${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["documentos-categorias"] });
+      queryClient.invalidateQueries({ queryKey: ["documentos"] });
+      toast({ title: "Categoria excluída!" });
+    },
+    onError: (error: Error) => {
+      toast({ title: "Erro ao excluir categoria", description: error.message, variant: "destructive" });
+    },
+  });
+};
+
 // Upload nova versão
 export const useUploadVersao = () => {
   const queryClient = useQueryClient();

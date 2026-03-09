@@ -166,21 +166,22 @@ export default function FornecedorForm() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#3EE0CF] shadow-md">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-md">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3 h-16">
-            <BackButton to="/fornecedores" variant="light" className="text-black hover:bg-black/10" />
+            <BackButton to="/fornecedores" variant="light" className="text-primary-foreground hover:bg-primary-foreground/10" />
             <div>
-              <h1 className="text-lg font-bold text-black">
+              <h1 className="text-lg font-bold text-primary-foreground">
                 {isEditing ? 'Editar Fornecedor' : 'Novo Fornecedor'}
               </h1>
-              <p className="text-black/70 text-xs">
+              <p className="text-primary-foreground/70 text-xs">
                 {isEditing ? 'Atualize as informações do fornecedor' : 'Preencha os dados do novo fornecedor'}
               </p>
             </div>
           </div>
         </div>
       </header>
+      <div className="h-[64px]" />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
@@ -188,8 +189,8 @@ export default function FornecedorForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Dados Básicos */}
             <Card className="border border-black/10">
-              <CardHeader className="bg-[#3EE0CF]/10 border-b border-black/5">
-                <CardTitle className="text-lg text-black">Dados Básicos</CardTitle>
+              <CardHeader className="bg-primary/10 border-b border-border">
+                <CardTitle className="text-lg text-foreground">Dados Básicos</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -292,8 +293,8 @@ export default function FornecedorForm() {
 
             {/* Contato */}
             <Card className="border border-black/10">
-              <CardHeader className="bg-[#3EE0CF]/10 border-b border-black/5">
-                <CardTitle className="text-lg text-black">Contato</CardTitle>
+              <CardHeader className="bg-primary/10 border-b border-border">
+                <CardTitle className="text-lg text-foreground">Contato</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -327,8 +328,8 @@ export default function FornecedorForm() {
 
             {/* Endereço */}
             <Card className="border border-black/10">
-              <CardHeader className="bg-[#3EE0CF]/10 border-b border-black/5">
-                <CardTitle className="text-lg text-black">Endereço</CardTitle>
+              <CardHeader className="bg-primary/10 border-b border-border">
+                <CardTitle className="text-lg text-foreground">Endereço</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <FormField
@@ -431,8 +432,8 @@ export default function FornecedorForm() {
 
             {/* Informações Comerciais */}
             <Card className="border border-black/10">
-              <CardHeader className="bg-[#3EE0CF]/10 border-b border-black/5">
-                <CardTitle className="text-lg text-black">Informações Comerciais</CardTitle>
+              <CardHeader className="bg-primary/10 border-b border-border">
+                <CardTitle className="text-lg text-foreground">Informações Comerciais</CardTitle>
               </CardHeader>
               <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField

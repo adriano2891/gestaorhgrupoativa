@@ -49,7 +49,7 @@ const CATEGORIAS = [
 ];
 
 const SuporteFuncionarios = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const queryClient = useQueryClient();
   const { data: chamados = [], isLoading, error, refetch } = useTodosChamados();
   const [chamadoSelecionado, setChamadoSelecionado] = useState<ChamadoSuporte | null>(null);
@@ -447,14 +447,14 @@ const SuporteFuncionarios = () => {
 
         <Tabs defaultValue="chamados" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="chamados" className="flex items-center gap-2 data-[state=active]:bg-[#3ee0cf] data-[state=active]:text-white">
+            <TabsTrigger value="chamados" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <MessageCircle className="h-4 w-4" />
               Chamados
               {contadores.aberto > 0 && (
                 <Badge variant="default" className="ml-1 h-5 px-1.5 text-[10px]">{contadores.aberto}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="ajustes" className="flex items-center gap-2 data-[state=active]:bg-[#3ee0cf] data-[state=active]:text-white">
+            <TabsTrigger value="ajustes" className="flex items-center gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
               <ClipboardList className="h-4 w-4" />
               Ajustes de Ponto
               {ajustesPendentes > 0 && (
@@ -596,7 +596,7 @@ const SuporteFuncionarios = () => {
           <TabsContent value="ajustes" className="mt-4">
             <GerenciarAjustesPontoCard 
               adminId={user?.id || ''} 
-              adminName={user?.email?.split('@')[0] || 'Admin'} 
+              adminName={profile?.nome || user?.email?.split('@')[0] || 'Admin'} 
             />
           </TabsContent>
         </Tabs>

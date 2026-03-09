@@ -283,7 +283,6 @@ export const CriarComunicadoDialog = ({
             </Popover>
           </div>
 
-          {/* Anexos - CLT Art. 74 §2º, NR-1 */}
           <div className="space-y-2">
             <Label className="flex items-center gap-2">
               <Paperclip className="h-4 w-4" />
@@ -293,16 +292,14 @@ export const CriarComunicadoDialog = ({
               type="file"
               multiple
               onChange={handleFileChange}
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+              className="cursor-pointer"
             />
             {anexos.length > 0 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {anexos.map((a, i) => (
-                  <Badge key={i} variant="secondary" className="gap-1 pr-1">
+                  <Badge key={i} variant="secondary" className="flex items-center gap-1">
                     {a.nome}
-                    <button type="button" onClick={() => removeAnexo(i)} className="ml-1 hover:text-destructive">
-                      <X className="h-3 w-3" />
-                    </button>
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeAnexo(i)} />
                   </Badge>
                 ))}
               </div>

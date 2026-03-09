@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Clock, TrendingUp, TrendingDown } from "lucide-react";
+import { Clock, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface BancoHorasEntry {
@@ -13,6 +12,7 @@ interface BancoHorasEntry {
   horas: string;
   motivo: string | null;
   status: string;
+  data_vencimento?: string;
 }
 
 const formatInterval = (interval: string) => {
@@ -25,10 +25,34 @@ const formatInterval = (interval: string) => {
 export const BancoHorasCard = ({ userId, userName }: { userId: string; userName: string }) => {
   const [entries, setEntries] = useState<BancoHorasEntry[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saldo, setSaldo] = useState({ credito: 0, debito: 0 });
+  const [saldo, setSaldo] = useState({ credito: 0, debito: 0, creditosVencidos: 0 });
 
   const loadBancoHoras = async () => {
     try {
+      // Use centralized REST client for backend saldo calculation
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const { getAccessToken } = await import("@/lib/restClient");
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const token = getAccessToken() || anonKey;
+
+      const saldoRes = await fetch(`${supabaseUrl}/rest/v1/rpc/calcular_saldo_banco_horas`, {
+        method: 'POST',
+        headers: { 'apikey': anonKey, 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ p_user_id: userId }),
+      });
+      if (saldoRes.ok) {
+        const saldoData = await saldoRes.json();
+        if (saldoData && saldoData.length > 0) {
+          const s = saldoData[0];
+          setSaldo({
+            credito: Math.round((s.total_credito || 0) * 100) / 100,
+            debito: Math.round((s.total_debito || 0) * 100) / 100,
+            creditosVencidos: Math.round((s.creditos_vencidos || 0) * 100) / 100,
+          });
+        }
+      }
+
+      // Fetch recent entries for display
       const { data, error } = await (supabase as any)
         .from("banco_horas")
         .select("*")
@@ -37,22 +61,7 @@ export const BancoHorasCard = ({ userId, userName }: { userId: string; userName:
         .limit(50);
 
       if (error) throw error;
-
-      const items = data || [];
-      setEntries(items);
-
-      // Calculate balance
-      let totalCredito = 0;
-      let totalDebito = 0;
-      items.forEach((e: any) => {
-        if (e.status !== "aprovado") return;
-        const match = (e.horas || "").match(/(\d+):(\d+)/);
-        const hours = match ? parseInt(match[1]) + parseInt(match[2]) / 60 : 0;
-        if (e.tipo === "credito") totalCredito += hours;
-        else totalDebito += hours;
-      });
-
-      setSaldo({ credito: Math.round(totalCredito * 100) / 100, debito: Math.round(totalDebito * 100) / 100 });
+      setEntries(data || []);
     } catch (e) {
       console.error("Erro ao carregar banco de horas:", e);
     } finally {
@@ -63,6 +72,7 @@ export const BancoHorasCard = ({ userId, userName }: { userId: string; userName:
   useEffect(() => { loadBancoHoras(); }, [userId]);
 
   const saldoFinal = saldo.credito - saldo.debito;
+  const temVencidos = saldo.creditosVencidos > 0;
 
   return (
     <Card>
@@ -71,7 +81,7 @@ export const BancoHorasCard = ({ userId, userName }: { userId: string; userName:
           <Clock className="h-5 w-5 text-primary" />
           <CardTitle className="text-base">Banco de Horas — {userName}</CardTitle>
         </div>
-        <CardDescription>Compensação de HE conforme Art. 59 §2º CLT</CardDescription>
+        <CardDescription>Compensação de HE conforme Art. 59 §2º CLT — Prazo: 6 meses (§5º)</CardDescription>
       </CardHeader>
       <CardContent>
         {/* Saldo */}
@@ -95,6 +105,19 @@ export const BancoHorasCard = ({ userId, userName }: { userId: string; userName:
           </div>
         </div>
 
+        {/* Alerta de créditos vencidos */}
+        {temVencidos && (
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/30 mb-4">
+            <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0 mt-0.5" />
+            <div className="text-xs">
+              <p className="font-medium text-destructive">Créditos vencidos: {saldo.creditosVencidos}h</p>
+              <p className="text-destructive/80">
+                Créditos com mais de 6 meses sem compensação devem ser pagos como HE (Art. 59 §5º CLT).
+              </p>
+            </div>
+          </div>
+        )}
+
         {loading ? (
           <p className="text-sm text-muted-foreground">Carregando...</p>
         ) : entries.length === 0 ? (
@@ -107,30 +130,40 @@ export const BancoHorasCard = ({ userId, userName }: { userId: string; userName:
                   <TableHead>Data</TableHead>
                   <TableHead>Tipo</TableHead>
                   <TableHead>Horas</TableHead>
-                  <TableHead>Motivo</TableHead>
+                  <TableHead>Vencimento</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {entries.map((e) => (
-                  <TableRow key={e.id}>
-                    <TableCell className="whitespace-nowrap">
-                      {new Date(e.data + "T12:00:00").toLocaleDateString("pt-BR")}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={e.tipo === "credito" ? "default" : "secondary"} className={e.tipo === "credito" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                        {e.tipo === "credito" ? "Crédito" : "Débito"}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-mono">{formatInterval(e.horas)}</TableCell>
-                    <TableCell className="max-w-[150px] truncate">{e.motivo || "-"}</TableCell>
-                    <TableCell>
-                      <Badge variant={e.status === "aprovado" ? "default" : e.status === "rejeitado" ? "destructive" : "secondary"}>
-                        {e.status === "aprovado" ? "Aprovado" : e.status === "rejeitado" ? "Rejeitado" : "Pendente"}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {entries.map((e) => {
+                  const vencido = e.data_vencimento && new Date(e.data_vencimento) < new Date() && e.tipo === 'credito';
+                  return (
+                    <TableRow key={e.id} className={vencido ? 'bg-destructive/5' : ''}>
+                      <TableCell className="whitespace-nowrap">
+                        {new Date(e.data + "T12:00:00").toLocaleDateString("pt-BR")}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={e.tipo === "credito" ? "default" : "secondary"} className={e.tipo === "credito" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                          {e.tipo === "credito" ? "Crédito" : "Débito"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono">{formatInterval(e.horas)}</TableCell>
+                      <TableCell className="text-xs">
+                        {e.data_vencimento ? (
+                          <span className={vencido ? 'text-destructive font-medium' : ''}>
+                            {new Date(e.data_vencimento + "T12:00:00").toLocaleDateString("pt-BR")}
+                            {vencido && ' ⚠️'}
+                          </span>
+                        ) : '—'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={e.status === "aprovado" ? "default" : e.status === "rejeitado" ? "destructive" : "secondary"}>
+                          {e.status === "aprovado" ? "Aprovado" : e.status === "rejeitado" ? "Rejeitado" : "Pendente"}
+                        </Badge>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

@@ -68,7 +68,7 @@ const Comunicados = () => {
     queryFn: async () => {
       let query = (supabase as any)
         .from("comunicados")
-        .select("*, profiles:criado_por(nome)")
+        .select("*")
         .order("created_at", { ascending: false });
 
       if (!mostrarExcluidos) {
@@ -78,9 +78,20 @@ const Comunicados = () => {
       const { data, error } = await query;
       if (error) throw error;
 
+      // Fetch creator names separately since there's no FK relationship
+      const criadorIds = [...new Set((data || []).map((c: any) => c.criado_por).filter(Boolean))] as string[];
+      let profilesMap: Record<string, string> = {};
+      if (criadorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, nome")
+          .in("id", criadorIds);
+        profilesMap = Object.fromEntries((profiles || []).map((p: any) => [p.id, p.nome]));
+      }
+
       return (data || []).map((c: any) => ({
         ...c,
-        emissor_nome: c.profiles?.nome || "Sistema",
+        emissor_nome: profilesMap[c.criado_por] || "Sistema",
       })) as Comunicado[];
     },
     retry: 2,
@@ -196,8 +207,8 @@ const Comunicados = () => {
         <CardHeader className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
             <div className="flex items-center gap-2 sm:gap-3">
-              <Bell className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0" style={{ color: '#40e0d0' }} />
-              <CardTitle className="text-lg sm:text-xl md:text-2xl" style={{ color: '#40e0d0' }}>Comunicados Internos</CardTitle>
+              <Bell className="h-6 w-6 sm:h-8 sm:w-8 flex-shrink-0 text-primary" />
+              <CardTitle className="text-lg sm:text-xl md:text-2xl text-primary">Comunicados Internos</CardTitle>
             </div>
             <div className="flex items-center gap-2">
               <Button

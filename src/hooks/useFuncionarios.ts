@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { restGet } from "@/lib/restClient";
 
 export interface Funcionario {
   id: string;
@@ -17,36 +18,11 @@ export interface Funcionario {
   matricula?: string;
 }
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-const getAccessToken = (): string | null => {
-  try {
-    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'rzcjwfxmogfsmfbwtwfc';
-    const storageKey = `sb-${projectId}-auth-token`;
-    const raw = localStorage.getItem(storageKey);
-    if (!raw) return null;
-    return JSON.parse(raw)?.access_token || null;
-  } catch { return null; }
-};
-
-const restGet = async (path: string) => {
-  const token = getAccessToken();
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token || SUPABASE_KEY}`,
-    },
-  });
-  if (!res.ok) throw new Error(`REST ${res.status}`);
-  return res.json();
-};
-
 export const useFuncionarios = () => {
   return useQuery({
     queryKey: ["funcionarios"],
     queryFn: async () => {
-      // Step 1: Get roles via REST
+      // Step 1: Get roles via centralized REST client
       const roles: { user_id: string; role: string }[] = await restGet('user_roles?select=user_id,role');
 
       const employeeIds = new Set<string>();
@@ -60,7 +36,7 @@ export const useFuncionarios = () => {
       const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
       if (targetIds.length === 0) return [] as Funcionario[];
 
-      // Step 2: Fetch profiles via REST (batched if needed), excluding admin-only profiles
+      // Step 2: Fetch profiles, excluding admin-only profiles
       const idsParam = targetIds.map(id => `"${id}"`).join(',');
       const profiles: any[] = await restGet(`profiles?select=*&id=in.(${idsParam})&tipo_perfil=eq.funcionario&order=nome.asc&limit=2000`);
 

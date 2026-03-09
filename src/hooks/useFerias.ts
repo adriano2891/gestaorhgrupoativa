@@ -1,68 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-// supabase SDK bypassed - using direct REST calls
+import { restGet, restPatch, restPost, getAccessToken, getUserIdFromToken } from "@/lib/restClient";
 import { toast } from "@/hooks/use-toast";
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
-const getAccessToken = (): string | null => {
-  try {
-    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || SUPABASE_URL?.match(/\/\/([^.]+)/)?.[1];
-    const raw = localStorage.getItem(`sb-${projectId}-auth-token`);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return parsed?.access_token || null;
-    }
-  } catch {}
-  return null;
-};
-
-const restGet = async (path: string) => {
-  const token = getAccessToken();
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token || SUPABASE_KEY}`,
-      'Accept': 'application/json',
-    },
-  });
-  if (!res.ok) throw new Error(`REST ${res.status}`);
-  return res.json();
-};
-
-const restPatch = async (path: string, body: any) => {
-  const token = getAccessToken();
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    method: 'PATCH',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token || SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Prefer': 'return=representation',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`REST PATCH ${res.status}`);
-  return res.json();
-};
-
-const restPost = async (path: string, body: any) => {
-  const token = getAccessToken();
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    method: 'POST',
-    headers: {
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${token || SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Prefer': 'return=representation',
-    },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) throw new Error(`REST POST ${res.status}`);
-  return res.json();
-};
 
 export interface PeriodoAquisitivo {
   id: string;
@@ -93,6 +31,7 @@ export interface SolicitacaoFerias {
   visualizada_admin: boolean;
   created_at: string;
   updated_at: string;
+  data_pagamento?: string;
   profiles?: {
     nome: string;
     cargo?: string;
@@ -124,13 +63,12 @@ export const useSolicitacoesFerias = (filters?: {
         const solicitacoes: any[] = await restGet(path);
         if (!solicitacoes || solicitacoes.length === 0) return [] as SolicitacaoFerias[];
 
-        // Fetch profiles separately
+        // Fetch profiles separately (data enrichment pattern)
         const userIds = [...new Set(solicitacoes.map(s => s.user_id))];
         const profilesPath = `profiles?select=id,nome,cargo,departamento,status&id=in.(${userIds.join(',')})`;
         const profiles: any[] = await restGet(profilesPath);
         const profileMap = new Map(profiles.map(p => [p.id, p]));
 
-        // Map and filter
         let result = solicitacoes.map(s => ({
           ...s,
           profiles: profileMap.get(s.user_id) ? {
@@ -197,14 +135,12 @@ export const useMetricasFerias = () => {
           const dataBase = p.data_admissao || (p.created_at ? String(p.created_at).split('T')[0] : null);
           if (!dataBase) return;
 
-          // Check if employee status is "Em férias"
           const stNorm = (p.status || 'ativo').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[_\s]+/g, '');
           if (stNorm === 'emferias') {
             cltStatusByUser.set(p.id, 'em_ferias');
             return;
           }
 
-          // Same logic as CardControleFeriasCLT: admission date + 1 year = fim aquisitivo
           const admissao = new Date(`${dataBase}T12:00:00`);
           const fimAquisitivo = new Date(admissao);
           fimAquisitivo.setFullYear(fimAquisitivo.getFullYear() + 1);
@@ -212,19 +148,13 @@ export const useMetricasFerias = () => {
           const diasParaVencer = Math.ceil((fimAquisitivo.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
 
           let status: 'cumprindo' | 'prestes_a_vencer' | 'vencida' = 'cumprindo';
-          if (diasParaVencer < 0) {
-            status = 'vencida';
-          } else if (diasParaVencer <= 60) {
-            status = 'prestes_a_vencer';
-          } else {
-            status = 'cumprindo';
-          }
+          if (diasParaVencer < 0) status = 'vencida';
+          else if (diasParaVencer <= 60) status = 'prestes_a_vencer';
 
           cltStatusByUser.set(p.id, status);
         });
 
         const solicitacoesAtivas = (solicitacoes || []).filter((s: any) => activeIds.has(s.user_id));
-
         const pendentes = solicitacoesAtivas.filter((s: any) => s.status === "pendente").length;
 
         const colaboradoresFerias = new Set<string>();
@@ -233,7 +163,6 @@ export const useMetricasFerias = () => {
             colaboradoresFerias.add(s.user_id);
           }
         });
-        // Employees with profile status "Em férias" count as on vacation
         cltStatusByUser.forEach((status, userId) => {
           if (status === 'em_ferias') colaboradoresFerias.add(userId);
         });
@@ -254,13 +183,7 @@ export const useMetricasFerias = () => {
           ? Math.round(periodos.reduce((acc: number, p: any) => acc + (p.dias_disponiveis || 0), 0) / periodos.length)
           : 0;
 
-        return {
-          pendentes,
-          emAndamento: colaboradoresFerias.size,
-          proximas: proximasFerias.size,
-          vencidas,
-          saldoMedio,
-        };
+        return { pendentes, emAndamento: colaboradoresFerias.size, proximas: proximasFerias.size, vencidas, saldoMedio };
       } catch (error) {
         console.error("Erro em useMetricasFerias:", error);
         return { pendentes: 0, emAndamento: 0, proximas: 0, vencidas: 0, saldoMedio: 0 };
@@ -280,13 +203,7 @@ export const useAtualizarSolicitacao = () => {
 
       if (status === "aprovado") {
         updateData.data_aprovacao = new Date().toISOString();
-        const token = getAccessToken();
-        if (token) {
-          try {
-            const payload = JSON.parse(atob(token.split('.')[1]));
-            updateData.aprovado_por = payload.sub;
-          } catch {}
-        }
+        updateData.aprovado_por = getUserIdFromToken();
       }
 
       if (status === "reprovado" && motivo_reprovacao) {
@@ -344,6 +261,27 @@ export const useMarcarComoVisualizada = () => {
   });
 };
 
+export const useRegistrarPagamentoFerias = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (solicitacaoId: string) => {
+      const data = await restPatch(`solicitacoes_ferias?id=eq.${solicitacaoId}`, {
+        data_pagamento: new Date().toISOString(),
+      });
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
+      queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+      toast({ title: "Pagamento registrado", description: "Data de pagamento das férias registrada com sucesso (Art. 145 CLT)" });
+    },
+    onError: (error) => {
+      toast({ title: "Erro", description: "Erro ao registrar pagamento: " + error.message, variant: "destructive" });
+    },
+  });
+};
+
 export const useCriarSolicitacaoFerias = () => {
   const queryClient = useQueryClient();
 
@@ -356,14 +294,7 @@ export const useCriarSolicitacaoFerias = () => {
       dias_solicitados: number; tipo?: 'ferias' | 'ferias_coletivas' | 'abono_pecuniario';
       observacao?: string;
     }) => {
-      const token = getAccessToken();
-      let userId: string | null = null;
-      if (token) {
-        try {
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          userId = payload.sub;
-        } catch {}
-      }
+      const userId = getUserIdFromToken();
       if (!userId) throw new Error("Usuário não autenticado");
 
       const data = await restPost('solicitacoes_ferias', {

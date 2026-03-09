@@ -39,22 +39,22 @@ export default function Fornecedores() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-50 bg-[#3EE0CF] shadow-md">
-        <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 sm:py-0 sm:h-16 gap-2 sm:gap-0">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-              <BackButton to="/dashboard" variant="light" className="text-black hover:bg-black/10" />
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-black flex items-center justify-center flex-shrink-0">
-                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+      <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-md">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between py-2.5 sm:py-0 sm:h-16 gap-2">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <BackButton to="/dashboard" variant="light" className="text-primary-foreground hover:bg-primary-foreground/10 flex-shrink-0" />
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center flex-shrink-0">
+                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-sm sm:text-lg font-bold text-black truncate">Fornecedores</h1>
-                <p className="text-[10px] sm:text-xs text-black/70 truncate">Gerencie seus fornecedores e produtos</p>
+                <h1 className="text-xs sm:text-lg font-bold text-primary-foreground truncate">Fornecedores</h1>
+                <p className="text-[9px] sm:text-xs text-primary-foreground/70 truncate">Gestão de fornecedores</p>
               </div>
             </div>
-            <Button onClick={() => navigate('/fornecedores/novo')} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-black hover:bg-black/90 text-white">
+            <Button onClick={() => navigate('/fornecedores/novo')} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground touch-target flex-shrink-0">
               <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
               <span className="hidden sm:inline">Adicionar Fornecedor</span>
               <span className="sm:hidden">Novo</span>
@@ -62,39 +62,40 @@ export default function Fornecedores() {
           </div>
         </div>
       </header>
+      <div className="h-[52px] sm:h-[60px] md:h-[64px]" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
+          <Card className="bg-card border-2 border-primary shadow-sm">
             <CardContent className="p-4">
-              <div className="text-2xl font-bold text-black">{fornecedores.length}</div>
-              <div className="text-sm text-black/60">Total</div>
+              <div className="text-2xl font-bold text-foreground">{fornecedores.length}</div>
+              <div className="text-sm text-muted-foreground">Total</div>
             </CardContent>
           </Card>
-          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
+          <Card className="bg-card border-2 border-primary shadow-sm">
             <CardContent className="p-4">
-              <div className="text-2xl font-bold text-[#3EE0CF]">
+              <div className="text-2xl font-bold text-primary">
                 {fornecedores.filter(f => f.status === 'ativo').length}
               </div>
-              <div className="text-sm text-black/60">Ativos</div>
+              <div className="text-sm text-muted-foreground">Ativos</div>
             </CardContent>
           </Card>
-          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
+          <Card className="bg-card border-2 border-primary shadow-sm">
             <CardContent className="p-4">
-              <div className="text-2xl font-bold text-black">
+              <div className="text-2xl font-bold text-foreground">
                 {fornecedores.filter(f => f.tipo_fornecedor === 'produto' || f.tipo_fornecedor === 'ambos').length}
               </div>
-              <div className="text-sm text-black/60">Produtos</div>
+              <div className="text-sm text-muted-foreground">Produtos</div>
             </CardContent>
           </Card>
-          <Card className="bg-white border-2 border-[#3EE0CF] shadow-sm">
+          <Card className="bg-card border-2 border-primary shadow-sm">
             <CardContent className="p-4">
-              <div className="text-2xl font-bold text-black">
+              <div className="text-2xl font-bold text-foreground">
                 {fornecedores.filter(f => f.tipo_fornecedor === 'servico' || f.tipo_fornecedor === 'ambos').length}
               </div>
-              <div className="text-sm text-black/60">Serviços</div>
+              <div className="text-sm text-muted-foreground">Serviços</div>
             </CardContent>
           </Card>
         </div>
@@ -109,7 +110,7 @@ export default function Fornecedores() {
                   placeholder="Buscar por nome, CNPJ/CPF..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 border-black/20 focus:border-[#3EE0CF] focus:ring-[#3EE0CF]"
+                  className="pl-10 border-border focus:border-primary focus:ring-primary"
                 />
               </div>
               <Select value={tipoFilter} onValueChange={setTipoFilter}>
@@ -152,42 +153,42 @@ export default function Fornecedores() {
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-[#3EE0CF]/10 border-b border-[#3EE0CF]/30">
-                      <TableHead className="text-black font-semibold">Fornecedor</TableHead>
-                      <TableHead className="hidden md:table-cell text-black font-semibold">Tipo</TableHead>
-                      <TableHead className="hidden lg:table-cell text-black font-semibold">Contato</TableHead>
-                      <TableHead className="text-black font-semibold">Status</TableHead>
+                    <TableRow className="bg-primary/10 border-b border-primary/30">
+                      <TableHead className="text-foreground font-semibold">Fornecedor</TableHead>
+                      <TableHead className="hidden md:table-cell text-foreground font-semibold">Tipo</TableHead>
+                      <TableHead className="hidden lg:table-cell text-foreground font-semibold">Contato</TableHead>
+                      <TableHead className="text-foreground font-semibold">Status</TableHead>
                       <TableHead className="w-12"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredFornecedores.map((fornecedor) => (
-                      <TableRow key={fornecedor.id} className="cursor-pointer hover:bg-[#3EE0CF]/5 border-b border-black/5">
+                      <TableRow key={fornecedor.id} className="cursor-pointer hover:bg-primary/5 border-b border-border">
                         <TableCell onClick={() => navigate(`/fornecedores/${fornecedor.id}`)}>
                           <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-[#3EE0CF]/20 flex items-center justify-center">
-                              <Building2 className="h-5 w-5 text-[#3EE0CF]" />
+                            <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
+                              <Building2 className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                              <div className="font-medium text-black">
+                              <div className="font-medium text-foreground">
                                 {fornecedor.nome_fantasia || fornecedor.razao_social}
                               </div>
-                              <div className="text-sm text-black/60">{fornecedor.cpf_cnpj}</div>
+                              <div className="text-sm text-muted-foreground">{fornecedor.cpf_cnpj}</div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell className="hidden md:table-cell">
-                          <Badge variant="outline" className="border-black/20 text-black">
+                          <Badge variant="outline" className="border-border text-foreground">
                             {TIPO_FORNECEDOR_LABELS[fornecedor.tipo_fornecedor]}
                           </Badge>
                         </TableCell>
                         <TableCell className="hidden lg:table-cell">
                           <div className="space-y-1">
-                            <div className="flex items-center gap-2 text-sm text-black/70">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Phone className="h-3 w-3" />
                               {fornecedor.telefone}
                             </div>
-                            <div className="flex items-center gap-2 text-sm text-black/70">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                               <Mail className="h-3 w-3" />
                               {fornecedor.email}
                             </div>
@@ -197,8 +198,8 @@ export default function Fornecedores() {
                           <Badge
                             className={
                               fornecedor.status === 'ativo'
-                                ? 'bg-[#3EE0CF] text-black hover:bg-[#3EE0CF]/90'
-                                : 'bg-black/10 text-black hover:bg-black/20'
+                                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                                : 'bg-muted text-muted-foreground hover:bg-muted/80'
                             }
                           >
                             {STATUS_FORNECEDOR_LABELS[fornecedor.status]}
@@ -207,16 +208,16 @@ export default function Fornecedores() {
                         <TableCell>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="hover:bg-[#3EE0CF]/10">
+                              <Button variant="ghost" size="icon" className="hover:bg-primary/10">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-white border border-black/10">
-                              <DropdownMenuItem onClick={() => navigate(`/fornecedores/${fornecedor.id}`)} className="hover:bg-[#3EE0CF]/10">
+                              <DropdownMenuItem onClick={() => navigate(`/fornecedores/${fornecedor.id}`)} className="hover:bg-primary/10">
                                 <Eye className="h-4 w-4 mr-2" />
                                 Visualizar
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => navigate(`/fornecedores/${fornecedor.id}/editar`)} className="hover:bg-[#3EE0CF]/10">
+                              <DropdownMenuItem onClick={() => navigate(`/fornecedores/${fornecedor.id}/editar`)} className="hover:bg-primary/10">
                                 <Pencil className="h-4 w-4 mr-2" />
                                 Editar
                               </DropdownMenuItem>
