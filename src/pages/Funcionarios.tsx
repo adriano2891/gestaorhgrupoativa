@@ -644,10 +644,12 @@ const Funcionarios = () => {
   }, [employees]);
 
   const filteredEmployees = employees.filter((emp) => {
+    const term = searchTerm.toLowerCase();
     const matchesSearch =
-      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (emp.matricula && emp.matricula.toLowerCase().includes(searchTerm.toLowerCase()));
+      emp.name.toLowerCase().includes(term) ||
+      emp.email.toLowerCase().includes(term) ||
+      (emp.matricula && emp.matricula.toLowerCase().includes(term)) ||
+      (emp.cpf && emp.cpf.toLowerCase().includes(term));
     const matchesDepartment =
       selectedDepartment === "Todos" || emp.department === selectedDepartment;
     return matchesSearch && matchesDepartment;
