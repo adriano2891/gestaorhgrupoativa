@@ -24,7 +24,7 @@ import iconCursos from "@/assets/icon-rh-cursos.png";
 import iconFerias from "@/assets/icon-rh-ferias.png";
 import iconSuporte from "@/assets/icon-rh-suporte.png";
 import iconDocumentos from "@/assets/icon-rh-documentos.png";
-
+import iconSST from "@/assets/icon-rh-sst.png";
 
 
 interface ModuleItem {
@@ -82,7 +82,7 @@ const GestaoRH = () => {
     { title: "Controle de Férias", description: "Férias e licenças", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
     { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.4]", badgeKey: "/suporte-funcionarios" },
     { title: "Documentos", description: "Gestão de documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.4]" },
-    
+    { title: "Saúde e Segurança", description: "SST, ASO, EPI, CAT e CIPA", iconSrc: iconSST, path: "/afastamentos", iconScale: "scale-[1.4]" },
   ];
 
   if (isSuperAdmin) {
