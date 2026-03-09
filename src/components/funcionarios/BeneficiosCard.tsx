@@ -28,9 +28,12 @@ const tipoLabels: Record<string, string> = {
   vale_refeicao: "Vale-Refeição",
   plano_saude: "Plano de Saúde",
   plano_odontologico: "Plano Odontológico",
+  insalubridade: "Insalubridade",
+  periculosidade: "Periculosidade",
 };
 
 const isPlanoType = (tipo: string) => tipo === "plano_saude" || tipo === "plano_odontologico";
+const isAdicionalType = (tipo: string) => tipo === "insalubridade" || tipo === "periculosidade";
 
 export const BeneficiosCard = ({ userId, userName }: { userId: string; userName: string }) => {
   const [beneficios, setBeneficios] = useState<Beneficio[]>([]);
@@ -40,6 +43,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
   const [valor, setValor] = useState("");
   const [desconto, setDesconto] = useState("6");
   const [nomePlano, setNomePlano] = useState("");
+  const [grauInsalubridade, setGrauInsalubridade] = useState("medio");
 
   const loadBeneficios = async () => {
     try {
@@ -63,16 +67,20 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
 
   const handleAdd = async () => {
     const isPlano = isPlanoType(tipo);
+    const isAdicional = isAdicionalType(tipo);
 
     if (isPlano) {
-      if (!nomePlano.trim()) {
-        toast.error("Informe o nome do plano");
-        return;
-      }
-    } else {
+      if (!nomePlano.trim()) { toast.error("Informe o nome do plano"); return; }
+    } else if (!isAdicional) {
       const valorNum = parseFloat(valor.replace(",", "."));
-      if (!valorNum || valorNum <= 0) {
-        toast.error("Informe um valor válido");
+      if (!valorNum || valorNum <= 0) { toast.error("Informe um valor válido"); return; }
+    }
+
+    // Verificar se já existe insalubridade ou periculosidade ativo (não cumuláveis)
+    if (isAdicional) {
+      const jaTemAdicional = beneficios.some(b => isAdicionalType(b.tipo));
+      if (jaTemAdicional) {
+        toast.error("Insalubridade e Periculosidade não são cumuláveis (CLT Art. 193 §2º)");
         return;
       }
     }
@@ -81,9 +89,9 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
       const insertData: any = {
         user_id: userId,
         tipo,
-        valor: isPlano ? 0 : parseFloat(valor.replace(",", ".")),
-        desconto_percentual: isPlano ? 0 : (parseFloat(desconto) || 0),
-        observacoes: isPlano ? nomePlano.trim() : null,
+        valor: isPlano ? 0 : isAdicional ? 0 : parseFloat(valor.replace(",", ".")),
+        desconto_percentual: isPlano || isAdicional ? 0 : (parseFloat(desconto) || 0),
+        observacoes: isPlano ? nomePlano.trim() : isAdicional ? grauInsalubridade : null,
       };
 
       const { error } = await (supabase as any)
@@ -161,12 +169,19 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                   <TableCell>
                     {isPlanoType(b.tipo) ? (
                       <span className="text-sm font-medium">{b.observacoes || "—"}</span>
+                    ) : isAdicionalType(b.tipo) ? (
+                      <span className="text-sm font-medium">
+                        {b.tipo === "insalubridade" 
+                          ? `Grau ${b.observacoes === "minimo" ? "Mínimo (10%)": b.observacoes === "maximo" ? "Máximo (40%)" : "Médio (20%)"}`
+                          : "30% do salário base"
+                        }
+                      </span>
                     ) : (
                       <>R$ {b.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</>
                     )}
                   </TableCell>
                   <TableCell>
-                    {isPlanoType(b.tipo) ? "—" : `${b.desconto_percentual}%`}
+                    {isPlanoType(b.tipo) || isAdicionalType(b.tipo) ? "—" : `${b.desconto_percentual}%`}
                   </TableCell>
                   <TableCell>
                     <Button size="sm" variant="ghost" className="text-destructive" onClick={() => handleRemove(b.id)}>
@@ -196,6 +211,8 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                   <SelectItem value="vale_refeicao">Vale-Refeição</SelectItem>
                   <SelectItem value="plano_saude">Plano de Saúde</SelectItem>
                   <SelectItem value="plano_odontologico">Plano Odontológico</SelectItem>
+                  <SelectItem value="insalubridade">Insalubridade (CLT Art. 192)</SelectItem>
+                  <SelectItem value="periculosidade">Periculosidade (CLT Art. 193)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -210,6 +227,28 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                 />
                 <p className="text-xs text-muted-foreground">
                   Informe o nome do plano contratado
+                </p>
+              </div>
+            ) : tipo === "insalubridade" ? (
+              <div className="space-y-1.5">
+                <Label>Grau de Insalubridade</Label>
+                <Select value={grauInsalubridade} onValueChange={setGrauInsalubridade}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="minimo">Mínimo — 10% sobre salário mínimo</SelectItem>
+                    <SelectItem value="medio">Médio — 20% sobre salário mínimo</SelectItem>
+                    <SelectItem value="maximo">Máximo — 40% sobre salário mínimo</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Base de cálculo: Salário Mínimo (CLT Art. 192). Necessário laudo técnico.
+                </p>
+              </div>
+            ) : tipo === "periculosidade" ? (
+              <div className="space-y-1.5">
+                <p className="text-sm p-3 rounded-lg bg-muted/50 border">
+                  <strong>Periculosidade:</strong> 30% sobre o salário base do funcionário (CLT Art. 193).
+                  Necessário laudo técnico de engenheiro de segurança.
                 </p>
               </div>
             ) : (

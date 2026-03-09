@@ -8,15 +8,19 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { FileText, Calculator, AlertTriangle } from "lucide-react";
+import { FileText, Calculator, AlertTriangle, Download } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { calcularINSS, calcularIRRF } from "@/utils/inssIrrfCalculos";
+import { gerarTRCT } from "@/utils/trctPdfGenerator";
 
 interface RescisaoCardProps {
   userId: string;
   userName: string;
   salarioBase: number;
   dataAdmissao: string;
+  cpf?: string;
+  cargo?: string;
 }
 
 const tipoRescisaoLabels: Record<string, string> = {
@@ -51,7 +55,7 @@ const calcularMeses13Proporcional = (admissao: Date, demissao: Date): number => 
   return meses;
 };
 
-export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: RescisaoCardProps) => {
+export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao, cpf, cargo }: RescisaoCardProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tipoRescisao, setTipoRescisao] = useState("sem_justa_causa");
   const [dataDemissao, setDataDemissao] = useState(new Date().toISOString().split("T")[0]);
@@ -126,7 +130,13 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: Re
       multaFgts = fgtsTotal * 0.2;
     }
 
-    const total = saldoSalario + avisoPrevioValor + feriasProp + tercoFerias + feriasVencidasValor + tercoFeriasVencidas + decimoTerceiro + multaFgts;
+    const totalBruto = saldoSalario + avisoPrevioValor + feriasProp + tercoFerias + feriasVencidasValor + tercoFeriasVencidas + decimoTerceiro + multaFgts;
+
+    // Cálculos de INSS e IRRF
+    const inssCalc = calcularINSS(totalBruto);
+    const irrfCalc = calcularIRRF(totalBruto, inssCalc.valor, 0);
+    const totalDescontos = inssCalc.valor + irrfCalc.valor;
+    const totalLiquido = totalBruto - totalDescontos;
 
     setResultado({
       saldoSalario: Math.round(saldoSalario * 100) / 100,
@@ -138,10 +148,43 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: Re
       tercoFeriasVencidas: Math.round(tercoFeriasVencidas * 100) / 100,
       decimoTerceiro: Math.round(decimoTerceiro * 100) / 100,
       multaFgts: Math.round(multaFgts * 100) / 100,
-      total: Math.round(total * 100) / 100,
+      totalBruto: Math.round(totalBruto * 100) / 100,
+      inss: inssCalc.valor,
+      irrfValor: irrfCalc.valor,
+      irrfFaixa: irrfCalc.faixa,
+      inssAliquota: inssCalc.aliquotaEfetiva,
+      totalDescontos: Math.round(totalDescontos * 100) / 100,
+      totalLiquido: Math.round(totalLiquido * 100) / 100,
       mesesTrabalhados,
       projecaoAviso: !avisoTrabalhado && (tipoRescisao === "sem_justa_causa" || tipoRescisao === "acordo_mutuo"),
     });
+  };
+
+  const handleGerarTRCT = () => {
+    if (!resultado) return;
+    gerarTRCT({
+      empregadorRazaoSocial: "Empresa (configurar)",
+      empregadorCNPJ: "",
+      nomeEmpregado: userName,
+      cpfEmpregado: cpf || "",
+      cargoEmpregado: cargo || "",
+      dataAdmissao,
+      dataDemissao,
+      tipoRescisao,
+      avisoTrabalhado,
+      avisoPrevioDias: resultado.avisoPrevioDias,
+      salarioBase,
+      saldoSalario: resultado.saldoSalario,
+      avisoPrevioValor: resultado.avisoPrevioValor,
+      feriasProp: resultado.feriasProp,
+      tercoFerias: resultado.tercoFerias,
+      feriasVencidasValor: resultado.feriasVencidasValor,
+      tercoFeriasVencidas: resultado.tercoFeriasVencidas,
+      decimoTerceiro: resultado.decimoTerceiro,
+      multaFgts: resultado.multaFgts,
+      totalBruto: resultado.totalBruto,
+    });
+    toast.success("TRCT gerado com sucesso");
   };
 
   const salvarRescisao = async () => {
@@ -281,8 +324,20 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: Re
                       <TableRow><TableCell>13º Proporcional (regra 15 dias)</TableCell><TableCell className="text-right">{fmt(resultado.decimoTerceiro)}</TableCell></TableRow>
                       <TableRow><TableCell>Multa FGTS</TableCell><TableCell className="text-right">{fmt(resultado.multaFgts)}</TableCell></TableRow>
                       <TableRow className="font-bold border-t-2">
-                        <TableCell>TOTAL RESCISÃO</TableCell>
-                        <TableCell className="text-right text-primary">{fmt(resultado.total)}</TableCell>
+                        <TableCell>TOTAL BRUTO</TableCell>
+                        <TableCell className="text-right">{fmt(resultado.totalBruto)}</TableCell>
+                      </TableRow>
+                      <TableRow className="bg-destructive/5">
+                        <TableCell className="text-destructive">INSS ({resultado.inssAliquota}%)</TableCell>
+                        <TableCell className="text-right text-destructive">- {fmt(resultado.inss)}</TableCell>
+                      </TableRow>
+                      <TableRow className="bg-destructive/5">
+                        <TableCell className="text-destructive">IRRF (faixa {resultado.irrfFaixa})</TableCell>
+                        <TableCell className="text-right text-destructive">- {fmt(resultado.irrfValor)}</TableCell>
+                      </TableRow>
+                      <TableRow className="font-bold border-t-2">
+                        <TableCell>VALOR LÍQUIDO</TableCell>
+                        <TableCell className="text-right text-primary">{fmt(resultado.totalLiquido)}</TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
@@ -294,9 +349,14 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao }: Re
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
             {resultado && (
-              <Button onClick={salvarRescisao} disabled={saving}>
-                {saving ? "Salvando..." : "Salvar Rescisão"}
-              </Button>
+              <>
+                <Button variant="outline" onClick={handleGerarTRCT} className="gap-1">
+                  <Download className="h-4 w-4" /> TRCT PDF
+                </Button>
+                <Button onClick={salvarRescisao} disabled={saving}>
+                  {saving ? "Salvando..." : "Salvar Rescisão"}
+                </Button>
+              </>
             )}
           </DialogFooter>
         </DialogContent>
