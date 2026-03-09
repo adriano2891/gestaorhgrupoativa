@@ -684,42 +684,44 @@ const Relatorios = () => {
         setGeneratedData({
           generatedAt: now.toISOString(),
           summary: {
-            "Período": periodoLabel,
-            "Total Colaboradores": total,
-            "Ativos": ativos.length,
+            "Taxa de Turnover": `${taxaTurnover}%`,
+            "Taxa de Retenção": `${taxaRetencao}%`,
+            "Total de Funcionários": total,
             "Desligamentos": desligados.length,
-            "Taxa Turnover": `${taxaTurnover}%`,
-            "Taxa Retenção": `${taxaRetencao}%`,
           },
           charts: [
             {
-              type: "bar",
-              title: "Ativos vs Desligados por Departamento",
-              description: "Comparativo por área",
-              data: allDepts.map(dept => ({ departamento: dept, Ativos: deptAtivos[dept] || 0, Desligados: deptDesligamentos[dept] || 0 })),
-              dataName: "Colaboradores",
-            },
-            {
               type: "pie",
-              title: "Motivo dos Desligamentos",
-              description: "Tipo de desligamento",
-              data: Object.entries(motivoCount).map(([motivo, count]) => ({ motivo, valor: count })),
+              title: "1. Turnover vs Retenção",
+              description: "Proporção entre rotatividade e retenção de colaboradores",
+              data: [
+                { tipo: "Retenção", valor: ativos.length },
+                { tipo: "Turnover", valor: desligados.length },
+              ],
+              insight: "Departamentos menores podem ter maior impacto no turnover geral.",
             },
             {
               type: "bar",
-              title: "Admissões por Mês",
-              description: "Volume de admissões ao longo do tempo",
-              data: Object.entries(admissoesMes).sort(([a], [b]) => a.localeCompare(b)).map(([mes, count]) => ({ mês: mes, valor: count })),
-              dataName: "Admissões",
+              title: "2. Funcionários por Departamento",
+              description: "Distribuição atual de colaboradores por área",
+              data: Object.entries(deptAtivos).map(([dept, count]) => ({ departamento: dept, valor: count })),
+              dataName: "Funcionários",
+              insight: "Departamentos menores podem ter maior impacto no turnover geral.",
             },
           ],
-          details: movimentacoes.slice(0, 100).map((f: any) => ({
-            Nome: f.nome || "-",
-            Cargo: f.cargo || "-",
-            Departamento: f.departamento || "-",
-            "Data Admissão": f.data_admissao || "-",
-            Escala: f.escala || "-",
-            Status: f.status || "Ativo",
+          details: filtered.slice(0, 100).map((f: any) => ({
+            nome: f.nome || "-",
+            departamento: f.departamento || "-",
+            cargo: f.cargo || "-",
+            "data Admissao": f.data_admissao ? format(new Date(f.data_admissao + 'T12:00:00'), 'dd/MM/yyyy') : "-",
+            status: (() => {
+              const st = (f.status || "ativo").toLowerCase();
+              if (st === "em_ferias") return "Em férias";
+              if (st === "ativo") return "Ativo";
+              if (st === "demitido") return "Demitido";
+              if (st === "pediu_demissao") return "Pediu demissão";
+              return f.status || "Ativo";
+            })(),
           })),
         });
         break;
