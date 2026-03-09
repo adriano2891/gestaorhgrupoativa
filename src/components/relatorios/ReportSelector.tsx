@@ -26,7 +26,7 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
         >
           <div className="mb-3 sm:mb-5 flex items-center gap-2 sm:gap-3">
             <div className="h-1 w-8 sm:w-12 bg-white/40 dark:bg-white/20 rounded-full"></div>
-            <h3 className="text-base sm:text-lg md:text-xl font-bold text-white tracking-wide" style={{ fontFamily: 'Arial, sans-serif' }}>{category}</h3>
+            <h3 className="text-base sm:text-lg md:text-xl font-bold tracking-wide" style={{ fontFamily: 'Arial, sans-serif', color: '#3ee0cf' }}>{category}</h3>
             <div className="h-1 flex-1 bg-white/20 dark:bg-white/10 rounded-full"></div>
           </div>
           
