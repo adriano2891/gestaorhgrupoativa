@@ -349,9 +349,14 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao, cpf,
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
             {resultado && (
-              <Button onClick={salvarRescisao} disabled={saving}>
-                {saving ? "Salvando..." : "Salvar Rescisão"}
-              </Button>
+              <>
+                <Button variant="outline" onClick={handleGerarTRCT} className="gap-1">
+                  <Download className="h-4 w-4" /> TRCT PDF
+                </Button>
+                <Button onClick={salvarRescisao} disabled={saving}>
+                  {saving ? "Salvando..." : "Salvar Rescisão"}
+                </Button>
+              </>
             )}
           </DialogFooter>
         </DialogContent>

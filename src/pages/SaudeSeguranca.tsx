@@ -22,6 +22,8 @@ const SaudeSeguranca = () => {
         </div>
       </div>
 
+      <AlertasVencimentoSST />
+
       <Tabs defaultValue="aso" className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="aso" className="gap-1 text-xs sm:text-sm">
