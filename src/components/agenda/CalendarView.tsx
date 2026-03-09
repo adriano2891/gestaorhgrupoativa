@@ -87,14 +87,14 @@ export function CalendarView({
   const isSelecionado = (d: Date) => d.toDateString() === dataSelecionada.toDateString();
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navegar(-1)}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <h3 className="text-base font-semibold text-foreground min-w-[160px] text-center">
+          <h3 className="text-base font-semibold text-foreground min-w-[160px] text-center" style={{ fontFamily: 'Arial, Helvetica, sans-serif' }}>
             {MESES[mesAtual.getMonth()]} {mesAtual.getFullYear()}
           </h3>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navegar(1)}>
