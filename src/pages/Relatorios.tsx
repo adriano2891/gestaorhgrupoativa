@@ -12,6 +12,7 @@ import { useRegistrosPonto } from "@/hooks/useRegistrosPonto";
 import { useHolerites } from "@/hooks/useHolerites";
 import { useSolicitacoesFerias } from "@/hooks/useFerias";
 import { supabase } from "@/integrations/supabase/client";
+import { restGet } from "@/lib/restClient";
 import { format, parseISO, startOfMonth, endOfMonth, isWithinInterval, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -35,6 +36,25 @@ const Relatorios = () => {
   const [generatedData, setGeneratedData] = useState<any>(null);
 
   const { data: funcionarios } = useFuncionarios();
+  const { data: todosFuncionarios } = useQuery({
+    queryKey: ["todos-funcionarios-turnover"],
+    queryFn: async () => {
+      const roles: { user_id: string; role: string }[] = await restGet('user_roles?select=user_id,role');
+      const employeeIds = new Set<string>();
+      const adminIds = new Set<string>();
+      (roles || []).forEach(r => {
+        if (r.role === 'funcionario') employeeIds.add(r.user_id);
+        if (['admin', 'gestor', 'rh'].includes(r.role)) adminIds.add(r.user_id);
+      });
+      const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
+      if (targetIds.length === 0) return [];
+      const idsParam = targetIds.map(id => `"${id}"`).join(',');
+      const profiles: any[] = await restGet(`profiles?select=*&id=in.(${idsParam})&tipo_perfil=eq.funcionario&order=nome.asc&limit=2000`);
+      return (profiles || []) as any[];
+    },
+    retry: 2,
+    staleTime: 1000 * 30,
+  });
   const { data: registros } = useRegistrosPonto();
   const { data: holerites } = useHolerites();
   const { data: ferias } = useSolicitacoesFerias();
@@ -611,7 +631,7 @@ const Relatorios = () => {
       }
 
       case "turnover": {
-        const tdata = funcionarios || [];
+        const tdata = todosFuncionarios || [];
         let filtered = tdata;
         if (filters.departamento && filters.departamento !== "todos") {
           filtered = filtered.filter((f: any) => f.departamento?.toLowerCase().includes(filters.departamento.toLowerCase()));
