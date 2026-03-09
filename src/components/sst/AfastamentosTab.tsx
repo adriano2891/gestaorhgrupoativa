@@ -48,10 +48,36 @@ export const AfastamentosTab = () => {
   const [numeroBeneficio, setNumeroBeneficio] = useState("");
   const [observacoes, setObservacoes] = useState("");
   const [suspende, setSuspende] = useState(false);
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const sanitizeFileName = (name: string) =>
+    name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-").toLowerCase();
+
+  const uploadDocumento = async (file: File): Promise<string | null> => {
+    const ext = file.name.split(".").pop();
+    const path = `afastamentos/${Date.now()}-${sanitizeFileName(file.name)}`;
+    const { error } = await supabase.storage.from("sst-documentos").upload(path, file);
+    if (error) {
+      toast({ title: "Erro no upload", description: error.message, variant: "destructive" });
+      return null;
+    }
+    return path;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!userId || !tipo || !dataInicio) return;
+
+    setUploading(true);
+    let documentoUrl: string | undefined;
+
+    if (arquivo) {
+      const path = await uploadDocumento(arquivo);
+      if (!path) { setUploading(false); return; }
+      documentoUrl = path;
+    }
 
     await criarAfastamento.mutateAsync({
       user_id: userId,
@@ -62,8 +88,10 @@ export const AfastamentosTab = () => {
       numero_beneficio: numeroBeneficio || undefined,
       observacoes: observacoes || undefined,
       suspende_periodo_aquisitivo: suspende,
+      documento_url: documentoUrl,
     });
 
+    setUploading(false);
     setDialogOpen(false);
     resetForm();
   };
@@ -77,6 +105,8 @@ export const AfastamentosTab = () => {
     setNumeroBeneficio("");
     setObservacoes("");
     setSuspende(false);
+    setArquivo(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const ativos = afastamentos?.filter(a => a.status === 'ativo') || [];
