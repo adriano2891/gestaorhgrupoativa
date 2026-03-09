@@ -71,6 +71,8 @@ interface Employee {
   admissionDate: string;
   foto_url?: string;
   matricula?: string;
+  tipo_contrato?: string;
+  cpf?: string;
 }
 
 const employeeSchema = z.object({
@@ -412,6 +414,8 @@ const Funcionarios = () => {
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
           foto_url: await resolveFotoUrl(profile.foto_url),
           matricula: profile.matricula || null,
+          tipo_contrato: profile.tipo_contrato || "CLT",
+          cpf: profile.cpf || undefined,
         })));
 
         console.log("fetchEmployees: Funcionários formatados:", formattedEmployees.length);
@@ -433,7 +437,7 @@ const Funcionarios = () => {
         console.log("fetchEmployees: Fallback - buscando profiles diretamente...");
         const fallbackProfiles = await restFetch(
           'profiles',
-          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula&tipo_perfil=eq.funcionario&order=nome.asc'
+          '?select=id,nome,email,telefone,cargo,departamento,salario,status,created_at,data_admissao,foto_url,perfil_updated_at,perfil_updated_by,matricula,tipo_contrato,cpf&tipo_perfil=eq.funcionario&order=nome.asc'
         );
 
         const allProfiles = fallbackProfiles || [];
@@ -449,6 +453,8 @@ const Funcionarios = () => {
           admissionDate: profile.data_admissao || new Date(profile.created_at).toISOString().split('T')[0],
           foto_url: await resolveFotoUrl(profile.foto_url),
           matricula: profile.matricula || null,
+          tipo_contrato: profile.tipo_contrato || "CLT",
+          cpf: profile.cpf || undefined,
         })));
 
         const updates: Record<string, { updated_at: string }> = {};
@@ -1361,6 +1367,9 @@ const Funcionarios = () => {
                           userName={employee.name}
                           salarioBase={employeeSalaries[employee.id]?.salario || 0}
                           dataAdmissao={employee.admissionDate}
+                          cpf={employee.cpf}
+                          cargo={employee.position}
+                          tipoContrato={employee.tipo_contrato}
                         />
                         <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 focus-ring" onClick={() => handleDelete(employee.id)} aria-label={`Excluir ${employee.name}`}>
                           <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" aria-hidden="true" />

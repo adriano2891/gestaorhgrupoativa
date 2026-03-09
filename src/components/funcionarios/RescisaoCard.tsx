@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { FileText, Calculator, AlertTriangle, Download } from "lucide-react";
+import { FileText, Calculator, AlertTriangle, Download, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { calcularINSS, calcularIRRF } from "@/utils/inssIrrfCalculos";
@@ -21,6 +21,7 @@ interface RescisaoCardProps {
   dataAdmissao: string;
   cpf?: string;
   cargo?: string;
+  tipoContrato?: string;
 }
 
 const tipoRescisaoLabels: Record<string, string> = {
@@ -55,15 +56,81 @@ const calcularMeses13Proporcional = (admissao: Date, demissao: Date): number => 
   return meses;
 };
 
-export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao, cpf, cargo }: RescisaoCardProps) => {
+export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao, cpf, cargo, tipoContrato }: RescisaoCardProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [tipoRescisao, setTipoRescisao] = useState("sem_justa_causa");
   const [dataDemissao, setDataDemissao] = useState(new Date().toISOString().split("T")[0]);
   const [avisoTrabalhado, setAvisoTrabalhado] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [resultado, setResultado] = useState<any>(null);
-  const [feriasVencidas, setFeriasVencidas] = useState(0); // Períodos completos não gozados
+  const [feriasVencidas, setFeriasVencidas] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [estabilidades, setEstabilidades] = useState<string[]>([]);
+
+  // Verificar estabilidades especiais (gestante, cipeiro, acidentado, contrato experiência)
+  useEffect(() => {
+    const verificarEstabilidades = async () => {
+      const alertas: string[] = [];
+      try {
+        // Verificar se é membro CIPA ativo (estabilidade 1 ano após mandato - ADCT Art. 10, II, a)
+        const { data: cipaMembros } = await (supabase as any)
+          .from("cipa_membros")
+          .select("mandato_fim, ativo")
+          .eq("user_id", userId)
+          .eq("ativo", true);
+        
+        if (cipaMembros && cipaMembros.length > 0) {
+          const hoje = new Date();
+          cipaMembros.forEach((m: any) => {
+            const fimMandato = new Date(m.mandato_fim);
+            const fimEstabilidade = new Date(fimMandato);
+            fimEstabilidade.setFullYear(fimEstabilidade.getFullYear() + 1);
+            if (hoje <= fimEstabilidade) {
+              alertas.push(`🛡️ CIPEIRO com estabilidade até ${fimEstabilidade.toLocaleDateString("pt-BR")} (ADCT Art. 10, II, a)`);
+            }
+          });
+        }
+
+        // Verificar afastamento por acidente (estabilidade 12 meses após retorno - Art. 118 Lei 8.213/91)
+        const { data: afastamentos } = await (supabase as any)
+          .from("afastamentos")
+          .select("tipo, data_retorno, status")
+          .eq("user_id", userId)
+          .in("tipo", ["acidente_trabalho", "doenca_ocupacional"]);
+        
+        if (afastamentos) {
+          const hoje = new Date();
+          afastamentos.forEach((a: any) => {
+            if (a.data_retorno) {
+              const retorno = new Date(a.data_retorno);
+              const fimEstabilidade = new Date(retorno);
+              fimEstabilidade.setFullYear(fimEstabilidade.getFullYear() + 1);
+              if (hoje <= fimEstabilidade) {
+                alertas.push(`🏥 ACIDENTADO com estabilidade até ${fimEstabilidade.toLocaleDateString("pt-BR")} (Art. 118 Lei 8.213/91)`);
+              }
+            }
+          });
+        }
+
+        // Verificar contrato de experiência (máx 90 dias - CLT Art. 445)
+        if (tipoContrato === "Experiência" && dataAdmissao) {
+          const admissao = new Date(dataAdmissao);
+          const limiteExp = new Date(admissao);
+          limiteExp.setDate(limiteExp.getDate() + 90);
+          const hoje = new Date();
+          if (hoje <= limiteExp) {
+            const diasRestantes = Math.ceil((limiteExp.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+            alertas.push(`📋 CONTRATO DE EXPERIÊNCIA: ${diasRestantes} dias restantes (vence em ${limiteExp.toLocaleDateString("pt-BR")})`);
+          }
+        }
+      } catch (e) {
+        console.error("Erro ao verificar estabilidades:", e);
+      }
+      setEstabilidades(alertas);
+    };
+
+    if (userId) verificarEstabilidades();
+  }, [userId, tipoContrato, dataAdmissao]);
 
   const calcularRescisao = () => {
     if (!dataAdmissao || !dataDemissao || !salarioBase) {
@@ -278,6 +345,22 @@ export const RescisaoCard = ({ userId, userName, salarioBase, dataAdmissao, cpf,
                 Férias vencidas são pagas em dobro (Art. 137 CLT)
               </p>
             </div>
+
+            {/* Alertas de Estabilidade */}
+            {estabilidades.length > 0 && (
+              <div className="rounded-lg border border-destructive/50 bg-destructive/5 p-3 space-y-2">
+                <div className="flex items-center gap-2 text-sm font-semibold text-destructive">
+                  <ShieldAlert className="h-4 w-4" />
+                  ATENÇÃO: Estabilidades Detectadas
+                </div>
+                {estabilidades.map((msg, i) => (
+                  <p key={i} className="text-xs text-destructive/90">{msg}</p>
+                ))}
+                <p className="text-xs text-muted-foreground mt-1">
+                  A demissão sem justa causa de empregado estável pode gerar reintegração ou indenização do período.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <Label>Motivo</Label>

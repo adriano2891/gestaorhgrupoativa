@@ -30,6 +30,7 @@ const tipoLabels: Record<string, string> = {
   plano_odontologico: "Plano Odontológico",
   insalubridade: "Insalubridade",
   periculosidade: "Periculosidade",
+  salario_familia: "Salário-Família",
 };
 
 const isPlanoType = (tipo: string) => tipo === "plano_saude" || tipo === "plano_odontologico";
