@@ -1749,6 +1749,54 @@ export type Database = {
           },
         ]
       }
+      documentos_sst: {
+        Row: {
+          arquivo_nome: string | null
+          arquivo_url: string | null
+          created_at: string | null
+          criado_por: string | null
+          data_vigencia_fim: string | null
+          data_vigencia_inicio: string | null
+          descricao: string | null
+          id: string
+          registro_profissional: string | null
+          responsavel_tecnico: string | null
+          tipo: string
+          titulo: string
+          updated_at: string | null
+        }
+        Insert: {
+          arquivo_nome?: string | null
+          arquivo_url?: string | null
+          created_at?: string | null
+          criado_por?: string | null
+          data_vigencia_fim?: string | null
+          data_vigencia_inicio?: string | null
+          descricao?: string | null
+          id?: string
+          registro_profissional?: string | null
+          responsavel_tecnico?: string | null
+          tipo: string
+          titulo: string
+          updated_at?: string | null
+        }
+        Update: {
+          arquivo_nome?: string | null
+          arquivo_url?: string | null
+          created_at?: string | null
+          criado_por?: string | null
+          data_vigencia_fim?: string | null
+          data_vigencia_inicio?: string | null
+          descricao?: string | null
+          id?: string
+          registro_profissional?: string | null
+          responsavel_tecnico?: string | null
+          tipo?: string
+          titulo?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       documentos_sst_validade: {
         Row: {
           arquivo_url: string | null
@@ -3554,6 +3602,8 @@ export type Database = {
       }
       profiles: {
         Row: {
+          adicional_insalubridade: string | null
+          adicional_periculosidade: boolean | null
           cargo: string | null
           cbo: string | null
           cpf: string | null
@@ -3569,6 +3619,7 @@ export type Database = {
           escala_trabalho: string | null
           estado_civil: string | null
           foto_url: string | null
+          grau_insalubridade: string | null
           id: string
           matricula: string | null
           nacionalidade: string | null
@@ -3589,6 +3640,8 @@ export type Database = {
           usuario: string | null
         }
         Insert: {
+          adicional_insalubridade?: string | null
+          adicional_periculosidade?: boolean | null
           cargo?: string | null
           cbo?: string | null
           cpf?: string | null
@@ -3604,6 +3657,7 @@ export type Database = {
           escala_trabalho?: string | null
           estado_civil?: string | null
           foto_url?: string | null
+          grau_insalubridade?: string | null
           id: string
           matricula?: string | null
           nacionalidade?: string | null
@@ -3624,6 +3678,8 @@ export type Database = {
           usuario?: string | null
         }
         Update: {
+          adicional_insalubridade?: string | null
+          adicional_periculosidade?: boolean | null
           cargo?: string | null
           cbo?: string | null
           cpf?: string | null
@@ -3639,6 +3695,7 @@ export type Database = {
           escala_trabalho?: string | null
           estado_civil?: string | null
           foto_url?: string | null
+          grau_insalubridade?: string | null
           id?: string
           matricula?: string | null
           nacionalidade?: string | null
