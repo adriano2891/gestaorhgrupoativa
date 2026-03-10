@@ -645,9 +645,6 @@ const Relatorios = () => {
         if (filters.departamento && filters.departamento !== "todos") {
           filtered = filtered.filter((f: any) => f.departamento?.toLowerCase().includes(filters.departamento.toLowerCase()));
         }
-        if (filters.dataInicio) {
-          filtered = filtered.filter((f: any) => f.data_admissao >= filters.dataInicio || !f.data_admissao);
-        }
 
         const total = filtered.length;
         const statusNorm = (f: any) => (f.status || "ativo").toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -667,39 +664,22 @@ const Relatorios = () => {
         });
         const emFerias = naoDesligados.filter((f: any) => isEmFerias(statusNorm(f)));
         const afastados = naoDesligados.filter((f: any) => statusNorm(f) === "afastado");
-        const outrosStatus = naoDesligados.filter((f: any) => {
-          const st = statusNorm(f);
-          return st !== "ativo" && st !== "" && !isEmFerias(st) && st !== "afastado";
+
+        // Admissões no período selecionado
+        const admissoes = filtered.filter((f: any) => {
+          if (!f.data_admissao) return false;
+          if (filters.dataInicio && f.data_admissao < filters.dataInicio) return false;
+          if (filters.dataFim && f.data_admissao > filters.dataFim) return false;
+          return true;
         });
 
-        const feriasData = ferias || [];
-        const feriasPorFunc: Record<string, number> = {};
-        feriasData.forEach((f: any) => {
-          if (["aprovado", "em_andamento"].includes(f.status)) {
-            feriasPorFunc[f.user_id] = (feriasPorFunc[f.user_id] || 0) + (f.dias_solicitados || 0);
-          }
-        });
-        const filteredIds = new Set(filtered.map((f: any) => f.id));
-        const totalFeriasAtivas = feriasData.filter((f: any) => filteredIds.has(f.user_id) && ["aprovado", "em_andamento"].includes(f.status)).length;
-        const totalDiasFerias = feriasData.filter((f: any) => filteredIds.has(f.user_id) && ["aprovado", "em_andamento", "concluido"].includes(f.status)).reduce((acc: number, f: any) => acc + (f.dias_solicitados || 0), 0);
-
-        const taxaTurnover = total > 0 ? ((desligados.length / total) * 100).toFixed(1) : "0";
+        // Fórmula: Turnover (%) = ((Admissões + Desligamentos) ÷ 2 ÷ Nº médio funcionários) × 100
+        const ativosComFerias = ativos.length + emFerias.length;
+        const mediaFuncionarios = total > 0 ? (ativosComFerias + total) / 2 : 0;
+        const taxaTurnover = mediaFuncionarios > 0
+          ? (((admissoes.length + desligados.length) / 2) / mediaFuncionarios * 100).toFixed(1)
+          : "0.0";
         const taxaRetencao = total > 0 ? ((naoDesligados.length / total) * 100).toFixed(1) : "0";
-
-        // Filter by motivo/tipo
-        let filteredForDetails = filtered;
-        if (filters.tipoMovimentacao && filters.tipoMovimentacao !== "todos") {
-          if (filters.tipoMovimentacao === "desligamento") filteredForDetails = desligados;
-          else if (filters.tipoMovimentacao === "admissao") filteredForDetails = naoDesligados;
-        }
-        if (filters.motivo && filters.motivo !== "todos") {
-          filteredForDetails = filteredForDetails.filter((f: any) => {
-            const st = statusNorm(f);
-            if (filters.motivo === "pedido") return st === "pediu_demissao";
-            if (filters.motivo === "justa-causa" || filters.motivo === "sem-justa-causa") return st === "demitido";
-            return true;
-          });
-        }
 
         const motivoCount: Record<string, number> = {};
         desligados.forEach((f: any) => {
@@ -730,39 +710,62 @@ const Relatorios = () => {
           { status: "Ativos", valor: ativos.length },
           ...(emFerias.length > 0 ? [{ status: "Em Férias", valor: emFerias.length }] : []),
           ...(afastados.length > 0 ? [{ status: "Afastados", valor: afastados.length }] : []),
-          ...(outrosStatus.length > 0 ? [{ status: "Outros", valor: outrosStatus.length }] : []),
           ...(desligados.length > 0 ? [{ status: "Desligados", valor: desligados.length }] : []),
         ];
 
-        const ativosComFerias = ativos.length + emFerias.length;
+        // Análise automática
+        const turnoverNum = parseFloat(taxaTurnover);
+        let tendencia = "Estável";
+        let analiseTexto = "";
+        if (turnoverNum === 0) {
+          tendencia = "Estável";
+          analiseTexto = "Sem movimentações no período. Quadro de funcionários estável.";
+        } else if (turnoverNum <= 5) {
+          tendencia = "Baixo ✅";
+          analiseTexto = "Taxa saudável, boa retenção de talentos.";
+        } else if (turnoverNum <= 15) {
+          tendencia = "Moderado ⚠️";
+          analiseTexto = "Taxa moderada. Investigue motivos de desligamento e avalie políticas de retenção.";
+        } else {
+          tendencia = "Alto 🔴";
+          analiseTexto = "Taxa elevada. Revise condições de trabalho, remuneração e clima organizacional.";
+        }
+        if (desligados.length > 0 && (motivoCount["Pedido de Demissão"] || 0) > (motivoCount["Demissão pela Empresa"] || 0)) {
+          analiseTexto += " Maioria dos desligamentos por iniciativa do colaborador.";
+        }
+
+        let filteredForDetails = filtered;
+        if (filters.tipoMovimentacao && filters.tipoMovimentacao !== "todos") {
+          if (filters.tipoMovimentacao === "desligamento") filteredForDetails = desligados;
+          else if (filters.tipoMovimentacao === "admissao") filteredForDetails = admissoes;
+        }
 
         setGeneratedData({
           generatedAt: now.toISOString(),
           summary: {
-            "Taxa de Turnover": `${taxaTurnover}%`,
-            "Taxa de Retenção": `${taxaRetencao}%`,
-            "Total de Funcionários": total,
-            "Ativos (total)": ativosComFerias,
+            "Taxa de Turnover (%)": `${taxaTurnover}%`,
+            "Tendência": tendencia,
+            "Nº Médio Funcionários": Math.round(mediaFuncionarios),
+            "Total Cadastrados": total,
+            "Ativos (incl. férias)": ativosComFerias,
             "  ↳ Em Atividade": ativos.length,
             "  ↳ Em Férias": emFerias.length,
-            "Afastados": afastados.length,
+            "Admissões no Período": admissoes.length,
             "Desligamentos": desligados.length,
-            "Pedidos de Demissão": motivoCount["Pedido de Demissão"] || 0,
-            "Demissões pela Empresa": motivoCount["Demissão pela Empresa"] || 0,
-            "Férias Aprovadas/Andamento": totalFeriasAtivas,
-            "Total Dias de Férias": totalDiasFerias,
+            "Taxa de Retenção": `${taxaRetencao}%`,
           },
+          analysis: analiseTexto,
           charts: [
             {
               type: "pie",
               title: "1. Distribuição por Status",
-              description: "Status atual de todos os funcionários cadastrados",
+              description: "Status atual dos funcionários cadastrados",
               data: statusDistrib,
             },
             {
               type: "bar",
-              title: "2. Turnover por Departamento",
-              description: "Ativos vs Desligados por área",
+              title: "2. Ativos vs Desligados por Departamento",
+              description: "Comparativo por área",
               data: deptTurnover,
               dataName: "Colaboradores",
             },
@@ -772,16 +775,8 @@ const Relatorios = () => {
               description: "Distribuição dos motivos de saída",
               data: Object.entries(motivoCount).map(([motivo, count]) => ({ motivo, valor: count })),
             }] : []),
-            {
-              type: "bar",
-              title: "4. Funcionários por Departamento",
-              description: "Distribuição atual de colaboradores ativos por área",
-              data: Object.entries(deptAtivos).map(([dept, count]) => ({ departamento: dept, valor: count })),
-              dataName: "Funcionários",
-            },
           ],
           details: filteredForDetails.slice(0, 200).map((f: any) => {
-            const diasFerias = feriasPorFunc[f.id] || 0;
             const st = statusNorm(f);
             let statusLabel = f.status || "Ativo";
             if (isEmFerias(st)) statusLabel = "Em férias";
@@ -794,7 +789,6 @@ const Relatorios = () => {
               departamento: f.departamento || "-",
               cargo: f.cargo || "-",
               "data Admissao": f.data_admissao ? format(new Date(f.data_admissao + 'T12:00:00'), 'dd/MM/yyyy') : "-",
-              "dias Ferias": diasFerias > 0 ? `${diasFerias}d` : "-",
               status: statusLabel,
             };
           }),
