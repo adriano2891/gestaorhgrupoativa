@@ -1378,11 +1378,9 @@ const Funcionarios = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todos">Todos</SelectItem>
-                  <SelectItem value="Tecnologia">Tecnologia</SelectItem>
-                  <SelectItem value="Recursos Humanos">RH</SelectItem>
-                  <SelectItem value="Comercial">Comercial</SelectItem>
-                  <SelectItem value="Financeiro">Financeiro</SelectItem>
-                  <SelectItem value="Operações">Operações</SelectItem>
+                  {departamentosLista.map((dep) => (
+                    <SelectItem key={dep.id} value={dep.nome}>{dep.nome}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
