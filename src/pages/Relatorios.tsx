@@ -291,7 +291,8 @@ const Relatorios = () => {
       case "faltas":
       case "pontos":
       case "absenteismo": {
-        let data = registros || [];
+        const funcIdsSet = new Set((funcionarios || []).map((f: any) => f.id));
+        let data = (registros || []).filter((r: any) => funcIdsSet.has(r.user_id));
         if (filters.dataInicio) data = data.filter((r: any) => r.data >= filters.dataInicio);
         if (filters.dataFim) data = data.filter((r: any) => r.data <= filters.dataFim);
         if (filters.departamento && filters.departamento !== "todos") {
