@@ -24,6 +24,7 @@ export const useFuncionarios = () => {
     queryFn: async () => {
       // Step 1: Get roles via centralized REST client
       const roles: { user_id: string; role: string }[] = await restGet('user_roles?select=user_id,role');
+      console.log('[useFuncionarios] roles fetched:', roles?.length, roles);
 
       const employeeIds = new Set<string>();
       const adminIds = new Set<string>();
@@ -34,17 +35,20 @@ export const useFuncionarios = () => {
       });
 
       const targetIds = [...employeeIds].filter(id => !adminIds.has(id));
+      console.log('[useFuncionarios] targetIds:', targetIds);
       if (targetIds.length === 0) return [] as Funcionario[];
 
       // Step 2: Fetch profiles, excluding admin-only profiles
       const idsParam = targetIds.map(id => `"${id}"`).join(',');
       const profiles: any[] = await restGet(`profiles?select=*&id=in.(${idsParam})&tipo_perfil=eq.funcionario&order=nome.asc&limit=2000`);
+      console.log('[useFuncionarios] profiles fetched:', profiles?.length, profiles);
 
       const activeData = (profiles || []).filter((p: any) => {
         const status = (p.status || "ativo").toLowerCase();
         return status !== "demitido" && status !== "pediu_demissao";
       });
 
+      console.log('[useFuncionarios] activeData:', activeData?.length);
       return activeData as Funcionario[];
     },
     retry: 2,
