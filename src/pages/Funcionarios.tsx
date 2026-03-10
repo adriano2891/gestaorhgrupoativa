@@ -1543,13 +1543,32 @@ const Funcionarios = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="position" className="text-sm">Cargo</Label>
-                  <Input
-                    id="position"
+                 <div className="flex items-center justify-between">
+                    <Label htmlFor="position" className="text-sm">Cargo</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs gap-1 text-primary"
+                      onClick={() => setCargoDialogOpen(true)}
+                    >
+                      <Plus className="h-3 w-3" />
+                      Adicionar
+                    </Button>
+                  </div>
+                  <Select
                     value={editingEmployee.position}
-                    onChange={(e) => updateEditingEmployee('position', e.target.value)}
-                    className="h-9"
-                  />
+                    onValueChange={(value) => updateEditingEmployee('position', value)}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Selecione um cargo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cargosLista.map((cargo) => (
+                        <SelectItem key={cargo.id} value={cargo.nome}>{cargo.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="salary" className="text-sm">Salário</Label>
