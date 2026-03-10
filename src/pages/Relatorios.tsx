@@ -1223,324 +1223,292 @@ const Relatorios = () => {
           });
         }
 
-        // ===== Dados da Folha de Ponto =====
-        const pontoData = registros || [];
-        // Determine period for ponto filtering
-        let pontoFiltered = pontoData;
-        if (filters.mes && filters.ano) {
-          const mesNum = parseInt(filters.mes);
-          const anoNum = parseInt(filters.ano);
-          const inicioMes = format(new Date(anoNum, mesNum - 1, 1), "yyyy-MM-dd");
-          const fimMes = format(endOfMonth(new Date(anoNum, mesNum - 1, 1)), "yyyy-MM-dd");
-          pontoFiltered = pontoData.filter((r: any) => r.data >= inicioMes && r.data <= fimMes);
-        } else {
-          if (filters.dataInicio) pontoFiltered = pontoFiltered.filter((r: any) => r.data >= filters.dataInicio);
-          if (filters.dataFim) pontoFiltered = pontoFiltered.filter((r: any) => r.data <= filters.dataFim);
-        }
-        if (filters.departamento && filters.departamento !== "todos") {
-          pontoFiltered = pontoFiltered.filter((r: any) => {
-            const func = funcMap.get(r.user_id);
-            return func?.departamento?.toLowerCase().includes(filters.departamento.toLowerCase());
-          });
-        }
-
-        // Aggregate ponto per employee
-        const parseInterval = (str: string | null | undefined): number => {
-          if (!str) return 0;
-          const parts = str.split(":");
-          return (parseInt(parts[0]) || 0) + (parseInt(parts[1]) || 0) / 60 + (parseInt(parts[2]) || 0) / 3600;
-        };
-
-        const pontoPerEmp: Record<string, { diasTrabalhados: number; horasTotais: number; horasExtras: number; faltas: number; atrasos: number }> = {};
-        // Get all active employee IDs
         const funcsAtivos = (funcionarios || []).filter((f: any) => {
           const st = (f.status || "ativo").toLowerCase();
           return st !== "demitido" && st !== "pediu_demissao";
         });
-        const activeIds = new Set(funcsAtivos.map((f: any) => f.id));
 
-        // Initialize all active employees
-        activeIds.forEach(id => {
-          pontoPerEmp[id] = { diasTrabalhados: 0, horasTotais: 0, horasExtras: 0, faltas: 0, atrasos: 0 };
-        });
-
-        pontoFiltered.forEach((r: any) => {
-          if (!activeIds.has(r.user_id)) return;
-          const emp = pontoPerEmp[r.user_id];
-          if (!emp) return;
-          if (r.entrada) {
-            emp.diasTrabalhados++;
-            emp.horasTotais += parseInterval(r.total_horas);
-            emp.horasExtras += parseInterval(r.horas_extras);
-            // Detect late arrival (after 08:10)
-            try {
-              const entradaDate = new Date(r.entrada);
-              const h = entradaDate.getHours();
-              const m = entradaDate.getMinutes();
-              if (h > 8 || (h === 8 && m > 10)) emp.atrasos++;
-            } catch {}
-          } else {
-            emp.faltas++;
-          }
-        });
-
-        // Totals from holerites
-        const totalBruto = data.reduce((acc: number, h: any) => acc + (parseFloat(h.salario_bruto) || 0), 0);
-        const totalDescontos = data.reduce((acc: number, h: any) => acc + (parseFloat(h.descontos) || 0), 0);
-        const totalLiquido = data.reduce((acc: number, h: any) => acc + (parseFloat(h.salario_liquido) || 0), 0);
-        const totalINSS = data.reduce((acc: number, h: any) => acc + (parseFloat(h.inss) || 0), 0);
-        const totalIRRF = data.reduce((acc: number, h: any) => acc + (parseFloat(h.irrf) || 0), 0);
-        const totalFGTS = data.reduce((acc: number, h: any) => acc + (parseFloat(h.fgts) || 0), 0);
-        const totalHorasExtrasVal = data.reduce((acc: number, h: any) => acc + (parseFloat(h.horas_extras_valor) || 0), 0);
-        const totalAdicNoturno = data.reduce((acc: number, h: any) => acc + (parseFloat(h.adicional_noturno_valor) || 0), 0);
-        const totalDSR = data.reduce((acc: number, h: any) => acc + (parseFloat(h.dsr_valor) || 0), 0);
-        const encargosEstimados = totalBruto * 0.368;
-        const totalColab = new Set(data.map((h: any) => h.user_id)).size;
-
-        // Ponto aggregates
-        const allPontoVals = Object.values(pontoPerEmp);
-        const totalHorasTrab = allPontoVals.reduce((a, e) => a + e.horasTotais, 0);
-        const totalHorasExtrasPonto = allPontoVals.reduce((a, e) => a + e.horasExtras, 0);
-        const totalFaltas = allPontoVals.reduce((a, e) => a + e.faltas, 0);
-        const totalAtrasos = allPontoVals.reduce((a, e) => a + e.atrasos, 0);
-        const totalDiasTrab = allPontoVals.reduce((a, e) => a + e.diasTrabalhados, 0);
-
-        // Benefícios
-        const empIds = new Set(data.map((h: any) => h.user_id));
-        const bensAtivos = (beneficios || []).filter((b: any) => empIds.has(b.user_id) || activeIds.has(b.user_id));
-        const totalBeneficios = bensAtivos.reduce((acc: number, b: any) => {
-          if (["plano_saude", "plano_odontologico"].includes(b.tipo)) return acc;
-          return acc + (b.valor || 0);
-        }, 0);
-        const totalPlanos = bensAtivos.filter((b: any) => ["plano_saude", "plano_odontologico"].includes(b.tipo)).length;
-
-        const custoTotal = totalBruto + encargosEstimados + totalBeneficios;
-        const custoMedio = totalColab > 0 ? custoTotal / totalColab : 0;
         const fmt = (v: number) => `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`;
-        const fmtH = (h: number) => `${Math.floor(h)}h${Math.round((h % 1) * 60).toString().padStart(2, "0")}min`;
+        const fmtPct = (v: number) => `${v.toFixed(1)}%`;
 
-        // Custo por departamento
-        const deptCusto: Record<string, { bruto: number; liquido: number; beneficios: number; horasTrab: number; horasExtras: number }> = {};
-        data.forEach((h: any) => {
-          const func = funcMap.get(h.user_id);
-          const d = func?.departamento || "Sem Departamento";
-          if (!deptCusto[d]) deptCusto[d] = { bruto: 0, liquido: 0, beneficios: 0, horasTrab: 0, horasExtras: 0 };
-          deptCusto[d].bruto += parseFloat(h.salario_bruto) || 0;
-          deptCusto[d].liquido += parseFloat(h.salario_liquido) || 0;
-        });
-        // Add ponto hours per dept
-        Object.entries(pontoPerEmp).forEach(([uid, ponto]) => {
-          const func = funcMap.get(uid);
-          const d = func?.departamento || "Sem Departamento";
-          if (!deptCusto[d]) deptCusto[d] = { bruto: 0, liquido: 0, beneficios: 0, horasTrab: 0, horasExtras: 0 };
-          deptCusto[d].horasTrab += ponto.horasTotais;
-          deptCusto[d].horasExtras += ponto.horasExtras;
-        });
-        bensAtivos.forEach((b: any) => {
-          const func = funcMap.get(b.user_id);
-          const d = func?.departamento || "Sem Departamento";
-          if (!deptCusto[d]) deptCusto[d] = { bruto: 0, liquido: 0, beneficios: 0, horasTrab: 0, horasExtras: 0 };
-          if (!["plano_saude", "plano_odontologico"].includes(b.tipo)) {
-            deptCusto[d].beneficios += b.valor || 0;
-          }
-        });
-
-        // Monthly trend
-        const mesTrend: Record<string, { bruto: number; liquido: number }> = {};
-        data.forEach((h: any) => {
-          const ref = `${h.ano}-${String(h.mes).padStart(2, "0")}`;
-          if (!mesTrend[ref]) mesTrend[ref] = { bruto: 0, liquido: 0 };
-          mesTrend[ref].bruto += parseFloat(h.salario_bruto) || 0;
-          mesTrend[ref].liquido += parseFloat(h.salario_liquido) || 0;
-        });
-
-        // Tipo de benefício custo
-        const tipoBenCusto: Record<string, number> = {};
-        const tipoLabels: Record<string, string> = {
-          vale_transporte: "VT", vale_alimentacao: "VA", vale_refeicao: "VR",
-          plano_saude: "Plano Saúde", plano_odontologico: "Plano Odonto",
+        // ===== MÓDULO 2: CÁLCULO COMPLETO DA FOLHA (CLT) =====
+        // Encargos patronais reais por funcionário
+        const calcEncargos = (salBruto: number) => {
+          const inssPatronal = salBruto * 0.20;
+          const fgts = salBruto * 0.08;
+          const rat = salBruto * 0.02; // Risco médio padrão
+          const terceiros = salBruto * 0.058;
+          const decimoTerceiro = salBruto / 12;
+          const feriasProp = salBruto / 12;
+          const tercoFerias = feriasProp / 3;
+          const fgtsSobreFerias = (feriasProp + tercoFerias) * 0.08;
+          const fgtsSobre13 = decimoTerceiro * 0.08;
+          const totalEncargos = inssPatronal + fgts + rat + terceiros + decimoTerceiro + feriasProp + tercoFerias + fgtsSobreFerias + fgtsSobre13;
+          const pctEncargos = salBruto > 0 ? (totalEncargos / salBruto) * 100 : 0;
+          return {
+            inssPatronal, fgts, rat, terceiros,
+            decimoTerceiro, feriasProp, tercoFerias,
+            fgtsSobreFerias, fgtsSobre13,
+            totalEncargos, pctEncargos,
+            custoMensal: salBruto + totalEncargos,
+            custoAnual: (salBruto + totalEncargos) * 12,
+          };
         };
-        bensAtivos.forEach((b: any) => {
-          const t = tipoLabels[b.tipo] || b.tipo || "Outro";
-          tipoBenCusto[t] = (tipoBenCusto[t] || 0) + (b.valor || 0);
-        });
 
-        // Build details: merge holerites + ponto per employee
-        // Group holerites by user
+        // Aggregate per employee
         const holeritesByUser: Record<string, any[]> = {};
         data.forEach((h: any) => {
           if (!holeritesByUser[h.user_id]) holeritesByUser[h.user_id] = [];
           holeritesByUser[h.user_id].push(h);
         });
 
-        // All employees (include those with ponto but no holerite)
-        const allEmpIds = new Set([...Object.keys(holeritesByUser), ...Object.keys(pontoPerEmp)]);
-        const detailRows: any[] = [];
+        // Build employee-level data
+        const empRows: any[] = [];
+        let totalFolhaBruta = 0;
+        let totalEncargosGeral = 0;
+        let totalCustoReal = 0;
+        let totalBeneficios = 0;
+
+        const bensAtivos = (beneficios || []).filter((b: any) => b.ativo !== false);
+
+        const allEmpIds = new Set([...Object.keys(holeritesByUser), ...funcsAtivos.map((f: any) => f.id)]);
         allEmpIds.forEach(uid => {
           const func = funcMap.get(uid);
           if (!func) return;
           const hols = holeritesByUser[uid] || [];
-          const ponto = pontoPerEmp[uid] || { diasTrabalhados: 0, horasTotais: 0, horasExtras: 0, faltas: 0, atrasos: 0 };
-          
-          // If has holerites, show per holerite row
-          if (hols.length > 0) {
-            hols.forEach((h: any) => {
-              const empBens = bensAtivos.filter((b: any) => b.user_id === uid);
-              const empBenTotal = empBens.reduce((acc: number, b: any) => {
-                if (["plano_saude", "plano_odontologico"].includes(b.tipo)) return acc;
-                return acc + (b.valor || 0);
-              }, 0);
-              const empEncargos = (parseFloat(h.salario_bruto) || 0) * 0.368;
-              detailRows.push({
-                Funcionário: func?.nome || "-",
-                Departamento: func?.departamento || "-",
-                Cargo: func?.cargo || "-",
-                "Mês/Ano": `${String(h.mes).padStart(2, "0")}/${h.ano}`,
-                "Dias Trab.": ponto.diasTrabalhados,
-                "Horas Trab.": fmtH(ponto.horasTotais),
-                "HE (Ponto)": fmtH(ponto.horasExtras),
-                Faltas: ponto.faltas,
-                Atrasos: ponto.atrasos,
-                "Sal. Bruto": fmt(parseFloat(h.salario_bruto) || 0),
-                "HE (R$)": fmt(parseFloat(h.horas_extras_valor) || 0),
-                "Ad. Not.": fmt(parseFloat(h.adicional_noturno_valor) || 0),
-                INSS: fmt(parseFloat(h.inss) || 0),
-                IRRF: fmt(parseFloat(h.irrf) || 0),
-                FGTS: fmt(parseFloat(h.fgts) || 0),
-                Benefícios: fmt(empBenTotal),
-                Descontos: fmt(parseFloat(h.descontos) || 0),
-                Líquido: fmt(parseFloat(h.salario_liquido) || 0),
-                "Custo Total": fmt((parseFloat(h.salario_bruto) || 0) + empEncargos + empBenTotal),
-              });
-            });
-          } else {
-            // Employee with ponto but no holerite
-            detailRows.push({
-              Funcionário: func?.nome || "-",
-              Departamento: func?.departamento || "-",
-              Cargo: func?.cargo || "-",
-              "Mês/Ano": filters.mes && filters.ano ? `${filters.mes.padStart(2, "0")}/${filters.ano}` : "-",
-              "Dias Trab.": ponto.diasTrabalhados,
-              "Horas Trab.": fmtH(ponto.horasTotais),
-              "HE (Ponto)": fmtH(ponto.horasExtras),
-              Faltas: ponto.faltas,
-              Atrasos: ponto.atrasos,
-              "Sal. Bruto": "-",
-              "HE (R$)": "-",
-              "Ad. Not.": "-",
-              INSS: "-",
-              IRRF: "-",
-              FGTS: "-",
-              Benefícios: "-",
-              Descontos: "-",
-              Líquido: "-",
-              "Custo Total": "-",
-            });
+          const salBruto = hols.length > 0 ? Math.max(...hols.map((h: any) => parseFloat(h.salario_bruto) || 0)) : (func.salario || 0);
+          if (salBruto <= 0) return;
+
+          const enc = calcEncargos(salBruto);
+          const empBens = bensAtivos.filter((b: any) => b.user_id === uid);
+          const empBenTotal = empBens.reduce((acc: number, b: any) => {
+            if (["plano_saude", "plano_odontologico"].includes(b.tipo)) return acc;
+            return acc + (b.valor || 0);
+          }, 0);
+
+          const custoTotal = enc.custoMensal + empBenTotal;
+          totalFolhaBruta += salBruto;
+          totalEncargosGeral += enc.totalEncargos;
+          totalCustoReal += custoTotal;
+          totalBeneficios += empBenTotal;
+
+          empRows.push({
+            uid,
+            nome: func.nome || "-",
+            cargo: func.cargo || "-",
+            departamento: func.departamento || "Sem Departamento",
+            salBruto,
+            ...enc,
+            beneficios: empBenTotal,
+            custoTotal,
+          });
+        });
+
+        const totalColab = empRows.length;
+        const custoMedioColab = totalColab > 0 ? totalCustoReal / totalColab : 0;
+        const pctEncargosGeral = totalFolhaBruta > 0 ? (totalEncargosGeral / totalFolhaBruta) * 100 : 0;
+
+        // ===== MÓDULO 3: CUSTO POR DEPARTAMENTO =====
+        const deptData: Record<string, { funcs: number; bruto: number; encargos: number; beneficios: number; custoTotal: number }> = {};
+        empRows.forEach(e => {
+          const d = e.departamento;
+          if (!deptData[d]) deptData[d] = { funcs: 0, bruto: 0, encargos: 0, beneficios: 0, custoTotal: 0 };
+          deptData[d].funcs++;
+          deptData[d].bruto += e.salBruto;
+          deptData[d].encargos += e.totalEncargos;
+          deptData[d].beneficios += e.beneficios;
+          deptData[d].custoTotal += e.custoTotal;
+        });
+
+        const deptChartData = Object.entries(deptData).map(([dept, v]) => ({
+          departamento: dept,
+          "Folha Bruta": parseFloat(v.bruto.toFixed(2)),
+          Encargos: parseFloat(v.encargos.toFixed(2)),
+          Benefícios: parseFloat(v.beneficios.toFixed(2)),
+        }));
+
+        const deptPctData = Object.entries(deptData).map(([dept, v]) => ({
+          departamento: dept,
+          valor: totalCustoReal > 0 ? parseFloat(((v.custoTotal / totalCustoReal) * 100).toFixed(1)) : 0,
+        }));
+
+        // ===== MÓDULO 5: RANKING DE CARGOS =====
+        const cargoData: Record<string, { count: number; custoTotal: number }> = {};
+        empRows.forEach(e => {
+          const c = e.cargo;
+          if (!cargoData[c]) cargoData[c] = { count: 0, custoTotal: 0 };
+          cargoData[c].count++;
+          cargoData[c].custoTotal += e.custoTotal;
+        });
+        const cargoRanking = Object.entries(cargoData)
+          .map(([cargo, v]) => ({ cargo, "Custo Total": parseFloat(v.custoTotal.toFixed(2)), Qtd: v.count }))
+          .sort((a, b) => b["Custo Total"] - a["Custo Total"])
+          .slice(0, 10);
+
+        // ===== MÓDULO 6: EVOLUÇÃO MENSAL =====
+        const mesTrend: Record<string, { bruto: number; encargos: number; custoReal: number }> = {};
+        data.forEach((h: any) => {
+          const ref = `${String(h.mes).padStart(2, "0")}/${h.ano}`;
+          const sal = parseFloat(h.salario_bruto) || 0;
+          const enc = calcEncargos(sal);
+          if (!mesTrend[ref]) mesTrend[ref] = { bruto: 0, encargos: 0, custoReal: 0 };
+          mesTrend[ref].bruto += sal;
+          mesTrend[ref].encargos += enc.totalEncargos;
+          mesTrend[ref].custoReal += enc.custoMensal;
+        });
+        const evolucaoData = Object.entries(mesTrend)
+          .sort(([a], [b]) => {
+            const [ma, ya] = a.split("/"); const [mb, yb] = b.split("/");
+            return `${ya}-${ma}`.localeCompare(`${yb}-${mb}`);
+          })
+          .map(([mes, v]) => ({
+            mês: mes,
+            "Folha Bruta": parseFloat(v.bruto.toFixed(2)),
+            "Custo Real": parseFloat(v.custoReal.toFixed(2)),
+          }));
+
+        // ===== MÓDULO 9: ALERTAS FINANCEIROS =====
+        const alertas: string[] = [];
+        // Check month-over-month growth
+        const mesesOrdenados = Object.entries(mesTrend).sort(([a], [b]) => {
+          const [ma, ya] = a.split("/"); const [mb, yb] = b.split("/");
+          return `${ya}-${ma}`.localeCompare(`${yb}-${mb}`);
+        });
+        if (mesesOrdenados.length >= 2) {
+          const ultimo = mesesOrdenados[mesesOrdenados.length - 1][1];
+          const penultimo = mesesOrdenados[mesesOrdenados.length - 2][1];
+          const crescimento = penultimo.custoReal > 0 ? ((ultimo.custoReal - penultimo.custoReal) / penultimo.custoReal) * 100 : 0;
+          if (crescimento > 10) {
+            alertas.push(`⚠️ Folha cresceu ${crescimento.toFixed(1)}% em relação ao mês anterior — verificar novas contratações ou reajustes.`);
+          }
+        }
+        // Check department concentration
+        Object.entries(deptData).forEach(([dept, v]) => {
+          const pct = totalCustoReal > 0 ? (v.custoTotal / totalCustoReal) * 100 : 0;
+          if (pct > 40 && Object.keys(deptData).length > 1) {
+            alertas.push(`⚠️ Departamento "${dept}" representa ${pct.toFixed(1)}% do custo total da folha.`);
           }
         });
+        if (pctEncargosGeral > 55) {
+          alertas.push(`⚠️ Percentual de encargos (${pctEncargosGeral.toFixed(1)}%) está acima do esperado — revisar adicionais e provisões.`);
+        }
+
+        // ===== MÓDULO 8: SIMULAÇÃO (valores para exibição) =====
+        const simSalario = 3000;
+        const simEnc = calcEncargos(simSalario);
+
+        // ===== ANALYSIS =====
+        const analysisLines: string[] = [];
+        analysisLines.push(`A folha de pagamento totaliza ${fmt(totalFolhaBruta)} em salários brutos, com encargos e provisões de ${fmt(totalEncargosGeral)} (${fmtPct(pctEncargosGeral)} sobre o bruto).`);
+        analysisLines.push(`O custo real total é ${fmt(totalCustoReal)}, com custo médio de ${fmt(custoMedioColab)} por colaborador.`);
+        if (Object.keys(deptData).length > 1) {
+          const maiorDept = Object.entries(deptData).sort((a, b) => b[1].custoTotal - a[1].custoTotal)[0];
+          analysisLines.push(`O departamento com maior custo é "${maiorDept[0]}" com ${fmt(maiorDept[1].custoTotal)} (${fmtPct(totalCustoReal > 0 ? (maiorDept[1].custoTotal / totalCustoReal) * 100 : 0)} da folha).`);
+        }
+        if (alertas.length > 0) {
+          analysisLines.push(`Atenção: ${alertas.length} alerta(s) financeiro(s) detectado(s).`);
+        }
 
         setGeneratedData({
           generatedAt: now.toISOString(),
+          analysis: analysisLines.join(" ") + (alertas.length > 0 ? "\n\n" + alertas.join("\n") : ""),
           summary: {
             "Período": filters.mes && filters.ano ? `${filters.mes}/${filters.ano}` : periodoLabel,
-            "Total Pagamentos": data.length,
-            "Colaboradores": totalColab,
-            "Funcionários Ativos": funcsAtivos.length,
-            "Dias Trabalhados (Ponto)": totalDiasTrab,
-            "Horas Trabalhadas": fmtH(totalHorasTrab),
-            "Horas Extras (Ponto)": fmtH(totalHorasExtrasPonto),
-            "Total Faltas": totalFaltas,
-            "Total Atrasos": totalAtrasos,
-            "Total Proventos": fmt(totalBruto),
-            "Horas Extras (R$)": fmt(totalHorasExtrasVal),
-            "Adicional Noturno": fmt(totalAdicNoturno),
-            "DSR": fmt(totalDSR),
-            "Total Descontos": fmt(totalDescontos),
-            "INSS": fmt(totalINSS),
-            "IRRF": fmt(totalIRRF),
-            "FGTS": fmt(totalFGTS),
-            "Remuneração Líquida": fmt(totalLiquido),
+            "Total Colaboradores": totalColab,
+            "Total Folha Bruta": fmt(totalFolhaBruta),
+            "Encargos e Provisões": fmt(totalEncargosGeral),
+            "% Encargos s/ Bruto": fmtPct(pctEncargosGeral),
             "Benefícios (VT/VA/VR)": fmt(totalBeneficios),
-            "Planos de Saúde/Odonto": `${totalPlanos} ativos`,
-            "Encargos Estimados (36.8%)": fmt(encargosEstimados),
-            "Custo Total Estimado": fmt(custoTotal),
-            "Custo Médio/Colaborador": fmt(custoMedio),
+            "Custo Real da Folha": fmt(totalCustoReal),
+            "Custo Médio/Colaborador": fmt(custoMedioColab),
+            "Custo Anual Estimado": fmt(totalCustoReal * 12),
           },
           charts: [
             {
-              type: "bar",
-              title: "Composição da Folha",
-              description: "Proventos vs Descontos vs Líquido",
-              data: [
-                { categoria: "Proventos", valor: parseFloat(totalBruto.toFixed(2)) },
-                { categoria: "Descontos", valor: parseFloat(totalDescontos.toFixed(2)) },
-                { categoria: "Líquido", valor: parseFloat(totalLiquido.toFixed(2)) },
-              ],
-              dataName: "Valor (R$)",
-            },
-            {
-              type: "bar",
-              title: "Frequência — Horas por Departamento",
-              description: "Horas trabalhadas e extras apuradas no ponto",
-              data: Object.entries(deptCusto).filter(([, v]) => v.horasTrab > 0).map(([dept, v]) => ({
-                departamento: dept,
-                "Horas Trab.": parseFloat(v.horasTrab.toFixed(1)),
-                "Horas Extras": parseFloat(v.horasExtras.toFixed(1)),
-              })),
-              dataName: "Horas",
-            },
-            {
-              type: "bar",
-              title: "Custo Total por Departamento",
-              description: "Folha bruta + benefícios por departamento",
-              data: Object.entries(deptCusto).map(([dept, v]) => ({
-                departamento: dept,
-                Folha: parseFloat(v.bruto.toFixed(2)),
-                Benefícios: parseFloat(v.beneficios.toFixed(2)),
-              })),
-              dataName: "R$",
-            },
-            {
               type: "pie",
               title: "Composição do Custo Total",
-              description: "Distribuição entre proventos, encargos e benefícios",
+              description: "Salários, encargos/provisões e benefícios",
               data: [
-                { categoria: "Proventos", valor: parseFloat(totalBruto.toFixed(2)) },
-                { categoria: "Descontos", valor: parseFloat(totalDescontos.toFixed(2)) },
-                { categoria: "Encargos (36.8%)", valor: parseFloat(encargosEstimados.toFixed(2)) },
-                { categoria: "Benefícios", valor: parseFloat(totalBeneficios.toFixed(2)) },
+                { categoria: "Salários Brutos", valor: parseFloat(totalFolhaBruta.toFixed(2)) },
+                { categoria: "Encargos e Provisões", valor: parseFloat(totalEncargosGeral.toFixed(2)) },
+                ...(totalBeneficios > 0 ? [{ categoria: "Benefícios", valor: parseFloat(totalBeneficios.toFixed(2)) }] : []),
               ],
             },
             {
               type: "pie",
-              title: "Encargos Trabalhistas",
-              description: "Distribuição INSS, IRRF e FGTS",
+              title: "Detalhamento dos Encargos",
+              description: "INSS Patronal, FGTS, RAT, Terceiros e Provisões",
               data: [
-                ...(totalINSS > 0 ? [{ encargo: "INSS", valor: parseFloat(totalINSS.toFixed(2)) }] : []),
-                ...(totalIRRF > 0 ? [{ encargo: "IRRF", valor: parseFloat(totalIRRF.toFixed(2)) }] : []),
-                ...(totalFGTS > 0 ? [{ encargo: "FGTS", valor: parseFloat(totalFGTS.toFixed(2)) }] : []),
+                { encargo: "INSS Patronal (20%)", valor: parseFloat((totalFolhaBruta * 0.20).toFixed(2)) },
+                { encargo: "FGTS (8%)", valor: parseFloat((totalFolhaBruta * 0.08).toFixed(2)) },
+                { encargo: "RAT (2%)", valor: parseFloat((totalFolhaBruta * 0.02).toFixed(2)) },
+                { encargo: "Terceiros (5,8%)", valor: parseFloat((totalFolhaBruta * 0.058).toFixed(2)) },
+                { encargo: "13º Proporcional", valor: parseFloat((totalFolhaBruta / 12).toFixed(2)) },
+                { encargo: "Férias + 1/3", valor: parseFloat(((totalFolhaBruta / 12) + (totalFolhaBruta / 12 / 3)).toFixed(2)) },
               ],
             },
-            ...(Object.keys(tipoBenCusto).length > 0 ? [{
-              type: "bar",
-              title: "Custo por Tipo de Benefício",
-              description: "Distribuição dos custos com benefícios",
-              data: Object.entries(tipoBenCusto).map(([tipo, valor]) => ({ tipo, valor: parseFloat(valor.toFixed(2)) })),
+            ...(deptChartData.length > 1 ? [{
+              type: "bar" as const,
+              title: "Custo por Departamento",
+              description: "Folha bruta, encargos e benefícios por departamento",
+              data: deptChartData,
+              dataName: "R$",
+            }] : []),
+            ...(deptPctData.length > 1 ? [{
+              type: "pie" as const,
+              title: "% da Folha por Departamento",
+              description: "Participação de cada departamento no custo total",
+              data: deptPctData,
+            }] : []),
+            ...(cargoRanking.length > 1 ? [{
+              type: "bar" as const,
+              title: "Ranking: Cargos Mais Caros",
+              description: "Top 10 cargos por custo total (salário + encargos + benefícios)",
+              data: cargoRanking,
+              dataName: "R$",
+            }] : []),
+            ...(evolucaoData.length > 1 ? [{
+              type: "bar" as const,
+              title: "Evolução Mensal da Folha",
+              description: "Comparativo mensal: Folha Bruta vs Custo Real",
+              data: evolucaoData,
               dataName: "R$",
             }] : []),
             {
               type: "bar",
-              title: "Evolução Mensal",
-              description: "Bruto e líquido por mês",
-              data: Object.entries(mesTrend).sort(([a], [b]) => a.localeCompare(b)).map(([mes, v]) => ({
-                mês: mes,
-                Bruto: parseFloat(v.bruto.toFixed(2)),
-                Líquido: parseFloat(v.liquido.toFixed(2)),
-              })),
+              title: "Simulação: Impacto de Nova Contratação (R$ 3.000)",
+              description: `Custo CLT mensal: ${fmt(simEnc.custoMensal)} | Anual: ${fmt(simEnc.custoAnual)} | Encargos: ${fmtPct(simEnc.pctEncargos)}`,
+              data: [
+                { item: "Salário", valor: simSalario },
+                { item: "INSS Patronal", valor: parseFloat(simEnc.inssPatronal.toFixed(2)) },
+                { item: "FGTS", valor: parseFloat(simEnc.fgts.toFixed(2)) },
+                { item: "RAT", valor: parseFloat(simEnc.rat.toFixed(2)) },
+                { item: "Terceiros", valor: parseFloat(simEnc.terceiros.toFixed(2)) },
+                { item: "13º Prop.", valor: parseFloat(simEnc.decimoTerceiro.toFixed(2)) },
+                { item: "Férias+1/3", valor: parseFloat((simEnc.feriasProp + simEnc.tercoFerias).toFixed(2)) },
+              ],
               dataName: "R$",
+              insight: `Contratar a R$ 3.000 adiciona ${fmt(simEnc.custoMensal)} ao custo mensal e ${fmt(simEnc.custoAnual)} ao custo anual. Impacto de ${totalCustoReal > 0 ? fmtPct((simEnc.custoMensal / totalCustoReal) * 100) : "N/A"} na folha atual.`,
             },
           ],
-          details: detailRows.slice(0, 200),
+          details: empRows
+            .sort((a, b) => b.custoTotal - a.custoTotal)
+            .slice(0, 200)
+            .map(e => ({
+              Funcionário: e.nome,
+              Cargo: e.cargo,
+              Departamento: e.departamento,
+              "Sal. Bruto": fmt(e.salBruto),
+              "INSS Patronal": fmt(e.inssPatronal),
+              "FGTS": fmt(e.fgts),
+              "RAT+Terceiros": fmt(e.rat + e.terceiros),
+              "Provisões (13º+Férias)": fmt(e.decimoTerceiro + e.feriasProp + e.tercoFerias),
+              "Total Encargos": fmt(e.totalEncargos),
+              "% Encargos": fmtPct(e.pctEncargos),
+              "Benefícios": fmt(e.beneficios),
+              "Custo Mensal": fmt(e.custoTotal),
+              "Custo Anual": fmt(e.custoTotal * 12),
+            })),
         });
         break;
       }
