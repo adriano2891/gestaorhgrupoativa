@@ -1518,8 +1518,9 @@ const Funcionarios = () => {
                   <Input
                     id="phone"
                     value={editingEmployee.phone}
-                    onChange={(e) => updateEditingEmployee('phone', e.target.value)}
-                    placeholder="(00) 00000-0000"
+                    onChange={(e) => updateEditingEmployee('phone', formatPhone(e.target.value))}
+                    placeholder="(11) 9 8765-4321"
+                    maxLength={16}
                     className="h-9"
                   />
                 </div>
