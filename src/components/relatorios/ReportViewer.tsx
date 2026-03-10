@@ -695,6 +695,19 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
       ) : (
         <>
           {renderEnhancedSummary()}
+          {data.analysis && (
+            <Card className="border-primary/20 bg-primary/5">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-semibold text-foreground mb-1">Análise Automática</p>
+                    <p className="text-sm text-muted-foreground">{data.analysis}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           {renderEnhancedCharts()}
           {renderEnhancedTable()}
         </>
