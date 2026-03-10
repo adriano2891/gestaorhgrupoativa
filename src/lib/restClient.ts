@@ -42,9 +42,7 @@ const getHeaders = () => {
 };
 
 export const restGet = async (path: string) => {
-  const separator = path.includes('?') ? '&' : '?';
-  const cacheBust = `${separator}_t=${Date.now()}`;
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}${cacheBust}`, {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
     headers: getHeaders(),
     cache: 'no-store',
   });
