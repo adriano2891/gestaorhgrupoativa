@@ -374,16 +374,6 @@ const App = () => {
                         </ProtectedRoute>
                       }
                     />
-                    <Route
-                      path="/cargos"
-                      element={
-                        <ProtectedRoute>
-                          <LazyLayout>
-                            <GerenciarCargos />
-                          </LazyLayout>
-                        </ProtectedRoute>
-                      }
-                    />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
