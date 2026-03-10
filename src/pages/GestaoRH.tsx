@@ -83,6 +83,7 @@ const GestaoRH = () => {
     { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.4]", badgeKey: "/suporte-funcionarios" },
     { title: "Documentos", description: "Gestão de documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.4]" },
     { title: "Saúde e Segurança", description: "SST, ASO, EPI, CAT e CIPA", iconSrc: iconSST, path: "/afastamentos", iconScale: "scale-[1.4]" },
+    { title: "Cargos", description: "Cadastro e gestão de cargos", iconSrc: iconFuncionarios, path: "/cargos", iconScale: "scale-[1.4]" },
   ];
 
   if (isSuperAdmin) {
