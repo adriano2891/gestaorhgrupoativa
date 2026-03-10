@@ -479,12 +479,12 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                         <PolarGrid stroke="hsl(var(--border))" />
                         <PolarAngleAxis 
                           dataKey={Object.keys(chart.data[0])[0]} 
-                          tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                          tick={{ fontSize: 11, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                         />
                         <PolarRadiusAxis 
                           angle={30} 
                           domain={[0, 100]}
-                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tick={{ fontSize: 10, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                         />
                         <Radar
                           name="Valor"
