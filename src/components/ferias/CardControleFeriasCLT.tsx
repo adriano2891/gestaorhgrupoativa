@@ -21,7 +21,7 @@ import { Search, Users, AlertTriangle, Clock, CheckCircle, DollarSign, Check } f
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useRegistrarPagamentoFerias } from "@/hooks/useFerias";
-import { restPost } from "@/lib/restClient";
+
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
