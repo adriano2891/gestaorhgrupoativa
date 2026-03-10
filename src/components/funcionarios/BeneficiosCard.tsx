@@ -160,6 +160,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
               <TableRow>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Valor / Plano</TableHead>
+                <TableHead>Custo Empresa</TableHead>
                 <TableHead>Desconto (%)</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
