@@ -45,6 +45,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
   const [desconto, setDesconto] = useState("6");
   const [nomePlano, setNomePlano] = useState("");
   const [grauInsalubridade, setGrauInsalubridade] = useState("medio");
+  const [valorCustoPlano, setValorCustoPlano] = useState("");
 
   const loadBeneficios = async () => {
     try {
