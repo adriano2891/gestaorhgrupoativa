@@ -1045,30 +1045,23 @@ const Relatorios = () => {
         }
         const filteredIds = new Set(filtered.map((f: any) => f.id));
 
-        // Afastamentos ativos
+        // === Dados operacionais ===
         const afastAtivos = (afastamentos || []).filter((a: any) => {
           if (!filteredIds.has(a.user_id)) return false;
           return a.status === "ativo" || a.status === "em_andamento" || !a.data_retorno;
         });
 
-        // CATs
         const catsData = (cats || []).filter((c: any) => filteredIds.has(c.user_id));
         let diasSemAcidentes = 120;
         if (catsData.length > 0) {
           const ultimaCat = [...catsData].sort((a: any, b: any) => b.data_acidente.localeCompare(a.data_acidente))[0];
           try { diasSemAcidentes = differenceInDays(new Date(), new Date(ultimaCat.data_acidente)); } catch {}
         }
-        const taxaIncidentes = filtered.length > 0 ? ((catsData.length / filtered.length) * 100).toFixed(1) : "0.0";
 
-        // CATs por tipo
-        const catTipoCount: Record<string, number> = {};
-        catsData.forEach((c: any) => {
-          const t = c.tipo || "Típico";
-          catTipoCount[t] = (catTipoCount[t] || 0) + 1;
-        });
-
-        // ASOs
         const asosData = (asos || []).filter((a: any) => filteredIds.has(a.user_id));
+        const hoje = new Date();
+        const asosVencidos = asosData.filter((a: any) => a.data_vencimento && new Date(a.data_vencimento) < hoje).length;
+
         const lastExamByUser: Record<string, string> = {};
         asosData.forEach((a: any) => {
           if (!lastExamByUser[a.user_id] || a.data_exame > lastExamByUser[a.user_id]) {
@@ -1076,100 +1069,125 @@ const Relatorios = () => {
           }
         });
 
-        // ASOs por tipo
-        const asoTipoCount: Record<string, number> = {};
-        asosData.forEach((a: any) => {
-          const t = a.tipo || "Periódico";
-          asoTipoCount[t] = (asoTipoCount[t] || 0) + 1;
-        });
-
-        // ASOs vencidos
-        const hoje = new Date();
-        const asosVencidos = asosData.filter((a: any) => a.data_vencimento && new Date(a.data_vencimento) < hoje).length;
-
-        // EPIs
         const episData = (epiEntregas || []).filter((e: any) => filteredIds.has(e.user_id));
-        const totalEPIs = episData.length;
-        const episAssinados = episData.filter((e: any) => e.assinado).length;
-
-        // CIPA
         const cipaAtivos = (cipaMembros || []).filter((m: any) => m.ativo).length;
-        const cipaTotal = (cipaMembros || []).length;
 
-        // Dept stats for exams chart
-        const deptExames: Record<string, number> = {};
+        // === RAT/SAT Calculation ===
+        // Folha de pagamento = soma salários dos colaboradores filtrados
+        const folhaPagamento = filtered.reduce((acc: number, f: any) => acc + (f.salario || 0), 0);
+
+        // Determinar grau de risco baseado no histórico de CATs
+        const taxaIncidentes = filtered.length > 0 ? (catsData.length / filtered.length) * 100 : 0;
+        let grauRisco = "Leve";
+        let aliquotaRAT = 1;
+        if (taxaIncidentes > 5 || catsData.length >= 3) {
+          grauRisco = "Grave";
+          aliquotaRAT = 3;
+        } else if (taxaIncidentes > 2 || catsData.length >= 1) {
+          grauRisco = "Médio";
+          aliquotaRAT = 2;
+        }
+
+        // FAP baseado no histórico (simplificado)
+        let fap = 1.0;
+        if (catsData.length === 0 && afastAtivos.length === 0) fap = 0.5;
+        else if (catsData.length <= 1) fap = 0.8;
+        else if (catsData.length <= 3) fap = 1.2;
+        else fap = 1.8;
+
+        const ratFinal = folhaPagamento * (aliquotaRAT / 100) * fap;
+
+        // Dept breakdown
+        const deptSaude: Record<string, { colaboradores: number; cats: number; afastados: number }> = {};
         filtered.forEach((f: any) => {
           const d = f.departamento || "Sem Departamento";
-          if (lastExamByUser[f.id]) {
-            deptExames[d] = (deptExames[d] || 0) + 1;
-          }
+          if (!deptSaude[d]) deptSaude[d] = { colaboradores: 0, cats: 0, afastados: 0 };
+          deptSaude[d].colaboradores++;
+        });
+        catsData.forEach((c: any) => {
+          const func = filtered.find((f: any) => f.id === c.user_id);
+          const d = func?.departamento || "Sem Departamento";
+          if (deptSaude[d]) deptSaude[d].cats++;
+        });
+        afastAtivos.forEach((a: any) => {
+          const func = filtered.find((f: any) => f.id === a.user_id);
+          const d = func?.departamento || "Sem Departamento";
+          if (deptSaude[d]) deptSaude[d].afastados++;
         });
 
-        // Status distribution
-        const statusSaude: Record<string, number> = {};
-        filtered.forEach((f: any) => {
-          const hasAfastamento = afastAtivos.some((a: any) => a.user_id === f.id);
-          const label = hasAfastamento ? "Afastado" : "Ativo";
-          statusSaude[label] = (statusSaude[label] || 0) + 1;
+        // CATs por tipo
+        const catTipoCount: Record<string, number> = {};
+        catsData.forEach((c: any) => {
+          catTipoCount[c.tipo || "Típico"] = (catTipoCount[c.tipo || "Típico"] || 0) + 1;
         });
+
+        // Análise
+        let analiseSST = `RAT/SAT: Contribuição ao INSS sobre a folha de pagamento para cobertura de acidentes de trabalho. `;
+        analiseSST += `Grau de risco classificado como "${grauRisco}" (alíquota ${aliquotaRAT}%). `;
+        analiseSST += `FAP estimado: ${fap.toFixed(1)} (varia de 0,5 a 2,0 conforme histórico). `;
+        analiseSST += `Fórmula: RAT Final = Folha × (RAT × FAP). `;
+        analiseSST += `Exemplo: R$ ${folhaPagamento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} × (${aliquotaRAT}% × ${fap.toFixed(1)}) = R$ ${ratFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}.`;
 
         setGeneratedData({
           generatedAt: now.toISOString(),
           summary: {
+            "Grau de Risco": grauRisco,
+            "Alíquota RAT": `${aliquotaRAT}%`,
+            "FAP Estimado": fap.toFixed(1),
+            "Folha de Pagamento": `R$ ${folhaPagamento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            "RAT Final (mensal)": `R$ ${ratFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
             "Dias sem Acidentes": diasSemAcidentes,
             "Total CATs": catsData.length,
-            "Taxa de Incidentes": `${taxaIncidentes}%`,
             "Afastamentos Ativos": afastAtivos.length,
-            "Total ASOs": asosData.length,
             "ASOs Vencidos": asosVencidos,
-            "EPIs Entregues": totalEPIs,
-            "EPIs Assinados": episAssinados,
-            "Membros CIPA Ativos": cipaAtivos,
-            "Colaboradores Monitorados": filtered.length,
+            "Colaboradores": filtered.length,
           },
+          analysis: analiseSST,
           charts: [
             {
-              type: "pie",
-              title: "1. Status de Saúde dos Colaboradores",
-              description: "Proporção de colaboradores ativos vs afastados",
-              data: Object.entries(statusSaude).map(([status, count]) => ({ status, valor: count })),
-            },
-            {
               type: "bar",
-              title: "2. Exames (ASOs) por Departamento",
-              description: "Quantidade de exames realizados por área",
-              data: Object.entries(deptExames).map(([dept, count]) => ({ departamento: dept, valor: count })),
-              dataName: "Exames",
-              insight: "Exames periódicos são obrigatórios conforme NR-7.",
+              title: "1. Indicadores por Departamento",
+              description: "CATs e afastamentos por área",
+              data: Object.entries(deptSaude).map(([dept, s]) => ({
+                departamento: dept,
+                Colaboradores: s.colaboradores,
+                CATs: s.cats,
+                Afastados: s.afastados,
+              })),
+              dataName: "Indicadores",
             },
-            ...(Object.keys(asoTipoCount).length > 0 ? [{
-              type: "pie",
-              title: "3. ASOs por Tipo de Exame",
-              description: "Distribuição dos exames ocupacionais por tipo",
-              data: Object.entries(asoTipoCount).map(([tipo, count]) => ({ tipo, valor: count })),
-            }] : []),
             ...(Object.keys(catTipoCount).length > 0 ? [{
               type: "pie",
-              title: "4. CATs por Tipo de Acidente",
-              description: "Distribuição das Comunicações de Acidentes de Trabalho",
+              title: "2. CATs por Tipo de Acidente",
+              description: "Distribuição das Comunicações de Acidentes",
               data: Object.entries(catTipoCount).map(([tipo, count]) => ({ tipo, valor: count })),
             }] : []),
+            {
+              type: "pie",
+              title: Object.keys(catTipoCount).length > 0 ? "3. Alíquotas RAT por Grau de Risco" : "2. Alíquotas RAT por Grau de Risco",
+              description: "Referência oficial das alíquotas",
+              data: [
+                { tipo: "Leve (1%)", valor: 1 },
+                { tipo: "Médio (2%)", valor: 2 },
+                { tipo: "Grave (3%)", valor: 3 },
+              ],
+            },
           ],
           details: filtered.slice(0, 200).map((f: any) => {
             const hasAfastamento = afastAtivos.some((a: any) => a.user_id === f.id);
             const ultimoExame = lastExamByUser[f.id];
-            const episFunc = episData.filter((e: any) => e.user_id === f.id);
-            const catsFunc = catsData.filter((c: any) => c.user_id === f.id);
-            const asosFunc = asosData.filter((a: any) => a.user_id === f.id);
+            const catsFunc = catsData.filter((c: any) => c.user_id === f.id).length;
+            const salario = f.salario || 0;
+            const ratIndiv = salario * (aliquotaRAT / 100) * fap;
             return {
               nome: f.nome || "-",
               departamento: f.departamento || "-",
               cargo: f.cargo || "-",
               "status Saude": hasAfastamento ? "Afastado" : "Ativo",
               "ultimo ASO": ultimoExame ? format(new Date(ultimoExame), 'dd/MM/yyyy') : "Sem exame",
-              "total ASOs": asosFunc.length,
-              "total EPIs": episFunc.length,
-              "total CATs": catsFunc.length,
+              "CATs": catsFunc,
+              "salario": `R$ ${salario.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+              "RAT Individual": `R$ ${ratIndiv.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
             };
           }),
         });
