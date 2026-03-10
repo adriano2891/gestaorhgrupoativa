@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Bell, Calendar, Headphones, Send } from "lucide-react";
+import { Bell, Calendar, Headphones, Send, Globe, ExternalLink, RefreshCw } from "lucide-react";
 import { useAdminNotifications, type AdminNotification } from "@/hooks/useAdminNotifications";
 import { useNavigate } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
@@ -11,10 +11,11 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   ferias: <Calendar className="h-4 w-4 text-amber-500" />,
   suporte: <Headphones className="h-4 w-4 text-blue-500" />,
   chamado: <Headphones className="h-4 w-4 text-blue-500" />,
+  web: <Globe className="h-4 w-4 text-yellow-600" />,
 };
 
 export const AdminNotificationBell = () => {
-  const { notifications, totalCount } = useAdminNotifications();
+  const { notifications, totalCount, marcarWebComoLida, buscarAtualizacoesWeb } = useAdminNotifications();
   const [open, setOpen] = useState(false);
   const [enviarDialogOpen, setEnviarDialogOpen] = useState(false);
   const navigate = useNavigate();
@@ -31,7 +32,15 @@ export const AdminNotificationBell = () => {
   }, []);
 
   const handleClick = (notif: AdminNotification) => {
-    if (notif.route) {
+    if (notif.type === "web") {
+      // Mark as read
+      const realId = notif.id.replace("web-", "");
+      marcarWebComoLida(realId);
+      // Open external link
+      if (notif.url && notif.url !== "#") {
+        window.open(notif.url, "_blank", "noopener,noreferrer");
+      }
+    } else if (notif.route) {
       navigate(notif.route);
     }
     setOpen(false);
@@ -61,18 +70,29 @@ export const AdminNotificationBell = () => {
                 {totalCount > 0 ? `${totalCount} pendente${totalCount > 1 ? "s" : ""}` : "Tudo em dia!"}
               </p>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 px-2.5 text-[11px] sm:text-xs gap-1"
-              onClick={() => {
-                setOpen(false);
-                setEnviarDialogOpen(true);
-              }}
-            >
-              <Send className="h-3 w-3" />
-              Enviar
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                title="Buscar atualizações da web"
+                onClick={() => buscarAtualizacoesWeb()}
+              >
+                <RefreshCw className="h-3.5 w-3.5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-8 px-2.5 text-[11px] sm:text-xs gap-1"
+                onClick={() => {
+                  setOpen(false);
+                  setEnviarDialogOpen(true);
+                }}
+              >
+                <Send className="h-3 w-3" />
+                Enviar
+              </Button>
+            </div>
           </div>
 
           {notifications.length === 0 ? (
@@ -85,18 +105,30 @@ export const AdminNotificationBell = () => {
                 <button
                   key={notif.id}
                   onClick={() => handleClick(notif)}
-                  className="w-full text-left p-2.5 sm:p-3 hover:bg-muted/50 transition-colors flex gap-2.5 sm:gap-3 items-start"
+                  className={`w-full text-left p-2.5 sm:p-3 hover:bg-muted/50 transition-colors flex gap-2.5 sm:gap-3 items-start ${
+                    notif.type === "web" ? "bg-yellow-50/80 dark:bg-yellow-950/20 border-l-4 border-l-yellow-400" : ""
+                  }`}
                 >
                   <div className="mt-0.5 flex-shrink-0">
                     {ICON_MAP[notif.type] || <Bell className="h-4 w-4 text-muted-foreground" />}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-[13px] sm:text-sm font-medium text-foreground break-words leading-snug">
-                      {notif.title}
-                    </p>
+                    <div className="flex items-center gap-1.5">
+                      <p className="text-[13px] sm:text-sm font-medium text-foreground break-words leading-snug flex-1">
+                        {notif.title}
+                      </p>
+                      {notif.type === "web" && (
+                        <ExternalLink className="h-3 w-3 text-yellow-600 flex-shrink-0" />
+                      )}
+                    </div>
                     <p className="text-[11px] sm:text-xs text-muted-foreground break-words leading-snug mt-0.5">
                       {notif.description}
                     </p>
+                    {notif.type === "web" && notif.fonte && (
+                      <p className="text-[10px] font-medium text-yellow-700 dark:text-yellow-400 mt-0.5">
+                        📌 {notif.fonte}
+                      </p>
+                    )}
                     <p className="text-[10px] text-muted-foreground/70 mt-1">
                       {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: ptBR })}
                     </p>
