@@ -163,8 +163,9 @@ Deno.serve(async (req) => {
       deleteByUserId('documentos_versoes', 'criado_por'),
     ]);
 
-    // 2) Delete parent records
+    // 2) Delete parent records (after their children are removed)
     await Promise.all([
+      deleteByUserId('registros_ponto'),
       deleteByUserId('chamados_suporte'),
       deleteByUserId('formulario_atribuicoes'),
       deleteByUserId('formularios_rh', 'criado_por'),
