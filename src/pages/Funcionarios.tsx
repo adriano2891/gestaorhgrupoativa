@@ -235,7 +235,50 @@ const Funcionarios = () => {
   const newPhotoRef = useRef<HTMLInputElement>(null);
   const editPhotoRef = useRef<HTMLInputElement>(null);
 
-  const formatPhone = (value: string) => {
+  // Cargos
+  const [cargoDialogOpen, setCargoDialogOpen] = useState(false);
+  const [novoCargo, setNovoCargo] = useState("");
+  const [novaDescricaoCargo, setNovaDescricaoCargo] = useState("");
+  const [cargosLista, setCargosLista] = useState<{id: string; nome: string}[]>([]);
+  const [isSavingCargo, setIsSavingCargo] = useState(false);
+
+  useEffect(() => {
+    const fetchCargos = async () => {
+      const { data } = await supabase.from("cargos" as any).select("id, nome").order("nome");
+      if (data) setCargosLista(data as any);
+    };
+    fetchCargos();
+  }, []);
+
+  const handleSaveCargo = async () => {
+    if (!novoCargo.trim()) {
+      toast({ title: "Nome obrigatório", description: "Informe o nome do cargo.", variant: "destructive" });
+      return;
+    }
+    setIsSavingCargo(true);
+    try {
+      const { error } = await supabase.from("cargos" as any).insert({ nome: novoCargo.trim(), descricao: novaDescricaoCargo.trim() || null } as any);
+      if (error) {
+        if (error.code === "23505") {
+          toast({ title: "Cargo duplicado", description: "Já existe um cargo com este nome.", variant: "destructive" });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({ title: "Cargo cadastrado!" });
+        const { data } = await supabase.from("cargos" as any).select("id, nome").order("nome");
+        if (data) setCargosLista(data as any);
+        setNovoCargo("");
+        setNovaDescricaoCargo("");
+        setCargoDialogOpen(false);
+      }
+    } catch {
+      toast({ title: "Erro ao cadastrar cargo", variant: "destructive" });
+    } finally {
+      setIsSavingCargo(false);
+    }
+  };
+
     const numbers = value.replace(/\D/g, '').slice(0, 11);
     if (numbers.length <= 2) return numbers.replace(/(\d{0,2})/, '($1');
     if (numbers.length <= 3) return numbers.replace(/(\d{2})(\d{0,1})/, '($1) $2');
