@@ -42,8 +42,11 @@ const getHeaders = () => {
 };
 
 export const restGet = async (path: string) => {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  const separator = path.includes('?') ? '&' : '?';
+  const cacheBust = `${separator}_t=${Date.now()}`;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}${cacheBust}`, {
     headers: getHeaders(),
+    cache: 'no-store',
   });
   if (!res.ok) throw new Error(`REST GET ${res.status}`);
   return res.json();
