@@ -230,7 +230,7 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
                           {" — "}
                           {log.campo_editado}: {log.valor_anterior || "—"} → {log.valor_novo || "—"}
                           {" (dia "}
-                          {new Date(log.data_registro).getDate().toString().padStart(2, "0")}
+                          {log.data_registro ? String(log.data_registro).split("-")[2]?.padStart(2, "0") || "--" : "--"}
                           {")"}
                         </TableCell>
                       </TableRow>
