@@ -242,12 +242,24 @@ const Funcionarios = () => {
   const [cargosLista, setCargosLista] = useState<{id: string; nome: string}[]>([]);
   const [isSavingCargo, setIsSavingCargo] = useState(false);
 
+  // Departamentos
+  const [departamentoDialogOpen, setDepartamentoDialogOpen] = useState(false);
+  const [novoDepartamento, setNovoDepartamento] = useState("");
+  const [novaDescricaoDepartamento, setNovaDescricaoDepartamento] = useState("");
+  const [departamentosLista, setDepartamentosLista] = useState<{id: string; nome: string}[]>([]);
+  const [isSavingDepartamento, setIsSavingDepartamento] = useState(false);
+
   useEffect(() => {
     const fetchCargos = async () => {
       const { data } = await supabase.from("cargos" as any).select("id, nome").order("nome");
       if (data) setCargosLista(data as any);
     };
+    const fetchDepartamentos = async () => {
+      const { data } = await supabase.from("departamentos" as any).select("id, nome").order("nome");
+      if (data) setDepartamentosLista(data as any);
+    };
     fetchCargos();
+    fetchDepartamentos();
   }, []);
 
   const handleSaveCargo = async () => {
@@ -276,6 +288,35 @@ const Funcionarios = () => {
       toast({ title: "Erro ao cadastrar cargo", variant: "destructive" });
     } finally {
       setIsSavingCargo(false);
+    }
+  };
+
+  const handleSaveDepartamento = async () => {
+    if (!novoDepartamento.trim()) {
+      toast({ title: "Nome obrigatório", description: "Informe o nome do departamento.", variant: "destructive" });
+      return;
+    }
+    setIsSavingDepartamento(true);
+    try {
+      const { error } = await supabase.from("departamentos" as any).insert({ nome: novoDepartamento.trim(), descricao: novaDescricaoDepartamento.trim() || null } as any);
+      if (error) {
+        if (error.code === "23505") {
+          toast({ title: "Departamento duplicado", description: "Já existe um departamento com este nome.", variant: "destructive" });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({ title: "Departamento cadastrado!" });
+        const { data } = await supabase.from("departamentos" as any).select("id, nome").order("nome");
+        if (data) setDepartamentosLista(data as any);
+        setNovoDepartamento("");
+        setNovaDescricaoDepartamento("");
+        setDepartamentoDialogOpen(false);
+      }
+    } catch {
+      toast({ title: "Erro ao cadastrar departamento", variant: "destructive" });
+    } finally {
+      setIsSavingDepartamento(false);
     }
   };
 
@@ -1338,11 +1379,9 @@ const Funcionarios = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Todos">Todos</SelectItem>
-                  <SelectItem value="Tecnologia">Tecnologia</SelectItem>
-                  <SelectItem value="Recursos Humanos">RH</SelectItem>
-                  <SelectItem value="Comercial">Comercial</SelectItem>
-                  <SelectItem value="Financeiro">Financeiro</SelectItem>
-                  <SelectItem value="Operações">Operações</SelectItem>
+                  {departamentosLista.map((dep) => (
+                    <SelectItem key={dep.id} value={dep.nome}>{dep.nome}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -1659,20 +1698,30 @@ const Funcionarios = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="department" className="text-sm">Departamento</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="department" className="text-sm">Departamento</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs gap-1 text-primary"
+                      onClick={() => setDepartamentoDialogOpen(true)}
+                    >
+                      <Plus className="h-3 w-3" />
+                      Adicionar
+                    </Button>
+                  </div>
                   <Select
                     value={editingEmployee.department}
                     onValueChange={(value) => updateEditingEmployee('department', value)}
                   >
                     <SelectTrigger className="h-9">
-                      <SelectValue />
+                      <SelectValue placeholder="Selecione um departamento" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Tecnologia">Tecnologia</SelectItem>
-                      <SelectItem value="Recursos Humanos">Recursos Humanos</SelectItem>
-                      <SelectItem value="Comercial">Comercial</SelectItem>
-                      <SelectItem value="Financeiro">Financeiro</SelectItem>
-                      <SelectItem value="Operações">Operações</SelectItem>
+                      {departamentosLista.map((dep) => (
+                        <SelectItem key={dep.id} value={dep.nome}>{dep.nome}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1962,20 +2011,30 @@ const Funcionarios = () => {
               )}
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="new-department" className="text-sm">Departamento *</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="new-department" className="text-sm">Departamento *</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs gap-1 text-primary"
+                  onClick={() => setDepartamentoDialogOpen(true)}
+                >
+                  <Plus className="h-3 w-3" />
+                  Adicionar
+                </Button>
+              </div>
               <Select
                 value={newEmployee.department}
                 onValueChange={(value) => updateNewEmployee('department', value)}
               >
                 <SelectTrigger className={validationErrors.department ? "border-destructive h-9" : "h-9"}>
-                  <SelectValue />
+                  <SelectValue placeholder="Selecione um departamento" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Tecnologia">Tecnologia</SelectItem>
-                  <SelectItem value="Recursos Humanos">Recursos Humanos</SelectItem>
-                  <SelectItem value="Comercial">Comercial</SelectItem>
-                  <SelectItem value="Financeiro">Financeiro</SelectItem>
-                  <SelectItem value="Operações">Operações</SelectItem>
+                  {departamentosLista.map((dep) => (
+                    <SelectItem key={dep.id} value={dep.nome}>{dep.nome}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {validationErrors.department && (
@@ -2369,6 +2428,30 @@ const Funcionarios = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setCargoDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleSaveCargo} disabled={isSavingCargo}>{isSavingCargo ? "Salvando..." : "Cadastrar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Adicionar Departamento */}
+      <Dialog open={departamentoDialogOpen} onOpenChange={setDepartamentoDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo Departamento</DialogTitle>
+            <DialogDescription>Cadastre um novo departamento para selecionar nos funcionários.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nome do Departamento *</Label>
+              <Input placeholder="Ex: Marketing" value={novoDepartamento} onChange={(e) => setNovoDepartamento(e.target.value)} maxLength={100} />
+            </div>
+            <div className="space-y-2">
+              <Label>Descrição (opcional)</Label>
+              <Input placeholder="Descrição do departamento" value={novaDescricaoDepartamento} onChange={(e) => setNovaDescricaoDepartamento(e.target.value)} maxLength={500} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDepartamentoDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveDepartamento} disabled={isSavingDepartamento}>{isSavingDepartamento ? "Salvando..." : "Cadastrar"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
