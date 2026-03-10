@@ -235,6 +235,13 @@ const Funcionarios = () => {
   const newPhotoRef = useRef<HTMLInputElement>(null);
   const editPhotoRef = useRef<HTMLInputElement>(null);
 
+  const formatPhone = (value: string) => {
+    const numbers = value.replace(/\D/g, '').slice(0, 11);
+    if (numbers.length <= 2) return numbers.replace(/(\d{0,2})/, '($1');
+    if (numbers.length <= 3) return numbers.replace(/(\d{2})(\d{0,1})/, '($1) $2');
+    if (numbers.length <= 7) return numbers.replace(/(\d{2})(\d{1})(\d{0,4})/, '($1) $2 $3');
+    return numbers.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2 $3-$4');
+  };
 
   const handlePhotoSelect = (file: File | null, type: 'new' | 'edit') => {
     if (!file) return;
@@ -1511,8 +1518,9 @@ const Funcionarios = () => {
                   <Input
                     id="phone"
                     value={editingEmployee.phone}
-                    onChange={(e) => updateEditingEmployee('phone', e.target.value)}
-                    placeholder="(00) 00000-0000"
+                    onChange={(e) => updateEditingEmployee('phone', formatPhone(e.target.value))}
+                    placeholder="(11) 9 8765-4321"
+                    maxLength={16}
                     className="h-9"
                   />
                 </div>
@@ -1850,8 +1858,9 @@ const Funcionarios = () => {
               <Input
                 id="new-phone"
                 value={newEmployee.phone}
-                onChange={(e) => updateNewEmployee('phone', e.target.value)}
-                placeholder="(11) 98765-4321"
+                onChange={(e) => updateNewEmployee('phone', formatPhone(e.target.value))}
+                placeholder="(11) 9 8765-4321"
+                maxLength={16}
                 className={validationErrors.phone ? "border-destructive h-9" : "h-9"}
               />
               {validationErrors.phone && (
