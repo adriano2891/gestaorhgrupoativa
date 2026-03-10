@@ -36,6 +36,8 @@ const getHeaders = () => {
     'Authorization': `Bearer ${token || SUPABASE_KEY}`,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+    'Pragma': 'no-cache',
   };
 };
 
