@@ -355,7 +355,7 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
           interval={0}
         />
         <YAxis 
-          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+          tick={{ fontSize: 12, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
           axisLine={{ stroke: 'hsl(var(--border))' }}
         />
         <Tooltip content={<CustomTooltip />} />
@@ -417,11 +417,11 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis 
                           dataKey={Object.keys(chart.data[0])[0]} 
-                          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                          tick={{ fontSize: 12, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                           axisLine={{ stroke: 'hsl(var(--border))' }}
                         />
                         <YAxis 
-                          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                          tick={{ fontSize: 12, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                           axisLine={{ stroke: 'hsl(var(--border))' }}
                         />
                         <Tooltip content={<CustomTooltip />} />
@@ -479,12 +479,12 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                         <PolarGrid stroke="hsl(var(--border))" />
                         <PolarAngleAxis 
                           dataKey={Object.keys(chart.data[0])[0]} 
-                          tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                          tick={{ fontSize: 11, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                         />
                         <PolarRadiusAxis 
                           angle={30} 
                           domain={[0, 100]}
-                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tick={{ fontSize: 10, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                         />
                         <Radar
                           name="Valor"
@@ -502,10 +502,10 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis 
                           dataKey={Object.keys(chart.data[0])[0]}
-                          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                          tick={{ fontSize: 12, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                         />
                         <YAxis 
-                          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                          tick={{ fontSize: 12, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                         />
                         <Tooltip content={<CustomTooltip />} />
                         <Legend />
