@@ -3,6 +3,21 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+async function isUrlValid(url: string): Promise<boolean> {
+  if (!url || url === '#') return false;
+  try {
+    const res = await fetch(url, { method: 'HEAD', redirect: 'follow' });
+    return res.ok;
+  } catch {
+    try {
+      const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -14,15 +29,52 @@ Deno.serve(async (req) => {
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const headers = {
+      'apikey': SUPABASE_SERVICE_ROLE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_SERVICE_ROLE_KEY,
+      'Content-Type': 'application/json',
+    };
 
+    // 1. Clean old notifications (older than 15 days)
+    const fifteenDaysAgo = new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString();
+    await fetch(
+      `${SUPABASE_URL}/rest/v1/notificacoes_web?created_at=lt.${fifteenDaysAgo}`,
+      { method: 'DELETE', headers: { ...headers, 'Prefer': 'return=minimal' } }
+    );
+
+    // 2. Validate existing unread notifications and remove invalid ones
+    const existingRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/notificacoes_web?lida=eq.false&select=id,url_fonte`,
+      { headers }
+    );
+    if (existingRes.ok) {
+      const existing = await existingRes.json();
+      const invalidIds: string[] = [];
+      for (const item of existing) {
+        if (item.url_fonte) {
+          const valid = await isUrlValid(item.url_fonte);
+          if (!valid) invalidIds.push(item.id);
+        }
+      }
+      // Delete invalid entries
+      for (const id of invalidIds) {
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/notificacoes_web?id=eq.${id}`,
+          { method: 'DELETE', headers: { ...headers, 'Prefer': 'return=minimal' } }
+        );
+      }
+    }
+
+    // 3. Fetch new updates via AI
     const prompt = [
-      'Liste 5 atualizacoes recentes (ultimos 7 dias) sobre:',
+      'Liste 5 atualizacoes recentes (ultimos 15 dias) sobre:',
       '- Tributario (ICMS, ISS, PIS, COFINS, Simples Nacional)',
       '- Obrigacoes acessorias (eSocial, EFD, SPED, DCTF)',
       '- Sistema bancario ou financeiro',
       '- Decretos ou portarias que impactam empresas',
       '- Receita Federal, normas contabeis',
       'NAO inclua legislacao trabalhista/CLT.',
+      'IMPORTANTE: Inclua APENAS noticias com URLs reais e validas de fontes oficiais como gov.br, receita.fazenda.gov.br, planalto.gov.br, etc.',
       'Responda APENAS JSON array:',
       '[{"titulo":"...","resumo":"...","fonte":"...","url":"...","categoria":"tributario|contabil|regulatorio|financeiro|obrigacao_acessoria"}]',
     ].join('\n');
@@ -36,7 +88,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'Responda apenas JSON valido.' },
+          { role: 'system', content: 'Responda apenas JSON valido. Inclua apenas URLs reais e verificaveis.' },
           { role: 'user', content: prompt },
         ],
         temperature: 0.3,
@@ -56,9 +108,17 @@ Deno.serve(async (req) => {
     try { updates = JSON.parse(content); } catch { updates = []; }
     if (!Array.isArray(updates)) updates = [];
 
+    // 4. Validate URLs before inserting
     const inserted: string[] = [];
     for (const u of updates) {
       if (!u.titulo || !u.resumo) continue;
+
+      const urlToCheck = u.url || '';
+      const urlValid = await isUrlValid(urlToCheck);
+      if (!urlValid) {
+        console.log('Skipping invalid URL:', urlToCheck);
+        continue;
+      }
 
       const enc = new TextEncoder();
       const buf = await crypto.subtle.digest('SHA-256', enc.encode(u.titulo + u.fonte));
@@ -67,16 +127,14 @@ Deno.serve(async (req) => {
       const r = await fetch(SUPABASE_URL + '/rest/v1/notificacoes_web', {
         method: 'POST',
         headers: {
-          'apikey': SUPABASE_SERVICE_ROLE_KEY,
-          'Authorization': 'Bearer ' + SUPABASE_SERVICE_ROLE_KEY,
-          'Content-Type': 'application/json',
+          ...headers,
           'Prefer': 'return=representation,resolution=ignore-duplicates',
         },
         body: JSON.stringify({
           titulo: u.titulo.substring(0, 200),
           resumo: u.resumo.substring(0, 500),
           fonte: u.fonte || 'Fonte oficial',
-          url_fonte: u.url || '#',
+          url_fonte: urlToCheck,
           hash_conteudo: hash,
           categoria: u.categoria || 'regulatorio',
           relevancia: 'importante',

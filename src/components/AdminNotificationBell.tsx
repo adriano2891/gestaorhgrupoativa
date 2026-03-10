@@ -15,7 +15,13 @@ const ICON_MAP: Record<string, React.ReactNode> = {
 };
 
 export const AdminNotificationBell = () => {
-  const { notifications, totalCount, marcarWebComoLida, buscarAtualizacoesWeb } = useAdminNotifications();
+  const {
+    notifications,
+    badgeCount,
+    marcarWebComoLida,
+    buscarAtualizacoesWeb,
+    dismissWebNotifications,
+  } = useAdminNotifications();
   const [open, setOpen] = useState(false);
   const [enviarDialogOpen, setEnviarDialogOpen] = useState(false);
   const navigate = useNavigate();
@@ -31,12 +37,20 @@ export const AdminNotificationBell = () => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const handleOpen = () => {
+    setOpen((o) => {
+      if (!o) {
+        // Dismiss web notifications from badge on first open
+        dismissWebNotifications();
+      }
+      return !o;
+    });
+  };
+
   const handleClick = (notif: AdminNotification) => {
     if (notif.type === "web") {
-      // Mark as read
       const realId = notif.id.replace("web-", "");
       marcarWebComoLida(realId);
-      // Open external link
       if (notif.url && notif.url !== "#") {
         window.open(notif.url, "_blank", "noopener,noreferrer");
       }
@@ -49,14 +63,14 @@ export const AdminNotificationBell = () => {
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={handleOpen}
         className="relative h-8 w-8 md:h-10 md:w-10 flex items-center justify-center rounded-md hover:bg-muted transition-colors"
         title="Notificações"
       >
-        <Bell className={`h-4 w-4 md:h-5 md:w-5 ${totalCount > 0 && !open ? "text-amber-500 animate-bounce" : totalCount > 0 ? "text-amber-500" : "text-muted-foreground"}`} />
-        {totalCount > 0 && !open && (
+        <Bell className={`h-4 w-4 md:h-5 md:w-5 ${badgeCount > 0 && !open ? "text-amber-500 animate-bounce" : badgeCount > 0 ? "text-amber-500" : "text-muted-foreground"}`} />
+        {badgeCount > 0 && !open && (
           <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold shadow-lg animate-pulse">
-            {totalCount > 99 ? "99+" : totalCount}
+            {badgeCount > 99 ? "99+" : badgeCount}
           </span>
         )}
       </button>
@@ -67,7 +81,7 @@ export const AdminNotificationBell = () => {
             <div>
               <h3 className="font-semibold text-sm text-foreground">Notificações</h3>
               <p className="text-[11px] sm:text-xs text-muted-foreground">
-                {totalCount > 0 ? `${totalCount} pendente${totalCount > 1 ? "s" : ""}` : "Tudo em dia!"}
+                {notifications.length > 0 ? `${notifications.length} pendente${notifications.length > 1 ? "s" : ""}` : "Tudo em dia!"}
               </p>
             </div>
             <div className="flex items-center gap-1">
@@ -101,40 +115,49 @@ export const AdminNotificationBell = () => {
             </div>
           ) : (
             <div className="divide-y">
-              {notifications.slice(0, 15).map((notif) => (
-                <button
-                  key={notif.id}
-                  onClick={() => handleClick(notif)}
-                  className={`w-full text-left p-2.5 sm:p-3 hover:bg-muted/50 transition-colors flex gap-2.5 sm:gap-3 items-start ${
-                    notif.type === "web" ? "bg-yellow-50/80 dark:bg-yellow-950/20 border-l-4 border-l-yellow-400" : ""
-                  }`}
-                >
-                  <div className="mt-0.5 flex-shrink-0">
-                    {ICON_MAP[notif.type] || <Bell className="h-4 w-4 text-muted-foreground" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <p className="text-[13px] sm:text-sm font-medium text-foreground break-words leading-snug flex-1">
-                        {notif.title}
-                      </p>
-                      {notif.type === "web" && (
-                        <ExternalLink className="h-3 w-3 text-yellow-600 flex-shrink-0" />
-                      )}
-                    </div>
-                    <p className="text-[11px] sm:text-xs text-muted-foreground break-words leading-snug mt-0.5">
-                      {notif.description}
-                    </p>
-                    {notif.type === "web" && notif.fonte && (
-                      <p className="text-[10px] font-medium text-yellow-700 dark:text-yellow-400 mt-0.5">
-                        📌 {notif.fonte}
-                      </p>
+              {notifications.slice(0, 15).map((notif, idx) => {
+                const isFirstWeb = notif.type === "web" && (idx === 0 || notifications[idx - 1].type !== "web");
+                return (
+                  <div key={notif.id}>
+                    {isFirstWeb && notifications.some(n => n.type !== "web") && (
+                      <div className="px-3 py-1.5 bg-muted/30 border-t">
+                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Notícias Externas</p>
+                      </div>
                     )}
-                    <p className="text-[10px] text-muted-foreground/70 mt-1">
-                      {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: ptBR })}
-                    </p>
+                    <button
+                      onClick={() => handleClick(notif)}
+                      className={`w-full text-left p-2.5 sm:p-3 hover:bg-muted/50 transition-colors flex gap-2.5 sm:gap-3 items-start ${
+                        notif.type === "web" ? "bg-yellow-50/80 dark:bg-yellow-950/20 border-l-4 border-l-yellow-400" : ""
+                      }`}
+                    >
+                      <div className="mt-0.5 flex-shrink-0">
+                        {ICON_MAP[notif.type] || <Bell className="h-4 w-4 text-muted-foreground" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-[13px] sm:text-sm font-medium text-foreground break-words leading-snug flex-1">
+                            {notif.title}
+                          </p>
+                          {notif.type === "web" && (
+                            <ExternalLink className="h-3 w-3 text-yellow-600 flex-shrink-0" />
+                          )}
+                        </div>
+                        <p className="text-[11px] sm:text-xs text-muted-foreground break-words leading-snug mt-0.5">
+                          {notif.description}
+                        </p>
+                        {notif.type === "web" && notif.fonte && (
+                          <p className="text-[10px] font-medium text-yellow-700 dark:text-yellow-400 mt-0.5">
+                            📌 {notif.fonte}
+                          </p>
+                        )}
+                        <p className="text-[10px] text-muted-foreground/70 mt-1">
+                          {formatDistanceToNow(new Date(notif.createdAt), { addSuffix: true, locale: ptBR })}
+                        </p>
+                      </div>
+                    </button>
                   </div>
-                </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
