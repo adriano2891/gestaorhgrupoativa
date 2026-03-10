@@ -45,6 +45,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
   const [desconto, setDesconto] = useState("6");
   const [nomePlano, setNomePlano] = useState("");
   const [grauInsalubridade, setGrauInsalubridade] = useState("medio");
+  const [valorCustoPlano, setValorCustoPlano] = useState("");
 
   const loadBeneficios = async () => {
     try {
@@ -87,10 +88,11 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
     }
 
     try {
+      const valorPlano = isPlano ? parseFloat(valorCustoPlano.replace(",", ".")) || 0 : 0;
       const insertData: any = {
         user_id: userId,
         tipo,
-        valor: isPlano ? 0 : isAdicional ? 0 : parseFloat(valor.replace(",", ".")),
+        valor: isPlano ? valorPlano : isAdicional ? 0 : parseFloat(valor.replace(",", ".")),
         desconto_percentual: isPlano || isAdicional ? 0 : (parseFloat(desconto) || 0),
         observacoes: isPlano ? nomePlano.trim() : isAdicional ? grauInsalubridade : null,
       };
@@ -104,6 +106,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
       setDialogOpen(false);
       setValor("");
       setNomePlano("");
+      setValorCustoPlano("");
       loadBeneficios();
     } catch (e: any) {
       toast.error("Erro ao adicionar benefício", { description: e.message });
@@ -157,6 +160,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
               <TableRow>
                 <TableHead>Tipo</TableHead>
                 <TableHead>Valor / Plano</TableHead>
+                <TableHead>Custo Empresa</TableHead>
                 <TableHead>Desconto (%)</TableHead>
                 <TableHead>Ações</TableHead>
               </TableRow>
@@ -180,6 +184,13 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                     ) : (
                       <>R$ {b.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    {isPlanoType(b.tipo) ? (
+                      b.valor > 0 
+                        ? <span className="text-sm font-medium text-primary">R$ {b.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                        : <span className="text-muted-foreground">—</span>
+                    ) : isAdicionalType(b.tipo) ? "—" : "—"}
                   </TableCell>
                   <TableCell>
                     {isPlanoType(b.tipo) || isAdicionalType(b.tipo) ? "—" : `${b.desconto_percentual}%`}
@@ -219,16 +230,26 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
             </div>
 
             {isPlanoType(tipo) ? (
-              <div className="space-y-1.5">
-                <Label>Nome do Plano</Label>
-                <Input
-                  value={nomePlano}
-                  onChange={(e) => setNomePlano(e.target.value)}
-                  placeholder="Ex: Unimed, Amil, OdontoPrev..."
-                />
-                <p className="text-xs text-muted-foreground">
-                  Informe o nome do plano contratado
-                </p>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label>Nome do Plano</Label>
+                  <Input
+                    value={nomePlano}
+                    onChange={(e) => setNomePlano(e.target.value)}
+                    placeholder="Ex: Unimed, Amil, OdontoPrev..."
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Valor Mensal — Custo Empresa (R$)</Label>
+                  <Input
+                    value={valorCustoPlano}
+                    onChange={(e) => setValorCustoPlano(e.target.value)}
+                    placeholder="0,00"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Valor usado apenas para cálculo de custo da folha. Não é exibido ao funcionário.
+                  </p>
+                </div>
               </div>
             ) : tipo === "insalubridade" ? (
               <div className="space-y-1.5">
