@@ -230,16 +230,26 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
             </div>
 
             {isPlanoType(tipo) ? (
-              <div className="space-y-1.5">
-                <Label>Nome do Plano</Label>
-                <Input
-                  value={nomePlano}
-                  onChange={(e) => setNomePlano(e.target.value)}
-                  placeholder="Ex: Unimed, Amil, OdontoPrev..."
-                />
-                <p className="text-xs text-muted-foreground">
-                  Informe o nome do plano contratado
-                </p>
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <Label>Nome do Plano</Label>
+                  <Input
+                    value={nomePlano}
+                    onChange={(e) => setNomePlano(e.target.value)}
+                    placeholder="Ex: Unimed, Amil, OdontoPrev..."
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Valor Mensal — Custo Empresa (R$)</Label>
+                  <Input
+                    value={valorCustoPlano}
+                    onChange={(e) => setValorCustoPlano(e.target.value)}
+                    placeholder="0,00"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Valor usado apenas para cálculo de custo da folha. Não é exibido ao funcionário.
+                  </p>
+                </div>
               </div>
             ) : tipo === "insalubridade" ? (
               <div className="space-y-1.5">
