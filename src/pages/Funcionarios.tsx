@@ -235,6 +235,50 @@ const Funcionarios = () => {
   const newPhotoRef = useRef<HTMLInputElement>(null);
   const editPhotoRef = useRef<HTMLInputElement>(null);
 
+  // Cargos
+  const [cargoDialogOpen, setCargoDialogOpen] = useState(false);
+  const [novoCargo, setNovoCargo] = useState("");
+  const [novaDescricaoCargo, setNovaDescricaoCargo] = useState("");
+  const [cargosLista, setCargosLista] = useState<{id: string; nome: string}[]>([]);
+  const [isSavingCargo, setIsSavingCargo] = useState(false);
+
+  useEffect(() => {
+    const fetchCargos = async () => {
+      const { data } = await supabase.from("cargos" as any).select("id, nome").order("nome");
+      if (data) setCargosLista(data as any);
+    };
+    fetchCargos();
+  }, []);
+
+  const handleSaveCargo = async () => {
+    if (!novoCargo.trim()) {
+      toast({ title: "Nome obrigatório", description: "Informe o nome do cargo.", variant: "destructive" });
+      return;
+    }
+    setIsSavingCargo(true);
+    try {
+      const { error } = await supabase.from("cargos" as any).insert({ nome: novoCargo.trim(), descricao: novaDescricaoCargo.trim() || null } as any);
+      if (error) {
+        if (error.code === "23505") {
+          toast({ title: "Cargo duplicado", description: "Já existe um cargo com este nome.", variant: "destructive" });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({ title: "Cargo cadastrado!" });
+        const { data } = await supabase.from("cargos" as any).select("id, nome").order("nome");
+        if (data) setCargosLista(data as any);
+        setNovoCargo("");
+        setNovaDescricaoCargo("");
+        setCargoDialogOpen(false);
+      }
+    } catch {
+      toast({ title: "Erro ao cadastrar cargo", variant: "destructive" });
+    } finally {
+      setIsSavingCargo(false);
+    }
+  };
+
   const formatPhone = (value: string) => {
     const numbers = value.replace(/\D/g, '').slice(0, 11);
     if (numbers.length <= 2) return numbers.replace(/(\d{0,2})/, '($1');
@@ -1543,13 +1587,32 @@ const Funcionarios = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="position" className="text-sm">Cargo</Label>
-                  <Input
-                    id="position"
+                 <div className="flex items-center justify-between">
+                    <Label htmlFor="position" className="text-sm">Cargo</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs gap-1 text-primary"
+                      onClick={() => setCargoDialogOpen(true)}
+                    >
+                      <Plus className="h-3 w-3" />
+                      Adicionar
+                    </Button>
+                  </div>
+                  <Select
                     value={editingEmployee.position}
-                    onChange={(e) => updateEditingEmployee('position', e.target.value)}
-                    className="h-9"
-                  />
+                    onValueChange={(value) => updateEditingEmployee('position', value)}
+                  >
+                    <SelectTrigger className="h-9">
+                      <SelectValue placeholder="Selecione um cargo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {cargosLista.map((cargo) => (
+                        <SelectItem key={cargo.id} value={cargo.nome}>{cargo.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="salary" className="text-sm">Salário</Label>
@@ -1867,14 +1930,33 @@ const Funcionarios = () => {
                 <p className="text-xs text-destructive">{validationErrors.phone}</p>
               )}
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-position" className="text-sm">Cargo *</Label>
-              <Input
-                id="new-position"
+             <div className="grid gap-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="new-position" className="text-sm">Cargo *</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs gap-1 text-primary"
+                  onClick={() => setCargoDialogOpen(true)}
+                >
+                  <Plus className="h-3 w-3" />
+                  Adicionar Cargo
+                </Button>
+              </div>
+              <Select
                 value={newEmployee.position}
-                onChange={(e) => updateNewEmployee('position', e.target.value)}
-                className={validationErrors.position ? "border-destructive h-9" : "h-9"}
-              />
+                onValueChange={(value) => updateNewEmployee('position', value)}
+              >
+                <SelectTrigger className={validationErrors.position ? "border-destructive h-9" : "h-9"}>
+                  <SelectValue placeholder="Selecione um cargo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cargosLista.map((cargo) => (
+                    <SelectItem key={cargo.id} value={cargo.nome}>{cargo.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {validationErrors.position && (
                 <p className="text-xs text-destructive">{validationErrors.position}</p>
               )}
@@ -2266,8 +2348,31 @@ const Funcionarios = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog Adicionar Cargo */}
+      <Dialog open={cargoDialogOpen} onOpenChange={setCargoDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo Cargo</DialogTitle>
+            <DialogDescription>Cadastre um novo cargo para selecionar nos funcionários.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nome do Cargo *</Label>
+              <Input placeholder="Ex: Analista de RH" value={novoCargo} onChange={(e) => setNovoCargo(e.target.value)} maxLength={100} />
+            </div>
+            <div className="space-y-2">
+              <Label>Descrição (opcional)</Label>
+              <Input placeholder="Descrição do cargo" value={novaDescricaoCargo} onChange={(e) => setNovaDescricaoCargo(e.target.value)} maxLength={500} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCargoDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveCargo} disabled={isSavingCargo}>{isSavingCargo ? "Salvando..." : "Cadastrar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
-    
   );
 };
 
