@@ -96,6 +96,22 @@ Deno.serve(async (req) => {
     }
     const { email, password, nome, cpf, telefone, cargo, departamento, status, salario, data_nascimento, data_admissao, dependentes, endereco, rg, numero_pis, escala_trabalho, turno, ctps_numero, ctps_serie, nacionalidade, estado_civil, sexo, nome_mae, cbo, tipo_contrato } = parseResult.data;
 
+    // Validação de idade mínima (16 anos)
+    if (data_nascimento) {
+      const nascimento = new Date(data_nascimento + 'T12:00:00');
+      const hoje = new Date();
+      let idade = hoje.getFullYear() - nascimento.getFullYear();
+      if (hoje.getMonth() < nascimento.getMonth() || (hoje.getMonth() === nascimento.getMonth() && hoje.getDate() < nascimento.getDate())) {
+        idade--;
+      }
+      if (idade < 16) {
+        return new Response(
+          JSON.stringify({ error: 'Cadastro não permitido. Funcionários devem ter no mínimo 16 anos de idade.' }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+        );
+      }
+    }
+
     const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email, password, email_confirm: true,
       user_metadata: { nome, cpf: cpf ?? null, telefone: telefone ?? null, cargo: cargo ?? null, departamento: departamento ?? null, data_nascimento: data_nascimento ?? null },
