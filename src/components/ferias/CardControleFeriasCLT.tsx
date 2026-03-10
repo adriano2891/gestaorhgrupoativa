@@ -38,6 +38,7 @@ interface FuncionarioFerias {
   fim_periodo_concessivo: string;
   status: StatusFerias;
   dias_para_vencer: number;
+  solicitacao_ativa?: SolicitacaoFeriasRow | null;
 }
 
 interface PeriodoAquisitivoRow {
