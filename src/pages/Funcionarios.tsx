@@ -1857,8 +1857,9 @@ const Funcionarios = () => {
               <Input
                 id="new-phone"
                 value={newEmployee.phone}
-                onChange={(e) => updateNewEmployee('phone', e.target.value)}
-                placeholder="(11) 98765-4321"
+                onChange={(e) => updateNewEmployee('phone', formatPhone(e.target.value))}
+                placeholder="(11) 9 8765-4321"
+                maxLength={16}
                 className={validationErrors.phone ? "border-destructive h-9" : "h-9"}
               />
               {validationErrors.phone && (
