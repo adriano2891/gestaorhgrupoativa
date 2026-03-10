@@ -200,7 +200,7 @@ const useFuncionariosFerias = () => {
             .in('user_id', targetIds),
           supabase
             .from('solicitacoes_ferias')
-            .select('user_id, periodo_aquisitivo_id, data_inicio, data_fim, status')
+            .select('id, user_id, periodo_aquisitivo_id, data_inicio, data_fim, status, data_pagamento')
             .in('user_id', targetIds),
         ]);
 
