@@ -456,6 +456,7 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
           fontSize: 7,
           cellPadding: 2,
           overflow: "linebreak",
+          font: "helvetica",
         },
         headStyles: {
           fillColor: [17, 188, 183],
@@ -463,6 +464,7 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
           fontStyle: "bold",
           halign: "center",
           fontSize: 8,
+          font: "helvetica",
         },
         alternateRowStyles: {
           fillColor: [245, 247, 250],
