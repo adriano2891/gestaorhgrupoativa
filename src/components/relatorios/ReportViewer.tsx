@@ -355,7 +355,7 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
           interval={0}
         />
         <YAxis 
-          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+          tick={{ fontSize: 12, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
           axisLine={{ stroke: 'hsl(var(--border))' }}
         />
         <Tooltip content={<CustomTooltip />} />
