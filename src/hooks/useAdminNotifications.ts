@@ -1,15 +1,17 @@
 import { useEffect, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { playNotificationSound } from "@/utils/notificationSound";
 
 export interface AdminNotification {
   id: string;
-  type: "ferias" | "suporte" | "chamado";
+  type: "ferias" | "suporte" | "chamado" | "web";
   title: string;
   description: string;
   createdAt: string;
   route?: string;
+  url?: string;
+  fonte?: string;
 }
 
 export function useAdminNotifications() {
@@ -43,6 +45,49 @@ export function useAdminNotifications() {
         .limit(20);
       if (error) throw error;
       return data || [];
+    },
+  });
+
+  // Fetch web monitoring notifications
+  const { data: webNotifs = [] } = useQuery({
+    queryKey: ["admin-notif-web"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("notificacoes_web")
+        .select("*")
+        .eq("lida", false)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  // Mark web notification as read
+  const marcarWebComoLida = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await (supabase as any)
+        .from("notificacoes_web")
+        .update({ lida: true })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-notif-web"] });
+    },
+  });
+
+  // Trigger web monitoring fetch
+  const buscarAtualizacoesWeb = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke("monitor-web-updates", {
+        method: "POST",
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-notif-web"] });
     },
   });
 
@@ -80,12 +125,31 @@ export function useAdminNotifications() {
           queryClient.invalidateQueries({ queryKey: ["admin-notif-chamados"] });
         }
       )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notificacoes_web" },
+        () => {
+          playNotificationSound("success");
+          queryClient.invalidateQueries({ queryKey: ["admin-notif-web"] });
+        }
+      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
+
+  // Auto-fetch web updates every 30 min
+  useEffect(() => {
+    // Fetch on first load
+    buscarAtualizacoesWeb.mutate();
+    const interval = setInterval(() => {
+      buscarAtualizacoesWeb.mutate();
+    }, 30 * 60 * 1000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const notifications: AdminNotification[] = useMemo(() => {
     const items: AdminNotification[] = [];
@@ -112,11 +176,28 @@ export function useAdminNotifications() {
       });
     });
 
+    webNotifs.forEach((w: any) => {
+      items.push({
+        id: `web-${w.id}`,
+        type: "web",
+        title: w.titulo,
+        description: w.resumo,
+        createdAt: w.created_at,
+        url: w.url_fonte,
+        fonte: w.fonte,
+      });
+    });
+
     items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     return items;
-  }, [feriasPendentes, chamadosAbertos]);
+  }, [feriasPendentes, chamadosAbertos, webNotifs]);
 
   const totalCount = notifications.length;
 
-  return { notifications, totalCount };
+  return { 
+    notifications, 
+    totalCount, 
+    marcarWebComoLida: marcarWebComoLida.mutate,
+    buscarAtualizacoesWeb: buscarAtualizacoesWeb.mutate,
+  };
 }
