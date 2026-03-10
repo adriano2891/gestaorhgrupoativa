@@ -99,8 +99,10 @@ export function useAdminNotifications() {
     localStorage.setItem(WEB_DISMISSED_KEY, "true");
   };
 
-  // Realtime listeners
+  // Realtime listeners with fallback polling
   useEffect(() => {
+    let realtimeActive = false;
+
     const channel = supabase
       .channel("admin-notifications")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "solicitacoes_ferias" }, () => {
@@ -123,9 +125,23 @@ export function useAdminNotifications() {
         setWebDismissed(false);
         localStorage.removeItem(WEB_DISMISSED_KEY);
       })
-      .subscribe();
+      .subscribe((status) => {
+        realtimeActive = status === "SUBSCRIBED";
+      });
 
-    return () => { supabase.removeChannel(channel); };
+    // Fallback polling: every 30s if realtime fails
+    const pollInterval = setInterval(() => {
+      if (!realtimeActive) {
+        queryClient.invalidateQueries({ queryKey: ["admin-notif-ferias"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-notif-chamados"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-notif-web"] });
+      }
+    }, 30000);
+
+    return () => {
+      clearInterval(pollInterval);
+      supabase.removeChannel(channel);
+    };
   }, [queryClient]);
 
   // Build notifications: internal first, then web
