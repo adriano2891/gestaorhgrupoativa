@@ -242,6 +242,14 @@ const useFuncionariosFerias = () => {
             solicitacoes: solicitacoesFuncionario,
           });
 
+          // Find active solicitacao for this employee (em_andamento, aprovado, or current date range)
+          const hojeISO = new Date().toISOString().split('T')[0];
+          const solicitacaoAtiva = solicitacoesFuncionario.find(s => {
+            const statusNorm = normalizarStatus(s.status || '');
+            return (statusNorm === 'emandamento' || statusNorm === 'aprovado') ||
+              (s.data_inicio <= hojeISO && s.data_fim >= hojeISO);
+          }) || null;
+
           return {
             id: p.id,
             nome: p.nome,
@@ -252,6 +260,7 @@ const useFuncionariosFerias = () => {
             fim_periodo_concessivo: fimConcessivo.toISOString().split('T')[0],
             status,
             dias_para_vencer: diasParaVencer,
+            solicitacao_ativa: solicitacaoAtiva,
           } as FuncionarioFerias;
         }).filter(Boolean) as FuncionarioFerias[];
       } catch (error) {
