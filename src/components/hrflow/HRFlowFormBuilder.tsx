@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { ArrowLeft, Save, Eye, Download, Plus, GripVertical, Trash2, Settings } from "lucide-react";
+import { ArrowLeft, Save, Eye, Download, Plus, GripVertical, Trash2, Settings, ChevronDown, ChevronUp, PanelLeftOpen, PanelRightOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,6 +32,8 @@ export const HRFlowFormBuilder = ({ form, template, onClose, readOnly = false }:
   const [category, setCategory] = useState<FormCategory>(form?.category || template?.category as FormCategory || 'outros');
   const [fields, setFields] = useState<FormField[]>(form?.fields || template?.fields || []);
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
+  const [showFieldPalette, setShowFieldPalette] = useState(false);
+  const [showProperties, setShowProperties] = useState(false);
   
   // Drag and drop state
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
@@ -47,6 +49,8 @@ export const HRFlowFormBuilder = ({ form, template, onClose, readOnly = false }:
     };
     setFields([...fields, newField]);
     setSelectedFieldId(newField.id);
+    setShowFieldPalette(false);
+    setShowProperties(true);
   };
 
   const updateField = (id: string, updates: Partial<FormField>) => {
@@ -63,8 +67,6 @@ export const HRFlowFormBuilder = ({ form, template, onClose, readOnly = false }:
     dragNodeRef.current = e.currentTarget;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', index.toString());
-    
-    // Add a slight delay to allow the drag image to be created
     setTimeout(() => {
       if (dragNodeRef.current) {
         dragNodeRef.current.style.opacity = '0.5';
@@ -121,34 +123,173 @@ export const HRFlowFormBuilder = ({ form, template, onClose, readOnly = false }:
 
   const selectedField = fields.find(f => f.id === selectedFieldId);
 
+  // Properties panel content (shared between mobile and desktop)
+  const renderProperties = () => (
+    <>
+      <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
+        <Settings className="w-4 h-4" />
+        Propriedades
+      </h3>
+
+      {selectedField ? (
+        <div className="space-y-4">
+          <div>
+            <Label className="text-xs">Rótulo</Label>
+            <Input
+              value={selectedField.label}
+              onChange={(e) => updateField(selectedField.id, { label: e.target.value })}
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-xs">Placeholder</Label>
+            <Input
+              value={selectedField.placeholder || ''}
+              onChange={(e) => updateField(selectedField.id, { placeholder: e.target.value })}
+              className="mt-1"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Obrigatório</Label>
+            <Switch
+              checked={selectedField.required}
+              onCheckedChange={(checked) => updateField(selectedField.id, { required: checked })}
+            />
+          </div>
+          <div>
+            <Label className="text-xs">Largura</Label>
+            <Select 
+              value={String(selectedField.width || 100)} 
+              onValueChange={(v) => updateField(selectedField.id, { width: parseInt(v) })}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {WIDTH_OPTIONS.map(opt => (
+                  <SelectItem key={opt.value} value={String(opt.value)}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {(selectedField.type === 'select' || selectedField.type === 'radio' || selectedField.type === 'checkbox') && (
+            <div>
+              <Label className="text-xs">Opções (uma por linha)</Label>
+              <Textarea
+                value={selectedField.options?.join('\n') || ''}
+                onChange={(e) => updateField(selectedField.id, { options: e.target.value.split('\n').filter(Boolean) })}
+                className="mt-1"
+                rows={4}
+              />
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="text-center py-4 sm:py-8 text-muted-foreground text-sm">
+          Selecione um campo para editar suas propriedades
+        </div>
+      )}
+
+      <div className="mt-6 pt-4 border-t border-border">
+        <Label className="text-xs">Categoria</Label>
+        <Select value={category} onValueChange={(v) => setCategory(v as FormCategory)}>
+          <SelectTrigger className="mt-1">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
+              <SelectItem key={key} value={key}>{label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </>
+  );
+
   return (
     <div className="animate-fade-in">
-      {/* Header - hidden on print */}
-      <div className="flex items-center justify-between mb-6 no-print">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={onClose}>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 sm:mb-6 no-print">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </Button>
-          <div>
-            <h1 className="text-xl font-bold text-foreground">Editor de Formulário</h1>
-            <p className="text-sm text-muted-foreground">Arraste campos para organizar</p>
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-xl font-bold text-foreground truncate">Editor de Formulário</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground">Arraste campos para organizar</p>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handlePrint}>
-            <Download className="w-4 h-4 mr-2" />
+        <div className="flex gap-2 self-end sm:self-auto">
+          <Button variant="outline" size="sm" onClick={handlePrint} className="text-xs sm:text-sm">
+            <Download className="w-4 h-4 mr-1 sm:mr-2" />
             PDF
           </Button>
-          <Button className="bg-primary hover:bg-primary-dark text-primary-foreground" onClick={handleSave}>
-            <Save className="w-4 h-4 mr-2" />
+          <Button size="sm" className="bg-primary hover:bg-primary-dark text-primary-foreground text-xs sm:text-sm" onClick={handleSave}>
+            <Save className="w-4 h-4 mr-1 sm:mr-2" />
             Salvar
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-12 gap-6">
-        {/* Field Palette - hidden on print */}
-        <div className="col-span-3 no-print">
+      {/* Mobile: Toggle buttons for panels */}
+      <div className="flex gap-2 mb-3 lg:hidden no-print">
+        <Button
+          variant={showFieldPalette ? "default" : "outline"}
+          size="sm"
+          onClick={() => { setShowFieldPalette(!showFieldPalette); if (!showFieldPalette) setShowProperties(false); }}
+          className="flex-1 text-xs gap-1.5"
+        >
+          <PanelLeftOpen className="w-3.5 h-3.5" />
+          Campos
+          {showFieldPalette ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </Button>
+        <Button
+          variant={showProperties ? "default" : "outline"}
+          size="sm"
+          onClick={() => { setShowProperties(!showProperties); if (!showProperties) setShowFieldPalette(false); }}
+          className="flex-1 text-xs gap-1.5"
+        >
+          <PanelRightOpen className="w-3.5 h-3.5" />
+          Propriedades
+          {showProperties ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+        </Button>
+      </div>
+
+      {/* Mobile: Collapsible Field Palette */}
+      {showFieldPalette && (
+        <Card className="border-0 shadow-sm mb-3 lg:hidden no-print animate-fade-in">
+          <CardContent className="p-3">
+            <h3 className="font-semibold text-foreground mb-2 text-sm">Campos</h3>
+            <div className="grid grid-cols-3 xs:grid-cols-4 gap-1.5">
+              {(Object.keys(FIELD_TYPE_LABELS) as HRFlowFieldType[]).map((type) => (
+                <button
+                  key={type}
+                  onClick={() => addField(type)}
+                  className="p-2 text-[10px] sm:text-xs text-center bg-muted hover:bg-primary/10 hover:text-primary rounded-lg transition-colors border border-transparent hover:border-primary/20 min-h-[44px] flex items-center justify-center"
+                >
+                  {FIELD_TYPE_LABELS[type]}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Mobile: Collapsible Properties Panel */}
+      {showProperties && (
+        <Card className="border-0 shadow-sm mb-3 lg:hidden no-print animate-fade-in">
+          <CardContent className="p-3">
+            {renderProperties()}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Desktop: 3-column grid / Mobile: single column */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-6">
+        {/* Field Palette - desktop only */}
+        <div className="hidden lg:block lg:col-span-3 no-print">
           <Card className="border-0 shadow-sm sticky top-6">
             <CardContent className="p-4">
               <h3 className="font-semibold text-foreground mb-3">Campos</h3>
@@ -167,23 +308,23 @@ export const HRFlowFormBuilder = ({ form, template, onClose, readOnly = false }:
           </Card>
         </div>
 
-        {/* Canvas (A4 Preview) - 210mm x 297mm */}
-        <div className="col-span-6 print:col-span-12">
+        {/* Canvas (A4 Preview) */}
+        <div className="lg:col-span-6 print:col-span-12">
           <div className="flex justify-center">
-            <Card className="a4-canvas print-container border shadow-lg bg-white w-[210mm] min-h-[297mm] print:shadow-none print:border-0 print:w-full">
-              <CardContent className="p-[20mm] print:p-0">
+            <Card className="a4-canvas print-container border shadow-lg bg-white w-full lg:w-[210mm] min-h-[50vh] lg:min-h-[297mm] print:shadow-none print:border-0 print:w-full">
+              <CardContent className="p-4 sm:p-6 lg:p-[20mm] print:p-0">
                 {/* Form Header */}
-                <div className="mb-6 pb-6 border-b border-border print-title">
+                <div className="mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border print-title">
                   <Input
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="text-2xl font-bold border-0 p-0 focus-visible:ring-0 mb-2 bg-transparent print:border-0"
+                    className="text-lg sm:text-2xl font-bold border-0 p-0 focus-visible:ring-0 mb-2 bg-transparent print:border-0"
                     placeholder="Título do Formulário"
                   />
                   <Textarea
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="border-0 p-0 resize-none focus-visible:ring-0 text-muted-foreground bg-transparent print:border-0"
+                    className="border-0 p-0 resize-none focus-visible:ring-0 text-sm sm:text-base text-muted-foreground bg-transparent print:border-0"
                     placeholder="Descrição do formulário..."
                     rows={2}
                   />
@@ -191,12 +332,15 @@ export const HRFlowFormBuilder = ({ form, template, onClose, readOnly = false }:
 
                 {/* Fields */}
                 {fields.length === 0 ? (
-                  <div className="py-16 text-center text-muted-foreground no-print">
-                    <Plus className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                    <p>Clique nos campos à esquerda para adicionar</p>
+                  <div className="py-10 sm:py-16 text-center text-muted-foreground no-print">
+                    <Plus className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 opacity-50" />
+                    <p className="text-sm sm:text-base">
+                      <span className="hidden lg:inline">Clique nos campos à esquerda para adicionar</span>
+                      <span className="lg:hidden">Toque em "Campos" acima para adicionar</span>
+                    </p>
                   </div>
                 ) : (
-                  <div className="flex flex-wrap gap-4">
+                  <div className="flex flex-wrap gap-3 sm:gap-4">
                     {fields.map((field, index) => {
                       const w = field.width || 100;
                       const widthClass = w === 100 ? 'w-full' 
@@ -215,9 +359,13 @@ export const HRFlowFormBuilder = ({ form, template, onClose, readOnly = false }:
                         onDragOver={(e) => handleDragOver(e, index)}
                         onDragLeave={handleDragLeave}
                         onDrop={(e) => handleDrop(e, index)}
-                        onClick={() => setSelectedFieldId(field.id)}
+                        onClick={() => {
+                          setSelectedFieldId(field.id);
+                          setShowProperties(true);
+                          setShowFieldPalette(false);
+                        }}
                         className={cn(
-                          "p-4 rounded-lg border-2 transition-all cursor-pointer print-field print:border print:border-border print:rounded-none print:cursor-default",
+                          "p-3 sm:p-4 rounded-lg border-2 transition-all cursor-pointer print-field print:border print:border-border print:rounded-none print:cursor-default",
                           selectedFieldId === field.id
                             ? 'border-primary bg-primary/5'
                             : 'border-transparent hover:border-border bg-muted/50',
@@ -225,19 +373,19 @@ export const HRFlowFormBuilder = ({ form, template, onClose, readOnly = false }:
                           dragOverIndex === index && draggedIndex !== index && 'border-primary border-dashed'
                         )}
                       >
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-2 sm:gap-3">
                           <div 
-                            className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-muted transition-colors no-print"
+                            className="cursor-grab active:cursor-grabbing p-1 -ml-1 rounded hover:bg-muted transition-colors no-print shrink-0"
                             onMouseDown={(e) => e.stopPropagation()}
                           >
                             <GripVertical className="w-4 h-4 text-muted-foreground" />
                           </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="font-medium text-foreground">{field.label}</span>
-                              {field.required && <Badge variant="destructive" className="text-xs">*</Badge>}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 sm:mb-2">
+                              <span className="font-medium text-foreground text-sm sm:text-base truncate">{field.label}</span>
+                              {field.required && <Badge variant="destructive" className="text-[10px] shrink-0">*</Badge>}
                             </div>
-                            <Badge variant="secondary" className="text-xs no-print">
+                            <Badge variant="secondary" className="text-[10px] sm:text-xs no-print">
                               {FIELD_TYPE_LABELS[field.type]}
                             </Badge>
                             {/* Print-friendly input representation */}
@@ -263,7 +411,7 @@ export const HRFlowFormBuilder = ({ form, template, onClose, readOnly = false }:
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="text-muted-foreground hover:text-destructive no-print"
+                            className="text-muted-foreground hover:text-destructive no-print shrink-0 h-8 w-8"
                             onClick={(e) => { e.stopPropagation(); deleteField(field.id); }}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -280,89 +428,11 @@ export const HRFlowFormBuilder = ({ form, template, onClose, readOnly = false }:
           </div>
         </div>
 
-        {/* Properties Panel - hidden on print */}
-        <div className="col-span-3 no-print">
+        {/* Properties Panel - desktop only */}
+        <div className="hidden lg:block lg:col-span-3 no-print">
           <Card className="border-0 shadow-sm sticky top-6">
             <CardContent className="p-4">
-              <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-                <Settings className="w-4 h-4" />
-                Propriedades
-              </h3>
-
-              {selectedField ? (
-                <div className="space-y-4">
-                  <div>
-                    <Label className="text-xs">Rótulo</Label>
-                    <Input
-                      value={selectedField.label}
-                      onChange={(e) => updateField(selectedField.id, { label: e.target.value })}
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Placeholder</Label>
-                    <Input
-                      value={selectedField.placeholder || ''}
-                      onChange={(e) => updateField(selectedField.id, { placeholder: e.target.value })}
-                      className="mt-1"
-                    />
-                  </div>
-                    <div className="flex items-center justify-between">
-                     <Label className="text-xs">Obrigatório</Label>
-                     <Switch
-                       checked={selectedField.required}
-                       onCheckedChange={(checked) => updateField(selectedField.id, { required: checked })}
-                     />
-                   </div>
-                   <div>
-                     <Label className="text-xs">Largura</Label>
-                     <Select 
-                       value={String(selectedField.width || 100)} 
-                       onValueChange={(v) => updateField(selectedField.id, { width: parseInt(v) })}
-                     >
-                       <SelectTrigger className="mt-1">
-                         <SelectValue />
-                       </SelectTrigger>
-                       <SelectContent>
-                         {WIDTH_OPTIONS.map(opt => (
-                           <SelectItem key={opt.value} value={String(opt.value)}>
-                             {opt.label}
-                           </SelectItem>
-                         ))}
-                       </SelectContent>
-                     </Select>
-                   </div>
-                  {(selectedField.type === 'select' || selectedField.type === 'radio' || selectedField.type === 'checkbox') && (
-                    <div>
-                      <Label className="text-xs">Opções (uma por linha)</Label>
-                      <Textarea
-                        value={selectedField.options?.join('\n') || ''}
-                        onChange={(e) => updateField(selectedField.id, { options: e.target.value.split('\n').filter(Boolean) })}
-                        className="mt-1"
-                        rows={4}
-                      />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-muted-foreground text-sm">
-                  Selecione um campo para editar suas propriedades
-                </div>
-              )}
-
-              <div className="mt-6 pt-4 border-t border-border">
-                <Label className="text-xs">Categoria</Label>
-                <Select value={category} onValueChange={(v) => setCategory(v as FormCategory)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(CATEGORY_LABELS).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>{label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {renderProperties()}
             </CardContent>
           </Card>
         </div>
