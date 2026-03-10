@@ -1867,14 +1867,33 @@ const Funcionarios = () => {
                 <p className="text-xs text-destructive">{validationErrors.phone}</p>
               )}
             </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="new-position" className="text-sm">Cargo *</Label>
-              <Input
-                id="new-position"
+             <div className="grid gap-1.5">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="new-position" className="text-sm">Cargo *</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-xs gap-1 text-primary"
+                  onClick={() => setCargoDialogOpen(true)}
+                >
+                  <Plus className="h-3 w-3" />
+                  Adicionar Cargo
+                </Button>
+              </div>
+              <Select
                 value={newEmployee.position}
-                onChange={(e) => updateNewEmployee('position', e.target.value)}
-                className={validationErrors.position ? "border-destructive h-9" : "h-9"}
-              />
+                onValueChange={(value) => updateNewEmployee('position', value)}
+              >
+                <SelectTrigger className={validationErrors.position ? "border-destructive h-9" : "h-9"}>
+                  <SelectValue placeholder="Selecione um cargo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {cargosLista.map((cargo) => (
+                    <SelectItem key={cargo.id} value={cargo.nome}>{cargo.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               {validationErrors.position && (
                 <p className="text-xs text-destructive">{validationErrors.position}</p>
               )}
