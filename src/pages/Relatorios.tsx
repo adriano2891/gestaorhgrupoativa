@@ -459,8 +459,21 @@ const Relatorios = () => {
             details: ocorrencias.slice(0, 100),
           });
         } else if (selectedReport === "absenteismo") {
-          // Hours-based absenteeism matching reference
-          const empStats: Record<string, { nome: string; dept: string; horasPrevistas: number; horasPerdidas: number }> = {};
+          // Absenteísmo: (Horas de ausência ÷ Horas previstas) × 100
+          const totalColaboradores = new Set(data.map((r: any) => r.user_id)).size;
+
+          // Afastamentos no período
+          const afastamentosData = afastamentos || [];
+          const afastamentosPorFunc: Record<string, number> = {};
+          afastamentosData.forEach((a: any) => {
+            if (!a.data_inicio) return;
+            if (filters.dataInicio && a.data_inicio < filters.dataInicio) return;
+            if (filters.dataFim && a.data_fim && a.data_fim > filters.dataFim) return;
+            const dias = a.dias_empresa || (a.data_fim ? differenceInDays(new Date(a.data_fim), new Date(a.data_inicio)) + 1 : 1);
+            afastamentosPorFunc[a.user_id] = (afastamentosPorFunc[a.user_id] || 0) + dias;
+          });
+
+          const empStats: Record<string, { nome: string; dept: string; horasPrevistas: number; horasPerdidas: number; faltas: number; atrasos: number; afastamentoDias: number }> = {};
           data.forEach((r: any) => {
             const uid = r.user_id;
             const carga = getCargaPrevista(uid);
@@ -470,46 +483,86 @@ const Relatorios = () => {
                 dept: r.profiles?.departamento || funcMap.get(uid)?.departamento || "N/I",
                 horasPrevistas: 0,
                 horasPerdidas: 0,
+                faltas: 0,
+                atrasos: 0,
+                afastamentoDias: afastamentosPorFunc[uid] || 0,
               };
             }
             empStats[uid].horasPrevistas += carga;
             if (!r.entrada) {
               empStats[uid].horasPerdidas += carga;
+              empStats[uid].faltas++;
             } else {
               const horasTrab = parseHoras(r.total_horas);
               if (horasTrab < carga) {
                 empStats[uid].horasPerdidas += (carga - horasTrab);
               }
+              if (isAtraso(r)) {
+                empStats[uid].atrasos++;
+              }
+            }
+          });
+
+          // Add afastamento hours to perdidas
+          Object.entries(afastamentosPorFunc).forEach(([uid, dias]) => {
+            if (empStats[uid]) {
+              const carga = getCargaPrevista(uid);
+              empStats[uid].horasPerdidas += dias * carga;
+              empStats[uid].horasPrevistas += dias * carga;
             }
           });
 
           const empList = Object.values(empStats);
           const totalHorasPrevistas = empList.reduce((a, e) => a + e.horasPrevistas, 0);
           const totalHorasPerdidas = empList.reduce((a, e) => a + e.horasPerdidas, 0);
+          const totalFaltas = empList.reduce((a, e) => a + e.faltas, 0);
+          const totalAtrasos = empList.reduce((a, e) => a + e.atrasos, 0);
+          const totalAfastamentoDias = empList.reduce((a, e) => a + e.afastamentoDias, 0);
           const taxaMedia = totalHorasPrevistas > 0 ? ((totalHorasPerdidas / totalHorasPrevistas) * 100) : 0;
 
           // Department stats
-          const deptAbsStats: Record<string, { previstas: number; perdidas: number }> = {};
+          const deptAbsStats: Record<string, { previstas: number; perdidas: number; colaboradores: number }> = {};
           empList.forEach(e => {
-            if (!deptAbsStats[e.dept]) deptAbsStats[e.dept] = { previstas: 0, perdidas: 0 };
+            if (!deptAbsStats[e.dept]) deptAbsStats[e.dept] = { previstas: 0, perdidas: 0, colaboradores: 0 };
             deptAbsStats[e.dept].previstas += e.horasPrevistas;
             deptAbsStats[e.dept].perdidas += e.horasPerdidas;
+            deptAbsStats[e.dept].colaboradores++;
           });
 
-          // Per-department pie data (hours lost distribution)
           const deptHorasPerdidas = Object.entries(deptAbsStats)
             .filter(([, s]) => s.perdidas > 0)
             .map(([dept, s]) => ({ departamento: dept, valor: parseFloat(s.perdidas.toFixed(1)) }));
 
+          // Análise automática
+          let analiseAbs = "";
+          if (taxaMedia === 0) {
+            analiseAbs = "Nenhuma ausência registrada no período. Índice de presença excelente.";
+          } else if (taxaMedia <= 3) {
+            analiseAbs = "Taxa de absenteísmo dentro do padrão aceitável (até 3%).";
+          } else if (taxaMedia <= 5) {
+            analiseAbs = "Taxa moderada. Monitore os departamentos com maior índice.";
+          } else {
+            analiseAbs = "Taxa acima do recomendado (>5%). Investigue causas e implemente ações corretivas.";
+          }
+          if (totalFaltas > totalAtrasos && totalFaltas > 0) {
+            analiseAbs += " As faltas representam a maior causa de ausência.";
+          } else if (totalAtrasos > 0) {
+            analiseAbs += " Os atrasos são uma causa significativa de perda de horas.";
+          }
+
           setGeneratedData({
             generatedAt: now.toISOString(),
             summary: {
-              "Taxa Média Geral": `${taxaMedia.toFixed(1)}%`,
+              "Período": periodoLabel,
+              "Taxa de Absenteísmo (%)": `${taxaMedia.toFixed(1)}%`,
+              "Total Colaboradores": totalColaboradores,
               "Horas Previstas": `${totalHorasPrevistas.toFixed(0)}h`,
-              "Horas Perdidas": `${totalHorasPerdidas.toFixed(1)}h`,
-              "Funcionários Analisados": empList.length,
-              "Departamentos": Object.keys(deptAbsStats).length,
+              "Horas Perdidas (ausências)": `${totalHorasPerdidas.toFixed(1)}h`,
+              "Total de Faltas": totalFaltas,
+              "Total de Atrasos": totalAtrasos,
+              "Dias de Afastamento": totalAfastamentoDias,
             },
+            analysis: analiseAbs,
             charts: [
               {
                 type: "bar",
@@ -520,26 +573,45 @@ const Relatorios = () => {
                   valor: stats.previstas > 0 ? parseFloat(((stats.perdidas / stats.previstas) * 100).toFixed(1)) : 0,
                 })),
                 dataName: "Taxa (%)",
-                insight: `A taxa média geral é ${taxaMedia.toFixed(1)}%. Valores acima de 5% requerem investigação.`,
+                insight: `Taxa média geral: ${taxaMedia.toFixed(1)}%. Acima de 5% requer atenção.`,
               },
               {
                 type: "pie",
-                title: "2. Distribuição do Absenteísmo",
-                description: "Proporção de horas perdidas entre departamentos",
+                title: "2. Distribuição de Horas Perdidas por Departamento",
+                description: "Proporção de horas perdidas entre setores",
                 data: deptHorasPerdidas.length > 0 ? deptHorasPerdidas : [{ departamento: "Sem dados", valor: 0 }],
               },
+              {
+                type: "pie",
+                title: "3. Tipos de Ausência",
+                description: "Distribuição entre faltas, atrasos e afastamentos",
+                data: [
+                  { tipo: "Faltas", valor: totalFaltas },
+                  { tipo: "Atrasos", valor: totalAtrasos },
+                  { tipo: "Afastamentos", valor: totalAfastamentoDias },
+                ].filter(d => d.valor > 0),
+              },
             ],
-            details: empList.map(e => {
-              const taxa = e.horasPrevistas > 0 ? ((e.horasPerdidas / e.horasPrevistas) * 100) : 0;
-              return {
-                funcionario: e.nome,
-                departamento: e.dept,
-                "horas Previstas": `${e.horasPrevistas.toFixed(1)}h`,
-                "horas Perdidas": `${e.horasPerdidas.toFixed(1)}h`,
-                "taxa Absenteismo": `${taxa.toFixed(1)}%`,
-                status: taxa > 10 ? "Crítico" : taxa > 5 ? "Atenção" : "Normal",
-              };
-            }),
+            details: empList
+              .sort((a, b) => {
+                const taxaA = a.horasPrevistas > 0 ? (a.horasPerdidas / a.horasPrevistas) : 0;
+                const taxaB = b.horasPrevistas > 0 ? (b.horasPerdidas / b.horasPrevistas) : 0;
+                return taxaB - taxaA;
+              })
+              .map(e => {
+                const taxa = e.horasPrevistas > 0 ? ((e.horasPerdidas / e.horasPrevistas) * 100) : 0;
+                return {
+                  funcionario: e.nome,
+                  departamento: e.dept,
+                  "horas Previstas": `${e.horasPrevistas.toFixed(1)}h`,
+                  "horas Perdidas": `${e.horasPerdidas.toFixed(1)}h`,
+                  faltas: e.faltas,
+                  atrasos: e.atrasos,
+                  "dias Afastamento": e.afastamentoDias || 0,
+                  "taxa (%)": `${taxa.toFixed(1)}%`,
+                  status: taxa > 10 ? "Crítico" : taxa > 5 ? "Atenção" : "Normal",
+                };
+              }),
           });
         } else {
           // pontos - matching reference exactly
