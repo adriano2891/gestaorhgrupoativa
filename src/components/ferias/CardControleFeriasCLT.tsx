@@ -2,12 +2,29 @@ import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, Users, AlertTriangle, Clock, CheckCircle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Search, Users, AlertTriangle, Clock, CheckCircle, DollarSign, Check } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useRegistrarPagamentoFerias } from "@/hooks/useFerias";
+
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 type StatusFerias = 'cumprindo' | 'prestes_a_vencer' | 'vencida' | 'em_ferias';
 
@@ -21,6 +38,7 @@ interface FuncionarioFerias {
   fim_periodo_concessivo: string;
   status: StatusFerias;
   dias_para_vencer: number;
+  solicitacao_ativa?: SolicitacaoFeriasRow | null;
 }
 
 interface PeriodoAquisitivoRow {
@@ -34,13 +52,14 @@ interface PeriodoAquisitivoRow {
 }
 
 interface SolicitacaoFeriasRow {
+  id?: string;
   user_id: string;
   periodo_aquisitivo_id: string | null;
   data_inicio: string;
   data_fim: string;
   status: string;
+  data_pagamento?: string | null;
 }
-
 const startOfToday = () => {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
@@ -182,7 +201,7 @@ const useFuncionariosFerias = () => {
             .in('user_id', targetIds),
           supabase
             .from('solicitacoes_ferias')
-            .select('user_id, periodo_aquisitivo_id, data_inicio, data_fim, status')
+            .select('id, user_id, periodo_aquisitivo_id, data_inicio, data_fim, status, data_pagamento')
             .in('user_id', targetIds),
         ]);
 
@@ -223,6 +242,14 @@ const useFuncionariosFerias = () => {
             solicitacoes: solicitacoesFuncionario,
           });
 
+          // Find active solicitacao for this employee (em_andamento, aprovado, or current date range)
+          const hojeISO = new Date().toISOString().split('T')[0];
+          const solicitacaoAtiva = solicitacoesFuncionario.find(s => {
+            const statusNorm = normalizarStatus(s.status || '');
+            return (statusNorm === 'emandamento' || statusNorm === 'aprovado') ||
+              (s.data_inicio <= hojeISO && s.data_fim >= hojeISO);
+          }) || null;
+
           return {
             id: p.id,
             nome: p.nome,
@@ -233,6 +260,7 @@ const useFuncionariosFerias = () => {
             fim_periodo_concessivo: fimConcessivo.toISOString().split('T')[0],
             status,
             dias_para_vencer: diasParaVencer,
+            solicitacao_ativa: solicitacaoAtiva,
           } as FuncionarioFerias;
         }).filter(Boolean) as FuncionarioFerias[];
       } catch (error) {
@@ -272,6 +300,10 @@ export const CardControleFeriasCLT = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("todos");
+  const [dialogPagamento, setDialogPagamento] = useState(false);
+  const [funcionarioSelecionado, setFuncionarioSelecionado] = useState<FuncionarioFerias | null>(null);
+  const [processando, setProcessando] = useState(false);
+  const registrarPagamentoMutation = useRegistrarPagamentoFerias();
 
   useEffect(() => {
     const invalidate = () => {
@@ -291,6 +323,7 @@ export const CardControleFeriasCLT = () => {
       supabase.removeChannel(channel);
     };
   }, [queryClient]);
+
   const filtered = useMemo(() => {
     if (!funcionarios) return [];
     return funcionarios.filter(f => {
@@ -310,127 +343,247 @@ export const CardControleFeriasCLT = () => {
     };
   }, [funcionarios]);
 
+  const handleRegistrarPagamento = (func: FuncionarioFerias) => {
+    setFuncionarioSelecionado(func);
+    setDialogPagamento(true);
+  };
+
+  const confirmarPagamento = async () => {
+    if (!funcionarioSelecionado) return;
+    setProcessando(true);
+
+    try {
+      if (funcionarioSelecionado.solicitacao_ativa?.id) {
+        registrarPagamentoMutation.mutate(funcionarioSelecionado.solicitacao_ativa.id);
+      } else {
+        const hoje = new Date().toISOString().split('T')[0];
+        const { data: periodos } = await supabase
+          .from('periodos_aquisitivos')
+          .select('id')
+          .eq('user_id', funcionarioSelecionado.id)
+          .order('data_fim', { ascending: false })
+          .limit(1);
+
+        const periodoId = periodos?.[0]?.id;
+
+        const { error } = await supabase
+          .from('solicitacoes_ferias')
+          .insert({
+            user_id: funcionarioSelecionado.id,
+            periodo_aquisitivo_id: periodoId || null,
+            data_inicio: hoje,
+            data_fim: hoje,
+            dias_solicitados: 30,
+            tipo: 'ferias' as const,
+            status: 'em_andamento' as const,
+            observacao: 'Férias inseridas manualmente pelo administrador',
+            visualizada_admin: true,
+            data_pagamento: new Date().toISOString(),
+          });
+
+        if (error) throw error;
+
+        toast.success("Pagamento registrado com sucesso (Art. 145 CLT)");
+        queryClient.invalidateQueries({ queryKey: ["funcionarios-ferias-clt"] });
+        queryClient.invalidateQueries({ queryKey: ["solicitacoes-ferias"] });
+        queryClient.invalidateQueries({ queryKey: ["metricas-ferias"] });
+      }
+    } catch (err) {
+      console.error("Erro ao registrar pagamento:", err);
+      toast.error("Erro ao registrar pagamento das férias");
+    } finally {
+      setProcessando(false);
+      setDialogPagamento(false);
+      setFuncionarioSelecionado(null);
+    }
+  };
+
+  const renderPagamentoColumn = (func: FuncionarioFerias) => {
+    if (func.status !== 'em_ferias') {
+      return <span className="text-xs text-muted-foreground">-</span>;
+    }
+
+    if (func.solicitacao_ativa?.data_pagamento) {
+      const dataPgto = new Date(func.solicitacao_ativa.data_pagamento);
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Badge variant="outline" className="border-green-500 text-green-600">
+                <Check className="h-3 w-3 mr-1" />
+                Pago {format(dataPgto, "dd/MM", { locale: ptBR })}
+              </Badge>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Pagamento registrado em {format(dataPgto, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={(e) => { e.stopPropagation(); handleRegistrarPagamento(func); }}
+            >
+              <DollarSign className="h-4 w-4 text-green-600" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>Registrar pagamento de férias (Art. 145 CLT)</TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
   if (isLoading) {
     return <Card><CardContent className="p-6"><Skeleton className="h-64" /></CardContent></Card>;
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" />
-          Controle de Férias – CLT (Art. 129-153)
-        </CardTitle>
-        <p className="text-sm text-muted-foreground">
-          Previsão de férias com base no período aquisitivo e concessivo
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Status counters */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-          <div className="flex items-center gap-3 rounded-lg border p-3 bg-green-50 dark:bg-green-950/30">
-            <CheckCircle className="h-5 w-5 text-green-600" />
-            <div>
-              <p className="text-sm text-muted-foreground">Cumprindo</p>
-              <p className="text-xl font-bold text-green-700 dark:text-green-400">{counts.cumprindo}</p>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5 text-primary" />
+            Controle de Férias – CLT (Art. 129-153)
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Previsão de férias com base no período aquisitivo e concessivo
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Status counters */}
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div className="flex items-center gap-3 rounded-lg border p-3 bg-green-50 dark:bg-green-950/30">
+              <CheckCircle className="h-5 w-5 text-green-600" />
+              <div>
+                <p className="text-sm text-muted-foreground">Cumprindo</p>
+                <p className="text-xl font-bold text-green-700 dark:text-green-400">{counts.cumprindo}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-lg border p-3 bg-blue-50 dark:bg-blue-950/30">
+              <CheckCircle className="h-5 w-5 text-blue-600" />
+              <div>
+                <p className="text-sm text-muted-foreground">Em Férias</p>
+                <p className="text-xl font-bold text-blue-700 dark:text-blue-400">{counts.em_ferias}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-lg border p-3 bg-yellow-50 dark:bg-yellow-950/30">
+              <Clock className="h-5 w-5 text-yellow-600" />
+              <div>
+                <p className="text-sm text-muted-foreground">Prestes a Vencer</p>
+                <p className="text-xl font-bold text-yellow-700 dark:text-yellow-400">{counts.prestes_a_vencer}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-lg border p-3 bg-red-50 dark:bg-red-950/30">
+              <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div>
+                <p className="text-sm text-muted-foreground">Vencida</p>
+                <p className="text-xl font-bold text-red-700 dark:text-red-400">{counts.vencida}</p>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3 rounded-lg border p-3 bg-blue-50 dark:bg-blue-950/30">
-            <CheckCircle className="h-5 w-5 text-blue-600" />
-            <div>
-              <p className="text-sm text-muted-foreground">Em Férias</p>
-              <p className="text-xl font-bold text-blue-700 dark:text-blue-400">{counts.em_ferias}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-lg border p-3 bg-yellow-50 dark:bg-yellow-950/30">
-            <Clock className="h-5 w-5 text-yellow-600" />
-            <div>
-              <p className="text-sm text-muted-foreground">Prestes a Vencer</p>
-              <p className="text-xl font-bold text-yellow-700 dark:text-yellow-400">{counts.prestes_a_vencer}</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3 rounded-lg border p-3 bg-red-50 dark:bg-red-950/30">
-            <AlertTriangle className="h-5 w-5 text-red-600" />
-            <div>
-              <p className="text-sm text-muted-foreground">Vencida</p>
-              <p className="text-xl font-bold text-red-700 dark:text-red-400">{counts.vencida}</p>
-            </div>
-          </div>
-        </div>
 
-        {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por nome..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-9"
-            />
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nome..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os Status</SelectItem>
+                <SelectItem value="cumprindo">🟢 Cumprindo</SelectItem>
+                <SelectItem value="em_ferias">🔵 Em Férias</SelectItem>
+                <SelectItem value="prestes_a_vencer">🟡 Prestes a Vencer</SelectItem>
+                <SelectItem value="vencida">🔴 Vencida</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="todos">Todos os Status</SelectItem>
-              <SelectItem value="cumprindo">🟢 Cumprindo</SelectItem>
-              <SelectItem value="em_ferias">🔵 Em Férias</SelectItem>
-              <SelectItem value="prestes_a_vencer">🟡 Prestes a Vencer</SelectItem>
-              <SelectItem value="vencida">🔴 Vencida</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
 
-        {/* Table */}
-        <div className="border rounded-lg overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Funcionário</TableHead>
-                <TableHead>Data de Admissão</TableHead>
-                <TableHead>Fim Per. Aquisitivo</TableHead>
-                <TableHead>Fim Per. Concessivo</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.length === 0 ? (
+          {/* Table */}
+          <div className="border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                    Nenhum funcionário encontrado
-                  </TableCell>
+                  <TableHead>Funcionário</TableHead>
+                  <TableHead>Data de Admissão</TableHead>
+                  <TableHead>Fim Per. Aquisitivo</TableHead>
+                  <TableHead>Fim Per. Concessivo</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Pgto Férias</TableHead>
                 </TableRow>
-              ) : (
-                filtered.map((func) => {
-                  const statusConfig = getStatusConfig(func.status);
-                  return (
-                    <TableRow key={func.id}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{func.nome}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {func.cargo || '-'} {func.departamento ? `/ ${func.departamento}` : ''}
-                          </p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{formatDate(func.data_admissao)}</TableCell>
-                      <TableCell>{formatDate(func.fim_periodo_aquisitivo)}</TableCell>
-                      <TableCell>{formatDate(func.fim_periodo_concessivo)}</TableCell>
-                      <TableCell>
-                        <Badge className={statusConfig.color}>
-                          {statusConfig.label}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </CardContent>
-    </Card>
+              </TableHeader>
+              <TableBody>
+                {filtered.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                      Nenhum funcionário encontrado
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filtered.map((func) => {
+                    const statusConfig = getStatusConfig(func.status);
+                    return (
+                      <TableRow key={func.id}>
+                        <TableCell>
+                          <div>
+                            <p className="font-medium">{func.nome}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {func.cargo || '-'} {func.departamento ? `/ ${func.departamento}` : ''}
+                            </p>
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatDate(func.data_admissao)}</TableCell>
+                        <TableCell>{formatDate(func.fim_periodo_aquisitivo)}</TableCell>
+                        <TableCell>{formatDate(func.fim_periodo_concessivo)}</TableCell>
+                        <TableCell>
+                          <Badge className={statusConfig.color}>
+                            {statusConfig.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>{renderPagamentoColumn(func)}</TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <AlertDialog open={dialogPagamento} onOpenChange={setDialogPagamento}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Registrar Pagamento de Férias</AlertDialogTitle>
+            <AlertDialogDescription>
+              Confirma o registro do pagamento das férias de <strong>{funcionarioSelecionado?.nome}</strong>? 
+              A data atual será registrada como data de pagamento (CLT Art. 145).
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={processando}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmarPagamento} disabled={processando}>
+              {processando ? "Registrando..." : "Confirmar Pagamento"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
