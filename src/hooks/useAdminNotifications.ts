@@ -44,6 +44,7 @@ export function useAdminNotifications() {
         .from("chamados_suporte")
         .select("id, created_at, assunto, categoria, user_id, profiles:user_id(nome)")
         .eq("status", "aberto")
+        .neq("categoria", "ferias")
         .order("created_at", { ascending: false })
         .limit(20);
       if (error) throw error;
