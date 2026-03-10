@@ -242,12 +242,24 @@ const Funcionarios = () => {
   const [cargosLista, setCargosLista] = useState<{id: string; nome: string}[]>([]);
   const [isSavingCargo, setIsSavingCargo] = useState(false);
 
+  // Departamentos
+  const [departamentoDialogOpen, setDepartamentoDialogOpen] = useState(false);
+  const [novoDepartamento, setNovoDepartamento] = useState("");
+  const [novaDescricaoDepartamento, setNovaDescricaoDepartamento] = useState("");
+  const [departamentosLista, setDepartamentosLista] = useState<{id: string; nome: string}[]>([]);
+  const [isSavingDepartamento, setIsSavingDepartamento] = useState(false);
+
   useEffect(() => {
     const fetchCargos = async () => {
       const { data } = await supabase.from("cargos" as any).select("id, nome").order("nome");
       if (data) setCargosLista(data as any);
     };
+    const fetchDepartamentos = async () => {
+      const { data } = await supabase.from("departamentos" as any).select("id, nome").order("nome");
+      if (data) setDepartamentosLista(data as any);
+    };
     fetchCargos();
+    fetchDepartamentos();
   }, []);
 
   const handleSaveCargo = async () => {
