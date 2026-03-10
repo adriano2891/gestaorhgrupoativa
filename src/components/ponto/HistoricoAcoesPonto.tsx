@@ -142,7 +142,7 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
         hora,
         log._displayName || log.autorizado_por_nome || "-",
         tipo,
-        `${log.campo_editado}: ${log.valor_anterior || "—"} → ${log.valor_novo || "—"} (dia ${new Date(log.data_registro).getDate().toString().padStart(2, "0")})`,
+        `${log.campo_editado}: ${log.valor_anterior || "—"} → ${log.valor_novo || "—"} (dia ${log.data_registro ? String(log.data_registro).split("-")[2]?.padStart(2, "0") || "--" : "--"})`,
       ];
     });
 
@@ -230,7 +230,7 @@ export const HistoricoAcoesPonto = ({ selectedMonth, selectedYear }: HistoricoAc
                           {" — "}
                           {log.campo_editado}: {log.valor_anterior || "—"} → {log.valor_novo || "—"}
                           {" (dia "}
-                          {new Date(log.data_registro).getDate().toString().padStart(2, "0")}
+                          {log.data_registro ? String(log.data_registro).split("-")[2]?.padStart(2, "0") || "--" : "--"}
                           {")"}
                         </TableCell>
                       </TableRow>
