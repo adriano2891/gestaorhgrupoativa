@@ -32,11 +32,9 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
             <button
               key={report.id}
               onClick={() => onSelectReport(report.id)}
-              className="relative bg-white dark:bg-gray-800 rounded-xl border-[1.5px] border-border shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 text-left group flex flex-col h-full min-h-[160px]"
+              className="relative bg-white dark:bg-gray-800 rounded-xl border-[1.5px] border-border border-l-[3px] border-l-primary shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 text-left group flex flex-col h-full min-h-[160px]"
               style={{ animationDelay: `${idx * 0.04}s` }}
             >
-              {/* Left accent bar */}
-              <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style={{ backgroundColor: '#3ee0cf' }} />
 
               {/* Gradient overlay on hover */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
