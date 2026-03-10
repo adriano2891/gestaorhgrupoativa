@@ -129,27 +129,27 @@ const GerenciarAdmins = () => {
     <div className="space-y-6" style={{ fontFamily: 'Arial, sans-serif' }}>
       <BackButton to="/gestao-rh" variant="light" />
       
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
             Gerenciar Admins
           </h1>
-          <p className="mt-1 text-muted-foreground">
+          <p className="mt-1 text-sm sm:text-base text-muted-foreground">
             Gerencie administradores e suas permissões
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => gerarPdfAdminsAuditoria(admins, auditoria)}>
-            <FileText className="h-4 w-4 mr-2" />
-            Relatório PDF
+        <div className="flex flex-wrap gap-2 self-end sm:self-auto shrink-0">
+          <Button variant="outline" size="sm" onClick={() => gerarPdfAdminsAuditoria(admins, auditoria)} className="text-xs sm:text-sm">
+            <FileText className="h-4 w-4 mr-1 sm:mr-2" />
+            <span className="hidden xs:inline">Relatório</span> PDF
           </Button>
-          <Button variant="outline" onClick={handleRefresh} disabled={isFetching}>
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isFetching}>
             <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
           </Button>
           {isSuperAdmin && (
-            <Button onClick={handleAddAdmin}>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Adicionar Admin
+            <Button size="sm" onClick={handleAddAdmin} className="text-xs sm:text-sm">
+              <UserPlus className="h-4 w-4 mr-1 sm:mr-2" />
+              <span className="hidden xs:inline">Adicionar</span> Admin
             </Button>
           )}
         </div>
