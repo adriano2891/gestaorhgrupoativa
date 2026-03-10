@@ -1697,20 +1697,30 @@ const Funcionarios = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label htmlFor="department" className="text-sm">Departamento</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="department" className="text-sm">Departamento</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs gap-1 text-primary"
+                      onClick={() => setDepartamentoDialogOpen(true)}
+                    >
+                      <Plus className="h-3 w-3" />
+                      Adicionar
+                    </Button>
+                  </div>
                   <Select
                     value={editingEmployee.department}
                     onValueChange={(value) => updateEditingEmployee('department', value)}
                   >
                     <SelectTrigger className="h-9">
-                      <SelectValue />
+                      <SelectValue placeholder="Selecione um departamento" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Tecnologia">Tecnologia</SelectItem>
-                      <SelectItem value="Recursos Humanos">Recursos Humanos</SelectItem>
-                      <SelectItem value="Comercial">Comercial</SelectItem>
-                      <SelectItem value="Financeiro">Financeiro</SelectItem>
-                      <SelectItem value="Operações">Operações</SelectItem>
+                      {departamentosLista.map((dep) => (
+                        <SelectItem key={dep.id} value={dep.nome}>{dep.nome}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
