@@ -417,11 +417,11 @@ export const ReportViewer = ({ reportType, data }: ReportViewerProps) => {
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis 
                           dataKey={Object.keys(chart.data[0])[0]} 
-                          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                          tick={{ fontSize: 12, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                           axisLine={{ stroke: 'hsl(var(--border))' }}
                         />
                         <YAxis 
-                          tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
+                          tick={{ fontSize: 12, fontFamily: 'Arial, Helvetica, sans-serif', fill: 'hsl(var(--muted-foreground))' }}
                           axisLine={{ stroke: 'hsl(var(--border))' }}
                         />
                         <Tooltip content={<CustomTooltip />} />
