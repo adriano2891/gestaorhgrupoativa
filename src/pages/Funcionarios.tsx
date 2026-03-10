@@ -2430,6 +2430,30 @@ const Funcionarios = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Adicionar Departamento */}
+      <Dialog open={departamentoDialogOpen} onOpenChange={setDepartamentoDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo Departamento</DialogTitle>
+            <DialogDescription>Cadastre um novo departamento para selecionar nos funcionários.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nome do Departamento *</Label>
+              <Input placeholder="Ex: Marketing" value={novoDepartamento} onChange={(e) => setNovoDepartamento(e.target.value)} maxLength={100} />
+            </div>
+            <div className="space-y-2">
+              <Label>Descrição (opcional)</Label>
+              <Input placeholder="Descrição do departamento" value={novaDescricaoDepartamento} onChange={(e) => setNovaDescricaoDepartamento(e.target.value)} maxLength={500} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDepartamentoDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveDepartamento} disabled={isSavingDepartamento}>{isSavingDepartamento ? "Salvando..." : "Cadastrar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
