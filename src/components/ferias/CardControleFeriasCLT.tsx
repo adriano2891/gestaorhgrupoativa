@@ -51,13 +51,14 @@ interface PeriodoAquisitivoRow {
 }
 
 interface SolicitacaoFeriasRow {
+  id?: string;
   user_id: string;
   periodo_aquisitivo_id: string | null;
   data_inicio: string;
   data_fim: string;
   status: string;
+  data_pagamento?: string | null;
 }
-
 const startOfToday = () => {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
