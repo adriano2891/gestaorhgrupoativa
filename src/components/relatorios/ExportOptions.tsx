@@ -373,12 +373,13 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
               head: [chartHeaders],
               body: chartRows,
               theme: "grid",
-              styles: { fontSize: 8, cellPadding: 2 },
+              styles: { fontSize: 8, cellPadding: 2, font: "helvetica" },
               headStyles: {
                 fillColor: [17, 188, 183],
                 textColor: [255, 255, 255],
                 fontStyle: "bold",
                 halign: "center",
+                font: "helvetica",
               },
               tableWidth: "wrap",
               margin: { left: margin },
@@ -455,6 +456,7 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
           fontSize: 7,
           cellPadding: 2,
           overflow: "linebreak",
+          font: "helvetica",
         },
         headStyles: {
           fillColor: [17, 188, 183],
@@ -462,6 +464,7 @@ export const ExportOptions = ({ data, reportTitle, summary, charts, onExportComp
           fontStyle: "bold",
           halign: "center",
           fontSize: 8,
+          font: "helvetica",
         },
         alternateRowStyles: {
           fillColor: [245, 247, 250],
