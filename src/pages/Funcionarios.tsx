@@ -2372,7 +2372,6 @@ const Funcionarios = () => {
         </DialogContent>
       </Dialog>
     </div>
-    
   );
 };
 
