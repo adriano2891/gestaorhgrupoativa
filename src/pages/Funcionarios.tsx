@@ -291,7 +291,35 @@ const Funcionarios = () => {
     }
   };
 
-  const formatPhone = (value: string) => {
+  const handleSaveDepartamento = async () => {
+    if (!novoDepartamento.trim()) {
+      toast({ title: "Nome obrigatório", description: "Informe o nome do departamento.", variant: "destructive" });
+      return;
+    }
+    setIsSavingDepartamento(true);
+    try {
+      const { error } = await supabase.from("departamentos" as any).insert({ nome: novoDepartamento.trim(), descricao: novaDescricaoDepartamento.trim() || null } as any);
+      if (error) {
+        if (error.code === "23505") {
+          toast({ title: "Departamento duplicado", description: "Já existe um departamento com este nome.", variant: "destructive" });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({ title: "Departamento cadastrado!" });
+        const { data } = await supabase.from("departamentos" as any).select("id, nome").order("nome");
+        if (data) setDepartamentosLista(data as any);
+        setNovoDepartamento("");
+        setNovaDescricaoDepartamento("");
+        setDepartamentoDialogOpen(false);
+      }
+    } catch {
+      toast({ title: "Erro ao cadastrar departamento", variant: "destructive" });
+    } finally {
+      setIsSavingDepartamento(false);
+    }
+  };
+
     const numbers = value.replace(/\D/g, '').slice(0, 11);
     if (numbers.length <= 2) return numbers.replace(/(\d{0,2})/, '($1');
     if (numbers.length <= 3) return numbers.replace(/(\d{2})(\d{0,1})/, '($1) $2');
