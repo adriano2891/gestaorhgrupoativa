@@ -186,6 +186,13 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                     )}
                   </TableCell>
                   <TableCell>
+                    {isPlanoType(b.tipo) ? (
+                      b.valor > 0 
+                        ? <span className="text-sm font-medium text-primary">R$ {b.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                        : <span className="text-muted-foreground">—</span>
+                    ) : isAdicionalType(b.tipo) ? "—" : "—"}
+                  </TableCell>
+                  <TableCell>
                     {isPlanoType(b.tipo) || isAdicionalType(b.tipo) ? "—" : `${b.desconto_percentual}%`}
                   </TableCell>
                   <TableCell>
