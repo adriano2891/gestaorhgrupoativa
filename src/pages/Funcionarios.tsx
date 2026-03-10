@@ -998,6 +998,21 @@ const Funcionarios = () => {
       console.log("handleSaveNewEmployee: Validando schema...");
       employeeSchema.parse(dataToValidate);
       console.log("handleSaveNewEmployee: Schema OK");
+
+      // Validação de idade mínima (16 anos)
+      if (newEmployee.dataNascimento) {
+        const nascimento = new Date(newEmployee.dataNascimento + 'T12:00:00');
+        const hoje = new Date();
+        let idade = hoje.getFullYear() - nascimento.getFullYear();
+        const mesAtual = hoje.getMonth();
+        const mesNasc = nascimento.getMonth();
+        if (mesAtual < mesNasc || (mesAtual === mesNasc && hoje.getDate() < nascimento.getDate())) {
+          idade--;
+        }
+        if (idade < 16) {
+          throw new Error("Cadastro não permitido. Funcionários devem ter no mínimo 16 anos de idade.");
+        }
+      }
       
       const cpfNumeros = newEmployee.cpf.replace(/\D/g, "");
       
