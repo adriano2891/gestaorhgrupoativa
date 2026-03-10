@@ -36,12 +36,17 @@ const getHeaders = () => {
     'Authorization': `Bearer ${token || SUPABASE_KEY}`,
     'Content-Type': 'application/json',
     'Accept': 'application/json',
+    'Cache-Control': 'no-store, no-cache, must-revalidate',
+    'Pragma': 'no-cache',
   };
 };
 
 export const restGet = async (path: string) => {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+  const separator = path.includes('?') ? '&' : '?';
+  const cacheBust = `${separator}_t=${Date.now()}`;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}${cacheBust}`, {
     headers: getHeaders(),
+    cache: 'no-store',
   });
   if (!res.ok) throw new Error(`REST GET ${res.status}`);
   return res.json();

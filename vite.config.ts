@@ -53,8 +53,11 @@ export default defineConfig(({ mode }) => ({
           },
           {
             urlPattern: /\/rest\/v1\/.*/i,
-            handler: "NetworkFirst",
-            options: { cacheName: "api-cache", expiration: { maxEntries: 50, maxAgeSeconds: 60 }, networkTimeoutSeconds: 5 },
+            handler: "NetworkOnly",
+          },
+          {
+            urlPattern: /\/auth\/v1\/.*/i,
+            handler: "NetworkOnly",
           },
         ],
       },
