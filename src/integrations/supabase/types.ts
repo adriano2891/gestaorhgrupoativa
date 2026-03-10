@@ -3400,6 +3400,48 @@ export type Database = {
           },
         ]
       }
+      notificacoes_web: {
+        Row: {
+          categoria: string | null
+          created_at: string | null
+          fonte: string
+          hash_conteudo: string
+          id: string
+          lida: boolean | null
+          relevancia: string | null
+          resumo: string
+          titulo: string
+          updated_at: string | null
+          url_fonte: string
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string | null
+          fonte: string
+          hash_conteudo: string
+          id?: string
+          lida?: boolean | null
+          relevancia?: string | null
+          resumo: string
+          titulo: string
+          updated_at?: string | null
+          url_fonte: string
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string | null
+          fonte?: string
+          hash_conteudo?: string
+          id?: string
+          lida?: boolean | null
+          relevancia?: string | null
+          resumo?: string
+          titulo?: string
+          updated_at?: string | null
+          url_fonte?: string
+        }
+        Relationships: []
+      }
       ocorrencias_ponto: {
         Row: {
           created_at: string
