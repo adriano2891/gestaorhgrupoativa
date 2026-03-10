@@ -17,67 +17,69 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
   const categories = Array.from(new Set(reports.map(r => r.category)));
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      {categories.map((category, idx) => (
-        <div 
-          key={category}
-          className="animate-fade-in"
-          style={{ animationDelay: `${idx * 0.1}s` }}
-        >
-          <div className="mb-3 sm:mb-5 flex items-center gap-2 sm:gap-3">
-            <div className="h-1 w-8 sm:w-12 rounded-full" style={{ backgroundColor: '#19b2b0' }}></div>
-            <h3 className="text-base sm:text-lg md:text-xl font-extrabold tracking-wide uppercase" style={{ fontFamily: 'Arial, sans-serif', color: '#3ee0cf' }}>{category}</h3>
-            <div className="h-1 flex-1 rounded-full" style={{ backgroundColor: '#19b2b0', opacity: 0.5 }}></div>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-5">
-            {reports
-              .filter(r => r.category === category)
-              .map((report, reportIdx) => {
-                const Icon = report.icon;
-                return (
-                  <button
-                    key={report.id}
-                    onClick={() => onSelectReport(report.id)}
-                    className="relative bg-white dark:bg-gray-800 rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-5 shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-[1.02] sm:hover:scale-[1.03] hover:-translate-y-1 text-left group overflow-hidden"
-                    style={{ animationDelay: `${(idx * 0.1) + (reportIdx * 0.05)}s` }}
+    <div className="space-y-8">
+      <h2
+        className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-wide uppercase"
+        style={{ fontFamily: 'Arial, sans-serif', color: '#19b2b0' }}
+      >
+        Relatórios de Funcionários
+      </h2>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+        {reports.map((report, idx) => {
+          const Icon = report.icon;
+          return (
+            <button
+              key={report.id}
+              onClick={() => onSelectReport(report.id)}
+              className="relative bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.02] hover:-translate-y-1 text-left group overflow-hidden flex flex-col h-full min-h-[160px]"
+              style={{ animationDelay: `${idx * 0.04}s` }}
+            >
+              {/* Left accent bar */}
+              <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl" style={{ backgroundColor: '#3ee0cf' }} />
+
+              {/* Gradient overlay on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+              <div className="relative flex flex-col flex-1 p-4 sm:p-5 pl-5 sm:pl-6">
+                {/* Icon + Title */}
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="flex-shrink-0 w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
+                    <Icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <h4
+                    className="font-bold text-sm sm:text-base leading-tight group-hover:text-primary transition-colors"
+                    style={{ fontFamily: 'Arial, sans-serif', color: '#19b2b0' }}
                   >
-                    {/* Gradient overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    
-                    <div className="relative">
-                      <div className="flex items-start gap-3 sm:gap-4 mb-2 sm:mb-3">
-                        <div className="relative flex-shrink-0">
-                          <div className="absolute inset-0 bg-primary/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                          <div className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 rounded-full bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                            <Icon className="h-5 w-5 sm:h-6 sm:w-6 text-primary group-hover:text-primary transition-colors" />
-                          </div>
-                        </div>
-                        
-                        <div className="flex-1 min-w-0 pt-0.5 sm:pt-1">
-                          <h4 className="font-bold mb-1 sm:mb-1.5 group-hover:text-primary transition-colors text-sm sm:text-base leading-tight" style={{ fontFamily: 'Arial, sans-serif', color: '#19b2b0' }}>
-                            {report.name}
-                          </h4>
-                          <p className="text-xs sm:text-sm text-muted-foreground dark:text-gray-400 line-clamp-2 leading-relaxed" style={{ fontFamily: 'Arial, sans-serif' }}>
-                            {report.description}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {/* Arrow indicator */}
-                      <div className="flex items-center justify-end gap-2 text-primary opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-2 group-hover:translate-x-0">
-                        <span className="text-[10px] sm:text-xs font-semibold" style={{ fontFamily: 'Arial, sans-serif' }}>Ver relatório</span>
-                        <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-          </div>
-        </div>
-      ))}
+                    {report.name}
+                  </h4>
+                </div>
+
+                {/* Description */}
+                <p
+                  className="text-xs sm:text-sm text-muted-foreground dark:text-gray-400 leading-relaxed flex-1"
+                  style={{ fontFamily: 'Arial, sans-serif' }}
+                >
+                  {report.description}
+                </p>
+
+                {/* "Ver relatório" always visible at bottom */}
+                <div className="flex items-center gap-1.5 mt-3 pt-3 border-t border-muted/30">
+                  <span
+                    className="text-xs font-semibold text-primary group-hover:underline"
+                    style={{ fontFamily: 'Arial, sans-serif' }}
+                  >
+                    Ver relatório
+                  </span>
+                  <svg className="w-3.5 h-3.5 text-primary group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 };
