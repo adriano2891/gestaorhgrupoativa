@@ -117,6 +117,10 @@ Deno.serve(async (req) => {
     const atribuicaoIds = (atribuicoesRes.data || []).map(a => a.id);
     const docIds = (docsRes.data || []).map(d => d.id);
 
+    // 0b) Fetch registro_ponto IDs for cascading deletes
+    const registrosRes = await supabaseAdmin.from('registros_ponto').select('id').eq('user_id', user_id);
+    const registroIds = (registrosRes.data || []).map(r => r.id);
+
     // 1) Delete deepest leaf records in parallel
     await Promise.all([
       deleteByUserId('dependentes_funcionario'),
@@ -128,7 +132,10 @@ Deno.serve(async (req) => {
       deleteByUserId('logs_relatorios', 'usuario_id'),
       deleteByUserId('historico_ferias'),
       deleteByUserId('holerites'),
-      deleteByUserId('registros_ponto'),
+      // Delete tables that reference registros_ponto first
+      deleteByIds('solicitacoes_ajuste_ponto', 'registro_ponto_id', registroIds),
+      deleteByIds('ocorrencias_ponto', 'registro_ponto_id', registroIds),
+      deleteByUserId('solicitacoes_ajuste_ponto', 'user_id'),
       deleteByUserId('notificacoes_lidas'),
       deleteByUserId('tentativas_avaliacao'),
       deleteByUserId('logs_acesso_curso'),
