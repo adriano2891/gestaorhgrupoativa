@@ -87,10 +87,11 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
     }
 
     try {
+      const valorPlano = isPlano ? parseFloat(valorCustoPlano.replace(",", ".")) || 0 : 0;
       const insertData: any = {
         user_id: userId,
         tipo,
-        valor: isPlano ? 0 : isAdicional ? 0 : parseFloat(valor.replace(",", ".")),
+        valor: isPlano ? valorPlano : isAdicional ? 0 : parseFloat(valor.replace(",", ".")),
         desconto_percentual: isPlano || isAdicional ? 0 : (parseFloat(desconto) || 0),
         observacoes: isPlano ? nomePlano.trim() : isAdicional ? grauInsalubridade : null,
       };
@@ -104,6 +105,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
       setDialogOpen(false);
       setValor("");
       setNomePlano("");
+      setValorCustoPlano("");
       loadBeneficios();
     } catch (e: any) {
       toast.error("Erro ao adicionar benefício", { description: e.message });
