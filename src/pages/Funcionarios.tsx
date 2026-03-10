@@ -2347,6 +2347,30 @@ const Funcionarios = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog Adicionar Cargo */}
+      <Dialog open={cargoDialogOpen} onOpenChange={setCargoDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Novo Cargo</DialogTitle>
+            <DialogDescription>Cadastre um novo cargo para selecionar nos funcionários.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Nome do Cargo *</Label>
+              <Input placeholder="Ex: Analista de RH" value={novoCargo} onChange={(e) => setNovoCargo(e.target.value)} maxLength={100} />
+            </div>
+            <div className="space-y-2">
+              <Label>Descrição (opcional)</Label>
+              <Input placeholder="Descrição do cargo" value={novaDescricaoCargo} onChange={(e) => setNovaDescricaoCargo(e.target.value)} maxLength={500} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCargoDialogOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSaveCargo} disabled={isSavingCargo}>{isSavingCargo ? "Salvando..." : "Cadastrar"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
     
   );
