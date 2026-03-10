@@ -178,8 +178,8 @@ const DirectVideoPlayer = ({
   const [errorMessage, setErrorMessage] = useState("");
   const [showControls, setShowControls] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
-  const stallTimerRef = useRef<NodeJS.Timeout>();
+  const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const stallTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const lastProgressTimeRef = useRef<number>(0);
   const maxRetries = 3;
 
