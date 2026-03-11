@@ -83,6 +83,10 @@ const LazyLayout = ({ children }: { children: React.ReactNode }) => (
   <Layout>{children}</Layout>
 );
 
+const SILayout = ({ children }: { children: React.ReactNode }) => (
+  <SistemaIntegradoLayout>{children}</SistemaIntegradoLayout>
+);
+
 const App = () => {
   // Global safety net for unhandled promise rejections
   useEffect(() => {
