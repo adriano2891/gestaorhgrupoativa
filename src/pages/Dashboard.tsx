@@ -58,7 +58,7 @@ const Dashboard = () => {
     '/fornecedores': () => import("./Fornecedores"),
     '/orcamentos': () => import("./OrcamentosDashboard"),
     '/inventario': () => import("./InventarioEquipamentos"),
-    '/documentacoes': () => import("./Documentacoes"),
+    '/documentacoes-sistema': () => import("./DocumentacoesSistema"),
     '/gestao-backups': () => import("./GestaoBackups"),
   }), []);
 

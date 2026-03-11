@@ -351,6 +351,16 @@ const App = () => {
                       }
                     />
                     <Route
+                      path="/documentacoes-sistema"
+                      element={
+                        <ProtectedRoute>
+                          <LazyLayout>
+                            <DocumentacoesSistema />
+                          </LazyLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
                       path="/cursos"
                       element={
                         <ProtectedRoute>
