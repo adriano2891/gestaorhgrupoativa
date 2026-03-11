@@ -30,14 +30,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDocumentosSistema, useDocumentosSistemaCategorias, useMeusFavoritosSistema, useDeleteDocumentoSistema, useToggleFavoritoSistema, useDeleteCategoriaSistema, getDocumentoSistemaAccessUrl, registrarAcessoDocumentoSistema } from "@/hooks/useDocumentosSistema";
+import { useDocumentosSistema, useDocumentosSistemaCategorias, useMeusFavoritosSistema, useDeleteDocumentoSistema, useToggleFavoritoSistema, useDeleteCategoriaSistema, getDocumentoSistemaAccessUrl, registrarAcessoDocumentoSistema, type DocumentoSistema } from "@/hooks/useDocumentosSistema";
 import { gerarPdfRelatorioDocumentos } from "@/utils/documentosPdfAuditoria";
 import { UploadDocumentoSistemaDialog } from "@/components/documentos-sistema/UploadDocumentoSistemaDialog";
 import { CriarCategoriaSistemaDialog } from "@/components/documentos-sistema/CriarCategoriaSistemaDialog";
 import { EditarCategoriaSistemaDialog } from "@/components/documentos-sistema/EditarCategoriaSistemaDialog";
 import { DocumentoDetalhesSistemaDialog } from "@/components/documentos-sistema/DocumentoDetalhesSistemaDialog";
 import { EditarDocumentoSistemaDialog } from "@/components/documentos-sistema/EditarDocumentoSistemaDialog";
-import { TIPO_LABELS, type Documento, type DocumentoTipo } from "@/types/documentos";
+import { TIPO_LABELS, type DocumentoTipo } from "@/types/documentos";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
