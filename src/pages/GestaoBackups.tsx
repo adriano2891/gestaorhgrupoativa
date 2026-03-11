@@ -523,7 +523,7 @@ const GestaoBackups = () => {
             <p><strong>Exclusões:</strong> Portal do Funcionário, caches, arquivos temporários e logs antigos.</p>
             <p><strong>Formato:</strong> JSON com metadados e hash SHA-256 de integridade.</p>
             <p><strong>Armazenamento:</strong> Bucket privado com acesso restrito a administradores.</p>
-            <p><strong>Agendamento automático:</strong> Backup completo diário às 23h (cron).</p>
+            <p><strong>Agendamento automático:</strong> Backup completo diário às 11h (cron).</p>
             <p><strong>Restauração:</strong> Selecione um arquivo JSON exportado. O sistema verifica a integridade (SHA-256), cria um backup de segurança do estado atual e restaura os dados.</p>
           </CardContent>
         </Card>
