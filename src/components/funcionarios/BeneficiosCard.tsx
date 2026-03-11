@@ -189,6 +189,11 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                           : "30% do salário base"
                         }
                       </span>
+                    ) : isBonificacaoType(b.tipo) ? (
+                      <div>
+                        <span className="text-sm font-medium">R$ {b.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                        {b.observacoes && <p className="text-xs text-muted-foreground">{b.observacoes}</p>}
+                      </div>
                     ) : (
                       <>R$ {b.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</>
                     )}
