@@ -557,18 +557,18 @@ const DocumentacoesSistema = () => {
       </main>
 
       {/* Dialogs */}
-      <UploadDocumentoDialog 
+      <UploadDocumentoSistemaDialog 
         open={showUploadDialog} 
         onOpenChange={handleUploadDialogChange}
         categorias={categorias || []}
       />
-      <CriarCategoriaDialog 
+      <CriarCategoriaSistemaDialog 
         open={showCategoriaDialog} 
         onOpenChange={setShowCategoriaDialog}
         categorias={categorias || []}
       />
       {selectedDocumento && (
-        <DocumentoDetalhesDialog
+        <DocumentoDetalhesSistemaDialog
           documento={selectedDocumento}
           open={!!selectedDocumento}
           onOpenChange={(open) => !open && setSelectedDocumento(null)}
@@ -576,7 +576,7 @@ const DocumentacoesSistema = () => {
           onToggleFavorito={() => handleToggleFavorito(selectedDocumento)}
         />
       )}
-      <EditarDocumentoDialog
+      <EditarDocumentoSistemaDialog
         documento={editingDocumento}
         open={!!editingDocumento}
         onOpenChange={(open) => !open && setEditingDocumento(null)}
