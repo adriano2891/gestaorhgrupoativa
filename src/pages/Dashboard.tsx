@@ -257,164 +257,99 @@ const Dashboard = () => {
     );
   }
 
+  // Helper to render module button for circle layouts
+  const renderCircleModule = (module: ModuleItem, index: number, total: number, radius: number, iconSize: number, ringWidth: string, fontSize: string, maxLabelW: string) => {
+    const { x, y } = getModulePosition(index, total, radius);
+    return (
+      <button
+        key={module.id}
+        disabled={module.disabled}
+        className={`absolute module-icon-container focus-ring rounded-xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
+        style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
+        onClick={() => !module.disabled && module.route && navigate(module.route)}
+        onMouseEnter={() => handlePrefetch(module.route)}
+        aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
+      >
+        <div className="flex flex-col items-center">
+          <div
+            className={`icon-ring rounded-full flex items-center justify-center overflow-hidden ${ringWidth}`}
+            style={{ width: `${iconSize}px`, height: `${iconSize}px`, boxShadow: '0 6px 24px rgba(0,0,0,0.15), 0 0 0 3px rgba(62,224,207,0.3)' }}
+          >
+            <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-cover" />
+          </div>
+          <div className="module-label-card mt-2">
+            <p className={`text-center font-semibold ${fontSize} leading-tight`} style={{ color: '#1a5c58', maxWidth: maxLabelW }}>
+              {module.label}
+            </p>
+          </div>
+        </div>
+      </button>
+    );
+  };
+
   return (
-    <div 
-      className="min-h-screen relative overflow-x-hidden overflow-y-auto flex flex-col"
-      style={{ backgroundColor: '#40E0D0' }}
-    >
+    <div className="min-h-screen relative overflow-x-hidden overflow-y-auto flex flex-col">
+      {/* Background image */}
+      <div
+        className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-10"
+        style={{ backgroundImage: `url(${dashboardBg})` }}
+      />
+      {/* Dark overlay for contrast */}
+      <div className="fixed inset-0 bg-gradient-to-b from-black/35 via-black/20 to-black/45 -z-10" />
+
       <style>{hoverStyles}</style>
       
-      {/* Header com título e botão sair */}
+      {/* Header */}
       <div className="flex items-start justify-between px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 lg:pt-8 relative z-10">
         <h1 
           className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl text-white italic max-w-[70%]"
-          style={{ fontFamily: "'Pacifico', cursive", textShadow: '2px 2px 4px rgba(0,0,0,0.2)' }}
+          style={{ fontFamily: "'Pacifico', cursive", textShadow: '2px 2px 6px rgba(0,0,0,0.5)' }}
         >
           Sistema Integrado de Gerenciamento GRUPO ATIVA
         </h1>
         <button
           onClick={handleLogout}
           aria-label="Sair do sistema"
-          className="flex items-center gap-1 sm:gap-2 text-primary-foreground hover:opacity-80 transition-opacity flex-shrink-0 focus-ring rounded-md"
+          className="flex items-center gap-1 sm:gap-2 text-white hover:opacity-80 transition-opacity flex-shrink-0 focus-ring rounded-md"
         >
           <LogOut className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6" aria-hidden="true" />
-          <span className="text-xs sm:text-sm lg:text-lg font-medium">Sair</span>
+          <span className="text-xs sm:text-sm lg:text-lg font-medium" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>Sair</span>
         </button>
       </div>
 
-      {/* Container central com logo e módulos */}
+      {/* Container central */}
       <div className="flex-1 relative w-full flex items-center justify-center px-4 py-2 min-h-[400px]">
         
-        {/* Logo Central - Absolutamente centralizada */}
+        {/* Logo Central */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-44 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-lg opacity-90"
+            className="w-44 sm:w-40 md:w-48 lg:w-56 xl:w-64 2xl:w-72 h-auto drop-shadow-2xl opacity-90"
           />
         </div>
 
-        {/* Módulos em círculo - XL screens */}
+        {/* XL */}
         <div className="hidden xl:block relative" style={{ width: '700px', height: '500px' }}>
-          {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 260);
-            
-            return (
-              <button
-                key={module.id}
-                disabled={module.disabled}
-                className={`absolute module-icon-container focus-ring rounded-xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-                style={{
-                  left: '50%',
-                  top: '50%',
-                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-                }}
-                onClick={() => !module.disabled && module.route && navigate(module.route)}
-                onMouseEnter={() => handlePrefetch(module.route)}
-                aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
-              >
-                <div className="flex flex-col items-center">
-                  <div 
-                    className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-4 ring-primary-foreground/30"
-                    style={{ width: '112px', height: '112px' }}
-                  >
-                    <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-cover" />
-                  </div>
-                  <p 
-                    className="text-center mt-3 font-semibold text-primary-foreground text-sm max-w-[120px] leading-tight"
-                    style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}
-                  >
-                    {module.label}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
+          {modules.map((m, i) => renderCircleModule(m, i, modules.length, 260, 112, 'ring-4', 'text-sm', '120px'))}
         </div>
 
-        {/* Módulos em círculo - LG screens */}
+        {/* LG */}
         <div className="hidden lg:block xl:hidden relative" style={{ width: '600px', height: '450px' }}>
-          {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 220);
-            return (
-              <button
-                key={module.id}
-                disabled={module.disabled}
-                className={`absolute module-icon-container focus-ring rounded-xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-                style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
-                onClick={() => !module.disabled && module.route && navigate(module.route)}
-                onMouseEnter={() => handlePrefetch(module.route)}
-                aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
-              >
-                <div className="flex flex-col items-center">
-                  <div className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-3 ring-primary-foreground/30" style={{ width: '96px', height: '96px' }}>
-                    <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-cover" />
-                  </div>
-                  <p className="text-center mt-2 font-semibold text-primary-foreground text-xs max-w-[100px] leading-tight" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
-                    {module.label}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
+          {modules.map((m, i) => renderCircleModule(m, i, modules.length, 220, 96, 'ring-3', 'text-xs', '100px'))}
         </div>
 
-        {/* Módulos em círculo - MD screens */}
+        {/* MD */}
         <div className="hidden md:block lg:hidden relative" style={{ width: '500px', height: '400px' }}>
-          {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 180);
-            return (
-              <button
-                key={module.id}
-                disabled={module.disabled}
-                className={`absolute module-icon-container focus-ring rounded-xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-                style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
-                onClick={() => !module.disabled && module.route && navigate(module.route)}
-                onMouseEnter={() => handlePrefetch(module.route)}
-                aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
-              >
-                <div className="flex flex-col items-center">
-                  <div className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-primary-foreground/30" style={{ width: '80px', height: '80px' }}>
-                    <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-cover" />
-                  </div>
-                  <p className="text-center mt-2 font-semibold text-primary-foreground text-[10px] max-w-[80px] leading-tight" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)' }}>
-                    {module.label}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
+          {modules.map((m, i) => renderCircleModule(m, i, modules.length, 180, 80, 'ring-2', 'text-[10px]', '80px'))}
         </div>
 
-        {/* Módulos em círculo - SM screens (tablet) */}
+        {/* SM */}
         <div className="hidden sm:block md:hidden relative" style={{ width: '380px', height: '340px' }}>
-          {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 140);
-            return (
-              <button
-                key={module.id}
-                disabled={module.disabled}
-                className={`absolute module-icon-container focus-ring rounded-xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'}`}
-                style={{ left: '50%', top: '50%', transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
-                onClick={() => !module.disabled && module.route && navigate(module.route)}
-                onMouseEnter={() => handlePrefetch(module.route)}
-                aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
-              >
-                <div className="flex flex-col items-center">
-                  <div className="icon-ring rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-primary-foreground/30" style={{ width: '68px', height: '68px' }}>
-                    <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-cover" />
-                  </div>
-                  <p className="text-center mt-2 font-semibold text-primary-foreground text-[9px] max-w-[70px] leading-tight" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.4)' }}>
-                    {module.label}
-                  </p>
-                </div>
-              </button>
-            );
-          })}
+          {modules.map((m, i) => renderCircleModule(m, i, modules.length, 140, 68, 'ring-2', 'text-[9px]', '70px'))}
         </div>
 
       </div>
-
     </div>
   );
 };
