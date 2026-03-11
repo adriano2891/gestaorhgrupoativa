@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { LogOut, Clock, FileText, Calendar, Bell, User, Gift, GraduationCap, Headset, Moon, Sun } from "lucide-react";
+import { LogOut, Clock, FileText, Calendar, Bell, User, Gift, GraduationCap, Headset, Moon, Sun, AlertTriangle } from "lucide-react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { toast } from "sonner";
 import { BirthdayPopup } from "./BirthdayPopup";
@@ -21,6 +21,35 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
   const { badges, markSectionViewed } = usePortalBadges();
   const { isDark, toggle: toggleTheme } = usePortalTheme();
   const [signedFotoUrl, setSignedFotoUrl] = useState<string | null>(null);
+  const [assinaturaPendente, setAssinaturaPendente] = useState(false);
+  const [mesPendente, setMesPendente] = useState("");
+
+  // Verificar se tem assinatura pendente do mês anterior
+  useEffect(() => {
+    const checkAssinaturaPendente = async () => {
+      if (!profile?.id) return;
+      try {
+        const hoje = new Date();
+        const mesRef = hoje.getMonth() === 0 ? 12 : hoje.getMonth();
+        const anoRef = hoje.getMonth() === 0 ? hoje.getFullYear() - 1 : hoje.getFullYear();
+        const nomeMeses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+        const { data } = await (supabase as any)
+          .from("assinaturas_espelho_ponto")
+          .select("id")
+          .eq("funcionario_id", profile.id)
+          .eq("mes_referencia", mesRef)
+          .eq("ano_referencia", anoRef)
+          .limit(1);
+
+        if (!data || data.length === 0) {
+          setAssinaturaPendente(true);
+          setMesPendente(`${nomeMeses[mesRef - 1]}/${anoRef}`);
+        }
+      } catch {}
+    };
+    checkAssinaturaPendente();
+  }, [profile?.id]);
 
   useEffect(() => {
     const loadSignedPhoto = async () => {
@@ -187,6 +216,26 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
               </div>
             </CardContent>
           </Card>
+
+          {/* Alerta de Assinatura Pendente */}
+          {assinaturaPendente && (
+            <Card className="mb-6 border-destructive/30 bg-destructive/5">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-foreground">Assinatura de Espelho de Ponto Pendente</p>
+                    <p className="text-sm text-muted-foreground">
+                      Seu espelho de ponto de <strong>{mesPendente}</strong> ainda não foi assinado. Acesse "Registro de Ponto" → "Folhas de Ponto" para assinar.
+                    </p>
+                  </div>
+                  <Button size="sm" variant="destructive" onClick={() => onNavigate("ponto")}>
+                    Assinar agora
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Grid de Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">

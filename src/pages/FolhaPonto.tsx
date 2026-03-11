@@ -501,6 +501,37 @@ const FolhaPonto = () => {
     }
   };
 
+  const handleBackupPonto = async () => {
+    try {
+      toast.info("Gerando backup dos registros de ponto...");
+      const token = getAccessToken();
+      if (!token) { toast.error("Sessão expirada"); return; }
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'rzcjwfxmogfsmfbwtwfc';
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/backup-registros-ponto`,
+        {
+          method: "POST",
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ mes: parseInt(selectedMonth), ano: parseInt(selectedYear), download: true }),
+        }
+      );
+      if (!res.ok) throw new Error(`Erro ${res.status}`);
+      const blob = await res.blob();
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `backup-ponto-${selectedYear}-${selectedMonth}.json`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      toast.success("Backup gerado e salvo com sucesso! (Portaria 671 — Art. 80)");
+    } catch (error) {
+      console.error("Erro no backup:", error);
+      toast.error("Erro ao gerar backup dos registros");
+    }
+  };
+
   const exportToPDF = () => {
     const doc = new jsPDF('l', 'mm', 'a4'); // landscape A4: 297x210mm
     
@@ -1026,6 +1057,12 @@ const FolhaPonto = () => {
             <FileText className="h-4 w-4 mr-2" />
             PDF
           </Button>
+          {canEditFolha && (
+            <Button variant="outline" onClick={handleBackupPonto} className="gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              Backup
+            </Button>
+          )}
         </div>
       </div>
 
