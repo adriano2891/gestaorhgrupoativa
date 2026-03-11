@@ -339,7 +339,9 @@ const App = () => {
                       path="/inventario"
                       element={
                         <ProtectedRoute>
-                          <InventarioEquipamentos />
+                          <SILayout>
+                            <InventarioEquipamentos />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
