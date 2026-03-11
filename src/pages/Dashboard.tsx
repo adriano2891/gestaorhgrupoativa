@@ -272,7 +272,7 @@ const Dashboard = () => {
       >
         <div className="flex flex-col items-center">
           <div
-            className={`icon-ring rounded-full flex items-center justify-center overflow-hidden ${ringWidth} p-2`}
+            className={`icon-ring rounded-full flex items-center justify-center overflow-hidden ${ringWidth} p-1`}
             style={{ width: `${iconSize}px`, height: `${iconSize}px`, backgroundColor: '#40e0d0', boxShadow: '0 6px 24px rgba(0,0,0,0.15), 0 0 0 3px rgba(64,224,208,0.3)' }}
           >
             <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-contain" />
