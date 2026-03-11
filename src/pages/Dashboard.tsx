@@ -177,7 +177,7 @@ const Dashboard = () => {
   // Mobile layout - Grid based
   if (isMobile) {
     return (
-      <div className="min-h-screen relative overflow-x-hidden overflow-y-auto flex flex-col safe-top safe-bottom">
+      <div className="min-h-[100dvh] relative overflow-x-hidden overflow-y-auto flex flex-col safe-top safe-bottom">
         {/* Background */}
         <div
           className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-10"
@@ -186,9 +186,9 @@ const Dashboard = () => {
         <div className="fixed inset-0 bg-gradient-to-b from-black/40 via-black/25 to-black/50 -z-10" />
 
         {/* Header */}
-        <div className="flex items-center justify-between px-3 sm:px-4 pt-3 sm:pt-4 pb-2">
+        <div className="flex items-center justify-between px-3 pt-3 pb-2 relative">
           <h1 
-            className="text-sm sm:text-base font-bold text-white flex-1 text-center pr-10 sm:pr-12 truncate"
+            className="text-[13px] 2xs:text-sm font-bold text-white flex-1 text-center px-10 leading-tight"
             style={{ textShadow: '1px 1px 4px rgba(0,0,0,0.5)' }}
           >
             Sistema Integrado GRUPO ATIVA
@@ -196,31 +196,31 @@ const Dashboard = () => {
           <button
             onClick={handleLogout}
             aria-label="Sair do sistema"
-            className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity absolute right-3 sm:right-4 touch-target focus-ring rounded-md"
+            className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity absolute right-3 touch-target focus-ring rounded-md"
           >
-            <LogOut className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
-            <span className="text-xs sm:text-sm">Sair</span>
+            <LogOut className="w-4 h-4" aria-hidden="true" />
+            <span className="text-xs">Sair</span>
           </button>
         </div>
 
         {/* Logo Central */}
-        <div className="flex justify-center py-3 sm:py-4">
+        <div className="flex justify-center py-2 2xs:py-3">
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-40 sm:w-32 h-auto drop-shadow-lg"
+            className="w-28 2xs:w-32 xxs:w-36 h-auto drop-shadow-lg"
           />
         </div>
 
         {/* Grid de Módulos */}
-        <main className="flex-1 px-3 sm:px-4 pb-4 sm:pb-6" role="main">
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 max-w-sm mx-auto" role="list" aria-label="Módulos do sistema">
+        <main className="flex-1 px-2 2xs:px-3 pb-4" role="main">
+          <div className="grid grid-cols-2 xxs:grid-cols-3 gap-2 2xs:gap-3 max-w-md mx-auto" role="list" aria-label="Módulos do sistema">
             {modules.map((module) => (
               <button
                 key={module.id}
                 role="listitem"
                 disabled={module.disabled}
-                className={`flex flex-col items-center p-3 rounded-2xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer active:scale-95'} transition-all duration-200 focus-ring`}
+                className={`flex flex-col items-center p-2 2xs:p-3 rounded-2xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer active:scale-95'} transition-all duration-200 focus-ring touch-target`}
                 style={{
                   background: 'rgba(255,255,255,0.8)',
                   backdropFilter: 'blur(10px)',
@@ -232,8 +232,8 @@ const Dashboard = () => {
                 aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
               >
                 <div 
-                  className="rounded-full flex items-center justify-center overflow-hidden"
-                  style={{ width: '70px', height: '70px', boxShadow: '0 4px 15px rgba(62,224,207,0.3)' }}
+                  className="rounded-full flex items-center justify-center overflow-hidden w-14 h-14 2xs:w-16 2xs:h-16 xxs:w-[70px] xxs:h-[70px]"
+                  style={{ boxShadow: '0 4px 15px rgba(62,224,207,0.3)' }}
                 >
                   <img 
                     src={module.icon} 
@@ -244,7 +244,7 @@ const Dashboard = () => {
                   />
                 </div>
                 <p 
-                  className="text-center mt-2 font-semibold text-[10px] sm:text-xs max-w-[90px] sm:max-w-[100px] leading-tight"
+                  className="text-center mt-1.5 2xs:mt-2 font-semibold text-[9px] 2xs:text-[10px] xxs:text-xs leading-tight w-full"
                   style={{ color: '#1a5c58' }}
                 >
                   {module.label}

@@ -39,27 +39,27 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
       <div className="min-h-screen relative">
         {/* Header - same as RH but without Radio and Notifications */}
         <header className="bg-white shadow-sm fixed top-0 left-0 right-0 z-50 border-b border-border" role="banner">
-          <div className="container mx-auto px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 sm:gap-2 ml-0 sm:ml-2 md:ml-4 lg:ml-0">
+          <div className="w-full px-2 2xs:px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 flex items-center justify-between">
+            <div className="flex items-center gap-1 2xs:gap-1.5 sm:gap-2 shrink min-w-0">
               <img
                 src={logoSistemaIntegrado}
                 alt="Sistema Integrado Grupo Ativa"
-                className="h-8 sm:h-9 md:h-10 object-contain flex-shrink-0"
+                className="h-7 2xs:h-8 sm:h-9 md:h-10 object-contain flex-shrink-0"
               />
             </div>
 
-            <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
+            <div className="flex items-center gap-0.5 2xs:gap-1 sm:gap-2 md:gap-3 flex-shrink-0">
               <span className="text-xs md:text-sm text-foreground hidden xl:block">
                 {currentDate}
               </span>
-              <span className="text-xs md:text-sm font-medium text-foreground hidden md:inline max-w-[150px] truncate">
+              <span className="text-[10px] 2xs:text-xs md:text-sm font-medium text-foreground hidden sm:inline max-w-[100px] md:max-w-[150px] truncate">
                 {profile?.nome || "Usuário"}
               </span>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setAgendaOpen(true)}
-                className="h-8 w-8 md:h-10 md:w-10 focus-ring"
+                className="h-7 w-7 2xs:h-8 2xs:w-8 md:h-10 md:w-10 focus-ring"
                 style={{ color: '#3ee0cf' }}
                 aria-label="Abrir agenda"
               >
@@ -69,7 +69,7 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
                 variant="ghost"
                 size="icon"
                 onClick={toggleTheme}
-                className="h-8 w-8 md:h-10 md:w-10 focus-ring"
+                className="h-7 w-7 2xs:h-8 2xs:w-8 md:h-10 md:w-10 focus-ring"
                 style={{ color: '#3ee0cf' }}
                 aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
               >
@@ -79,7 +79,7 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
                 variant="ghost"
                 size="icon"
                 onClick={() => signOut()}
-                className="h-8 w-8 md:h-10 md:w-10 focus-ring"
+                className="h-7 w-7 2xs:h-8 2xs:w-8 md:h-10 md:w-10 focus-ring"
                 style={{ color: '#3ee0cf' }}
                 aria-label="Sair do sistema"
               >
@@ -90,7 +90,7 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
         </header>
 
         {/* Spacer for fixed header */}
-        <div className="h-[44px] sm:h-[48px] md:h-[56px]" />
+        <div className="h-[40px] 2xs:h-[44px] sm:h-[48px] md:h-[56px]" />
 
         {/* Module Navigation Bar */}
         <SistemaIntegradoModuleBar />
