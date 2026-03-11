@@ -217,6 +217,26 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
             </CardContent>
           </Card>
 
+          {/* Alerta de Assinatura Pendente */}
+          {assinaturaPendente && (
+            <Card className="mb-6 border-destructive/30 bg-destructive/5">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="h-5 w-5 text-destructive shrink-0" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-foreground">Assinatura de Espelho de Ponto Pendente</p>
+                    <p className="text-sm text-muted-foreground">
+                      Seu espelho de ponto de <strong>{mesPendente}</strong> ainda não foi assinado. Acesse "Registro de Ponto" → "Folhas de Ponto" para assinar.
+                    </p>
+                  </div>
+                  <Button size="sm" variant="destructive" onClick={() => onNavigate("ponto")}>
+                    Assinar agora
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Grid de Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {menuItems.map((item) => {
