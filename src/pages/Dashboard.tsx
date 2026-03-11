@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useCallback, useState } from "react";
 import { LogOut } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useIsMobile } from "@/hooks/use-mobile";
