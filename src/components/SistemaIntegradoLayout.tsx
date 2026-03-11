@@ -55,10 +55,10 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-              <span className="text-xs md:text-sm hidden xl:block" style={{ color: '#3ee0cf' }}>
+              <span className="text-xs md:text-sm text-foreground hidden xl:block">
                 {currentDate}
               </span>
-              <span className="text-xs md:text-sm font-medium hidden md:inline max-w-[150px] truncate" style={{ color: '#3ee0cf' }}>
+              <span className="text-xs md:text-sm font-medium text-foreground hidden md:inline max-w-[150px] truncate">
                 {profile?.nome || "Usuário"}
               </span>
               <Button
