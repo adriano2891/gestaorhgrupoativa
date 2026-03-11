@@ -11,6 +11,7 @@ import iconBudget from "@/assets/icon-orcamentos-new.png";
 import iconInventario from "@/assets/icon-inventario-new.png";
 import iconDocumentacoes from "@/assets/icon-documentacoes.png";
 import iconEmBreve from "@/assets/icon-em-breve.png";
+import iconBackups from "@/assets/icon-backups.png";
 
 interface ModuleItem {
   id: string;
