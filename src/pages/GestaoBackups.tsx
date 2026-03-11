@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { BackButton } from "@/components/ui/back-button";
 import {
   Database, Download, PlayCircle, Shield, Clock, HardDrive,
-  CheckCircle2, XCircle, Loader2, FileJson, RefreshCw, Trash2, AlertTriangle
+  CheckCircle2, XCircle, Loader2, RefreshCw, AlertTriangle, Upload, RotateCcw
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
@@ -36,6 +36,9 @@ interface BackupLog {
 const GestaoBackups = () => {
   const queryClient = useQueryClient();
   const [verificandoId, setVerificandoId] = useState<string | null>(null);
+  const [restaurando, setRestaurando] = useState(false);
+  const [resultadoRestauracao, setResultadoRestauracao] = useState<any>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { data: backups, isLoading } = useQuery({
     queryKey: ["backup-logs"],
@@ -112,6 +115,66 @@ const GestaoBackups = () => {
     }
   };
 
+  const handleRestaurar = async (file: File) => {
+    setRestaurando(true);
+    setResultadoRestauracao(null);
+    try {
+      const text = await file.text();
+      let backupJson: any;
+      try {
+        backupJson = JSON.parse(text);
+      } catch {
+        throw new Error("Arquivo inválido. Selecione um arquivo JSON de backup válido.");
+      }
+
+      if (!backupJson.metadata || !backupJson.dados) {
+        throw new Error("Formato inválido. O arquivo deve conter 'metadata' e 'dados'.");
+      }
+
+      // First, create a safety backup of current state
+      toast.info("Criando backup de segurança do estado atual...");
+      const { data: { session } } = await supabase.auth.getSession();
+      await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/system-backup`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ tipo: "pre_restauracao" }),
+        }
+      );
+
+      toast.info("Restaurando dados...");
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/restore-backup`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token}`,
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+          body: JSON.stringify({ backup: backupJson }),
+        }
+      );
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Erro na restauração");
+
+      setResultadoRestauracao(result);
+      toast.success(`Restauração concluída! ${result.total_inseridos} registros restaurados em ${result.tabelas_restauradas} tabelas.`);
+      queryClient.invalidateQueries({ queryKey: ["backup-logs"] });
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setRestaurando(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const verificarIntegridade = async (backup: BackupLog) => {
     if (!backup.hash_sha256) return toast.error("Hash não disponível");
     setVerificandoId(backup.id);
@@ -144,6 +207,10 @@ const GestaoBackups = () => {
         return <Badge className="bg-blue-600 text-white"><Loader2 className="w-3 h-3 mr-1 animate-spin" />Em andamento</Badge>;
       case "erro":
         return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Erro</Badge>;
+      case "parcial":
+        return <Badge className="bg-amber-600 text-white"><AlertTriangle className="w-3 h-3 mr-1" />Parcial</Badge>;
+      case "restauracao":
+        return <Badge className="bg-indigo-600 text-white"><RotateCcw className="w-3 h-3 mr-1" />Restauração</Badge>;
       default:
         return <Badge variant="secondary">{status}</Badge>;
     }
@@ -154,6 +221,8 @@ const GestaoBackups = () => {
       completo: "bg-purple-600 text-white",
       incremental: "bg-blue-600 text-white",
       snapshot: "bg-amber-600 text-white",
+      restauracao: "bg-indigo-600 text-white",
+      pre_restauracao: "bg-rose-600 text-white",
     };
     return <Badge className={colors[tipo] || "bg-muted text-muted-foreground"}>{tipo}</Badge>;
   };
@@ -238,11 +307,108 @@ const GestaoBackups = () => {
             <CardHeader className="pb-2">
               <CardDescription>Proteção</CardDescription>
               <CardTitle className="text-lg flex items-center gap-1">
-                <Shield className="w-5 h-5 text-green-600" /> SHA-256
+                <Shield className="w-5 h-5 text-primary" /> SHA-256
               </CardTitle>
             </CardHeader>
           </Card>
         </div>
+
+        {/* Restore Section */}
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-primary">
+              <RotateCcw className="w-5 h-5" /> Restaurar Backup
+            </CardTitle>
+            <CardDescription>
+              Selecione um arquivo JSON de backup exportado para restaurar os dados do sistema.
+              Um backup de segurança do estado atual será criado automaticamente antes da restauração.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleRestaurar(file);
+              }}
+            />
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" disabled={restaurando} className="border-primary text-primary hover:bg-primary hover:text-primary-foreground">
+                  {restaurando ? (
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4 mr-2" />
+                  )}
+                  {restaurando ? "Restaurando..." : "Selecionar arquivo de backup"}
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5 text-destructive" />
+                    Confirmar Restauração
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="space-y-2">
+                    <p>
+                      <strong>Atenção:</strong> A restauração irá sobrescrever os dados atuais do sistema
+                      com os dados do arquivo de backup selecionado.
+                    </p>
+                    <p>
+                      Um <strong>backup automático do estado atual</strong> será criado antes de iniciar
+                      a restauração, permitindo reverter se necessário.
+                    </p>
+                    <p className="text-destructive font-medium">
+                      Esta ação não pode ser desfeita facilmente. Tem certeza que deseja continuar?
+                    </p>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => fileInputRef.current?.click()}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Sim, restaurar backup
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {resultadoRestauracao && (
+              <div className="mt-4 p-4 rounded-lg border bg-card">
+                <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-primary" />
+                  Resultado da Restauração
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Registros restaurados:</span>
+                    <p className="font-bold text-foreground">{resultadoRestauracao.total_inseridos?.toLocaleString("pt-BR")}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Tabelas:</span>
+                    <p className="font-bold text-foreground">{resultadoRestauracao.tabelas_restauradas}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Erros:</span>
+                    <p className={`font-bold ${resultadoRestauracao.total_erros > 0 ? "text-destructive" : "text-primary"}`}>
+                      {resultadoRestauracao.total_erros}
+                    </p>
+                  </div>
+                </div>
+                {resultadoRestauracao.integridade_verificada && (
+                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
+                    <Shield className="w-3 h-3" /> Integridade SHA-256 verificada com sucesso
+                  </p>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Retention Info */}
         <Card>
@@ -348,7 +514,7 @@ const GestaoBackups = () => {
           </CardContent>
         </Card>
 
-        {/* Info about exclusions */}
+        {/* Info */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">ℹ️ Informações do Backup</CardTitle>
@@ -358,6 +524,7 @@ const GestaoBackups = () => {
             <p><strong>Formato:</strong> JSON com metadados e hash SHA-256 de integridade.</p>
             <p><strong>Armazenamento:</strong> Bucket privado com acesso restrito a administradores.</p>
             <p><strong>Agendamento automático:</strong> Backup completo diário às 23h (cron).</p>
+            <p><strong>Restauração:</strong> Selecione um arquivo JSON exportado. O sistema verifica a integridade (SHA-256), cria um backup de segurança do estado atual e restaura os dados.</p>
           </CardContent>
         </Card>
       </div>

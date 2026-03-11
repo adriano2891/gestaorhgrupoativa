@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.system-backup]
 verify_jwt = false
+
+[functions.restore-backup]
+verify_jwt = false
