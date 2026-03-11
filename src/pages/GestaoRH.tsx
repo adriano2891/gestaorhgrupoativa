@@ -112,7 +112,7 @@ const GestaoRH = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const modules: ModuleItem[] = [
+  const allRhModules: ModuleItem[] = [
     { title: "Funcionários", description: "Cadastro e gestão de colaboradores", iconSrc: iconFuncionarios, path: "/funcionarios", iconScale: "scale-[1.4]" },
     { title: "Banco de Talentos", description: "Recrutamento e seleção", iconSrc: iconTalentos, path: "/banco-talentos", scaleIcon: true },
     { title: "Relatórios", description: "Análises e indicadores", iconSrc: iconRelatorios, path: "/relatorios", iconScale: "scale-[1.4]" },
@@ -125,12 +125,19 @@ const GestaoRH = () => {
     { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.4]", badgeKey: "/suporte-funcionarios" },
     { title: "Documentos", description: "Gestão de documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.4]" },
     { title: "Saúde e Segurança", description: "SST, ASO, EPI, CAT e CIPA", iconSrc: iconSST, path: "/afastamentos", iconScale: "scale-[1.4]" },
-    
   ];
 
-  if (isSuperAdmin) {
-    modules.push({ title: "Gerenciar Admins", description: "Controle de administradores", iconSrc: iconAdmins, path: "/admins", scaleIcon: true });
-  }
+  // Filter modules for gestor based on permissions
+  const modules: ModuleItem[] = useMemo(() => {
+    let filtered = allRhModules;
+    if (isGestor && gestorAllowedPaths) {
+      filtered = allRhModules.filter(m => gestorAllowedPaths.has(m.path));
+    }
+    if (isSuperAdmin) {
+      filtered = [...filtered, { title: "Gerenciar Admins", description: "Controle de administradores", iconSrc: iconAdmins, path: "/admins", scaleIcon: true }];
+    }
+    return filtered;
+  }, [isGestor, gestorAllowedPaths, isSuperAdmin, allRhModules]);
 
   // Helper to render badge
   const renderBadge = (module: ModuleItem) => {
