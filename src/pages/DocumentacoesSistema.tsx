@@ -602,7 +602,7 @@ const DocumentacoesSistema = () => {
       </AlertDialog>
 
       {/* Edit Category Dialog */}
-      <EditarCategoriaDialog
+      <EditarCategoriaSistemaDialog
         open={!!editingCategoria}
         onOpenChange={(open) => !open && setEditingCategoria(null)}
         categoria={editingCategoria}
