@@ -233,7 +233,7 @@ const GestaoBackups = () => {
   const totalSize = backups?.reduce((acc, b) => acc + (b.tamanho_bytes || 0), 0) || 0;
 
   return (
-    <Layout>
+    <>
       <div className="p-4 md:p-6 space-y-6">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-3">
