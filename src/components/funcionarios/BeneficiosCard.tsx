@@ -100,8 +100,8 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
         user_id: userId,
         tipo,
         valor: isPlano ? valorPlano : isAdicional ? 0 : parseFloat(valor.replace(",", ".")),
-        desconto_percentual: isPlano || isAdicional ? 0 : (parseFloat(desconto) || 0),
-        observacoes: isPlano ? nomePlano.trim() : isAdicional ? grauInsalubridade : null,
+        desconto_percentual: isPlano || isAdicional || isBonificacaoType(tipo) ? 0 : (parseFloat(desconto) || 0),
+        observacoes: isPlano ? nomePlano.trim() : isAdicional ? grauInsalubridade : isBonificacaoType(tipo) ? (descricaoBeneficio.trim() || null) : null,
       };
 
       const { error } = await (supabase as any)
