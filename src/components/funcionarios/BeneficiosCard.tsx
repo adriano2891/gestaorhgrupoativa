@@ -227,6 +227,8 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                   <SelectItem value="plano_odontologico">Plano Odontológico</SelectItem>
                   <SelectItem value="insalubridade">Insalubridade (CLT Art. 192)</SelectItem>
                   <SelectItem value="periculosidade">Periculosidade (CLT Art. 193)</SelectItem>
+                  <SelectItem value="bonificacao">Bonificação</SelectItem>
+                  <SelectItem value="outros">Outros</SelectItem>
                 </SelectContent>
               </Select>
             </div>
