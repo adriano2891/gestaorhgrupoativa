@@ -354,9 +354,7 @@ const App = () => {
                       path="/documentacoes-sistema"
                       element={
                         <ProtectedRoute>
-                          <LazyLayout>
-                            <DocumentacoesSistema />
-                          </LazyLayout>
+                          <DocumentacoesSistema />
                         </ProtectedRoute>
                       }
                     />
