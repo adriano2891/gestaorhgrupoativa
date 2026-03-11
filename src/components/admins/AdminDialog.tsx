@@ -326,19 +326,28 @@ export const AdminDialog = ({ open, onOpenChange, admin }: AdminDialogProps) => 
                     Selecione os módulos que este gestor poderá acessar
                   </p>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 gap-3">
-                  {MODULOS_DISPONIVEIS.map((modulo) => (
-                    <label
-                      key={modulo.id}
-                      className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors"
-                    >
-                      <Checkbox
-                        checked={selectedModulos.includes(modulo.id)}
-                        onCheckedChange={() => toggleModulo(modulo.id)}
-                      />
-                      <span className="text-sm font-medium">{modulo.label}</span>
-                    </label>
-                  ))}
+                <CardContent className="grid grid-cols-1 gap-1 max-h-[300px] overflow-y-auto">
+                  {MODULOS_DISPONIVEIS.map((modulo) => {
+                    if ('isHeader' in modulo && modulo.isHeader) {
+                      return (
+                        <div key={modulo.id} className="pt-3 pb-1 first:pt-0">
+                          <span className="text-xs font-bold uppercase text-primary tracking-wider">{modulo.label}</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <label
+                        key={modulo.id}
+                        className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors"
+                      >
+                        <Checkbox
+                          checked={selectedModulos.includes(modulo.id)}
+                          onCheckedChange={() => toggleModulo(modulo.id)}
+                        />
+                        <span className="text-sm font-medium">{modulo.label}</span>
+                      </label>
+                    );
+                  })}
                 </CardContent>
               </Card>
             )}
