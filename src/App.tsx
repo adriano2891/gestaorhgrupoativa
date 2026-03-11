@@ -421,9 +421,11 @@ const App = () => {
                       path="/gestao-backups"
                       element={
                         <ProtectedRoute requiredRoles={["admin"]}>
-                          <Suspense fallback={<Skeleton className="h-screen w-full" />}>
-                            <GestaoBackups />
-                          </Suspense>
+                          <SILayout>
+                            <Suspense fallback={<Skeleton className="h-screen w-full" />}>
+                              <GestaoBackups />
+                            </Suspense>
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
