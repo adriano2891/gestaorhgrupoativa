@@ -164,26 +164,19 @@ export default function FornecedorForm() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-md">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3 h-16">
-            <BackButton to="/fornecedores" variant="light" className="text-primary-foreground hover:bg-primary-foreground/10" />
-            <div>
-              <h1 className="text-lg font-bold text-primary-foreground">
-                {isEditing ? 'Editar Fornecedor' : 'Novo Fornecedor'}
-              </h1>
-              <p className="text-primary-foreground/70 text-xs">
-                {isEditing ? 'Atualize as informações do fornecedor' : 'Preencha os dados do novo fornecedor'}
-              </p>
-            </div>
+    <div className="min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <div className="flex items-center gap-3">
+          <BackButton to="/fornecedores" />
+          <div>
+            <h1 className="text-lg font-bold text-foreground">
+              {isEditing ? 'Editar Fornecedor' : 'Novo Fornecedor'}
+            </h1>
+            <p className="text-muted-foreground text-xs">
+              {isEditing ? 'Atualize as informações do fornecedor' : 'Preencha os dados do novo fornecedor'}
+            </p>
           </div>
         </div>
-      </header>
-      <div className="h-[64px]" />
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
