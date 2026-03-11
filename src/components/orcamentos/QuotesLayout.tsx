@@ -59,7 +59,7 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
       {/* Sidebar */}
       <aside 
         className={cn(
-          "fixed top-0 left-0 h-full w-64 bg-primary shadow-xl z-50 transition-transform duration-300",
+          "fixed top-[88px] sm:top-[92px] md:top-[100px] left-0 h-[calc(100%-88px)] sm:h-[calc(100%-92px)] md:h-[calc(100%-100px)] w-64 bg-primary shadow-xl z-40 transition-transform duration-300",
           "lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
