@@ -1026,6 +1026,12 @@ const FolhaPonto = () => {
             <FileText className="h-4 w-4 mr-2" />
             PDF
           </Button>
+          {canEditFolha && (
+            <Button variant="outline" onClick={handleBackupPonto} className="gap-2">
+              <ShieldCheck className="h-4 w-4" />
+              Backup
+            </Button>
+          )}
         </div>
       </div>
 
