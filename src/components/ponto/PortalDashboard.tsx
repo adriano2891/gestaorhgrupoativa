@@ -21,6 +21,35 @@ export const PortalDashboard = ({ onNavigate }: PortalDashboardProps) => {
   const { badges, markSectionViewed } = usePortalBadges();
   const { isDark, toggle: toggleTheme } = usePortalTheme();
   const [signedFotoUrl, setSignedFotoUrl] = useState<string | null>(null);
+  const [assinaturaPendente, setAssinaturaPendente] = useState(false);
+  const [mesPendente, setMesPendente] = useState("");
+
+  // Verificar se tem assinatura pendente do mês anterior
+  useEffect(() => {
+    const checkAssinaturaPendente = async () => {
+      if (!profile?.id) return;
+      try {
+        const hoje = new Date();
+        const mesRef = hoje.getMonth() === 0 ? 12 : hoje.getMonth();
+        const anoRef = hoje.getMonth() === 0 ? hoje.getFullYear() - 1 : hoje.getFullYear();
+        const nomeMeses = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+
+        const { data } = await (supabase as any)
+          .from("assinaturas_espelho_ponto")
+          .select("id")
+          .eq("funcionario_id", profile.id)
+          .eq("mes_referencia", mesRef)
+          .eq("ano_referencia", anoRef)
+          .limit(1);
+
+        if (!data || data.length === 0) {
+          setAssinaturaPendente(true);
+          setMesPendente(`${nomeMeses[mesRef - 1]}/${anoRef}`);
+        }
+      } catch {}
+    };
+    checkAssinaturaPendente();
+  }, [profile?.id]);
 
   useEffect(() => {
     const loadSignedPhoto = async () => {
