@@ -123,7 +123,7 @@ const GestaoRH = () => {
     { title: "Cursos", description: "Treinamentos e capacitação", iconSrc: iconCursos, path: "/cursos", iconScale: "scale-[1.4]" },
     { title: "Controle de Férias", description: "Férias e licenças", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
     { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.4]", badgeKey: "/suporte-funcionarios" },
-    { title: "Documentos", description: "Gestão de documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.4]" },
+    { title: "Documentações RH", description: "Gestão de documentos RH", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.4]" },
     { title: "Saúde e Segurança", description: "SST, ASO, EPI, CAT e CIPA", iconSrc: iconSST, path: "/afastamentos", iconScale: "scale-[1.4]" },
   ];
 

@@ -30,14 +30,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDocumentosSistema, useDocumentosSistemaCategorias, useMeusFavoritosSistema, useDeleteDocumentoSistema, useToggleFavoritoSistema, useDeleteCategoriaSistema, getDocumentoSistemaAccessUrl, registrarAcessoDocumentoSistema } from "@/hooks/useDocumentosSistema";
+import { useDocumentosSistema, useDocumentosSistemaCategorias, useMeusFavoritosSistema, useDeleteDocumentoSistema, useToggleFavoritoSistema, useDeleteCategoriaSistema, getDocumentoSistemaAccessUrl, registrarAcessoDocumentoSistema, type DocumentoSistema } from "@/hooks/useDocumentosSistema";
 import { gerarPdfRelatorioDocumentos } from "@/utils/documentosPdfAuditoria";
 import { UploadDocumentoSistemaDialog } from "@/components/documentos-sistema/UploadDocumentoSistemaDialog";
 import { CriarCategoriaSistemaDialog } from "@/components/documentos-sistema/CriarCategoriaSistemaDialog";
 import { EditarCategoriaSistemaDialog } from "@/components/documentos-sistema/EditarCategoriaSistemaDialog";
 import { DocumentoDetalhesSistemaDialog } from "@/components/documentos-sistema/DocumentoDetalhesSistemaDialog";
 import { EditarDocumentoSistemaDialog } from "@/components/documentos-sistema/EditarDocumentoSistemaDialog";
-import { TIPO_LABELS, type Documento, type DocumentoTipo } from "@/types/documentos";
+import { TIPO_LABELS, type DocumentoTipo } from "@/types/documentos";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -54,13 +54,13 @@ const DocumentacoesSistema = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showCategoriaDialog, setShowCategoriaDialog] = useState(false);
-  const [selectedDocumento, setSelectedDocumento] = useState<Documento | null>(null);
-  const [editingDocumento, setEditingDocumento] = useState<Documento | null>(null);
+  const [selectedDocumento, setSelectedDocumento] = useState<DocumentoSistema | null>(null);
+  const [editingDocumento, setEditingDocumento] = useState<DocumentoSistema | null>(null);
   const [deleteDocId, setDeleteDocId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("todos");
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [editingCategoria, setEditingCategoria] = useState<import("@/types/documentos").DocumentoCategoria | null>(null);
+  const [editingCategoria, setEditingCategoria] = useState<import("@/hooks/useDocumentosSistema").DocumentoSistemaCategoria | null>(null);
   const [deleteCatId, setDeleteCatId] = useState<string | null>(null);
   const { data: documentos, isLoading } = useDocumentosSistema({
     categoriaId: selectedCategoria,
@@ -136,14 +136,14 @@ const DocumentacoesSistema = () => {
     }
   };
 
-  const handleToggleFavorito = (doc: Documento) => {
+  const handleToggleFavorito = (doc: DocumentoSistema) => {
     toggleFavorito.mutate({ 
       documentoId: doc.id, 
       isFavorito: favoritos?.includes(doc.id) || false 
     });
   };
 
-  const handleDownload = async (doc: Documento) => {
+  const handleDownload = async (doc: DocumentoSistema) => {
     try {
       const url = await getDocumentoSistemaAccessUrl(doc.arquivo_url);
       registrarAcessoDocumentoSistema(doc.id, 'download');
@@ -158,7 +158,7 @@ const DocumentacoesSistema = () => {
     }
   };
 
-  const handlePreview = async (doc: Documento) => {
+  const handlePreview = async (doc: DocumentoSistema) => {
     try {
       const url = await getDocumentoSistemaAccessUrl(doc.arquivo_url);
       if (!url) throw new Error("URL de acesso não gerada");

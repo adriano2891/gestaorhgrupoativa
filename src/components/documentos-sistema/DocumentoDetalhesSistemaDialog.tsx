@@ -136,7 +136,7 @@ export const DocumentoDetalhesSistemaDialog = ({ documento, open, onOpenChange, 
                             <Button variant="ghost" size="sm" onClick={() => openDocumento(versao.arquivo_url, 'Erro ao baixar versão')}><Download className="h-4 w-4" /></Button>
                           </div>
                           {versao.alteracoes && <p className="text-sm text-muted-foreground">{versao.alteracoes}</p>}
-                          <p className="text-xs text-muted-foreground mt-1">{format(new Date(versao.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}{versao.profiles?.nome && ` por ${versao.profiles.nome}`}</p>
+                          <p className="text-xs text-muted-foreground mt-1">{format(new Date(versao.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}{(versao as any).profiles?.nome && ` por ${(versao as any).profiles.nome}`}</p>
                         </div>
                       </div>
                     ))}
@@ -156,7 +156,7 @@ export const DocumentoDetalhesSistemaDialog = ({ documento, open, onOpenChange, 
                     {comentarios?.map((comentario) => (
                       <div key={comentario.id} className="p-3 rounded-lg border">
                         <div className="flex items-center justify-between mb-1">
-                          <p className="font-medium text-sm">{comentario.profiles?.nome || "Usuário"}</p>
+                          <p className="font-medium text-sm">{(comentario as any).profiles?.nome || "Usuário"}</p>
                           <p className="text-xs text-muted-foreground">{format(new Date(comentario.created_at), "dd/MM 'às' HH:mm", { locale: ptBR })}</p>
                         </div>
                         <p className="text-sm">{comentario.conteudo}</p>
