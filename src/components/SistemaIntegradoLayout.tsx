@@ -98,7 +98,7 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
         {/* Main Content */}
         <main
           id="main-content"
-          className="container mx-auto px-3 sm:px-4 md:px-6 py-4 md:py-6 lg:py-8"
+          className="w-full px-2 2xs:px-3 sm:px-4 md:px-6 py-3 sm:py-4 md:py-6 lg:py-8 mx-auto max-w-7xl"
           role="main"
         >
           {children}
