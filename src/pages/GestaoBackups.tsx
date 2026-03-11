@@ -452,20 +452,20 @@ const GestaoBackups = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Tipo</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Registros</TableHead>
-                      <TableHead>Tamanho</TableHead>
-                      <TableHead>Duração</TableHead>
-                      <TableHead>Hash</TableHead>
-                      <TableHead>Ações</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Data</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Tipo</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Status</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden sm:table-cell">Registros</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden md:table-cell">Tamanho</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Duração</TableHead>
+                      <TableHead className="text-xs sm:text-sm hidden lg:table-cell">Hash</TableHead>
+                      <TableHead className="text-xs sm:text-sm">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {backups.map((backup) => (
                       <TableRow key={backup.id}>
-                        <TableCell className="whitespace-nowrap text-sm">
+                        <TableCell className="whitespace-nowrap text-xs sm:text-sm">
                           {new Date(backup.created_at).toLocaleDateString("pt-BR", {
                             day: "2-digit", month: "2-digit", year: "numeric",
                             hour: "2-digit", minute: "2-digit",
@@ -473,10 +473,10 @@ const GestaoBackups = () => {
                         </TableCell>
                         <TableCell>{tipoBadge(backup.tipo)}</TableCell>
                         <TableCell>{statusBadge(backup.status)}</TableCell>
-                        <TableCell>{backup.total_registros?.toLocaleString("pt-BR") || "—"}</TableCell>
-                        <TableCell>{formatBytes(backup.tamanho_bytes)}</TableCell>
-                        <TableCell>{formatDuration(backup.duracao_ms)}</TableCell>
-                        <TableCell className="font-mono text-xs">
+                        <TableCell className="hidden sm:table-cell">{backup.total_registros?.toLocaleString("pt-BR") || "—"}</TableCell>
+                        <TableCell className="hidden md:table-cell">{formatBytes(backup.tamanho_bytes)}</TableCell>
+                        <TableCell className="hidden lg:table-cell">{formatDuration(backup.duracao_ms)}</TableCell>
+                        <TableCell className="hidden lg:table-cell font-mono text-xs">
                           {backup.hash_sha256 ? `${backup.hash_sha256.substring(0, 12)}…` : "—"}
                         </TableCell>
                         <TableCell>
