@@ -56,6 +56,7 @@ const VerificarComprovante = lazy(() => import("./pages/VerificarComprovante"));
 
 // Eagerly loaded layout (used on most routes, no reason to lazy-load)
 import { Layout } from "./components/Layout";
+import { SistemaIntegradoLayout } from "./components/SistemaIntegradoLayout";
 import { GlobalFooter } from "./components/GlobalFooter";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 
@@ -80,6 +81,10 @@ const PageLoader = () => (
 
 const LazyLayout = ({ children }: { children: React.ReactNode }) => (
   <Layout>{children}</Layout>
+);
+
+const SILayout = ({ children }: { children: React.ReactNode }) => (
+  <SistemaIntegradoLayout>{children}</SistemaIntegradoLayout>
 );
 
 const App = () => {
@@ -214,7 +219,9 @@ const App = () => {
                       path="/gestao-clientes"
                       element={
                         <ProtectedRoute>
-                          <GestaoClientes />
+                          <SILayout>
+                            <GestaoClientes />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -222,7 +229,9 @@ const App = () => {
                       path="/orcamentos"
                       element={
                         <ProtectedRoute>
-                          <OrcamentosDashboard />
+                          <SILayout>
+                            <OrcamentosDashboard />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -230,7 +239,9 @@ const App = () => {
                       path="/orcamentos/lista"
                       element={
                         <ProtectedRoute>
-                          <OrcamentosLista />
+                          <SILayout>
+                            <OrcamentosLista />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -238,7 +249,9 @@ const App = () => {
                       path="/orcamentos/novo"
                       element={
                         <ProtectedRoute>
-                          <OrcamentosBuilder />
+                          <SILayout>
+                            <OrcamentosBuilder />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -246,7 +259,9 @@ const App = () => {
                       path="/orcamentos/:id"
                       element={
                         <ProtectedRoute>
-                          <OrcamentosDetail />
+                          <SILayout>
+                            <OrcamentosDetail />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -254,7 +269,9 @@ const App = () => {
                       path="/orcamentos/:id/editar"
                       element={
                         <ProtectedRoute>
-                          <OrcamentosBuilder />
+                          <SILayout>
+                            <OrcamentosBuilder />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -262,7 +279,9 @@ const App = () => {
                       path="/orcamentos/itens"
                       element={
                         <ProtectedRoute>
-                          <ItensOrcamento />
+                          <SILayout>
+                            <ItensOrcamento />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -270,7 +289,9 @@ const App = () => {
                       path="/orcamentos/clientes/novo"
                       element={
                         <ProtectedRoute>
-                          <OrcamentosClienteForm />
+                          <SILayout>
+                            <OrcamentosClienteForm />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -278,7 +299,9 @@ const App = () => {
                       path="/fornecedores"
                       element={
                         <ProtectedRoute>
-                          <Fornecedores />
+                          <SILayout>
+                            <Fornecedores />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -286,7 +309,9 @@ const App = () => {
                       path="/fornecedores/novo"
                       element={
                         <ProtectedRoute>
-                          <FornecedorForm />
+                          <SILayout>
+                            <FornecedorForm />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -294,7 +319,9 @@ const App = () => {
                       path="/fornecedores/:id"
                       element={
                         <ProtectedRoute>
-                          <FornecedorDetalhes />
+                          <SILayout>
+                            <FornecedorDetalhes />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -302,7 +329,9 @@ const App = () => {
                       path="/fornecedores/:id/editar"
                       element={
                         <ProtectedRoute>
-                          <FornecedorForm />
+                          <SILayout>
+                            <FornecedorForm />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -310,7 +339,9 @@ const App = () => {
                       path="/inventario"
                       element={
                         <ProtectedRoute>
-                          <InventarioEquipamentos />
+                          <SILayout>
+                            <InventarioEquipamentos />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -354,7 +385,9 @@ const App = () => {
                       path="/documentacoes-sistema"
                       element={
                         <ProtectedRoute>
-                          <DocumentacoesSistema />
+                          <SILayout>
+                            <DocumentacoesSistema />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
@@ -388,9 +421,11 @@ const App = () => {
                       path="/gestao-backups"
                       element={
                         <ProtectedRoute requiredRoles={["admin"]}>
-                          <Suspense fallback={<Skeleton className="h-screen w-full" />}>
-                            <GestaoBackups />
-                          </Suspense>
+                          <SILayout>
+                            <Suspense fallback={<Skeleton className="h-screen w-full" />}>
+                              <GestaoBackups />
+                            </Suspense>
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
