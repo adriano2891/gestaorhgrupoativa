@@ -156,7 +156,7 @@ export const DocumentoDetalhesSistemaDialog = ({ documento, open, onOpenChange, 
                     {comentarios?.map((comentario) => (
                       <div key={comentario.id} className="p-3 rounded-lg border">
                         <div className="flex items-center justify-between mb-1">
-                          <p className="font-medium text-sm">{comentario.profiles?.nome || "Usuário"}</p>
+                          <p className="font-medium text-sm">{(comentario as any).profiles?.nome || "Usuário"}</p>
                           <p className="text-xs text-muted-foreground">{format(new Date(comentario.created_at), "dd/MM 'às' HH:mm", { locale: ptBR })}</p>
                         </div>
                         <p className="text-sm">{comentario.conteudo}</p>
