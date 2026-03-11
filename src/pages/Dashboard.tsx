@@ -177,22 +177,26 @@ const Dashboard = () => {
   // Mobile layout - Grid based
   if (isMobile) {
     return (
-      <div 
-        className="min-h-screen relative overflow-x-hidden overflow-y-auto flex flex-col safe-top safe-bottom"
-        style={{ backgroundColor: '#40E0D0' }}
-      >
+      <div className="min-h-screen relative overflow-x-hidden overflow-y-auto flex flex-col safe-top safe-bottom">
+        {/* Background */}
+        <div
+          className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-10"
+          style={{ backgroundImage: `url(${dashboardBg})` }}
+        />
+        <div className="fixed inset-0 bg-gradient-to-b from-black/40 via-black/25 to-black/50 -z-10" />
+
         {/* Header */}
         <div className="flex items-center justify-between px-3 sm:px-4 pt-3 sm:pt-4 pb-2">
           <h1 
-            className="text-sm sm:text-base font-bold text-primary-foreground flex-1 text-center pr-10 sm:pr-12 truncate"
-            style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.2)' }}
+            className="text-sm sm:text-base font-bold text-white flex-1 text-center pr-10 sm:pr-12 truncate"
+            style={{ textShadow: '1px 1px 4px rgba(0,0,0,0.5)' }}
           >
             Sistema Integrado GRUPO ATIVA
           </h1>
           <button
             onClick={handleLogout}
             aria-label="Sair do sistema"
-            className="flex items-center gap-1 text-primary-foreground hover:opacity-80 transition-opacity absolute right-3 sm:right-4 touch-target focus-ring rounded-md"
+            className="flex items-center gap-1 text-white hover:opacity-80 transition-opacity absolute right-3 sm:right-4 touch-target focus-ring rounded-md"
           >
             <LogOut className="w-4 h-4 sm:w-5 sm:h-5" aria-hidden="true" />
             <span className="text-xs sm:text-sm">Sair</span>
@@ -204,7 +208,7 @@ const Dashboard = () => {
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-40 sm:w-32 h-auto"
+            className="w-40 sm:w-32 h-auto drop-shadow-lg"
           />
         </div>
 
@@ -216,14 +220,20 @@ const Dashboard = () => {
                 key={module.id}
                 role="listitem"
                 disabled={module.disabled}
-                className={`flex flex-col items-center p-2 rounded-xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer active:scale-95'} transition-all duration-200 focus-ring`}
+                className={`flex flex-col items-center p-3 rounded-2xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer active:scale-95'} transition-all duration-200 focus-ring`}
+                style={{
+                  background: 'rgba(255,255,255,0.8)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(62,224,207,0.3)',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                }}
                 onClick={() => !module.disabled && module.route && navigate(module.route)}
                 onMouseEnter={() => handlePrefetch(module.route)}
                 aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
               >
                 <div 
-                  className="rounded-full flex items-center justify-center shadow-xl overflow-hidden ring-2 ring-primary-foreground/30"
-                  style={{ width: '70px', height: '70px' }}
+                  className="rounded-full flex items-center justify-center overflow-hidden"
+                  style={{ width: '70px', height: '70px', boxShadow: '0 4px 15px rgba(62,224,207,0.3)' }}
                 >
                   <img 
                     src={module.icon} 
@@ -234,8 +244,8 @@ const Dashboard = () => {
                   />
                 </div>
                 <p 
-                  className="text-center mt-1.5 sm:mt-2 font-semibold text-primary-foreground text-[10px] sm:text-xs max-w-[90px] sm:max-w-[100px] leading-tight"
-                  style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.3)' }}
+                  className="text-center mt-2 font-semibold text-[10px] sm:text-xs max-w-[90px] sm:max-w-[100px] leading-tight"
+                  style={{ color: '#1a5c58' }}
                 >
                   {module.label}
                 </p>
