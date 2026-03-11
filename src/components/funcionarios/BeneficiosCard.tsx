@@ -77,6 +77,9 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
 
     if (isPlano) {
       if (!nomePlano.trim()) { toast.error("Informe o nome do plano"); return; }
+    } else if (isBonificacaoType(tipo)) {
+      const valorNum = parseFloat(valor.replace(",", "."));
+      if (!valorNum || valorNum <= 0) { toast.error("Informe um valor válido"); return; }
     } else if (!isAdicional) {
       const valorNum = parseFloat(valor.replace(",", "."));
       if (!valorNum || valorNum <= 0) { toast.error("Informe um valor válido"); return; }
