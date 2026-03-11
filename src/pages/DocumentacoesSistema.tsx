@@ -54,8 +54,8 @@ const DocumentacoesSistema = () => {
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [showCategoriaDialog, setShowCategoriaDialog] = useState(false);
-  const [selectedDocumento, setSelectedDocumento] = useState<Documento | null>(null);
-  const [editingDocumento, setEditingDocumento] = useState<Documento | null>(null);
+  const [selectedDocumento, setSelectedDocumento] = useState<DocumentoSistema | null>(null);
+  const [editingDocumento, setEditingDocumento] = useState<DocumentoSistema | null>(null);
   const [deleteDocId, setDeleteDocId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("todos");
   const [sortField, setSortField] = useState<SortField>("created_at");
