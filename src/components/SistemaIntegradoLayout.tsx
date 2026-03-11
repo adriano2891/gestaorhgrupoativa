@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { useAuth } from "./auth/AuthProvider";
-import loginBackground from "@/assets/login-background.png";
+const sistemaIntegradoBg = "/sistema-integrado-background.png";
 import { SistemaIntegradoModuleBar } from "./SistemaIntegradoModuleBar";
 import { AgendaPanel } from "./agenda";
 
@@ -31,7 +31,7 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
       {/* Background layer */}
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-10"
-        style={{ backgroundImage: `url(${loginBackground})` }}
+        style={{ backgroundImage: `url(${sistemaIntegradoBg})` }}
       />
       <div className="fixed inset-0 bg-background/85 backdrop-blur-[2px] -z-10" />
 
