@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useCallback, useState } from "react";
 import { LogOut } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import logoAtiva from "@/assets/logo-ativa-3d.png";
 import iconHr from "@/assets/icon-hr-new.png";
@@ -22,14 +24,25 @@ interface ModuleItem {
   allowedRoles?: string[]; // roles that can see this module
 }
 
+// Map permission IDs to dashboard module IDs
+const PERMISSION_TO_MODULE: Record<string, string> = {
+  "gestao-rh": "rh",
+  "gestao-clientes": "clients",
+  "fornecedores": "suppliers",
+  "orcamentos": "budget",
+  "inventario": "inventario",
+  "documentacoes": "documentacoes",
+  "gestao-backups": "backups",
+};
+
 const allModules: ModuleItem[] = [
   { id: 'rh', icon: iconHr, label: 'Recursos Humanos', route: '/gestao-rh', allowedRoles: ['admin', 'rh', 'gestor'] },
-  { id: 'clients', icon: iconClients, label: 'Clientes', route: '/gestao-clientes', allowedRoles: ['admin'] },
-  { id: 'suppliers', icon: iconSuppliers, label: 'Fornecedores', route: '/fornecedores', allowedRoles: ['admin'] },
-  { id: 'budget', icon: iconBudget, label: 'Orçamentos', route: '/orcamentos', allowedRoles: ['admin'] },
-  { id: 'inventario', icon: iconInventario, label: 'Inventário', route: '/inventario', allowedRoles: ['admin'] },
-  { id: 'documentacoes', icon: iconDocumentacoes, label: 'Documentos', route: '/documentacoes', allowedRoles: ['admin'] },
-  { id: 'backups', icon: iconBackups, label: 'Gestão de Backups', route: '/gestao-backups', allowedRoles: ['admin'] },
+  { id: 'clients', icon: iconClients, label: 'Clientes', route: '/gestao-clientes', allowedRoles: ['admin', 'gestor'] },
+  { id: 'suppliers', icon: iconSuppliers, label: 'Fornecedores', route: '/fornecedores', allowedRoles: ['admin', 'gestor'] },
+  { id: 'budget', icon: iconBudget, label: 'Orçamentos', route: '/orcamentos', allowedRoles: ['admin', 'gestor'] },
+  { id: 'inventario', icon: iconInventario, label: 'Inventário', route: '/inventario', allowedRoles: ['admin', 'gestor'] },
+  { id: 'documentacoes', icon: iconDocumentacoes, label: 'Documentos', route: '/documentacoes', allowedRoles: ['admin', 'gestor'] },
+  { id: 'backups', icon: iconBackups, label: 'Gestão de Backups', route: '/gestao-backups', allowedRoles: ['admin', 'gestor'] },
   { id: 'soon', icon: iconEmBreve, label: 'Em Breve', disabled: true, allowedRoles: ['admin'] },
 ];
 
@@ -77,14 +90,41 @@ const Dashboard = () => {
     }
   }, [user, roles.length]);
 
+  const isGestor = roles.includes("gestor" as any) && !roles.includes("admin" as any) && !roles.includes("rh" as any);
+
+  // Load gestor permissions
+  const { data: gestorPermissions } = useQuery({
+    queryKey: ["gestor-permissions", user?.id],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("gestor_permissions")
+        .select("modulo")
+        .eq("user_id", user?.id);
+      return (data as any[])?.map((d: any) => d.modulo) || [];
+    },
+    enabled: isGestor && !!user?.id,
+  });
+
   // While roles are loading, show all modules (will filter once loaded)
   const rolesReady = roles.length > 0 || rolesTimeout;
 
+  // Build allowed module IDs for gestor
+  const gestorAllowedModuleIds = useMemo(() => {
+    if (!isGestor || !gestorPermissions) return null;
+    return new Set(gestorPermissions.map((p: string) => PERMISSION_TO_MODULE[p] || p));
+  }, [isGestor, gestorPermissions]);
+
   const modules = allModules.filter((m) => {
     if (!m.allowedRoles) return true;
-    if (!rolesReady) return true; // show all modules while roles load
+    if (!rolesReady) return true;
     if (rolesTimeout && roles.length === 0) return true;
-    return m.allowedRoles.some((r) => roles.includes(r as any));
+    const hasRole = m.allowedRoles.some((r) => roles.includes(r as any));
+    if (!hasRole) return false;
+    // For gestor, additionally check granular permissions
+    if (isGestor && gestorAllowedModuleIds) {
+      return gestorAllowedModuleIds.has(m.id);
+    }
+    return true;
   });
 
   const handleLogout = async () => {

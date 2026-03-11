@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   useMetricasRealtime, 
   useFuncionariosRealtime, 
@@ -39,7 +41,7 @@ interface ModuleItem {
 
 const GestaoRH = () => {
   const navigate = useNavigate();
-  const { roles, signOut } = useAuth();
+  const { roles, signOut, user } = useAuth();
   const isMobile = useIsMobile();
   const [isAnimating, setIsAnimating] = useState(true);
   
@@ -48,7 +50,47 @@ const GestaoRH = () => {
   useComunicadosRealtime();
   const { notifications } = useAdminNotifications();
   const isSuperAdmin = roles.includes("admin");
+  const isGestor = roles.includes("gestor") && !isSuperAdmin && !roles.includes("rh");
   const isAdmin = isSuperAdmin || roles.includes("rh") || roles.includes("gestor");
+
+  // RH permission ID to path mapping
+  const RH_PERMISSION_TO_PATH: Record<string, string> = {
+    "rh-funcionarios": "/funcionarios",
+    "rh-talentos": "/banco-talentos",
+    "rh-relatorios": "/relatorios",
+    "rh-ponto": "/folha-ponto",
+    "rh-holerites": "/holerites",
+    "rh-comunicados": "/comunicados",
+    "rh-formularios": "/hrflow-pro",
+    "rh-cursos": "/cursos",
+    "rh-ferias": "/controle-ferias",
+    "rh-suporte": "/suporte-funcionarios",
+    "rh-documentos": "/documentacoes",
+    "rh-sst": "/afastamentos",
+  };
+
+  // Load gestor permissions
+  const { data: gestorPermissions } = useQuery({
+    queryKey: ["gestor-permissions", user?.id],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("gestor_permissions")
+        .select("modulo")
+        .eq("user_id", user?.id);
+      return (data as any[])?.map((d: any) => d.modulo) || [];
+    },
+    enabled: isGestor && !!user?.id,
+  });
+
+  const gestorAllowedPaths = useMemo(() => {
+    if (!isGestor || !gestorPermissions) return null;
+    const paths = new Set<string>();
+    gestorPermissions.forEach((p: string) => {
+      const path = RH_PERMISSION_TO_PATH[p];
+      if (path) paths.add(path);
+    });
+    return paths;
+  }, [isGestor, gestorPermissions]);
 
   // Count badges per route
   const badgeCounts = useMemo(() => {
@@ -70,7 +112,7 @@ const GestaoRH = () => {
     return () => clearTimeout(timer);
   }, []);
 
-  const modules: ModuleItem[] = [
+  const allRhModules: ModuleItem[] = [
     { title: "Funcionários", description: "Cadastro e gestão de colaboradores", iconSrc: iconFuncionarios, path: "/funcionarios", iconScale: "scale-[1.4]" },
     { title: "Banco de Talentos", description: "Recrutamento e seleção", iconSrc: iconTalentos, path: "/banco-talentos", scaleIcon: true },
     { title: "Relatórios", description: "Análises e indicadores", iconSrc: iconRelatorios, path: "/relatorios", iconScale: "scale-[1.4]" },
@@ -83,12 +125,19 @@ const GestaoRH = () => {
     { title: "Suporte ao Funcionário", description: "Chamados de funcionários", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.4]", badgeKey: "/suporte-funcionarios" },
     { title: "Documentos", description: "Gestão de documentos", iconSrc: iconDocumentos, path: "/documentacoes", iconScale: "scale-[1.4]" },
     { title: "Saúde e Segurança", description: "SST, ASO, EPI, CAT e CIPA", iconSrc: iconSST, path: "/afastamentos", iconScale: "scale-[1.4]" },
-    
   ];
 
-  if (isSuperAdmin) {
-    modules.push({ title: "Gerenciar Admins", description: "Controle de administradores", iconSrc: iconAdmins, path: "/admins", scaleIcon: true });
-  }
+  // Filter modules for gestor based on permissions
+  const modules: ModuleItem[] = useMemo(() => {
+    let filtered = allRhModules;
+    if (isGestor && gestorAllowedPaths) {
+      filtered = allRhModules.filter(m => gestorAllowedPaths.has(m.path));
+    }
+    if (isSuperAdmin) {
+      filtered = [...filtered, { title: "Gerenciar Admins", description: "Controle de administradores", iconSrc: iconAdmins, path: "/admins", scaleIcon: true }];
+    }
+    return filtered;
+  }, [isGestor, gestorAllowedPaths, isSuperAdmin, allRhModules]);
 
   // Helper to render badge
   const renderBadge = (module: ModuleItem) => {

@@ -34,6 +34,8 @@ import { Admin, useCreateAdmin, useUpdateAdmin } from "@/hooks/useAdmins";
 import { supabase } from "@/integrations/supabase/client";
 
 const MODULOS_DISPONIVEIS = [
+  // Sistema Integrado de Gerenciamento
+  { id: "__header_sistema", label: "Sistema Integrado de Gerenciamento", isHeader: true },
   { id: "gestao-rh", label: "Recursos Humanos" },
   { id: "gestao-clientes", label: "Clientes" },
   { id: "inventario", label: "Inventário" },
@@ -41,7 +43,21 @@ const MODULOS_DISPONIVEIS = [
   { id: "fornecedores", label: "Fornecedores" },
   { id: "orcamentos", label: "Orçamentos" },
   { id: "gestao-backups", label: "Gestão de Backups" },
-];
+  // Gestão RH
+  { id: "__header_rh", label: "Gestão RH", isHeader: true },
+  { id: "rh-funcionarios", label: "Funcionários" },
+  { id: "rh-talentos", label: "Banco de Talentos" },
+  { id: "rh-relatorios", label: "Relatórios" },
+  { id: "rh-ponto", label: "Controle de Ponto" },
+  { id: "rh-holerites", label: "Holerites" },
+  { id: "rh-comunicados", label: "Comunicados" },
+  { id: "rh-formularios", label: "Formulários" },
+  { id: "rh-cursos", label: "Cursos" },
+  { id: "rh-ferias", label: "Controle de Férias" },
+  { id: "rh-suporte", label: "Suporte ao Funcionário" },
+  { id: "rh-documentos", label: "Documentos RH" },
+  { id: "rh-sst", label: "Saúde e Segurança" },
+] as const;
 
 const adminSchema = z.object({
   nome: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
@@ -310,19 +326,28 @@ export const AdminDialog = ({ open, onOpenChange, admin }: AdminDialogProps) => 
                     Selecione os módulos que este gestor poderá acessar
                   </p>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 gap-3">
-                  {MODULOS_DISPONIVEIS.map((modulo) => (
-                    <label
-                      key={modulo.id}
-                      className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors"
-                    >
-                      <Checkbox
-                        checked={selectedModulos.includes(modulo.id)}
-                        onCheckedChange={() => toggleModulo(modulo.id)}
-                      />
-                      <span className="text-sm font-medium">{modulo.label}</span>
-                    </label>
-                  ))}
+                <CardContent className="grid grid-cols-1 gap-1 max-h-[300px] overflow-y-auto">
+                  {MODULOS_DISPONIVEIS.map((modulo) => {
+                    if ('isHeader' in modulo && modulo.isHeader) {
+                      return (
+                        <div key={modulo.id} className="pt-3 pb-1 first:pt-0">
+                          <span className="text-xs font-bold uppercase text-primary tracking-wider">{modulo.label}</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <label
+                        key={modulo.id}
+                        className="flex items-center gap-3 p-2 rounded-md hover:bg-accent cursor-pointer transition-colors"
+                      >
+                        <Checkbox
+                          checked={selectedModulos.includes(modulo.id)}
+                          onCheckedChange={() => toggleModulo(modulo.id)}
+                        />
+                        <span className="text-sm font-medium">{modulo.label}</span>
+                      </label>
+                    );
+                  })}
                 </CardContent>
               </Card>
             )}
