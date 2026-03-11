@@ -11,6 +11,7 @@ import iconBudget from "@/assets/icon-orcamentos-new.png";
 import iconInventario from "@/assets/icon-inventario-new.png";
 import iconDocumentacoes from "@/assets/icon-documentacoes.png";
 import iconEmBreve from "@/assets/icon-em-breve.png";
+import iconBackups from "@/assets/icon-backups.png";
 
 interface ModuleItem {
   id: string;
@@ -28,6 +29,7 @@ const allModules: ModuleItem[] = [
   { id: 'budget', icon: iconBudget, label: 'Orçamentos', route: '/orcamentos', allowedRoles: ['admin'] },
   { id: 'inventario', icon: iconInventario, label: 'Inventário', route: '/inventario', allowedRoles: ['admin'] },
   { id: 'documentacoes', icon: iconDocumentacoes, label: 'Documentos', route: '/documentacoes', allowedRoles: ['admin'] },
+  { id: 'backups', icon: iconBackups, label: 'Gestão de Backups', route: '/gestao-backups', allowedRoles: ['admin'] },
   { id: 'soon', icon: iconEmBreve, label: 'Em Breve', disabled: true, allowedRoles: ['admin'] },
 ];
 
@@ -44,6 +46,7 @@ const Dashboard = () => {
     '/orcamentos': () => import("./OrcamentosDashboard"),
     '/inventario': () => import("./InventarioEquipamentos"),
     '/documentacoes': () => import("./Documentacoes"),
+    '/gestao-backups': () => import("./GestaoBackups"),
   }), []);
 
   // Eagerly prefetch ALL module chunks after dashboard renders
