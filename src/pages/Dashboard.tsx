@@ -23,14 +23,25 @@ interface ModuleItem {
   allowedRoles?: string[]; // roles that can see this module
 }
 
+// Map permission IDs to dashboard module IDs
+const PERMISSION_TO_MODULE: Record<string, string> = {
+  "gestao-rh": "rh",
+  "gestao-clientes": "clients",
+  "fornecedores": "suppliers",
+  "orcamentos": "budget",
+  "inventario": "inventario",
+  "documentacoes": "documentacoes",
+  "gestao-backups": "backups",
+};
+
 const allModules: ModuleItem[] = [
   { id: 'rh', icon: iconHr, label: 'Recursos Humanos', route: '/gestao-rh', allowedRoles: ['admin', 'rh', 'gestor'] },
-  { id: 'clients', icon: iconClients, label: 'Clientes', route: '/gestao-clientes', allowedRoles: ['admin'] },
-  { id: 'suppliers', icon: iconSuppliers, label: 'Fornecedores', route: '/fornecedores', allowedRoles: ['admin'] },
-  { id: 'budget', icon: iconBudget, label: 'Orçamentos', route: '/orcamentos', allowedRoles: ['admin'] },
-  { id: 'inventario', icon: iconInventario, label: 'Inventário', route: '/inventario', allowedRoles: ['admin'] },
-  { id: 'documentacoes', icon: iconDocumentacoes, label: 'Documentos', route: '/documentacoes', allowedRoles: ['admin'] },
-  { id: 'backups', icon: iconBackups, label: 'Gestão de Backups', route: '/gestao-backups', allowedRoles: ['admin'] },
+  { id: 'clients', icon: iconClients, label: 'Clientes', route: '/gestao-clientes', allowedRoles: ['admin', 'gestor'] },
+  { id: 'suppliers', icon: iconSuppliers, label: 'Fornecedores', route: '/fornecedores', allowedRoles: ['admin', 'gestor'] },
+  { id: 'budget', icon: iconBudget, label: 'Orçamentos', route: '/orcamentos', allowedRoles: ['admin', 'gestor'] },
+  { id: 'inventario', icon: iconInventario, label: 'Inventário', route: '/inventario', allowedRoles: ['admin', 'gestor'] },
+  { id: 'documentacoes', icon: iconDocumentacoes, label: 'Documentos', route: '/documentacoes', allowedRoles: ['admin', 'gestor'] },
+  { id: 'backups', icon: iconBackups, label: 'Gestão de Backups', route: '/gestao-backups', allowedRoles: ['admin', 'gestor'] },
   { id: 'soon', icon: iconEmBreve, label: 'Em Breve', disabled: true, allowedRoles: ['admin'] },
 ];
 
