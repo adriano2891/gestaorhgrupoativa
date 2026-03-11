@@ -54,11 +54,7 @@ export default function Fornecedores() {
                 <p className="text-[9px] sm:text-xs text-primary-foreground/70 truncate">Gestão de fornecedores</p>
               </div>
             </div>
-            <Button onClick={() => navigate('/fornecedores/novo')} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground touch-target flex-shrink-0">
-              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Adicionar Fornecedor</span>
-              <span className="sm:hidden">Novo</span>
-            </Button>
+            {/* Button moved below icon bar */}
           </div>
         </div>
       </header>
