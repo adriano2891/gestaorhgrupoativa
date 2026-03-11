@@ -528,7 +528,7 @@ const GestaoBackups = () => {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </>
   );
 };
 
