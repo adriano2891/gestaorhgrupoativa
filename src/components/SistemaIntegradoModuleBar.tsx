@@ -72,7 +72,7 @@ export const SistemaIntegradoModuleBar = () => {
   return (
     <>
       <nav
-        className="bg-primary border-b border-primary-foreground/10 fixed top-[44px] sm:top-[48px] md:top-[56px] left-0 right-0 z-40 shadow-md"
+        className="bg-primary border-b border-primary-foreground/10 fixed top-[40px] 2xs:top-[44px] sm:top-[48px] md:top-[56px] left-0 right-0 z-40 shadow-md"
         role="navigation"
         aria-label="Módulos do Sistema Integrado"
       >
