@@ -90,14 +90,41 @@ const Dashboard = () => {
     }
   }, [user, roles.length]);
 
+  const isGestor = roles.includes("gestor" as any) && !roles.includes("admin" as any) && !roles.includes("rh" as any);
+
+  // Load gestor permissions
+  const { data: gestorPermissions } = useQuery({
+    queryKey: ["gestor-permissions", user?.id],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("gestor_permissions")
+        .select("modulo")
+        .eq("user_id", user?.id);
+      return (data as any[])?.map((d: any) => d.modulo) || [];
+    },
+    enabled: isGestor && !!user?.id,
+  });
+
   // While roles are loading, show all modules (will filter once loaded)
   const rolesReady = roles.length > 0 || rolesTimeout;
 
+  // Build allowed module IDs for gestor
+  const gestorAllowedModuleIds = useMemo(() => {
+    if (!isGestor || !gestorPermissions) return null;
+    return new Set(gestorPermissions.map((p: string) => PERMISSION_TO_MODULE[p] || p));
+  }, [isGestor, gestorPermissions]);
+
   const modules = allModules.filter((m) => {
     if (!m.allowedRoles) return true;
-    if (!rolesReady) return true; // show all modules while roles load
+    if (!rolesReady) return true;
     if (rolesTimeout && roles.length === 0) return true;
-    return m.allowedRoles.some((r) => roles.includes(r as any));
+    const hasRole = m.allowedRoles.some((r) => roles.includes(r as any));
+    if (!hasRole) return false;
+    // For gestor, additionally check granular permissions
+    if (isGestor && gestorAllowedModuleIds) {
+      return gestorAllowedModuleIds.has(m.id);
+    }
+    return true;
   });
 
   const handleLogout = async () => {
