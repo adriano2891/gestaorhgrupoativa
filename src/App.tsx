@@ -309,7 +309,9 @@ const App = () => {
                       path="/fornecedores/novo"
                       element={
                         <ProtectedRoute>
-                          <FornecedorForm />
+                          <SILayout>
+                            <FornecedorForm />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
