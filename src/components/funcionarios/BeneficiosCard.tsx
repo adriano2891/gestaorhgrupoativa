@@ -31,10 +31,13 @@ const tipoLabels: Record<string, string> = {
   insalubridade: "Insalubridade",
   periculosidade: "Periculosidade",
   salario_familia: "Salário-Família",
+  bonificacao: "Bonificação",
+  outros: "Outros",
 };
 
 const isPlanoType = (tipo: string) => tipo === "plano_saude" || tipo === "plano_odontologico";
 const isAdicionalType = (tipo: string) => tipo === "insalubridade" || tipo === "periculosidade";
+const isBonificacaoType = (tipo: string) => tipo === "bonificacao" || tipo === "outros";
 
 export const BeneficiosCard = ({ userId, userName }: { userId: string; userName: string }) => {
   const [beneficios, setBeneficios] = useState<Beneficio[]>([]);
@@ -46,6 +49,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
   const [nomePlano, setNomePlano] = useState("");
   const [grauInsalubridade, setGrauInsalubridade] = useState("medio");
   const [valorCustoPlano, setValorCustoPlano] = useState("");
+  const [descricaoBeneficio, setDescricaoBeneficio] = useState("");
 
   const loadBeneficios = async () => {
     try {
@@ -73,6 +77,9 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
 
     if (isPlano) {
       if (!nomePlano.trim()) { toast.error("Informe o nome do plano"); return; }
+    } else if (isBonificacaoType(tipo)) {
+      const valorNum = parseFloat(valor.replace(",", "."));
+      if (!valorNum || valorNum <= 0) { toast.error("Informe um valor válido"); return; }
     } else if (!isAdicional) {
       const valorNum = parseFloat(valor.replace(",", "."));
       if (!valorNum || valorNum <= 0) { toast.error("Informe um valor válido"); return; }
@@ -93,8 +100,8 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
         user_id: userId,
         tipo,
         valor: isPlano ? valorPlano : isAdicional ? 0 : parseFloat(valor.replace(",", ".")),
-        desconto_percentual: isPlano || isAdicional ? 0 : (parseFloat(desconto) || 0),
-        observacoes: isPlano ? nomePlano.trim() : isAdicional ? grauInsalubridade : null,
+        desconto_percentual: isPlano || isAdicional || isBonificacaoType(tipo) ? 0 : (parseFloat(desconto) || 0),
+        observacoes: isPlano ? nomePlano.trim() : isAdicional ? grauInsalubridade : isBonificacaoType(tipo) ? (descricaoBeneficio.trim() || null) : null,
       };
 
       const { error } = await (supabase as any)
@@ -107,6 +114,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
       setValor("");
       setNomePlano("");
       setValorCustoPlano("");
+      setDescricaoBeneficio("");
       loadBeneficios();
     } catch (e: any) {
       toast.error("Erro ao adicionar benefício", { description: e.message });
@@ -181,6 +189,11 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                           : "30% do salário base"
                         }
                       </span>
+                    ) : isBonificacaoType(b.tipo) ? (
+                      <div>
+                        <span className="text-sm font-medium">R$ {b.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</span>
+                        {b.observacoes && <p className="text-xs text-muted-foreground">{b.observacoes}</p>}
+                      </div>
                     ) : (
                       <>R$ {b.valor.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</>
                     )}
@@ -225,6 +238,8 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                   <SelectItem value="plano_odontologico">Plano Odontológico</SelectItem>
                   <SelectItem value="insalubridade">Insalubridade (CLT Art. 192)</SelectItem>
                   <SelectItem value="periculosidade">Periculosidade (CLT Art. 193)</SelectItem>
+                  <SelectItem value="bonificacao">Bonificação</SelectItem>
+                  <SelectItem value="outros">Outros</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -273,6 +288,17 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                   Necessário laudo técnico de engenheiro de segurança.
                 </p>
               </div>
+            ) : isBonificacaoType(tipo) ? (
+              <>
+                <div className="space-y-1.5">
+                  <Label>Valor (R$)</Label>
+                  <Input value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Descrição</Label>
+                  <Input value={descricaoBeneficio} onChange={(e) => setDescricaoBeneficio(e.target.value)} placeholder="Descreva o benefício..." />
+                </div>
+              </>
             ) : (
               <>
                 <div className="space-y-1.5">
