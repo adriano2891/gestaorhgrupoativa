@@ -40,6 +40,7 @@ const MODULOS_DISPONIVEIS = [
   { id: "documentacoes", label: "Documentos" },
   { id: "fornecedores", label: "Fornecedores" },
   { id: "orcamentos", label: "Orçamentos" },
+  { id: "gestao-backups", label: "Gestão de Backups" },
 ];
 
 const adminSchema = z.object({
