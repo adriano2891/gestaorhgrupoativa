@@ -30,13 +30,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDocumentos, useDocumentosCategorias, useMeusFavoritos, useDeleteDocumento, useToggleFavorito, useDeleteCategoria, getDocumentoAccessUrl, registrarAcessoDocumento } from "@/hooks/useDocumentos";
+import { useDocumentosSistema, useDocumentosSistemaCategorias, useMeusFavoritosSistema, useDeleteDocumentoSistema, useToggleFavoritoSistema, useDeleteCategoriaSistema, getDocumentoSistemaAccessUrl, registrarAcessoDocumentoSistema } from "@/hooks/useDocumentosSistema";
 import { gerarPdfRelatorioDocumentos } from "@/utils/documentosPdfAuditoria";
-import { UploadDocumentoDialog } from "@/components/documentos/UploadDocumentoDialog";
-import { CriarCategoriaDialog } from "@/components/documentos/CriarCategoriaDialog";
-import { EditarCategoriaDialog } from "@/components/documentos/EditarCategoriaDialog";
-import { DocumentoDetalhesDialog } from "@/components/documentos/DocumentoDetalhesDialog";
-import { EditarDocumentoDialog } from "@/components/documentos/EditarDocumentoDialog";
+import { UploadDocumentoSistemaDialog } from "@/components/documentos-sistema/UploadDocumentoSistemaDialog";
+import { CriarCategoriaSistemaDialog } from "@/components/documentos-sistema/CriarCategoriaSistemaDialog";
+import { EditarCategoriaSistemaDialog } from "@/components/documentos-sistema/EditarCategoriaSistemaDialog";
+import { DocumentoDetalhesSistemaDialog } from "@/components/documentos-sistema/DocumentoDetalhesSistemaDialog";
+import { EditarDocumentoSistemaDialog } from "@/components/documentos-sistema/EditarDocumentoSistemaDialog";
 import { TIPO_LABELS, type Documento, type DocumentoTipo } from "@/types/documentos";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -62,16 +62,16 @@ const DocumentacoesSistema = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [editingCategoria, setEditingCategoria] = useState<import("@/types/documentos").DocumentoCategoria | null>(null);
   const [deleteCatId, setDeleteCatId] = useState<string | null>(null);
-  const { data: documentos, isLoading } = useDocumentos({
+  const { data: documentos, isLoading } = useDocumentosSistema({
     categoriaId: selectedCategoria,
     search: searchTerm,
     tipo: selectedTipo,
   });
-  const { data: categorias } = useDocumentosCategorias();
-  const { data: favoritos } = useMeusFavoritos();
-  const deleteDocumento = useDeleteDocumento();
-  const toggleFavorito = useToggleFavorito();
-  const deleteCategoria = useDeleteCategoria();
+  const { data: categorias } = useDocumentosSistemaCategorias();
+  const { data: favoritos } = useMeusFavoritosSistema();
+  const deleteDocumento = useDeleteDocumentoSistema();
+  const toggleFavorito = useToggleFavoritoSistema();
+  const deleteCategoria = useDeleteCategoriaSistema();
 
   const filteredDocumentos = documentos
     ?.filter(doc => {
@@ -145,8 +145,8 @@ const DocumentacoesSistema = () => {
 
   const handleDownload = async (doc: Documento) => {
     try {
-      const url = await getDocumentoAccessUrl(doc.arquivo_url);
-      registrarAcessoDocumento(doc.id, 'download');
+      const url = await getDocumentoSistemaAccessUrl(doc.arquivo_url);
+      registrarAcessoDocumentoSistema(doc.id, 'download');
       const { downloadFileFromUrl } = await import("@/utils/downloadFile");
       await downloadFileFromUrl(url, {
         filename: doc.arquivo_nome,
@@ -160,9 +160,9 @@ const DocumentacoesSistema = () => {
 
   const handlePreview = async (doc: Documento) => {
     try {
-      const url = await getDocumentoAccessUrl(doc.arquivo_url);
+      const url = await getDocumentoSistemaAccessUrl(doc.arquivo_url);
       if (!url) throw new Error("URL de acesso não gerada");
-      registrarAcessoDocumento(doc.id, 'visualizacao');
+      registrarAcessoDocumentoSistema(doc.id, 'visualizacao');
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
       const message = error instanceof Error ? error.message : "Não foi possível abrir o documento";
@@ -557,18 +557,18 @@ const DocumentacoesSistema = () => {
       </main>
 
       {/* Dialogs */}
-      <UploadDocumentoDialog 
+      <UploadDocumentoSistemaDialog 
         open={showUploadDialog} 
         onOpenChange={handleUploadDialogChange}
         categorias={categorias || []}
       />
-      <CriarCategoriaDialog 
+      <CriarCategoriaSistemaDialog 
         open={showCategoriaDialog} 
         onOpenChange={setShowCategoriaDialog}
         categorias={categorias || []}
       />
       {selectedDocumento && (
-        <DocumentoDetalhesDialog
+        <DocumentoDetalhesSistemaDialog
           documento={selectedDocumento}
           open={!!selectedDocumento}
           onOpenChange={(open) => !open && setSelectedDocumento(null)}
@@ -576,7 +576,7 @@ const DocumentacoesSistema = () => {
           onToggleFavorito={() => handleToggleFavorito(selectedDocumento)}
         />
       )}
-      <EditarDocumentoDialog
+      <EditarDocumentoSistemaDialog
         documento={editingDocumento}
         open={!!editingDocumento}
         onOpenChange={(open) => !open && setEditingDocumento(null)}
@@ -602,7 +602,7 @@ const DocumentacoesSistema = () => {
       </AlertDialog>
 
       {/* Edit Category Dialog */}
-      <EditarCategoriaDialog
+      <EditarCategoriaSistemaDialog
         open={!!editingCategoria}
         onOpenChange={(open) => !open && setEditingCategoria(null)}
         categoria={editingCategoria}
