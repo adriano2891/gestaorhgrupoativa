@@ -329,7 +329,9 @@ const App = () => {
                       path="/fornecedores/:id/editar"
                       element={
                         <ProtectedRoute>
-                          <FornecedorForm />
+                          <SILayout>
+                            <FornecedorForm />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
