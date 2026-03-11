@@ -160,9 +160,9 @@ const DocumentacoesSistema = () => {
 
   const handlePreview = async (doc: Documento) => {
     try {
-      const url = await getDocumentoAccessUrl(doc.arquivo_url);
+      const url = await getDocumentoSistemaAccessUrl(doc.arquivo_url);
       if (!url) throw new Error("URL de acesso não gerada");
-      registrarAcessoDocumento(doc.id, 'visualizacao');
+      registrarAcessoDocumentoSistema(doc.id, 'visualizacao');
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch (error) {
       const message = error instanceof Error ? error.message : "Não foi possível abrir o documento";
