@@ -4,7 +4,7 @@ import { Link, useLocation } from "react-router-dom";
 import { Button } from "./ui/button";
 import { useState } from "react";
 import { useAuth } from "./auth/AuthProvider";
-import loginBackground from "@/assets/login-background.png";
+const sistemaIntegradoBg = "/sistema-integrado-background.png";
 import { SistemaIntegradoModuleBar } from "./SistemaIntegradoModuleBar";
 import { AgendaPanel } from "./agenda";
 
