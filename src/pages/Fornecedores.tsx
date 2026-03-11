@@ -61,6 +61,12 @@ export default function Fornecedores() {
       <div className="h-[52px] sm:h-[60px] md:h-[64px]" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        <div className="flex justify-end">
+          <Button onClick={() => navigate('/fornecedores/novo')} className="h-9 px-4 text-sm">
+            <Plus className="w-4 h-4 mr-2" />
+            Adicionar Fornecedor
+          </Button>
+        </div>
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
