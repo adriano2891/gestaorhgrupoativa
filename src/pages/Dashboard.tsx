@@ -23,6 +23,7 @@ interface ModuleItem {
   route?: string;
   disabled?: boolean;
   allowedRoles?: string[]; // roles that can see this module
+  rawIcon?: boolean; // if true, render icon image directly without turquoise circle wrapper
 }
 
 // Map permission IDs to dashboard module IDs
@@ -37,7 +38,7 @@ const PERMISSION_TO_MODULE: Record<string, string> = {
 };
 
 const allModules: ModuleItem[] = [
-  { id: 'rh', icon: iconHr, label: 'Recursos Humanos', route: '/gestao-rh', allowedRoles: ['admin', 'rh', 'gestor'] },
+  { id: 'rh', icon: iconHr, label: 'Recursos Humanos', route: '/gestao-rh', allowedRoles: ['admin', 'rh', 'gestor'], rawIcon: true },
   { id: 'clients', icon: iconClients, label: 'Gestão de Clientes', route: '/gestao-clientes', allowedRoles: ['admin', 'gestor'] },
   { id: 'suppliers', icon: iconSuppliers, label: 'Gestão de Fornecedores', route: '/fornecedores', allowedRoles: ['admin', 'gestor'] },
   { id: 'budget', icon: iconBudget, label: 'Gestão de Orçamentos', route: '/orcamentos', allowedRoles: ['admin', 'gestor'] },
@@ -231,18 +232,30 @@ const Dashboard = () => {
                 onMouseEnter={() => handlePrefetch(module.route)}
                 aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
               >
-                <div 
-                  className="rounded-full flex items-center justify-center overflow-hidden w-16 h-16 2xs:w-[72px] 2xs:h-[72px] xxs:w-20 xxs:h-20 p-2"
-                  style={{ backgroundColor: '#40e0d0', boxShadow: '0 4px 15px rgba(64,224,208,0.4), 0 0 0 3px rgba(64,224,208,0.3)' }}
-                >
-                  <img 
-                    src={module.icon} 
-                    alt=""
-                    aria-hidden="true"
-                    loading="lazy"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
+                {module.rawIcon ? (
+                  <div className="flex items-center justify-center w-16 h-16 2xs:w-[72px] 2xs:h-[72px] xxs:w-20 xxs:h-20">
+                    <img 
+                      src={module.icon} 
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                      className="w-full h-full object-contain drop-shadow-md"
+                    />
+                  </div>
+                ) : (
+                  <div 
+                    className="rounded-full flex items-center justify-center overflow-hidden w-16 h-16 2xs:w-[72px] 2xs:h-[72px] xxs:w-20 xxs:h-20 p-2"
+                    style={{ backgroundColor: '#40e0d0', boxShadow: '0 4px 15px rgba(64,224,208,0.4), 0 0 0 3px rgba(64,224,208,0.3)' }}
+                  >
+                    <img 
+                      src={module.icon} 
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                )}
                 <p 
                   className="text-center mt-1.5 2xs:mt-2 font-semibold text-[9px] 2xs:text-[10px] xxs:text-xs leading-tight w-full"
                   style={{ color: '#1a5c58' }}
@@ -271,12 +284,21 @@ const Dashboard = () => {
         aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
       >
         <div className="flex flex-col items-center">
-          <div
-            className={`icon-ring rounded-full flex items-center justify-center overflow-hidden ${ringWidth} p-2`}
-            style={{ width: `${iconSize}px`, height: `${iconSize}px`, backgroundColor: '#40e0d0', boxShadow: '0 6px 24px rgba(0,0,0,0.15), 0 0 0 3px rgba(64,224,208,0.3)' }}
-          >
-            <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-contain" />
-          </div>
+          {module.rawIcon ? (
+            <div
+              className="icon-ring flex items-center justify-center"
+              style={{ width: `${iconSize}px`, height: `${iconSize}px` }}
+            >
+              <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-contain drop-shadow-lg" />
+            </div>
+          ) : (
+            <div
+              className={`icon-ring rounded-full flex items-center justify-center overflow-hidden ${ringWidth} p-2`}
+              style={{ width: `${iconSize}px`, height: `${iconSize}px`, backgroundColor: '#40e0d0', boxShadow: '0 6px 24px rgba(0,0,0,0.15), 0 0 0 3px rgba(64,224,208,0.3)' }}
+            >
+              <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-contain" />
+            </div>
+          )}
           <div className="module-label-card mt-2">
             <p className={`text-center font-semibold ${fontSize} leading-tight`} style={{ color: '#1a5c58', maxWidth: maxLabelW }}>
               {module.label}
