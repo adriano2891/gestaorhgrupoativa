@@ -30,13 +30,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { useDocumentos, useDocumentosCategorias, useMeusFavoritos, useDeleteDocumento, useToggleFavorito, useDeleteCategoria, getDocumentoAccessUrl, registrarAcessoDocumento } from "@/hooks/useDocumentos";
+import { useDocumentosSistema, useDocumentosSistemaCategorias, useMeusFavoritosSistema, useDeleteDocumentoSistema, useToggleFavoritoSistema, useDeleteCategoriaSistema, getDocumentoSistemaAccessUrl, registrarAcessoDocumentoSistema } from "@/hooks/useDocumentosSistema";
 import { gerarPdfRelatorioDocumentos } from "@/utils/documentosPdfAuditoria";
-import { UploadDocumentoDialog } from "@/components/documentos/UploadDocumentoDialog";
-import { CriarCategoriaDialog } from "@/components/documentos/CriarCategoriaDialog";
-import { EditarCategoriaDialog } from "@/components/documentos/EditarCategoriaDialog";
-import { DocumentoDetalhesDialog } from "@/components/documentos/DocumentoDetalhesDialog";
-import { EditarDocumentoDialog } from "@/components/documentos/EditarDocumentoDialog";
+import { UploadDocumentoSistemaDialog } from "@/components/documentos-sistema/UploadDocumentoSistemaDialog";
+import { CriarCategoriaSistemaDialog } from "@/components/documentos-sistema/CriarCategoriaSistemaDialog";
+import { EditarCategoriaSistemaDialog } from "@/components/documentos-sistema/EditarCategoriaSistemaDialog";
+import { DocumentoDetalhesSistemaDialog } from "@/components/documentos-sistema/DocumentoDetalhesSistemaDialog";
+import { EditarDocumentoSistemaDialog } from "@/components/documentos-sistema/EditarDocumentoSistemaDialog";
 import { TIPO_LABELS, type Documento, type DocumentoTipo } from "@/types/documentos";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
