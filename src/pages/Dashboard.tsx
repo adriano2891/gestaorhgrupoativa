@@ -146,22 +146,17 @@ const Dashboard = () => {
   // Hover animation styles
   const hoverStyles = `
     @keyframes icon-glow {
-      0%, 100% { box-shadow: 0 0 20px rgba(255,255,255,0.3), 0 8px 30px rgba(0,0,0,0.2); }
-      50% { box-shadow: 0 0 35px rgba(255,255,255,0.5), 0 12px 40px rgba(0,0,0,0.25); }
-    }
-    @keyframes icon-float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-8px); }
+      0%, 100% { box-shadow: 0 0 20px rgba(62,224,207,0.3), 0 8px 30px rgba(0,0,0,0.15); }
+      50% { box-shadow: 0 0 35px rgba(62,224,207,0.5), 0 12px 40px rgba(0,0,0,0.2); }
     }
     .module-icon-container {
       transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .module-icon-container:hover {
-      transform: scale(1.15) translateY(-5px);
+      transform: scale(1.12) translateY(-6px);
     }
     .module-icon-container:hover .icon-ring {
       animation: icon-glow 1.5s ease-in-out infinite;
-      ring-color: rgba(255,255,255,0.6);
     }
     .module-icon-container:active {
       transform: scale(1.05) translateY(-2px);
@@ -169,8 +164,13 @@ const Dashboard = () => {
     .icon-ring {
       transition: all 0.3s ease;
     }
-    .icon-ring:hover {
-      box-shadow: 0 0 30px rgba(255,255,255,0.4), 0 10px 35px rgba(0,0,0,0.2);
+    .module-label-card {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(62,224,207,0.25);
+      border-radius: 10px;
+      padding: 6px 10px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
   `;
 
