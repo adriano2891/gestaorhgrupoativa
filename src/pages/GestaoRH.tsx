@@ -41,7 +41,7 @@ interface ModuleItem {
 
 const GestaoRH = () => {
   const navigate = useNavigate();
-  const { roles, signOut } = useAuth();
+  const { roles, signOut, user } = useAuth();
   const isMobile = useIsMobile();
   const [isAnimating, setIsAnimating] = useState(true);
   
@@ -50,7 +50,47 @@ const GestaoRH = () => {
   useComunicadosRealtime();
   const { notifications } = useAdminNotifications();
   const isSuperAdmin = roles.includes("admin");
+  const isGestor = roles.includes("gestor") && !isSuperAdmin && !roles.includes("rh");
   const isAdmin = isSuperAdmin || roles.includes("rh") || roles.includes("gestor");
+
+  // RH permission ID to path mapping
+  const RH_PERMISSION_TO_PATH: Record<string, string> = {
+    "rh-funcionarios": "/funcionarios",
+    "rh-talentos": "/banco-talentos",
+    "rh-relatorios": "/relatorios",
+    "rh-ponto": "/folha-ponto",
+    "rh-holerites": "/holerites",
+    "rh-comunicados": "/comunicados",
+    "rh-formularios": "/hrflow-pro",
+    "rh-cursos": "/cursos",
+    "rh-ferias": "/controle-ferias",
+    "rh-suporte": "/suporte-funcionarios",
+    "rh-documentos": "/documentacoes",
+    "rh-sst": "/afastamentos",
+  };
+
+  // Load gestor permissions
+  const { data: gestorPermissions } = useQuery({
+    queryKey: ["gestor-permissions", user?.id],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("gestor_permissions")
+        .select("modulo")
+        .eq("user_id", user?.id);
+      return (data as any[])?.map((d: any) => d.modulo) || [];
+    },
+    enabled: isGestor && !!user?.id,
+  });
+
+  const gestorAllowedPaths = useMemo(() => {
+    if (!isGestor || !gestorPermissions) return null;
+    const paths = new Set<string>();
+    gestorPermissions.forEach((p: string) => {
+      const path = RH_PERMISSION_TO_PATH[p];
+      if (path) paths.add(path);
+    });
+    return paths;
+  }, [isGestor, gestorPermissions]);
 
   // Count badges per route
   const badgeCounts = useMemo(() => {
