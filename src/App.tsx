@@ -269,7 +269,9 @@ const App = () => {
                       path="/orcamentos/:id/editar"
                       element={
                         <ProtectedRoute>
-                          <OrcamentosBuilder />
+                          <SILayout>
+                            <OrcamentosBuilder />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
