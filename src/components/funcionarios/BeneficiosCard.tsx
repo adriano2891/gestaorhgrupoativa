@@ -114,6 +114,7 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
       setValor("");
       setNomePlano("");
       setValorCustoPlano("");
+      setDescricaoBeneficio("");
       loadBeneficios();
     } catch (e: any) {
       toast.error("Erro ao adicionar benefício", { description: e.message });
