@@ -107,34 +107,37 @@ const GestaoClientes = () => {
       {/* Action buttons below icon bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
         <div className="flex items-center justify-between">
-          <Button
-            variant={view === "dashboard" ? "default" : "outline"}
-            size="sm"
-            onClick={() => { setView("dashboard"); setSelectedId(null); }}
-            className="h-9 px-3 text-sm"
-            aria-current={view === "dashboard" ? "page" : undefined}
-          >
-            <LayoutDashboard className="w-4 h-4 mr-2" />
-            Dashboard
-          </Button>
-          <Button
-            variant={view === "lista" ? "default" : "outline"}
-            size="sm"
-            onClick={() => { setView("lista"); setSelectedId(null); }}
-            className="h-9 px-3 text-sm"
-            aria-current={view === "lista" ? "page" : undefined}
-          >
-            <List className="w-4 h-4 mr-2" />
-            Lista
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => { setEditingCondo(null); setFormOpen(true); }}
-            className="h-9 px-3 text-sm"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Novo
-          </Button>
+          <BackButton to="/dashboard" />
+          <div className="flex items-center gap-2">
+            <Button
+              variant={view === "dashboard" ? "default" : "outline"}
+              size="sm"
+              onClick={() => { setView("dashboard"); setSelectedId(null); }}
+              className="h-9 px-3 text-sm"
+              aria-current={view === "dashboard" ? "page" : undefined}
+            >
+              <LayoutDashboard className="w-4 h-4 mr-2" />
+              Dashboard
+            </Button>
+            <Button
+              variant={view === "lista" ? "default" : "outline"}
+              size="sm"
+              onClick={() => { setView("lista"); setSelectedId(null); }}
+              className="h-9 px-3 text-sm"
+              aria-current={view === "lista" ? "page" : undefined}
+            >
+              <List className="w-4 h-4 mr-2" />
+              Lista
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => { setEditingCondo(null); setFormOpen(true); }}
+              className="h-9 px-3 text-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Novo
+            </Button>
+          </div>
         </div>
       </div>
 
