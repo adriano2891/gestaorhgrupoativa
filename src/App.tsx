@@ -219,7 +219,9 @@ const App = () => {
                       path="/gestao-clientes"
                       element={
                         <ProtectedRoute>
-                          <GestaoClientes />
+                          <SILayout>
+                            <GestaoClientes />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
