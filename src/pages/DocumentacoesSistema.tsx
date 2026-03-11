@@ -143,7 +143,7 @@ const DocumentacoesSistema = () => {
     });
   };
 
-  const handleDownload = async (doc: Documento) => {
+  const handleDownload = async (doc: DocumentoSistema) => {
     try {
       const url = await getDocumentoSistemaAccessUrl(doc.arquivo_url);
       registrarAcessoDocumentoSistema(doc.id, 'download');
