@@ -46,6 +46,7 @@ const Dashboard = () => {
     '/orcamentos': () => import("./OrcamentosDashboard"),
     '/inventario': () => import("./InventarioEquipamentos"),
     '/documentacoes': () => import("./Documentacoes"),
+    '/gestao-backups': () => import("./GestaoBackups"),
   }), []);
 
   // Eagerly prefetch ALL module chunks after dashboard renders

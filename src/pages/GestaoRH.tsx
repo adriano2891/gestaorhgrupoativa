@@ -88,7 +88,6 @@ const GestaoRH = () => {
 
   if (isSuperAdmin) {
     modules.push({ title: "Gerenciar Admins", description: "Controle de administradores", iconSrc: iconAdmins, path: "/admins", scaleIcon: true });
-    modules.push({ title: "Gestão de Backups", description: "Backup e restauração do sistema", iconSrc: iconAdmins, path: "/gestao-backups", scaleIcon: true });
   }
 
   // Helper to render badge
