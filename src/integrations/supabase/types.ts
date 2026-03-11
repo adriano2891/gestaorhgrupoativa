@@ -368,6 +368,60 @@ export type Database = {
           },
         ]
       }
+      backup_logs: {
+        Row: {
+          arquivo_path: string | null
+          created_at: string | null
+          duracao_ms: number | null
+          erro: string | null
+          executado_por: string | null
+          hash_sha256: string | null
+          id: string
+          metadata: Json | null
+          status: string
+          tabelas_excluidas: string[] | null
+          tabelas_incluidas: string[] | null
+          tamanho_bytes: number | null
+          tipo: string
+          total_registros: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          arquivo_path?: string | null
+          created_at?: string | null
+          duracao_ms?: number | null
+          erro?: string | null
+          executado_por?: string | null
+          hash_sha256?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          tabelas_excluidas?: string[] | null
+          tabelas_incluidas?: string[] | null
+          tamanho_bytes?: number | null
+          tipo?: string
+          total_registros?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          arquivo_path?: string | null
+          created_at?: string | null
+          duracao_ms?: number | null
+          erro?: string | null
+          executado_por?: string | null
+          hash_sha256?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          tabelas_excluidas?: string[] | null
+          tabelas_incluidas?: string[] | null
+          tamanho_bytes?: number | null
+          tipo?: string
+          total_registros?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       banco_horas: {
         Row: {
           aprovado_em: string | null
