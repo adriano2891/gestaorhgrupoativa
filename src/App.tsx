@@ -375,6 +375,16 @@ const App = () => {
                         </ProtectedRoute>
                       }
                     />
+                    <Route
+                      path="/gestao-backups"
+                      element={
+                        <ProtectedRoute requiredRoles={["admin"]}>
+                          <LazyLayout>
+                            <GestaoBackups />
+                          </LazyLayout>
+                        </ProtectedRoute>
+                      }
+                    />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </Suspense>
