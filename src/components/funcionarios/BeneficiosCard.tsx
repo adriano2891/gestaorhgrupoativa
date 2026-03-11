@@ -283,6 +283,17 @@ export const BeneficiosCard = ({ userId, userName }: { userId: string; userName:
                   Necessário laudo técnico de engenheiro de segurança.
                 </p>
               </div>
+            ) : isBonificacaoType(tipo) ? (
+              <>
+                <div className="space-y-1.5">
+                  <Label>Valor (R$)</Label>
+                  <Input value={valor} onChange={(e) => setValor(e.target.value)} placeholder="0,00" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Descrição</Label>
+                  <Input value={descricaoBeneficio} onChange={(e) => setDescricaoBeneficio(e.target.value)} placeholder="Descreva o benefício..." />
+                </div>
+              </>
             ) : (
               <>
                 <div className="space-y-1.5">
