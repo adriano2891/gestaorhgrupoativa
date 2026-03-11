@@ -41,8 +41,10 @@ export default defineConfig(({ mode }) => ({
         "pwa-512x512.png",
       ],
       workbox: {
+        maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
         navigateFallbackDenylist: [/^\/~oauth/],
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        globPatterns: ["**/*.{js,css,html,ico,svg,woff2}"],
+        globIgnores: ["**/dashboard-background.png"],
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
