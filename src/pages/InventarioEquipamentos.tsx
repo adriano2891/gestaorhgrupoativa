@@ -128,6 +128,7 @@ const InventarioEquipamentos = () => {
                 <h1 className="text-xs sm:text-lg font-bold text-primary-foreground truncate">Gestão de Inventário</h1>
                 <p className="text-[9px] sm:text-xs text-primary-foreground/70 truncate">Controle de equipamentos</p>
               </div>
+            </div>
           </div>
         </div>
       </header>
@@ -142,7 +143,8 @@ const InventarioEquipamentos = () => {
           </Button>
         </div>
       </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle className="text-base sm:text-lg">
