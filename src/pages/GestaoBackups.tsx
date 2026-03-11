@@ -234,17 +234,17 @@ const GestaoBackups = () => {
 
   return (
     <>
-      <div className="p-4 md:p-6 space-y-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="p-3 sm:p-4 md:p-6 space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3">
             <BackButton to="/dashboard" />
             <div>
-              <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-                <Database className="w-6 h-6 text-primary" />
+              <h1 className="text-lg sm:text-2xl font-bold text-foreground flex items-center gap-2">
+                <Database className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
                 Gestão de Backups
               </h1>
-              <p className="text-muted-foreground text-sm">
-                Sistema de backup automático com versionamento e restauração
+              <p className="text-muted-foreground text-xs sm:text-sm">
+                Backup automático com versionamento e restauração
               </p>
             </div>
           </div>
@@ -254,25 +254,29 @@ const GestaoBackups = () => {
               disabled={executarBackup.isPending}
               variant="outline"
               size="sm"
+              className="text-xs sm:text-sm"
             >
-              <Clock className="w-4 h-4 mr-1" />Snapshot
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />Snapshot
             </Button>
             <Button
               onClick={() => executarBackup.mutate("incremental")}
               disabled={executarBackup.isPending}
               variant="outline"
               size="sm"
+              className="text-xs sm:text-sm"
             >
-              <RefreshCw className="w-4 h-4 mr-1" />Incremental
+              <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />Incremental
             </Button>
             <Button
               onClick={() => executarBackup.mutate("completo")}
               disabled={executarBackup.isPending}
+              size="sm"
+              className="text-xs sm:text-sm"
             >
               {executarBackup.isPending ? (
-                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 animate-spin" />
               ) : (
-                <PlayCircle className="w-4 h-4 mr-1" />
+                <PlayCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
               )}
               Backup Completo
             </Button>
