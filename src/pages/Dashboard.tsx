@@ -275,7 +275,7 @@ const Dashboard = () => {
             className={`icon-ring rounded-full flex items-center justify-center overflow-hidden ${ringWidth}`}
             style={{ width: `${iconSize}px`, height: `${iconSize}px`, backgroundColor: '#40e0d0', boxShadow: '0 6px 24px rgba(0,0,0,0.15), 0 0 0 3px rgba(64,224,208,0.3)' }}
           >
-            <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-[70%] h-[70%] object-contain" />
+            <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-[78%] h-[78%] object-contain" />
           </div>
           <div className="module-label-card mt-2">
             <p className={`text-center font-semibold ${fontSize} leading-tight`} style={{ color: '#1a5c58', maxWidth: maxLabelW }}>
