@@ -145,8 +145,8 @@ const DocumentacoesSistema = () => {
 
   const handleDownload = async (doc: Documento) => {
     try {
-      const url = await getDocumentoAccessUrl(doc.arquivo_url);
-      registrarAcessoDocumento(doc.id, 'download');
+      const url = await getDocumentoSistemaAccessUrl(doc.arquivo_url);
+      registrarAcessoDocumentoSistema(doc.id, 'download');
       const { downloadFileFromUrl } = await import("@/utils/downloadFile");
       await downloadFileFromUrl(url, {
         filename: doc.arquivo_nome,
