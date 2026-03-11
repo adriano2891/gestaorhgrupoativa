@@ -385,7 +385,9 @@ const App = () => {
                       path="/documentacoes-sistema"
                       element={
                         <ProtectedRoute>
-                          <DocumentacoesSistema />
+                          <SILayout>
+                            <DocumentacoesSistema />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
