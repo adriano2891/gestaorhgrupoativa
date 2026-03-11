@@ -232,18 +232,30 @@ const Dashboard = () => {
                 onMouseEnter={() => handlePrefetch(module.route)}
                 aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
               >
-                <div 
-                  className="rounded-full flex items-center justify-center overflow-hidden w-16 h-16 2xs:w-[72px] 2xs:h-[72px] xxs:w-20 xxs:h-20 p-2"
-                  style={{ backgroundColor: '#40e0d0', boxShadow: '0 4px 15px rgba(64,224,208,0.4), 0 0 0 3px rgba(64,224,208,0.3)' }}
-                >
-                  <img 
-                    src={module.icon} 
-                    alt=""
-                    aria-hidden="true"
-                    loading="lazy"
-                    className="w-full h-full object-contain"
-                  />
-                </div>
+                {module.rawIcon ? (
+                  <div className="flex items-center justify-center w-16 h-16 2xs:w-[72px] 2xs:h-[72px] xxs:w-20 xxs:h-20">
+                    <img 
+                      src={module.icon} 
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                      className="w-full h-full object-contain drop-shadow-md"
+                    />
+                  </div>
+                ) : (
+                  <div 
+                    className="rounded-full flex items-center justify-center overflow-hidden w-16 h-16 2xs:w-[72px] 2xs:h-[72px] xxs:w-20 xxs:h-20 p-2"
+                    style={{ backgroundColor: '#40e0d0', boxShadow: '0 4px 15px rgba(64,224,208,0.4), 0 0 0 3px rgba(64,224,208,0.3)' }}
+                  >
+                    <img 
+                      src={module.icon} 
+                      alt=""
+                      aria-hidden="true"
+                      loading="lazy"
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                )}
                 <p 
                   className="text-center mt-1.5 2xs:mt-2 font-semibold text-[9px] 2xs:text-[10px] xxs:text-xs leading-tight w-full"
                   style={{ color: '#1a5c58' }}
