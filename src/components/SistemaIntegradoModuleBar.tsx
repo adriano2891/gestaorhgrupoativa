@@ -17,7 +17,7 @@ interface SIModule {
 
 const siModules: SIModule[] = [
   { title: "Gestão de Clientes", iconSrc: iconClients, path: "/gestao-clientes" },
-  { title: "Fornecedores", iconSrc: iconSuppliers, path: "/fornecedores" },
+  { title: "Gestão de Fornecedores", iconSrc: iconSuppliers, path: "/fornecedores" },
   { title: "Gestão de Orçamentos", iconSrc: iconBudget, path: "/orcamentos" },
   { title: "Gestão de Inventário", iconSrc: iconInventario, path: "/inventario" },
   { title: "Gestão de Documentos", iconSrc: iconDocumentacoes, path: "/documentacoes-sistema" },
