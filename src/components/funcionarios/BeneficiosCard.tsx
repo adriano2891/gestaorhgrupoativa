@@ -37,6 +37,7 @@ const tipoLabels: Record<string, string> = {
 
 const isPlanoType = (tipo: string) => tipo === "plano_saude" || tipo === "plano_odontologico";
 const isAdicionalType = (tipo: string) => tipo === "insalubridade" || tipo === "periculosidade";
+const isBonificacaoType = (tipo: string) => tipo === "bonificacao" || tipo === "outros";
 
 export const BeneficiosCard = ({ userId, userName }: { userId: string; userName: string }) => {
   const [beneficios, setBeneficios] = useState<Beneficio[]>([]);
