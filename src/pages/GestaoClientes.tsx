@@ -118,43 +118,48 @@ const GestaoClientes = () => {
                 <p className="text-[9px] sm:text-xs text-primary-foreground/70 truncate">Controle de Condomínios</p>
               </div>
             </div>
-            <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
-              <Button
-                variant={view === "dashboard" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => { setView("dashboard"); setSelectedId(null); }}
-                className={`h-8 w-8 sm:w-auto sm:px-3 text-xs sm:text-sm touch-target ${view === "dashboard" ? "bg-primary-foreground/20 text-primary-foreground" : "text-primary-foreground hover:bg-primary-foreground/10"}`}
-                aria-current={view === "dashboard" ? "page" : undefined}
-              >
-                <LayoutDashboard className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Dashboard</span>
-              </Button>
-              <Button
-                variant={view === "lista" ? "default" : "ghost"}
-                size="sm"
-                onClick={() => { setView("lista"); setSelectedId(null); }}
-                className={`h-8 w-8 sm:w-auto sm:px-3 text-xs sm:text-sm touch-target ${view === "lista" ? "bg-primary-foreground/20 text-primary-foreground" : "text-primary-foreground hover:bg-primary-foreground/10"}`}
-                aria-current={view === "lista" ? "page" : undefined}
-              >
-                <List className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Lista</span>
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => { setEditingCondo(null); setFormOpen(true); }}
-                className="h-8 w-8 sm:w-auto sm:px-3 text-xs sm:text-sm bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground touch-target"
-              >
-                <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-                <span className="hidden sm:inline">Novo</span>
-              </Button>
-            </div>
+            {/* Buttons moved below icon bar */}
           </div>
         </div>
       </header>
       <div className="h-[52px] sm:h-[60px] md:h-[64px]" />
 
+      {/* Action buttons below icon bar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
+        <div className="flex items-center gap-2 justify-end">
+          <Button
+            variant={view === "dashboard" ? "default" : "outline"}
+            size="sm"
+            onClick={() => { setView("dashboard"); setSelectedId(null); }}
+            className="h-9 px-3 text-sm"
+            aria-current={view === "dashboard" ? "page" : undefined}
+          >
+            <LayoutDashboard className="w-4 h-4 mr-2" />
+            Dashboard
+          </Button>
+          <Button
+            variant={view === "lista" ? "default" : "outline"}
+            size="sm"
+            onClick={() => { setView("lista"); setSelectedId(null); }}
+            className="h-9 px-3 text-sm"
+            aria-current={view === "lista" ? "page" : undefined}
+          >
+            <List className="w-4 h-4 mr-2" />
+            Lista
+          </Button>
+          <Button
+            size="sm"
+            onClick={() => { setEditingCondo(null); setFormOpen(true); }}
+            className="h-9 px-3 text-sm"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Novo
+          </Button>
+        </div>
+      </div>
+
       {/* Conteúdo */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {view === "dashboard" && (
           <CondominiosDashboard
             metricas={metricas}
