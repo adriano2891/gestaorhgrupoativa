@@ -29,6 +29,7 @@ const allModules: ModuleItem[] = [
   { id: 'budget', icon: iconBudget, label: 'Orçamentos', route: '/orcamentos', allowedRoles: ['admin'] },
   { id: 'inventario', icon: iconInventario, label: 'Inventário', route: '/inventario', allowedRoles: ['admin'] },
   { id: 'documentacoes', icon: iconDocumentacoes, label: 'Documentos', route: '/documentacoes', allowedRoles: ['admin'] },
+  { id: 'backups', icon: iconBackups, label: 'Gestão de Backups', route: '/gestao-backups', allowedRoles: ['admin'] },
   { id: 'soon', icon: iconEmBreve, label: 'Em Breve', disabled: true, allowedRoles: ['admin'] },
 ];
 
