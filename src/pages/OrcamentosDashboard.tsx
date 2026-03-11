@@ -200,18 +200,18 @@ export default function OrcamentosDashboard() {
             <table className="w-full">
               <thead className="bg-primary/10 border-b border-primary/30">
                 <tr>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-foreground">ID</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-foreground">Cliente</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-foreground">Data</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-foreground">Status</th>
-                  <th className="text-right px-6 py-4 text-sm font-semibold text-foreground">Valor</th>
-                  <th className="text-center px-6 py-4 text-sm font-semibold text-foreground">Ações</th>
+                  <th className="text-left px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-foreground">ID</th>
+                  <th className="text-left px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-foreground">Cliente</th>
+                  <th className="text-left px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-foreground hidden md:table-cell">Data</th>
+                  <th className="text-left px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-foreground">Status</th>
+                  <th className="text-right px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-foreground hidden sm:table-cell">Valor</th>
+                  <th className="text-center px-3 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm font-semibold text-foreground">Ações</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredQuotes.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-12 text-muted-foreground">
+                    <td colSpan={6} className="text-center py-12 text-muted-foreground text-sm">
                       {quotes.length === 0 
                         ? 'Nenhum orçamento criado ainda. Clique em "Novo Orçamento" para começar.'
                         : 'Nenhum orçamento encontrado com os filtros aplicados.'}
@@ -226,53 +226,53 @@ export default function OrcamentosDashboard() {
                         index % 2 === 0 ? 'bg-card' : 'bg-muted/30'
                       )}
                     >
-                      <td className="px-6 py-4">
-                        <span className="font-mono text-sm font-medium text-primary">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <span className="font-mono text-xs sm:text-sm font-medium text-primary">
                           {quote.publicId}
                         </span>
                         {quote.version > 1 && (
                           <span className="ml-1 text-xs text-muted-foreground">v{quote.version}</span>
                         )}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="font-medium text-foreground">{quote.clientName}</span>
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
+                        <span className="font-medium text-foreground text-xs sm:text-sm">{quote.clientName}</span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-sm text-muted-foreground hidden md:table-cell">
                         {format(quote.createdAt, "dd/MM/yyyy", { locale: ptBR })}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
                         <span className={cn(
-                          "inline-flex px-2.5 py-1 rounded-full text-xs font-medium text-white",
+                          "inline-flex px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full text-[10px] sm:text-xs font-medium text-white",
                           QUOTE_STATUS_COLORS[quote.status]
                         )}>
                           {QUOTE_STATUS_LABELS[quote.status]}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right font-medium text-foreground">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4 text-right font-medium text-foreground text-xs sm:text-sm hidden sm:table-cell">
                         {formatCurrency(quote.financials.total)}
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-3 sm:px-6 py-3 sm:py-4">
                         <div className="flex items-center justify-center gap-1">
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => navigate(`/orcamentos/${quote.id}`)}
-                            className="h-8 w-8 hover:bg-primary/10"
+                            className="h-7 w-7 sm:h-8 sm:w-8 hover:bg-primary/10"
                           >
-                            <Eye className="w-4 h-4" />
+                            <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}
-                            className="h-8 w-8 hover:bg-primary/10"
+                            className="h-7 w-7 sm:h-8 sm:w-8 hover:bg-primary/10 hidden sm:flex"
                           >
-                            <Edit className="w-4 h-4" />
+                            <Edit className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </Button>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
-                                <MoreVertical className="w-4 h-4" />
+                              <Button variant="ghost" size="icon" className="h-7 w-7 sm:h-8 sm:w-8 hover:bg-primary/10">
+                                <MoreVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="bg-card border border-border">
