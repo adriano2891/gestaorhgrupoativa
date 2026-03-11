@@ -62,16 +62,16 @@ const DocumentacoesSistema = () => {
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [editingCategoria, setEditingCategoria] = useState<import("@/types/documentos").DocumentoCategoria | null>(null);
   const [deleteCatId, setDeleteCatId] = useState<string | null>(null);
-  const { data: documentos, isLoading } = useDocumentos({
+  const { data: documentos, isLoading } = useDocumentosSistema({
     categoriaId: selectedCategoria,
     search: searchTerm,
     tipo: selectedTipo,
   });
-  const { data: categorias } = useDocumentosCategorias();
-  const { data: favoritos } = useMeusFavoritos();
-  const deleteDocumento = useDeleteDocumento();
-  const toggleFavorito = useToggleFavorito();
-  const deleteCategoria = useDeleteCategoria();
+  const { data: categorias } = useDocumentosSistemaCategorias();
+  const { data: favoritos } = useMeusFavoritosSistema();
+  const deleteDocumento = useDeleteDocumentoSistema();
+  const toggleFavorito = useToggleFavoritoSistema();
+  const deleteCategoria = useDeleteCategoriaSistema();
 
   const filteredDocumentos = documentos
     ?.filter(doc => {
