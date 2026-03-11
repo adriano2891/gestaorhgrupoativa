@@ -232,7 +232,7 @@ const Dashboard = () => {
                 aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
               >
                 <div 
-                  className="rounded-full flex items-center justify-center overflow-hidden w-16 h-16 2xs:w-[72px] 2xs:h-[72px] xxs:w-20 xxs:h-20 p-0.5"
+                  className="rounded-full flex items-center justify-center overflow-hidden w-16 h-16 2xs:w-[72px] 2xs:h-[72px] xxs:w-20 xxs:h-20"
                   style={{ backgroundColor: '#40e0d0', boxShadow: '0 4px 15px rgba(64,224,208,0.4), 0 0 0 3px rgba(64,224,208,0.3)' }}
                 >
                   <img 
@@ -272,7 +272,7 @@ const Dashboard = () => {
       >
         <div className="flex flex-col items-center">
           <div
-            className={`icon-ring rounded-full flex items-center justify-center overflow-hidden ${ringWidth} p-0.5`}
+            className={`icon-ring rounded-full flex items-center justify-center overflow-hidden ${ringWidth}`}
             style={{ width: `${iconSize}px`, height: `${iconSize}px`, backgroundColor: '#40e0d0', boxShadow: '0 6px 24px rgba(0,0,0,0.15), 0 0 0 3px rgba(64,224,208,0.3)' }}
           >
             <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-contain" />
