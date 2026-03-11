@@ -40,7 +40,7 @@ const GestaoBackups = () => {
   const { data: backups, isLoading } = useQuery({
     queryKey: ["backup-logs"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("backup_logs")
         .select("*")
         .order("created_at", { ascending: false })

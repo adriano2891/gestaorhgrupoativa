@@ -47,6 +47,7 @@ const Documentacoes = lazy(() => import("./pages/Documentacoes"));
 const CursosAdmin = lazy(() => import("./pages/CursosAdmin"));
 const SuporteFuncionarios = lazy(() => import("./pages/SuporteFuncionarios"));
 const Afastamentos = lazy(() => import("./pages/Afastamentos"));
+const GestaoBackups = lazy(() => import("./pages/GestaoBackups"));
 
 
 const PortalCursoPlayerLazy = lazy(() => import("./components/ponto/PortalCursoPlayer").then(m => ({ default: m.PortalCursoPlayer })));
