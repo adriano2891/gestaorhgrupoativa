@@ -48,6 +48,7 @@ const CursosAdmin = lazy(() => import("./pages/CursosAdmin"));
 const SuporteFuncionarios = lazy(() => import("./pages/SuporteFuncionarios"));
 const Afastamentos = lazy(() => import("./pages/Afastamentos"));
 const GestaoBackups = lazy(() => import("./pages/GestaoBackups"));
+const DocumentacoesSistema = lazy(() => import("./pages/DocumentacoesSistema"));
 
 
 const PortalCursoPlayerLazy = lazy(() => import("./components/ponto/PortalCursoPlayer").then(m => ({ default: m.PortalCursoPlayer })));
@@ -345,6 +346,16 @@ const App = () => {
                         <ProtectedRoute>
                           <LazyLayout>
                             <Documentacoes />
+                          </LazyLayout>
+                        </ProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="/documentacoes-sistema"
+                      element={
+                        <ProtectedRoute>
+                          <LazyLayout>
+                            <DocumentacoesSistema />
                           </LazyLayout>
                         </ProtectedRoute>
                       }
