@@ -272,10 +272,10 @@ const Dashboard = () => {
       >
         <div className="flex flex-col items-center">
           <div
-            className={`icon-ring rounded-full flex items-center justify-center overflow-hidden ${ringWidth}`}
+            className={`icon-ring rounded-full flex items-center justify-center overflow-hidden ${ringWidth} p-2`}
             style={{ width: `${iconSize}px`, height: `${iconSize}px`, backgroundColor: '#40e0d0', boxShadow: '0 6px 24px rgba(0,0,0,0.15), 0 0 0 3px rgba(64,224,208,0.3)' }}
           >
-            <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-[90%] h-[90%] object-contain" />
+            <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-contain" />
           </div>
           <div className="module-label-card mt-2">
             <p className={`text-center font-semibold ${fontSize} leading-tight`} style={{ color: '#1a5c58', maxWidth: maxLabelW }}>
