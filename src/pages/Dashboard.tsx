@@ -23,6 +23,7 @@ interface ModuleItem {
   route?: string;
   disabled?: boolean;
   allowedRoles?: string[]; // roles that can see this module
+  rawIcon?: boolean; // if true, render icon image directly without turquoise circle wrapper
 }
 
 // Map permission IDs to dashboard module IDs
