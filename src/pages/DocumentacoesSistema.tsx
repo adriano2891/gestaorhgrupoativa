@@ -158,7 +158,7 @@ const DocumentacoesSistema = () => {
     }
   };
 
-  const handlePreview = async (doc: Documento) => {
+  const handlePreview = async (doc: DocumentoSistema) => {
     try {
       const url = await getDocumentoSistemaAccessUrl(doc.arquivo_url);
       if (!url) throw new Error("URL de acesso não gerada");
