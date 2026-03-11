@@ -232,15 +232,15 @@ const Dashboard = () => {
                 aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
               >
                 <div 
-                  className="rounded-full flex items-center justify-center overflow-hidden w-16 h-16 2xs:w-[72px] 2xs:h-[72px] xxs:w-20 xxs:h-20 border-2 border-[hsl(var(--primary)/0.3)]"
-                  style={{ boxShadow: '0 4px 15px rgba(62,224,207,0.3)' }}
+                  className="rounded-full flex items-center justify-center overflow-hidden w-16 h-16 2xs:w-[72px] 2xs:h-[72px] xxs:w-20 xxs:h-20"
+                  style={{ backgroundColor: '#40e0d0', boxShadow: '0 4px 15px rgba(64,224,208,0.4), 0 0 0 3px rgba(64,224,208,0.3)' }}
                 >
                   <img 
                     src={module.icon} 
                     alt=""
                     aria-hidden="true"
                     loading="lazy"
-                    className="w-[80%] h-[80%] object-contain"
+                    className="w-[70%] h-[70%] object-contain"
                   />
                 </div>
                 <p 
