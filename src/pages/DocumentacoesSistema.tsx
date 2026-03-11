@@ -136,7 +136,7 @@ const DocumentacoesSistema = () => {
     }
   };
 
-  const handleToggleFavorito = (doc: Documento) => {
+  const handleToggleFavorito = (doc: DocumentoSistema) => {
     toggleFavorito.mutate({ 
       documentoId: doc.id, 
       isFavorito: favoritos?.includes(doc.id) || false 
