@@ -239,7 +239,9 @@ const App = () => {
                       path="/orcamentos/lista"
                       element={
                         <ProtectedRoute>
-                          <OrcamentosLista />
+                          <SILayout>
+                            <OrcamentosLista />
+                          </SILayout>
                         </ProtectedRoute>
                       }
                     />
