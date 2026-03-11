@@ -128,12 +128,20 @@ const InventarioEquipamentos = () => {
                 <h1 className="text-xs sm:text-lg font-bold text-primary-foreground truncate">Gestão de Inventário</h1>
                 <p className="text-[9px] sm:text-xs text-primary-foreground/70 truncate">Controle de equipamentos</p>
               </div>
-            </div>
-            <Button onClick={() => handleOpenDialog()} className="h-8 px-2 sm:px-3 text-xs sm:text-sm bg-primary-foreground/20 hover:bg-primary-foreground/30 text-primary-foreground touch-target flex-shrink-0">
-              <Plus className="w-3.5 h-3.5 sm:w-4 sm:h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Novo Equipamento</span>
-              <span className="sm:hidden">Novo</span>
-            </Button>
+          </div>
+        </div>
+      </header>
+      <div className="h-[52px] sm:h-[60px] md:h-[64px]" />
+
+      {/* Button below icon bar */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
+        <div className="flex justify-end">
+          <Button onClick={() => handleOpenDialog()} className="h-9 px-4 text-sm">
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Equipamento
+          </Button>
+        </div>
+      </div>
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogContent className="max-w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
