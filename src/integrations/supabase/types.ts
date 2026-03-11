@@ -1851,6 +1851,308 @@ export type Database = {
           },
         ]
       }
+      documentos_sistema: {
+        Row: {
+          arquivo_nome: string
+          arquivo_tamanho: number | null
+          arquivo_url: string
+          atualizado_por: string | null
+          categoria_id: string | null
+          created_at: string
+          criado_por: string | null
+          descricao: string | null
+          excluido: boolean | null
+          excluido_em: string | null
+          excluido_por: string | null
+          id: string
+          mime_type: string | null
+          publico: boolean | null
+          tags: string[] | null
+          tipo: Database["public"]["Enums"]["documento_tipo"] | null
+          titulo: string
+          updated_at: string
+          versao_atual: number | null
+          visualizacoes: number | null
+        }
+        Insert: {
+          arquivo_nome: string
+          arquivo_tamanho?: number | null
+          arquivo_url: string
+          atualizado_por?: string | null
+          categoria_id?: string | null
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          excluido?: boolean | null
+          excluido_em?: string | null
+          excluido_por?: string | null
+          id?: string
+          mime_type?: string | null
+          publico?: boolean | null
+          tags?: string[] | null
+          tipo?: Database["public"]["Enums"]["documento_tipo"] | null
+          titulo: string
+          updated_at?: string
+          versao_atual?: number | null
+          visualizacoes?: number | null
+        }
+        Update: {
+          arquivo_nome?: string
+          arquivo_tamanho?: number | null
+          arquivo_url?: string
+          atualizado_por?: string | null
+          categoria_id?: string | null
+          created_at?: string
+          criado_por?: string | null
+          descricao?: string | null
+          excluido?: boolean | null
+          excluido_em?: string | null
+          excluido_por?: string | null
+          id?: string
+          mime_type?: string | null
+          publico?: boolean | null
+          tags?: string[] | null
+          tipo?: Database["public"]["Enums"]["documento_tipo"] | null
+          titulo?: string
+          updated_at?: string
+          versao_atual?: number | null
+          visualizacoes?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_sistema_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_sistema_categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_sistema_acessos: {
+        Row: {
+          acao: string
+          created_at: string
+          documento_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          documento_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          documento_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_sistema_acessos_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_sistema"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_sistema_auditoria: {
+        Row: {
+          acao: string
+          created_at: string
+          detalhes: string | null
+          documento_id: string | null
+          id: string
+          ip_address: string | null
+          user_id: string | null
+        }
+        Insert: {
+          acao: string
+          created_at?: string
+          detalhes?: string | null
+          documento_id?: string | null
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          acao?: string
+          created_at?: string
+          detalhes?: string | null
+          documento_id?: string | null
+          id?: string
+          ip_address?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_sistema_auditoria_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_sistema"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_sistema_categorias: {
+        Row: {
+          categoria_pai_id: string | null
+          cor: string | null
+          created_at: string
+          descricao: string | null
+          icone: string | null
+          id: string
+          nome: string
+          ordem: number | null
+          updated_at: string
+        }
+        Insert: {
+          categoria_pai_id?: string | null
+          cor?: string | null
+          created_at?: string
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome: string
+          ordem?: number | null
+          updated_at?: string
+        }
+        Update: {
+          categoria_pai_id?: string | null
+          cor?: string | null
+          created_at?: string
+          descricao?: string | null
+          icone?: string | null
+          id?: string
+          nome?: string
+          ordem?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_sistema_categorias_categoria_pai_id_fkey"
+            columns: ["categoria_pai_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_sistema_categorias"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_sistema_comentarios: {
+        Row: {
+          conteudo: string
+          created_at: string
+          documento_id: string
+          id: string
+          parent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          conteudo: string
+          created_at?: string
+          documento_id: string
+          id?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          documento_id?: string
+          id?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_sistema_comentarios_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_sistema"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_sistema_favoritos: {
+        Row: {
+          created_at: string
+          documento_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          documento_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          documento_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_sistema_favoritos_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_sistema"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      documentos_sistema_versoes: {
+        Row: {
+          alteracoes: string | null
+          arquivo_nome: string
+          arquivo_tamanho: number | null
+          arquivo_url: string
+          created_at: string
+          criado_por: string | null
+          documento_id: string
+          id: string
+          versao: number
+        }
+        Insert: {
+          alteracoes?: string | null
+          arquivo_nome: string
+          arquivo_tamanho?: number | null
+          arquivo_url: string
+          created_at?: string
+          criado_por?: string | null
+          documento_id: string
+          id?: string
+          versao: number
+        }
+        Update: {
+          alteracoes?: string | null
+          arquivo_nome?: string
+          arquivo_tamanho?: number | null
+          arquivo_url?: string
+          created_at?: string
+          criado_por?: string | null
+          documento_id?: string
+          id?: string
+          versao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documentos_sistema_versoes_documento_id_fkey"
+            columns: ["documento_id"]
+            isOneToOne: false
+            referencedRelation: "documentos_sistema"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       documentos_sst: {
         Row: {
           arquivo_nome: string | null
