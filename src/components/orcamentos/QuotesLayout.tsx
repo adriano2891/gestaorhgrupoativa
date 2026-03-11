@@ -106,7 +106,7 @@ export function QuotesLayout({ children }: QuotesLayoutProps) {
       <main className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
         <div className="p-6">
           <div className="mb-4">
-            <BackButton to="/dashboard" label="Voltar ao Dashboard" variant="light" />
+            <BackButton to="/dashboard" label="Voltar" variant="light" />
           </div>
           {children}
         </div>
