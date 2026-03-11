@@ -20,7 +20,7 @@ const siModules: SIModule[] = [
   { title: "Fornecedores", iconSrc: iconSuppliers, path: "/fornecedores" },
   { title: "Gestão de Orçamentos", iconSrc: iconBudget, path: "/orcamentos" },
   { title: "Gestão de Inventário", iconSrc: iconInventario, path: "/inventario" },
-  { title: "Documentos", iconSrc: iconDocumentacoes, path: "/documentacoes-sistema" },
+  { title: "Gestão de Documentos", iconSrc: iconDocumentacoes, path: "/documentacoes-sistema" },
   { title: "Backups", iconSrc: iconBackups, path: "/gestao-backups" },
 ];
 
