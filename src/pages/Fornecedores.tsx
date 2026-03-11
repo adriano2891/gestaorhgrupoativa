@@ -40,28 +40,9 @@ export default function Fornecedores() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-md">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex items-center justify-between py-2.5 sm:py-0 sm:h-16 gap-2">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-              <BackButton to="/dashboard" variant="light" className="text-primary-foreground hover:bg-primary-foreground/10 flex-shrink-0" />
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center flex-shrink-0">
-                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-xs sm:text-lg font-bold text-primary-foreground truncate">Fornecedores</h1>
-                <p className="text-[9px] sm:text-xs text-primary-foreground/70 truncate">Gestão de fornecedores</p>
-              </div>
-            </div>
-            {/* Button moved below icon bar */}
-          </div>
-        </div>
-      </header>
-      <div className="h-[52px] sm:h-[60px] md:h-[64px]" />
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <div className="flex justify-end">
+        <div className="flex items-center justify-between">
+          <BackButton to="/dashboard" />
           <Button onClick={() => navigate('/fornecedores/novo')} className="h-9 px-4 text-sm">
             <Plus className="w-4 h-4 mr-2" />
             Adicionar Fornecedor
