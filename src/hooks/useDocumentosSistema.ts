@@ -1,9 +1,69 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
-import type { Documento, DocumentoCategoria, DocumentoVersao, DocumentoComentario, DocumentoTipo } from "@/types/documentos";
+import type { DocumentoTipo } from "@/types/documentos";
+
+// Types specific to Sistema module
+export interface DocumentoSistemaCategoria {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  categoria_pai_id: string | null;
+  cor: string;
+  icone: string;
+  ordem: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DocumentoSistema {
+  id: string;
+  titulo: string;
+  descricao: string | null;
+  categoria_id: string | null;
+  tipo: DocumentoTipo;
+  arquivo_url: string;
+  arquivo_nome: string;
+  arquivo_tamanho: number | null;
+  mime_type: string | null;
+  tags: string[] | null;
+  versao_atual: number;
+  criado_por: string | null;
+  atualizado_por: string | null;
+  visualizacoes: number;
+  publico: boolean;
+  excluido?: boolean;
+  created_at: string;
+  updated_at: string;
+  categoria?: { id: string; nome: string; cor: string } | null;
+}
+
+export interface DocumentoSistemaVersao {
+  id: string;
+  documento_id: string;
+  versao: number;
+  arquivo_url: string;
+  arquivo_nome: string;
+  arquivo_tamanho: number | null;
+  alteracoes: string | null;
+  criado_por: string | null;
+  created_at: string;
+}
+
+export interface DocumentoSistemaComentario {
+  id: string;
+  documento_id: string;
+  user_id: string;
+  conteudo: string;
+  parent_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+// Storage bucket dedicated to Sistema module
+const SISTEMA_BUCKET = 'documentos-sistema';
 
 function getAccessToken(): string {
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || SUPABASE_URL?.match(/\/\/([^.]+)/)?.[1] || '';
@@ -23,16 +83,9 @@ async function restGet(table: string, query?: string) {
   const url = `${SUPABASE_URL}/rest/v1/${table}${query || ''}`;
   const res = await fetch(url, {
     method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'apikey': SUPABASE_KEY,
-      'Accept': 'application/json',
-    },
+    headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPABASE_KEY, 'Accept': 'application/json' },
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err || `HTTP ${res.status}`);
-  }
+  if (!res.ok) { const err = await res.text(); throw new Error(err || `HTTP ${res.status}`); }
   const text = await res.text();
   return text ? JSON.parse(text) : [];
 }
@@ -42,19 +95,10 @@ async function restPost(table: string, body: any) {
   const url = `${SUPABASE_URL}/rest/v1/${table}`;
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'apikey': SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Prefer': 'return=representation',
-    },
+    headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json', 'Prefer': 'return=representation' },
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err || `HTTP ${res.status}`);
-  }
+  if (!res.ok) { const err = await res.text(); throw new Error(err || `HTTP ${res.status}`); }
   const text = await res.text();
   return text ? JSON.parse(text) : [];
 }
@@ -64,19 +108,10 @@ async function restPatch(table: string, query: string, body: any) {
   const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
   const res = await fetch(url, {
     method: 'PATCH',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'apikey': SUPABASE_KEY,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'Prefer': 'return=representation',
-    },
+    headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json', 'Accept': 'application/json', 'Prefer': 'return=representation' },
     body: JSON.stringify(body),
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err || `HTTP ${res.status}`);
-  }
+  if (!res.ok) { const err = await res.text(); throw new Error(err || `HTTP ${res.status}`); }
   const text = await res.text();
   return text ? JSON.parse(text) : [];
 }
@@ -86,15 +121,9 @@ async function restDelete(table: string, query: string) {
   const url = `${SUPABASE_URL}/rest/v1/${table}${query}`;
   const res = await fetch(url, {
     method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'apikey': SUPABASE_KEY,
-    },
+    headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPABASE_KEY },
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err || `HTTP ${res.status}`);
-  }
+  if (!res.ok) { const err = await res.text(); throw new Error(err || `HTTP ${res.status}`); }
 }
 
 function getUserIdFromToken(): string | null {
@@ -107,68 +136,48 @@ function getUserIdFromToken(): string | null {
 }
 
 function sanitizeStorageFileName(name: string): string {
-  return name
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-zA-Z0-9._-]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .toLowerCase() || 'arquivo';
+  return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9._-]/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'arquivo';
 }
 
 function encodeStoragePath(path: string): string {
   return path.split('/').map((segment) => encodeURIComponent(segment)).join('/');
 }
 
-async function storageUpload(bucket: string, fileName: string, file: File) {
+async function storageUpload(fileName: string, file: File) {
   const token = getAccessToken();
   const encodedPath = encodeStoragePath(fileName);
-  const url = `${SUPABASE_URL}/storage/v1/object/${bucket}/${encodedPath}`;
+  const url = `${SUPABASE_URL}/storage/v1/object/${SISTEMA_BUCKET}/${encodedPath}`;
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'apikey': SUPABASE_KEY,
-    },
+    headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPABASE_KEY },
     body: file,
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err || `Upload failed: HTTP ${res.status}`);
-  }
+  if (!res.ok) { const err = await res.text(); throw new Error(err || `Upload failed: HTTP ${res.status}`); }
   return res.json();
 }
 
-async function storageSignedUrl(bucket: string, fileName: string) {
+async function storageSignedUrl(fileName: string) {
   const token = getAccessToken();
   const encodedPath = encodeStoragePath(fileName);
-  const url = `${SUPABASE_URL}/storage/v1/object/sign/${bucket}/${encodedPath}`;
+  const url = `${SUPABASE_URL}/storage/v1/object/sign/${SISTEMA_BUCKET}/${encodedPath}`;
   const res = await fetch(url, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'apikey': SUPABASE_KEY,
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Authorization': `Bearer ${token}`, 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
     body: JSON.stringify({ expiresIn: 3600 }),
   });
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(err || `Signed URL failed: HTTP ${res.status}`);
-  }
+  if (!res.ok) { const err = await res.text(); throw new Error(err || `Signed URL failed: HTTP ${res.status}`); }
   const data = await res.json();
   return `${SUPABASE_URL}/storage/v1${data.signedURL}`;
 }
 
-function extractDocumentoStoragePath(arquivoUrl: string): string | null {
+function extractStoragePath(arquivoUrl: string): string | null {
   if (!arquivoUrl) return null;
   const cleanUrl = arquivoUrl.trim();
   if (!cleanUrl) return null;
-
   try {
     const parsed = new URL(cleanUrl);
-    const signPrefix = '/storage/v1/object/sign/documentos/';
-    const objectPrefix = '/storage/v1/object/documentos/';
+    const signPrefix = `/storage/v1/object/sign/${SISTEMA_BUCKET}/`;
+    const objectPrefix = `/storage/v1/object/${SISTEMA_BUCKET}/`;
     if (parsed.pathname.includes(signPrefix)) {
       const path = parsed.pathname.split(signPrefix)[1];
       return path ? decodeURIComponent(path) : null;
@@ -178,10 +187,9 @@ function extractDocumentoStoragePath(arquivoUrl: string): string | null {
       return path ? decodeURIComponent(path) : null;
     }
   } catch {}
-
   const withoutQuery = cleanUrl.split('?')[0].replace(/^\/+/, '');
-  if (withoutQuery.startsWith('documentos/')) {
-    return decodeURIComponent(withoutQuery.replace(/^documentos\//, ''));
+  if (withoutQuery.startsWith(`${SISTEMA_BUCKET}/`)) {
+    return decodeURIComponent(withoutQuery.replace(`${SISTEMA_BUCKET}/`, ''));
   }
   if (!withoutQuery.includes('://')) {
     return decodeURIComponent(withoutQuery);
@@ -190,9 +198,9 @@ function extractDocumentoStoragePath(arquivoUrl: string): string | null {
 }
 
 export async function getDocumentoSistemaAccessUrl(arquivoUrl: string): Promise<string> {
-  const path = extractDocumentoStoragePath(arquivoUrl);
+  const path = extractStoragePath(arquivoUrl);
   if (!path) return arquivoUrl;
-  return storageSignedUrl('documentos', path);
+  return storageSignedUrl(path);
 }
 
 const getDocumentoTipo = (mimeType: string): DocumentoTipo => {
@@ -206,17 +214,18 @@ const getDocumentoTipo = (mimeType: string): DocumentoTipo => {
   return 'outro';
 };
 
-// All query keys prefixed with "sistema-" for full independence
+// ========== QUERIES ==========
+
 export const useDocumentosSistemaCategorias = () => {
   return useQuery({
     queryKey: ["sistema-documentos-categorias"],
     queryFn: async () => {
       try {
-        const data = await restGet('documentos_categorias', '?select=*&order=ordem');
-        return (data ?? []) as DocumentoCategoria[];
+        const data = await restGet('documentos_sistema_categorias', '?select=*&order=ordem');
+        return (data ?? []) as DocumentoSistemaCategoria[];
       } catch (e) {
-        console.error('Erro ao buscar categorias:', e);
-        return [] as DocumentoCategoria[];
+        console.error('Erro ao buscar categorias sistema:', e);
+        return [] as DocumentoSistemaCategoria[];
       }
     },
   });
@@ -231,15 +240,15 @@ export const useDocumentosSistema = (filters?: {
     queryKey: ["sistema-documentos", filters],
     queryFn: async () => {
       try {
-        let params = '?select=*,categoria:documentos_categorias(id,nome,cor)&excluido=eq.false&order=created_at.desc';
+        let params = '?select=*,categoria:documentos_sistema_categorias(id,nome,cor)&excluido=eq.false&order=created_at.desc';
         if (filters?.categoriaId) params += `&categoria_id=eq.${filters.categoriaId}`;
         if (filters?.tipo) params += `&tipo=eq.${filters.tipo}`;
         if (filters?.search) params += `&or=(titulo.ilike.*${filters.search}*,descricao.ilike.*${filters.search}*)`;
-        const data = await restGet('documentos', params);
-        return (data ?? []) as Documento[];
+        const data = await restGet('documentos_sistema', params);
+        return (data ?? []) as DocumentoSistema[];
       } catch (e) {
-        console.error('Erro ao buscar documentos:', e);
-        return [] as Documento[];
+        console.error('Erro ao buscar documentos sistema:', e);
+        return [] as DocumentoSistema[];
       }
     },
   });
@@ -255,25 +264,25 @@ export const useMeusFavoritosSistema = () => {
         const payload = JSON.parse(atob(token.split('.')[1]));
         const userId = payload.sub;
         if (!userId) return [];
-        const data = await restGet('documentos_favoritos', `?select=documento_id&user_id=eq.${userId}`);
+        const data = await restGet('documentos_sistema_favoritos', `?select=documento_id&user_id=eq.${userId}`);
         return (data ?? []).map((f: any) => f.documento_id) as string[];
       } catch (e) {
-        console.error('Erro ao buscar favoritos:', e);
+        console.error('Erro ao buscar favoritos sistema:', e);
         return [] as string[];
       }
     },
   });
 };
 
+// ========== MUTATIONS ==========
+
 export const useDeleteDocumentoSistema = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
       const userId = getUserIdFromToken();
-      await restPatch('documentos', `?id=eq.${id}`, {
-        excluido: true,
-        excluido_por: userId,
-        excluido_em: new Date().toISOString(),
+      await restPatch('documentos_sistema', `?id=eq.${id}`, {
+        excluido: true, excluido_por: userId, excluido_em: new Date().toISOString(),
       });
     },
     onSuccess: () => {
@@ -293,9 +302,9 @@ export const useToggleFavoritoSistema = () => {
       const userId = getUserIdFromToken();
       if (!userId) throw new Error("Usuário não autenticado");
       if (isFavorito) {
-        await restDelete('documentos_favoritos', `?documento_id=eq.${documentoId}&user_id=eq.${userId}`);
+        await restDelete('documentos_sistema_favoritos', `?documento_id=eq.${documentoId}&user_id=eq.${userId}`);
       } else {
-        await restPost('documentos_favoritos', { documento_id: documentoId, user_id: userId });
+        await restPost('documentos_sistema_favoritos', { documento_id: documentoId, user_id: userId });
       }
     },
     onSuccess: () => {
@@ -308,7 +317,7 @@ export const useDeleteCategoriaSistema = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      await restDelete('documentos_categorias', `?id=eq.${id}`);
+      await restDelete('documentos_sistema_categorias', `?id=eq.${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["sistema-documentos-categorias"] });
@@ -334,8 +343,8 @@ export const useUploadDocumentoSistema = () => {
       if (!userId) throw new Error("Você precisa estar autenticado para fazer upload de documentos");
       const sanitizedName = sanitizeStorageFileName(file.name);
       const fileName = `${Date.now()}_${sanitizedName}`;
-      await storageUpload('documentos', fileName, file);
-      const rows = await restPost('documentos', {
+      await storageUpload(fileName, file);
+      const rows = await restPost('documentos_sistema', {
         titulo, descricao,
         categoria_id: categoriaId || null,
         tipo: getDocumentoTipo(file.type),
@@ -350,7 +359,7 @@ export const useUploadDocumentoSistema = () => {
       const data = rows[0];
       if (!data) throw new Error("Falha ao salvar documento");
       try {
-        await restPost('documentos_versoes', {
+        await restPost('documentos_sistema_versoes', {
           documento_id: data.id, versao: 1,
           arquivo_url: fileName, arquivo_nome: file.name,
           arquivo_tamanho: file.size, alteracoes: "Versão inicial",
@@ -372,9 +381,9 @@ export const useUploadDocumentoSistema = () => {
 export const useUpdateDocumentoSistema = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, ...data }: Partial<Documento> & { id: string }) => {
+    mutationFn: async ({ id, ...data }: Partial<DocumentoSistema> & { id: string }) => {
       const userId = getUserIdFromToken();
-      const rows = await restPatch('documentos', `?id=eq.${id}`, { ...data, atualizado_por: userId });
+      const rows = await restPatch('documentos_sistema', `?id=eq.${id}`, { ...data, atualizado_por: userId });
       return rows[0];
     },
     onSuccess: (_, variables) => {
@@ -392,7 +401,7 @@ export const useCreateCategoriaSistema = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (data: { nome: string; descricao?: string; cor?: string; categoria_pai_id?: string }) => {
-      const rows = await restPost('documentos_categorias', data);
+      const rows = await restPost('documentos_sistema_categorias', data);
       return rows[0];
     },
     onSuccess: () => {
@@ -409,7 +418,7 @@ export const useUpdateCategoriaSistema = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, ...data }: { id: string; nome?: string; descricao?: string; cor?: string; categoria_pai_id?: string | null }) => {
-      const rows = await restPatch('documentos_categorias', `?id=eq.${id}`, data);
+      const rows = await restPatch('documentos_sistema_categorias', `?id=eq.${id}`, data);
       return rows[0];
     },
     onSuccess: () => {
@@ -428,11 +437,11 @@ export const useDocumentoSistemaComentarios = (documentoId: string | undefined) 
     queryFn: async () => {
       if (!documentoId) return [];
       try {
-        const data = await restGet('documentos_comentarios', `?select=*&documento_id=eq.${documentoId}&order=created_at.asc`);
-        return (data ?? []) as DocumentoComentario[];
+        const data = await restGet('documentos_sistema_comentarios', `?select=*&documento_id=eq.${documentoId}&order=created_at.asc`);
+        return (data ?? []) as DocumentoSistemaComentario[];
       } catch (e) {
         console.error('Erro ao buscar comentários:', e);
-        return [] as DocumentoComentario[];
+        return [] as DocumentoSistemaComentario[];
       }
     },
     enabled: !!documentoId,
@@ -445,11 +454,11 @@ export const useDocumentoSistemaVersoes = (documentoId: string | undefined) => {
     queryFn: async () => {
       if (!documentoId) return [];
       try {
-        const data = await restGet('documentos_versoes', `?select=*&documento_id=eq.${documentoId}&order=versao.desc`);
-        return (data ?? []) as DocumentoVersao[];
+        const data = await restGet('documentos_sistema_versoes', `?select=*&documento_id=eq.${documentoId}&order=versao.desc`);
+        return (data ?? []) as DocumentoSistemaVersao[];
       } catch (e) {
         console.error('Erro ao buscar versões:', e);
-        return [] as DocumentoVersao[];
+        return [] as DocumentoSistemaVersao[];
       }
     },
     enabled: !!documentoId,
@@ -462,7 +471,7 @@ export const useAddComentarioSistema = () => {
     mutationFn: async ({ documentoId, conteudo }: { documentoId: string; conteudo: string }) => {
       const userId = getUserIdFromToken();
       if (!userId) throw new Error("Usuário não autenticado");
-      const rows = await restPost('documentos_comentarios', {
+      const rows = await restPost('documentos_sistema_comentarios', {
         documento_id: documentoId, user_id: userId, conteudo,
       });
       return rows[0];
@@ -484,15 +493,15 @@ export const useUploadVersaoSistema = () => {
       const userId = getUserIdFromToken();
       const sanitizedName = sanitizeStorageFileName(file.name);
       const fileName = `${Date.now()}_${sanitizedName}`;
-      const docData = await restGet('documentos', `?select=versao_atual&id=eq.${documentoId}`);
+      const docData = await restGet('documentos_sistema', `?select=versao_atual&id=eq.${documentoId}`);
       const novaVersao = ((docData[0]?.versao_atual) || 0) + 1;
-      await storageUpload('documentos', fileName, file);
-      await restPost('documentos_versoes', {
+      await storageUpload(fileName, file);
+      await restPost('documentos_sistema_versoes', {
         documento_id: documentoId, versao: novaVersao,
         arquivo_url: fileName, arquivo_nome: file.name,
         arquivo_tamanho: file.size, alteracoes, criado_por: userId,
       });
-      await restPatch('documentos', `?id=eq.${documentoId}`, {
+      await restPatch('documentos_sistema', `?id=eq.${documentoId}`, {
         versao_atual: novaVersao, arquivo_url: fileName,
         arquivo_nome: file.name, arquivo_tamanho: file.size,
         atualizado_por: userId,
@@ -514,10 +523,8 @@ export async function registrarAcessoDocumentoSistema(documentoId: string, acao:
   try {
     const userId = getUserIdFromToken();
     if (!userId) return;
-    await restPost('documentos_acessos', {
-      documento_id: documentoId,
-      user_id: userId,
-      acao,
+    await restPost('documentos_sistema_acessos', {
+      documento_id: documentoId, user_id: userId, acao,
     });
   } catch (e) {
     console.warn('Falha ao registrar acesso:', e);
@@ -530,7 +537,7 @@ export const useDocumentoSistemaAuditoria = (documentoId: string | undefined) =>
     queryFn: async () => {
       if (!documentoId) return [];
       try {
-        const data = await restGet('documentos_auditoria', `?select=*&documento_id=eq.${documentoId}&order=created_at.desc`);
+        const data = await restGet('documentos_sistema_auditoria', `?select=*&documento_id=eq.${documentoId}&order=created_at.desc`);
         return data ?? [];
       } catch (e) {
         console.error('Erro ao buscar auditoria:', e);
