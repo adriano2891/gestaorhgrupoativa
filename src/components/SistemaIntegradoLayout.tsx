@@ -44,7 +44,7 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
               <img
                 src={logoSistemaIntegrado}
                 alt="Sistema Integrado Grupo Ativa"
-                className="h-[3.25rem] sm:h-14 md:h-[3.75rem] object-contain flex-shrink-0"
+                className="h-8 sm:h-9 md:h-10 object-contain flex-shrink-0"
               />
             </div>
 
