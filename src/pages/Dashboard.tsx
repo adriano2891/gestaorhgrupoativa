@@ -3,6 +3,7 @@ import { LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import logoAtiva from "@/assets/logo-ativa-3d.png";
 import iconHr from "@/assets/icon-hr-new.png";
