@@ -379,9 +379,9 @@ const App = () => {
                       path="/gestao-backups"
                       element={
                         <ProtectedRoute requiredRoles={["admin"]}>
-                          <LazyLayout>
+                          <Suspense fallback={<PageSkeleton />}>
                             <GestaoBackups />
-                          </LazyLayout>
+                          </Suspense>
                         </ProtectedRoute>
                       }
                     />
