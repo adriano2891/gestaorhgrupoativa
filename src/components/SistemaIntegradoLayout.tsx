@@ -41,7 +41,7 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
         {/* Header - same as RH but without Radio and Notifications */}
         <header className="bg-card shadow-sm fixed top-0 left-0 right-0 z-50" role="banner">
           <div className="container mx-auto px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 ml-0 sm:ml-2 md:ml-4 lg:ml-0">
               <img
                 src={logoHeader}
                 alt="Grupo Ativa"
@@ -50,7 +50,7 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
               <img
                 src={logoAtivaRHQ}
                 alt="Grupo Ativa"
-                className="h-6 sm:h-7 md:h-8 object-contain"
+                className="h-6 sm:h-7 md:h-8 object-contain flex-shrink-0"
               />
             </div>
 
