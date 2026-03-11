@@ -104,57 +104,40 @@ const GestaoClientes = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-primary shadow-md">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex items-center justify-between py-2.5 sm:py-0 sm:h-16 gap-2">
-            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-              <BackButton to="/dashboard" variant="light" className="text-primary-foreground hover:bg-primary-foreground/10 flex-shrink-0" />
-              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-primary-foreground/20 flex items-center justify-center flex-shrink-0">
-                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-xs sm:text-lg font-bold text-primary-foreground truncate">Gestão de Clientes</h1>
-                <p className="text-[9px] sm:text-xs text-primary-foreground/70 truncate">Controle de Condomínios</p>
-              </div>
-            </div>
-            {/* Buttons moved below icon bar */}
-          </div>
-        </div>
-      </header>
-      <div className="h-[52px] sm:h-[60px] md:h-[64px]" />
-
       {/* Action buttons below icon bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-2">
-        <div className="flex items-center gap-2 justify-end">
-          <Button
-            variant={view === "dashboard" ? "default" : "outline"}
-            size="sm"
-            onClick={() => { setView("dashboard"); setSelectedId(null); }}
-            className="h-9 px-3 text-sm"
-            aria-current={view === "dashboard" ? "page" : undefined}
-          >
-            <LayoutDashboard className="w-4 h-4 mr-2" />
-            Dashboard
-          </Button>
-          <Button
-            variant={view === "lista" ? "default" : "outline"}
-            size="sm"
-            onClick={() => { setView("lista"); setSelectedId(null); }}
-            className="h-9 px-3 text-sm"
-            aria-current={view === "lista" ? "page" : undefined}
-          >
-            <List className="w-4 h-4 mr-2" />
-            Lista
-          </Button>
-          <Button
-            size="sm"
-            onClick={() => { setEditingCondo(null); setFormOpen(true); }}
-            className="h-9 px-3 text-sm"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Novo
-          </Button>
+        <div className="flex items-center justify-between">
+          <BackButton to="/dashboard" />
+          <div className="flex items-center gap-2">
+            <Button
+              variant={view === "dashboard" ? "default" : "outline"}
+              size="sm"
+              onClick={() => { setView("dashboard"); setSelectedId(null); }}
+              className="h-9 px-3 text-sm"
+              aria-current={view === "dashboard" ? "page" : undefined}
+            >
+              <LayoutDashboard className="w-4 h-4 mr-2" />
+              Dashboard
+            </Button>
+            <Button
+              variant={view === "lista" ? "default" : "outline"}
+              size="sm"
+              onClick={() => { setView("lista"); setSelectedId(null); }}
+              className="h-9 px-3 text-sm"
+              aria-current={view === "lista" ? "page" : undefined}
+            >
+              <List className="w-4 h-4 mr-2" />
+              Lista
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => { setEditingCondo(null); setFormOpen(true); }}
+              className="h-9 px-3 text-sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Novo
+            </Button>
+          </div>
         </div>
       </div>
 
