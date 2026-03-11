@@ -240,7 +240,7 @@ const Dashboard = () => {
                     alt=""
                     aria-hidden="true"
                     loading="lazy"
-                    className="w-[85%] h-[85%] object-contain"
+                    className="w-[90%] h-[90%] object-contain"
                   />
                 </div>
                 <p 
