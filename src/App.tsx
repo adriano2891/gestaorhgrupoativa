@@ -56,6 +56,7 @@ const VerificarComprovante = lazy(() => import("./pages/VerificarComprovante"));
 
 // Eagerly loaded layout (used on most routes, no reason to lazy-load)
 import { Layout } from "./components/Layout";
+import { SistemaIntegradoLayout } from "./components/SistemaIntegradoLayout";
 import { GlobalFooter } from "./components/GlobalFooter";
 import PWAInstallPrompt from "./components/PWAInstallPrompt";
 
