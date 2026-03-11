@@ -55,10 +55,10 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
             </div>
 
             <div className="flex items-center gap-1 sm:gap-2 md:gap-3">
-              <span className="text-xs md:text-sm text-muted-foreground hidden xl:block">
+              <span className="text-xs md:text-sm hidden xl:block" style={{ color: '#3ee0cf' }}>
                 {currentDate}
               </span>
-              <span className="text-xs md:text-sm font-medium text-foreground hidden md:inline max-w-[150px] truncate">
+              <span className="text-xs md:text-sm font-medium hidden md:inline max-w-[150px] truncate" style={{ color: '#3ee0cf' }}>
                 {profile?.nome || "Usuário"}
               </span>
               <Button
@@ -66,6 +66,7 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
                 size="icon"
                 onClick={() => setAgendaOpen(true)}
                 className="h-8 w-8 md:h-10 md:w-10 focus-ring"
+                style={{ color: '#3ee0cf' }}
                 aria-label="Abrir agenda"
               >
                 <CalendarDays className="h-4 w-4 md:h-5 md:w-5" />
@@ -75,6 +76,7 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
                 size="icon"
                 onClick={toggleTheme}
                 className="h-8 w-8 md:h-10 md:w-10 focus-ring"
+                style={{ color: '#3ee0cf' }}
                 aria-label={isDark ? "Ativar modo claro" : "Ativar modo escuro"}
               >
                 {isDark ? <Sun className="h-4 w-4 md:h-5 md:w-5" /> : <Moon className="h-4 w-4 md:h-5 md:w-5" />}
@@ -84,6 +86,7 @@ export const SistemaIntegradoLayout = ({ children }: { children: React.ReactNode
                 size="icon"
                 onClick={() => signOut()}
                 className="h-8 w-8 md:h-10 md:w-10 focus-ring"
+                style={{ color: '#3ee0cf' }}
                 aria-label="Sair do sistema"
               >
                 <LogOut className="h-4 w-4 md:h-5 md:w-5" />
