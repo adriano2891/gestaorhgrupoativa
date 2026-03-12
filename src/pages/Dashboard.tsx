@@ -287,8 +287,8 @@ const Dashboard = () => {
         <div className="flex flex-col items-center">
           {module.rawIcon ? (
             <div
-              className="icon-ring flex items-center justify-center"
-              style={{ width: `${iconSize}px`, height: `${iconSize}px` }}
+              className="icon-ring rounded-full flex items-center justify-center overflow-hidden"
+              style={{ width: `${iconSize}px`, height: `${iconSize}px`, minWidth: `${iconSize}px`, minHeight: `${iconSize}px` }}
             >
               <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-contain drop-shadow-lg" />
             </div>
