@@ -337,7 +337,7 @@ const Dashboard = () => {
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-56 sm:w-52 md:w-60 lg:w-72 xl:w-80 2xl:w-96 h-auto drop-shadow-2xl opacity-90"
+            className="w-64 sm:w-60 md:w-72 lg:w-80 xl:w-96 2xl:w-[28rem] h-auto drop-shadow-2xl opacity-90"
           />
         </div>
 
