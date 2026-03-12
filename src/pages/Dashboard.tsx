@@ -46,7 +46,7 @@ const allModules: ModuleItem[] = [
   { id: 'inventario', icon: iconInventario, label: 'Gestão de Inventário', route: '/inventario', allowedRoles: ['admin', 'gestor'], rawIcon: true },
   { id: 'documentacoes', icon: iconDocumentacoes, label: 'Gestão de Documentos', route: '/documentacoes-sistema', allowedRoles: ['admin', 'gestor'], rawIcon: true },
   { id: 'backups', icon: iconBackups, label: 'Gestão de Backups', route: '/gestao-backups', allowedRoles: ['admin', 'gestor'], rawIcon: true },
-  { id: 'soon', icon: iconEmBreve, label: 'Em Breve', disabled: true, allowedRoles: ['admin'] },
+  { id: 'soon', icon: iconEmBreve, label: 'Em Breve', disabled: true, allowedRoles: ['admin'], rawIcon: true },
 ];
 
 const Dashboard = () => {
