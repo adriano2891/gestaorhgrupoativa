@@ -257,12 +257,6 @@ const Dashboard = () => {
                     />
                   </div>
                 )}
-                <p 
-                  className="text-center mt-1.5 2xs:mt-2 font-semibold text-[9px] 2xs:text-[10px] xxs:text-xs leading-tight w-full"
-                  style={{ color: '#1a5c58' }}
-                >
-                  {module.label}
-                </p>
               </button>
             ))}
           </div>
@@ -300,11 +294,6 @@ const Dashboard = () => {
               <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-contain" />
             </div>
           )}
-          <div className="module-label-card mt-2">
-            <p className={`text-center font-semibold ${fontSize} leading-tight`} style={{ color: '#1a5c58', maxWidth: maxLabelW }}>
-              {module.label}
-            </p>
-          </div>
         </div>
       </button>
     );
