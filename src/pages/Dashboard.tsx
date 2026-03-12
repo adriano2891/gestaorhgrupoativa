@@ -14,7 +14,8 @@ import iconInventario from "@/assets/icon-inventario-new.png";
 import iconDocumentacoes from "@/assets/icon-documentacoes.png";
 import iconEmBreve from "@/assets/icon-em-breve.png";
 import iconBackups from "@/assets/icon-backups-new.png";
-const dashboardBg = "/dashboard-background.png";
+const dashboardBgDesktop = "/dashboard-background-desktop.png";
+const dashboardBgMobile = "/dashboard-background-mobile.png";
 
 interface ModuleItem {
   id: string;
