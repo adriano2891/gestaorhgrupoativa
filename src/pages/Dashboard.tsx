@@ -310,6 +310,7 @@ const Dashboard = () => {
       />
       {/* Dark overlay for contrast */}
       <div className="fixed inset-0 bg-gradient-to-b from-black/35 via-black/20 to-black/45 -z-10" />
+      <BackgroundAnimations isMobile={false} />
 
       <style>{hoverStyles}</style>
       
