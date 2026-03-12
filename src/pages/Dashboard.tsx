@@ -14,7 +14,8 @@ import iconInventario from "@/assets/icon-inventario-new.png";
 import iconDocumentacoes from "@/assets/icon-documentacoes.png";
 import iconEmBreve from "@/assets/icon-em-breve.png";
 import iconBackups from "@/assets/icon-backups-new.png";
-const dashboardBg = "/dashboard-background.png";
+const dashboardBgDesktop = "/dashboard-background-desktop.png";
+const dashboardBgMobile = "/dashboard-background-mobile.png";
 
 interface ModuleItem {
   id: string;
@@ -182,7 +183,7 @@ const Dashboard = () => {
         {/* Background */}
         <div
           className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-10"
-          style={{ backgroundImage: `url(${dashboardBg})` }}
+          style={{ backgroundImage: `url(${dashboardBgMobile})` }}
         />
         <div className="fixed inset-0 bg-gradient-to-b from-black/40 via-black/25 to-black/50 -z-10" />
 
@@ -314,7 +315,7 @@ const Dashboard = () => {
       {/* Background image */}
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-10"
-        style={{ backgroundImage: `url(${dashboardBg})` }}
+        style={{ backgroundImage: `url(${dashboardBgDesktop})` }}
       />
       {/* Dark overlay for contrast */}
       <div className="fixed inset-0 bg-gradient-to-b from-black/35 via-black/20 to-black/45 -z-10" />
