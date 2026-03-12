@@ -62,7 +62,7 @@ export const BackgroundAnimations = ({ isMobile }: { isMobile: boolean }) => {
   }, [apartmentLights]);
 
   return (
-    <div className="fixed inset-0 pointer-events-none -z-[5]" aria-hidden="true">
+    <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 1 }} aria-hidden="true">
       <style>{`
         @keyframes camera-blink {
           0%, 85%, 100% { opacity: 0.15; box-shadow: 0 0 3px 1px rgba(255,0,0,0.2); }
