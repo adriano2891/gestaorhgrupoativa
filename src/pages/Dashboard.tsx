@@ -6,7 +6,6 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import logoAtiva from "@/assets/logo-ativa-3d.png";
-import { BackgroundAnimations } from "@/components/dashboard/BackgroundAnimations";
 import iconHr from "@/assets/icon-rh-new-v2.png";
 import iconClients from "@/assets/icon-clients-new.png";
 import iconSuppliers from "@/assets/icon-suppliers-new.png";
@@ -187,7 +186,6 @@ const Dashboard = () => {
           style={{ backgroundImage: `url(${dashboardBgMobile})` }}
         />
         <div className="fixed inset-0 bg-gradient-to-b from-black/40 via-black/25 to-black/50 -z-10" />
-        <BackgroundAnimations isMobile={true} />
 
         {/* Header */}
         <div className="flex items-center justify-between px-3 pt-3 pb-2 relative">
@@ -310,7 +308,6 @@ const Dashboard = () => {
       />
       {/* Dark overlay for contrast */}
       <div className="fixed inset-0 bg-gradient-to-b from-black/35 via-black/20 to-black/45 -z-10" />
-      <BackgroundAnimations isMobile={false} />
 
       <style>{hoverStyles}</style>
       
