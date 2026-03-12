@@ -315,7 +315,7 @@ const Dashboard = () => {
       {/* Background image */}
       <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat -z-10"
-        style={{ backgroundImage: `url(${dashboardBg})` }}
+        style={{ backgroundImage: `url(${dashboardBgDesktop})` }}
       />
       {/* Dark overlay for contrast */}
       <div className="fixed inset-0 bg-gradient-to-b from-black/35 via-black/20 to-black/45 -z-10" />
