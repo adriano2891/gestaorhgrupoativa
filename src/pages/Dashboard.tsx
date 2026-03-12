@@ -41,7 +41,7 @@ const PERMISSION_TO_MODULE: Record<string, string> = {
 const allModules: ModuleItem[] = [
   { id: 'rh', icon: iconHr, label: 'Recursos Humanos', route: '/gestao-rh', allowedRoles: ['admin', 'rh', 'gestor'], rawIcon: true },
   { id: 'clients', icon: iconClients, label: 'Gestão de Clientes', route: '/gestao-clientes', allowedRoles: ['admin', 'gestor'], rawIcon: true },
-  { id: 'suppliers', icon: iconSuppliers, label: 'Gestão de Fornecedores', route: '/fornecedores', allowedRoles: ['admin', 'gestor'] },
+  { id: 'suppliers', icon: iconSuppliers, label: 'Gestão de Fornecedores', route: '/fornecedores', allowedRoles: ['admin', 'gestor'], rawIcon: true },
   { id: 'budget', icon: iconBudget, label: 'Gestão de Orçamentos', route: '/orcamentos', allowedRoles: ['admin', 'gestor'] },
   { id: 'inventario', icon: iconInventario, label: 'Gestão de Inventário', route: '/inventario', allowedRoles: ['admin', 'gestor'] },
   { id: 'documentacoes', icon: iconDocumentacoes, label: 'Gestão de Documentos', route: '/documentacoes-sistema', allowedRoles: ['admin', 'gestor'] },
