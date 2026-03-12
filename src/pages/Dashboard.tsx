@@ -224,10 +224,7 @@ const Dashboard = () => {
                 disabled={module.disabled}
                 className={`flex flex-col items-center p-2 2xs:p-3 rounded-2xl ${module.disabled ? 'cursor-not-allowed opacity-60' : 'cursor-pointer active:scale-95'} transition-all duration-200 focus-ring touch-target`}
                 style={{
-                  background: 'rgba(255,255,255,0.8)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(62,224,207,0.3)',
-                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  background: 'transparent',
                 }}
                 onClick={() => !module.disabled && module.route && navigate(module.route)}
                 onMouseEnter={() => handlePrefetch(module.route)}
