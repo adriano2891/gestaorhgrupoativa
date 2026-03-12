@@ -6,7 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import logoAtiva from "@/assets/logo-ativa-3d.png";
-import iconHr from "@/assets/icon-rh-new-v2.png";
+import iconHr from "@/assets/icon-rh-new-v3.png";
 import iconClients from "@/assets/icon-clients-new.png";
 import iconSuppliers from "@/assets/icon-suppliers-new-v3.png";
 import iconBudget from "@/assets/icon-orcamentos-new-v2.png";
