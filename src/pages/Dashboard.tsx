@@ -234,7 +234,7 @@ const Dashboard = () => {
                 aria-label={module.disabled ? `${module.label} - Em breve` : module.label}
               >
                 {module.rawIcon ? (
-                  <div className="flex items-center justify-center w-16 h-16 2xs:w-[72px] 2xs:h-[72px] xxs:w-20 xxs:h-20">
+                  <div className="flex items-center justify-center w-[72px] h-[72px] 2xs:w-20 2xs:h-20 xxs:w-[88px] xxs:h-[88px]">
                     <img 
                       src={module.icon} 
                       alt=""
