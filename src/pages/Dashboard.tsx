@@ -8,7 +8,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import logoAtiva from "@/assets/logo-ativa-3d.png";
 import iconHr from "@/assets/icon-rh-new-v2.png";
 import iconClients from "@/assets/icon-clients-new.png";
-import iconSuppliers from "@/assets/icon-suppliers-new-v2.jpg";
+import iconSuppliers from "@/assets/icon-suppliers-new-v3.png";
 import iconBudget from "@/assets/icon-orcamentos-new-v2.png";
 import iconInventario from "@/assets/icon-inventario-new.png";
 import iconDocumentacoes from "@/assets/icon-documentacoes.png";
