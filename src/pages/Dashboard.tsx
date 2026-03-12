@@ -187,6 +187,7 @@ const Dashboard = () => {
           style={{ backgroundImage: `url(${dashboardBgMobile})` }}
         />
         <div className="fixed inset-0 bg-gradient-to-b from-black/40 via-black/25 to-black/50 -z-10" />
+        <BackgroundAnimations isMobile={true} />
 
         {/* Header */}
         <div className="flex items-center justify-between px-3 pt-3 pb-2 relative">
