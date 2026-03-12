@@ -12,7 +12,7 @@ import iconSuppliers from "@/assets/icon-suppliers-new-v3.png";
 import iconBudget from "@/assets/icon-orcamentos-new-v2.png";
 import iconInventario from "@/assets/icon-inventario-new-v2.png";
 import iconDocumentacoes from "@/assets/icon-documentacoes-v2.png";
-import iconEmBreve from "@/assets/icon-em-breve.png";
+import iconEmBreve from "@/assets/icon-em-breve-v2.png";
 import iconBackups from "@/assets/icon-backups-new-v2.png";
 const dashboardBgDesktop = "/dashboard-background-desktop.png";
 const dashboardBgMobile = "/dashboard-background-mobile.png";
