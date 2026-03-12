@@ -337,7 +337,8 @@ const Dashboard = () => {
           <img 
             src={logoAtiva} 
             alt="Logo Grupo Ativa" 
-            className="w-64 sm:w-60 md:w-72 lg:w-80 xl:w-96 2xl:w-[28rem] h-auto drop-shadow-2xl opacity-90"
+className="w-64 sm:w-60 md:w-72 lg:w-80 xl:w-96 2xl:w-[28rem] h-auto drop-shadow-2xl brightness-110 contrast-105"
+            style={{ filter: 'brightness(1.15) contrast(1.05) drop-shadow(0 0 30px rgba(62,224,207,0.3))' }}
           />
         </div>
 
