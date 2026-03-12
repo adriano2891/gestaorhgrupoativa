@@ -43,7 +43,7 @@ const allModules: ModuleItem[] = [
   { id: 'clients', icon: iconClients, label: 'Gestão de Clientes', route: '/gestao-clientes', allowedRoles: ['admin', 'gestor'], rawIcon: true },
   { id: 'suppliers', icon: iconSuppliers, label: 'Gestão de Fornecedores', route: '/fornecedores', allowedRoles: ['admin', 'gestor'], rawIcon: true },
   { id: 'budget', icon: iconBudget, label: 'Gestão de Orçamentos', route: '/orcamentos', allowedRoles: ['admin', 'gestor'], rawIcon: true },
-  { id: 'inventario', icon: iconInventario, label: 'Gestão de Inventário', route: '/inventario', allowedRoles: ['admin', 'gestor'] },
+  { id: 'inventario', icon: iconInventario, label: 'Gestão de Inventário', route: '/inventario', allowedRoles: ['admin', 'gestor'], rawIcon: true },
   { id: 'documentacoes', icon: iconDocumentacoes, label: 'Gestão de Documentos', route: '/documentacoes-sistema', allowedRoles: ['admin', 'gestor'] },
   { id: 'backups', icon: iconBackups, label: 'Gestão de Backups', route: '/gestao-backups', allowedRoles: ['admin', 'gestor'] },
   { id: 'soon', icon: iconEmBreve, label: 'Em Breve', disabled: true, allowedRoles: ['admin'] },
