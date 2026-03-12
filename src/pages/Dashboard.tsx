@@ -257,12 +257,6 @@ const Dashboard = () => {
                     />
                   </div>
                 )}
-                <p 
-                  className="text-center mt-1.5 2xs:mt-2 font-semibold text-[9px] 2xs:text-[10px] xxs:text-xs leading-tight w-full"
-                  style={{ color: '#1a5c58' }}
-                >
-                  {module.label}
-                </p>
               </button>
             ))}
           </div>
