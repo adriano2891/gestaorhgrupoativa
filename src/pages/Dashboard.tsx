@@ -300,11 +300,6 @@ const Dashboard = () => {
               <img src={module.icon} alt="" aria-hidden="true" loading="lazy" className="w-full h-full object-contain" />
             </div>
           )}
-          <div className="module-label-card mt-2">
-            <p className={`text-center font-semibold ${fontSize} leading-tight`} style={{ color: '#1a5c58', maxWidth: maxLabelW }}>
-              {module.label}
-            </p>
-          </div>
         </div>
       </button>
     );
