@@ -33,7 +33,7 @@ const rhModules: RHModule[] = [
   { title: "Controle de Ponto", iconSrc: iconPonto, path: "/folha-ponto", iconScale: "scale-[1.2]" },
   { title: "Holerites", iconSrc: iconHolerites, path: "/holerites", scaleIcon: true },
   { title: "Comunicados", iconSrc: iconComunicados, path: "/comunicados", scaleIcon: true },
-  { title: "Formulários", iconSrc: iconFormularios, path: "/hrflow-pro", iconScale: "scale-[1.3]" },
+  { title: "Formulários", iconSrc: iconFormularios, path: "/formularios-rh", iconScale: "scale-[1.3]" },
   { title: "Cursos", iconSrc: iconCursos, path: "/cursos", iconScale: "scale-[1.3]" },
   { title: "Controle de Férias", iconSrc: iconFerias, path: "/controle-ferias", scaleIcon: true },
    { title: "Suporte", iconSrc: iconSuporte, path: "/suporte-funcionarios", iconScale: "scale-[1.3]" },

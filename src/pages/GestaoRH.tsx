@@ -61,7 +61,7 @@ const GestaoRH = () => {
     "rh-ponto": "/folha-ponto",
     "rh-holerites": "/holerites",
     "rh-comunicados": "/comunicados",
-    "rh-formularios": "/hrflow-pro",
+    "rh-formularios": "/formularios-rh",
     "rh-cursos": "/cursos",
     "rh-ferias": "/controle-ferias",
     "rh-suporte": "/suporte-funcionarios",
