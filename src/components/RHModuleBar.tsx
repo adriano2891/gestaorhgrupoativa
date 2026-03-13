@@ -78,7 +78,7 @@ export const RHModuleBar = () => {
     '/folha-ponto': () => import("@/pages/FolhaPonto"),
     '/holerites': () => import("@/pages/Holerites"),
     '/comunicados': () => import("@/pages/Comunicados"),
-    '/hrflow-pro': () => import("@/pages/HRFlowPro"),
+    '/formularios-rh': () => import("@/pages/FormulariosRH"),
     '/cursos': () => import("@/pages/CursosAdmin"),
     '/controle-ferias': () => import("@/pages/ControleFerias"),
      '/suporte-funcionarios': () => import("@/pages/SuporteFuncionarios"),

@@ -162,7 +162,7 @@ const GestaoRH = () => {
     '/folha-ponto': () => import("./FolhaPonto"),
     '/holerites': () => import("./Holerites"),
     '/comunicados': () => import("./Comunicados"),
-    '/hrflow-pro': () => import("./HRFlowPro"),
+    '/formularios-rh': () => import("./FormulariosRH"),
     '/cursos': () => import("./CursosAdmin"),
     '/controle-ferias': () => import("./ControleFerias"),
     '/suporte-funcionarios': () => import("./SuporteFuncionarios"),
