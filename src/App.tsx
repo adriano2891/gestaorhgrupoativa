@@ -365,7 +365,9 @@ const App = () => {
                       path="/hrflow-pro"
                       element={
                         <ProtectedRoute>
-                          <Navigate to="/formularios-rh" replace />
+                          <LazyLayout>
+                            <HRFlowPro />
+                          </LazyLayout>
                         </ProtectedRoute>
                       }
                     />
