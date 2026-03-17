@@ -391,21 +391,48 @@ const GestaoRH = () => {
       </div>
 
       {/* Container central */}
-      <div className="relative w-full flex items-center justify-center px-4 min-h-[400px]" style={{ height: 'calc(100vh - 180px)' }}>
-        
+      <div className="relative w-full flex items-center justify-center px-4 py-8" style={{ minHeight: 'calc(100vh - 160px)' }}>
 
-        {/* Layout Circular - XL */}
-        <div className="hidden xl:block relative" style={{ width: '780px', height: '580px' }}>
+        {/* Layout Circular - 2XL+ */}
+        <div className="hidden 2xl:block relative" style={{ width: '900px', height: '660px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 290);
+            const { x, y } = getModulePosition(index, modules.length, 320);
             return (
               <div
                 key={module.path}
                 className={`absolute rh-module-icon cursor-pointer flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
                 style={{ 
-                  left: '50%', 
-                  top: '50%', 
-                  width: '120px',
+                  left: '50%', top: '50%', width: '130px',
+                  transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+                  ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
+                }}
+                onClick={() => navigate(module.path)}
+                onMouseEnter={() => handlePrefetch(module.path)}
+              >
+                <div className="relative flex-shrink-0">
+                  {renderBadge(module)}
+                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-[104px] h-[104px] ring-4 ring-white/30 mx-auto">
+                    <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
+                  </div>
+                </div>
+                <p className="text-center mt-2 font-extrabold text-white text-sm leading-snug w-full line-clamp-2" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.2)', letterSpacing: '0.02em', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+                  {module.title}
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Layout Circular - XL */}
+        <div className="hidden xl:block 2xl:hidden relative" style={{ width: '780px', height: '580px' }}>
+          {modules.map((module, index) => {
+            const { x, y } = getModulePosition(index, modules.length, 280);
+            return (
+              <div
+                key={module.path}
+                className={`absolute rh-module-icon cursor-pointer flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
+                style={{ 
+                  left: '50%', top: '50%', width: '120px',
                   transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
                   ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
                 }}
@@ -429,15 +456,13 @@ const GestaoRH = () => {
         {/* Layout Circular - LG */}
         <div className="hidden lg:block xl:hidden relative" style={{ width: '660px', height: '520px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 250);
+            const { x, y } = getModulePosition(index, modules.length, 240);
             return (
               <div
                 key={module.path}
                 className={`absolute rh-module-icon cursor-pointer flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
                 style={{ 
-                  left: '50%', 
-                  top: '50%', 
-                  width: '110px',
+                  left: '50%', top: '50%', width: '110px',
                   transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
                   ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
                 }}
@@ -459,17 +484,15 @@ const GestaoRH = () => {
         </div>
 
         {/* Layout Circular - MD */}
-        <div className="hidden md:block lg:hidden relative" style={{ width: '560px', height: '460px' }}>
+        <div className="hidden md:block lg:hidden relative" style={{ width: '520px', height: '440px' }}>
           {modules.map((module, index) => {
-            const { x, y } = getModulePosition(index, modules.length, 210);
+            const { x, y } = getModulePosition(index, modules.length, 200);
             return (
               <div
                 key={module.path}
                 className={`absolute rh-module-icon cursor-pointer flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
                 style={{ 
-                  left: '50%', 
-                  top: '50%', 
-                  width: '100px',
+                  left: '50%', top: '50%', width: '95px',
                   transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
                   ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
                 }}
@@ -482,37 +505,12 @@ const GestaoRH = () => {
                     <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
                   </div>
                 </div>
-                <p className="text-center mt-2 font-extrabold text-white text-[10px] leading-snug w-full line-clamp-2" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.2)', letterSpacing: '0.02em', fontFamily: 'Arial, Helvetica, sans-serif' }}>
+                <p className="text-center mt-1.5 font-extrabold text-white text-[10px] leading-snug w-full line-clamp-2" style={{ textShadow: '0 1px 4px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.2)', letterSpacing: '0.02em', fontFamily: 'Arial, Helvetica, sans-serif' }}>
                   {module.title}
                 </p>
               </div>
             );
           })}
-        </div>
-
-        {/* Layout Grid - SM (tablets pequenos) */}
-        <div className="block md:hidden relative">
-          <div className="grid grid-cols-3 gap-3 sm:gap-4 max-w-md mx-auto">
-            {modules.map((module, index) => (
-              <div
-                key={module.path}
-                className={`rh-module-icon cursor-pointer flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
-                style={isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {}}
-                onClick={() => navigate(module.path)}
-                onMouseEnter={() => handlePrefetch(module.path)}
-              >
-                <div className="relative">
-                  {renderBadge(module)}
-                  <div className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-16 h-16 sm:w-20 sm:h-20 ring-2 ring-white/30">
-                    <img src={module.iconSrc} alt={module.title} className={`w-full h-full object-cover ${module.iconScale || (module.scaleIcon ? 'scale-125' : '')}`} />
-                  </div>
-                </div>
-                <p className="text-center mt-2 font-bold text-white text-[10px] sm:text-xs max-w-[80px] sm:max-w-[90px] leading-tight drop-shadow-md" style={{ textShadow: '1px 1px 3px rgba(0,0,0,0.4)', fontFamily: 'Arial, Helvetica, sans-serif' }}>
-                  {module.title}
-                </p>
-              </div>
-            ))}
-          </div>
         </div>
 
       </div>
