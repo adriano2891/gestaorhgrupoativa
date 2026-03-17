@@ -399,8 +399,8 @@ export const BotoesPonto = ({ registroHoje, onRegistroAtualizado }: BotoesPontoP
 
       const hora = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
-      // Generate comprovante for saida (end of shift) - auto-generate receipt
-      if (campo === "saida" && savedRecord) {
+      // Generate comprovante for entrada and saida - auto-generate receipt (Portaria 671/2021)
+      if ((campo === "entrada" || campo === "saida") && savedRecord) {
         try {
           await generateComprovante(userId, hoje, savedRecord, clientIP, geoLocation);
         } catch (e) {
