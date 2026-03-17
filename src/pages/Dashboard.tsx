@@ -147,6 +147,10 @@ const Dashboard = () => {
 
   // Hover animation styles
   const hoverStyles = `
+    @keyframes logo-shine {
+      0% { transform: translateX(-50%); }
+      100% { transform: translateX(50%); }
+    }
     @keyframes icon-glow {
       0%, 100% { box-shadow: 0 0 20px rgba(62,224,207,0.3), 0 8px 30px rgba(0,0,0,0.15); }
       50% { box-shadow: 0 0 35px rgba(62,224,207,0.5), 0 12px 40px rgba(0,0,0,0.2); }
