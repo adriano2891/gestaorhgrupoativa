@@ -323,10 +323,6 @@ const GestaoRH = () => {
           </h1>
         </div>
 
-        {/* Logo */}
-        <div className={`flex justify-center mb-3 sm:mb-4 ${isAnimating ? 'rh-animate-logo' : 'opacity-40'}`}>
-          <img src={logoAtiva} alt="Logo Grupo Ativa" className="w-20 sm:w-24 md:w-32 h-auto" />
-        </div>
 
         {/* Grid de Módulos */}
         <div className="px-3 sm:px-4 pb-6 sm:pb-8">
@@ -397,17 +393,6 @@ const GestaoRH = () => {
       {/* Container central */}
       <div className="relative w-full flex items-center justify-center px-4 min-h-[400px]" style={{ height: 'calc(100vh - 180px)' }}>
         
-        {/* Logo Central */}
-        <div className={`absolute inset-0 flex items-center justify-center pointer-events-none z-0 ${isAnimating ? 'rh-animate-logo' : 'opacity-90'}`}>
-          <div className="rh-logo-sweep rounded-2xl">
-            <img 
-              src={logoCenterRH} 
-              alt="Logo Grupo Ativa" 
-              className="w-40 md:w-56 lg:w-72 xl:w-80 2xl:w-96 h-auto"
-              style={!isAnimating ? { opacity: 0.9 } : {}}
-            />
-          </div>
-        </div>
 
         {/* Layout Circular - XL */}
         <div className="hidden xl:block relative" style={{ width: '780px', height: '580px' }}>
