@@ -393,6 +393,10 @@ const GestaoRH = () => {
       {/* Container central */}
       <div className="relative w-full flex items-center justify-center px-4 min-h-[400px]" style={{ height: 'calc(100vh - 180px)' }}>
         
+        {/* Shine overlay on central logo area */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+          <div className="rh-logo-sweep rounded-full w-40 h-40 md:w-52 md:h-52 lg:w-60 lg:h-60 xl:w-72 xl:h-72" />
+        </div>
 
         {/* Layout Circular - XL */}
         <div className="hidden xl:block relative" style={{ width: '780px', height: '580px' }}>
