@@ -361,7 +361,7 @@ const GestaoRH = () => {
 
   // Desktop layout (circular)
   return (
-    <div className="min-h-screen relative overflow-x-hidden overflow-y-auto" style={{ backgroundColor: '#40E0D0' }}>
+    <div className="min-h-screen relative overflow-x-hidden overflow-y-auto bg-cover bg-center bg-no-repeat bg-fixed" style={{ backgroundImage: `url('/gestao-rh-background.jpg')` }}>
       <style>{animationStyles}</style>
       
       {/* Header */}
