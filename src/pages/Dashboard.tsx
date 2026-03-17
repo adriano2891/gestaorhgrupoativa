@@ -54,6 +54,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { signOut, roles, loading, user } = useAuth();
   const isMobile = useIsMobile();
+  const [showPreloader, setShowPreloader] = useState(true);
+  const handlePreloaderFinish = useCallback(() => setShowPreloader(false), []);
 
   // Prefetch module chunks on hover for instant navigation
   const prefetchMap: Record<string, () => void> = useMemo(() => ({
