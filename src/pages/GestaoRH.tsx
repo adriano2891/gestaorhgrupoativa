@@ -323,10 +323,6 @@ const GestaoRH = () => {
           </h1>
         </div>
 
-        {/* Logo */}
-        <div className={`flex justify-center mb-3 sm:mb-4 ${isAnimating ? 'rh-animate-logo' : 'opacity-40'}`}>
-          <img src={logoAtiva} alt="Logo Grupo Ativa" className="w-20 sm:w-24 md:w-32 h-auto" />
-        </div>
 
         {/* Grid de Módulos */}
         <div className="px-3 sm:px-4 pb-6 sm:pb-8">
