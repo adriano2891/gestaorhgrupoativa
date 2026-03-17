@@ -303,6 +303,8 @@ const Dashboard = () => {
   };
 
   return (
+    <>
+    {showPreloader && <DashboardPreloader onFinish={handlePreloaderFinish} />}
     <div className="min-h-screen relative overflow-x-hidden overflow-y-auto flex flex-col">
       {/* Background image */}
       <div
