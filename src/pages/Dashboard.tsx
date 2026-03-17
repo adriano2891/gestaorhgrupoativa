@@ -182,6 +182,8 @@ const Dashboard = () => {
   // Mobile layout - Grid based
   if (isMobile) {
     return (
+      <>
+      {showPreloader && <DashboardPreloader onFinish={handlePreloaderFinish} />}
       <div className="min-h-[100dvh] relative overflow-x-hidden overflow-y-auto flex flex-col safe-top safe-bottom">
         {/* Background */}
         <div
