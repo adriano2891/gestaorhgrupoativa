@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { usePortalAuth } from "./PortalAuthProvider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,19 @@ export const LoginFuncionario = () => {
   const [esqueciSenhaOpen, setEsqueciSenhaOpen] = useState(false);
   const [aceitouTermos, setAceitouTermos] = useState(false);
   const [termosOpen, setTermosOpen] = useState(false);
+  const [showPreloader, setShowPreloader] = useState(true);
+  const [preloaderFading, setPreloaderFading] = useState(false);
   const { signInWithCPF } = usePortalAuth();
+
+  useEffect(() => {
+    const fadeOut = () => {
+      setPreloaderFading(true);
+      setTimeout(() => setShowPreloader(false), 700);
+    };
+    const minTimer = setTimeout(() => fadeOut(), 2500);
+    const maxTimer = setTimeout(() => fadeOut(), 4000);
+    return () => { clearTimeout(minTimer); clearTimeout(maxTimer); };
+  }, []);
 
   const formatCPF = (value: string) => {
     const numbers = value.replace(/\D/g, "");
