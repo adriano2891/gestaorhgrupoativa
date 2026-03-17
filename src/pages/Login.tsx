@@ -28,25 +28,24 @@ const Login = () => {
   });
 
   useEffect(() => {
-    const maxTimer = setTimeout(() => {
+    // Always show preloader for a minimum of 2.5s, max 4s
+    const fadeOut = () => {
       setPreloaderFading(true);
-      setTimeout(() => setShowPreloader(false), 600);
-    }, 3400);
-
-    const onLoad = () => {
-      setPreloaderFading(true);
-      setTimeout(() => setShowPreloader(false), 600);
+      setTimeout(() => setShowPreloader(false), 700);
     };
 
-    if (document.readyState === "complete") {
-      onLoad();
-    } else {
-      window.addEventListener("load", onLoad);
-    }
+    const minTimer = setTimeout(() => {
+      fadeOut();
+    }, 2500);
+
+    // Hard max at 4s
+    const maxTimer = setTimeout(() => {
+      fadeOut();
+    }, 4000);
 
     return () => {
+      clearTimeout(minTimer);
       clearTimeout(maxTimer);
-      window.removeEventListener("load", onLoad);
     };
   }, []);
 
@@ -67,35 +66,102 @@ const Login = () => {
     <>
       {showPreloader && (
         <div
-          className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-600 ${preloaderFading ? 'opacity-0' : 'opacity-100'}`}
+          className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
           style={{
             backgroundImage: `url(${loginBackground})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
+            opacity: preloaderFading ? 0 : 1,
+            transition: 'opacity 0.7s ease-in-out',
           }}
         >
-          <img
-            src={logoAtiva}
-            alt="Logo Grupo Ativa"
-            className="w-36 sm:w-44 md:w-52 h-auto mb-8 animate-pulse"
-            style={{ filter: 'drop-shadow(0 4px 20px rgba(30,180,170,0.35))' }}
-          />
-          <div className="flex items-center gap-2">
-            <span className="preloader-dot" style={{ animationDelay: '0s' }} />
-            <span className="preloader-dot" style={{ animationDelay: '0.2s' }} />
-            <span className="preloader-dot" style={{ animationDelay: '0.4s' }} />
+          {/* Logo with shine sweep */}
+          <div className="relative mb-10 overflow-hidden rounded-2xl" style={{ padding: '8px' }}>
+            <img
+              src={logoAtiva}
+              alt="Logo Grupo Ativa"
+              className="w-40 sm:w-48 md:w-56 h-auto relative z-10"
+              style={{
+                filter: 'drop-shadow(0 4px 24px rgba(30,180,170,0.3))',
+                animation: 'preloader-logo-breathe 2s ease-in-out infinite',
+              }}
+            />
+            {/* Shine sweep overlay */}
+            <div
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden',
+                borderRadius: '1rem',
+                zIndex: 20,
+                pointerEvents: 'none',
+              }}
+            >
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '-20%',
+                  left: '-60%',
+                  width: '40%',
+                  height: '140%',
+                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 20%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0.08) 80%, transparent 100%)',
+                  transform: 'skewX(-18deg)',
+                  animation: 'preloader-shine 2.5s ease-in-out infinite',
+                }}
+              />
+            </div>
           </div>
+
+          {/* Loading bar */}
+          <div
+            style={{
+              width: '180px',
+              height: '3px',
+              borderRadius: '2px',
+              background: 'rgba(255,255,255,0.2)',
+              overflow: 'hidden',
+            }}
+          >
+            <div
+              style={{
+                width: '40%',
+                height: '100%',
+                borderRadius: '2px',
+                background: 'linear-gradient(90deg, hsl(174, 72%, 56%), hsl(174, 72%, 70%))',
+                animation: 'preloader-bar 1.4s ease-in-out infinite',
+              }}
+            />
+          </div>
+
+          <p
+            style={{
+              marginTop: '16px',
+              color: 'hsl(174, 40%, 25%)',
+              fontSize: '13px',
+              fontFamily: 'Arial, sans-serif',
+              letterSpacing: '0.04em',
+              opacity: 0.7,
+            }}
+          >
+            Carregando sistema...
+          </p>
+
           <style>{`
-            .preloader-dot {
-              width: 10px;
-              height: 10px;
-              border-radius: 50%;
-              background: hsl(174, 72%, 56%);
-              animation: preloader-bounce 1.2s ease-in-out infinite;
+            @keyframes preloader-logo-breathe {
+              0%, 100% { opacity: 0.85; transform: scale(1); }
+              50% { opacity: 1; transform: scale(1.02); }
             }
-            @keyframes preloader-bounce {
-              0%, 80%, 100% { transform: scale(0.4); opacity: 0.4; }
-              40% { transform: scale(1); opacity: 1; }
+            @keyframes preloader-shine {
+              0% { left: -60%; }
+              100% { left: 120%; }
+            }
+            @keyframes preloader-bar {
+              0% { transform: translateX(-100%); }
+              50% { transform: translateX(200%); }
+              100% { transform: translateX(200%); }
             }
           `}</style>
         </div>
