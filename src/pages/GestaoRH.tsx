@@ -390,33 +390,35 @@ const GestaoRH = () => {
         </button>
       </div>
 
-      {/* Container central */}
+      {/* Container central - fluid circular layout */}
       <div className="relative w-full flex items-center justify-center px-4 py-8" style={{ minHeight: 'calc(100vh - 160px)' }}>
-
-        {/* Single fluid circular layout using vmin-based scaling */}
-        <div className="relative" style={{ width: 'min(90vw, 900px)', height: 'min(75vh, 660px)' }}>
+        {/* 
+          Use a square aspect-ratio container so percentage offsets produce a perfect circle.
+          The container scales with vmin to adapt to any viewport.
+        */}
+        <div className="relative" style={{ width: 'min(70vmin, 700px)', height: 'min(70vmin, 700px)' }}>
           {modules.map((module, index) => {
             const angleStep = (2 * Math.PI) / modules.length;
             const angle = -Math.PI / 2 + index * angleStep;
-            // Radius scales with container: ~38% of container width
-            const radiusPercent = 38;
-            const xPercent = Math.cos(angle) * radiusPercent;
-            const yPercent = Math.sin(angle) * radiusPercent;
+            // 42% radius on a square container = perfect circle
+            const r = 42;
+            const xPct = 50 + Math.cos(angle) * r;
+            const yPct = 50 + Math.sin(angle) * r;
             return (
               <div
                 key={module.path}
                 className={`absolute rh-module-icon cursor-pointer flex flex-col items-center ${isAnimating ? 'rh-animate-module' : ''}`}
                 style={{
-                  left: `calc(50% + ${xPercent}%)`,
-                  top: `calc(50% + ${yPercent}%)`,
+                  left: `${xPct}%`,
+                  top: `${yPct}%`,
                   transform: 'translate(-50%, -50%)',
-                  width: 'clamp(80px, 12vw, 140px)',
+                  width: 'clamp(80px, 11vmin, 130px)',
                   ...(isAnimating ? { animationDelay: `${0.3 + index * 0.08}s` } : {})
                 }}
                 onClick={() => navigate(module.path)}
                 onMouseEnter={() => handlePrefetch(module.path)}
               >
-                <div className="relative flex-shrink-0 mx-auto" style={{ width: 'clamp(56px, 8vw, 104px)', height: 'clamp(56px, 8vw, 104px)' }}>
+                <div className="relative flex-shrink-0 mx-auto" style={{ width: 'clamp(52px, 7.5vmin, 96px)', height: 'clamp(52px, 7.5vmin, 96px)' }}>
                   {renderBadge(module)}
                   <div
                     className="rh-icon-ring rounded-full shadow-lg overflow-hidden w-full h-full mx-auto"
@@ -426,9 +428,9 @@ const GestaoRH = () => {
                   </div>
                 </div>
                 <p
-                  className="text-center mt-1.5 font-extrabold text-white leading-snug w-full line-clamp-2"
+                  className="text-center mt-1 font-extrabold text-white leading-snug w-full line-clamp-2"
                   style={{
-                    fontSize: 'clamp(9px, 1.1vw, 14px)',
+                    fontSize: 'clamp(9px, 1.2vmin, 13px)',
                     textShadow: '0 1px 4px rgba(0,0,0,0.5), 0 0 8px rgba(0,0,0,0.2)',
                     letterSpacing: '0.02em',
                     fontFamily: 'Arial, Helvetica, sans-serif'
@@ -440,7 +442,6 @@ const GestaoRH = () => {
             );
           })}
         </div>
-
       </div>
     </div>
   );
