@@ -22,7 +22,7 @@ export const ReportSelector = ({ reports, onSelectReport }: ReportSelectorProps)
         className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-wide uppercase"
         style={{ fontFamily: 'Arial, sans-serif', color: '#19b2b0' }}
       >
-        Relatórios de Funcionários
+        Relatórios e Análises
       </h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6">
