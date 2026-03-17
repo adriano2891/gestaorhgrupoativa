@@ -329,14 +329,29 @@ const Dashboard = () => {
       {/* Container central */}
       <div className="flex-1 relative w-full flex items-center justify-center px-4 py-2 min-h-[400px]">
         
-        {/* Logo Central */}
+        {/* Logo Central com Shine Effect */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-          <img 
-            src={logoAtiva} 
-            alt="Logo Grupo Ativa" 
-            className="w-64 sm:w-60 md:w-72 lg:w-80 xl:w-96 2xl:w-[28rem] h-auto"
-            style={{ filter: 'brightness(1.2) contrast(1.08) drop-shadow(0 0 35px rgba(62,224,207,0.4)) drop-shadow(0 25px 25px rgba(0,0,0,0.15))' }}
-          />
+          <div className="relative w-64 sm:w-60 md:w-72 lg:w-80 xl:w-96 2xl:w-[28rem]">
+            <img 
+              src={logoAtiva} 
+              alt="Logo Grupo Ativa" 
+              className="w-full h-auto"
+              style={{ filter: 'brightness(1.2) contrast(1.08) drop-shadow(0 0 35px rgba(62,224,207,0.4)) drop-shadow(0 25px 25px rgba(0,0,0,0.15))' }}
+            />
+            {/* Shine overlay */}
+            <div
+              className="absolute inset-0 overflow-hidden rounded-lg"
+              style={{ mixBlendMode: 'soft-light' }}
+            >
+              <div className="absolute inset-0 animate-[logo-shine_4s_ease-in-out_infinite]"
+                style={{
+                  background: 'linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.4) 45%, rgba(255,255,255,0.6) 50%, rgba(255,255,255,0.4) 55%, transparent 70%)',
+                  width: '200%',
+                  left: '-100%',
+                }}
+              />
+            </div>
+          </div>
         </div>
 
         {/* XL */}
