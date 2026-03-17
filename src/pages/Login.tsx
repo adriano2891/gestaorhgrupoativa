@@ -68,100 +68,59 @@ const Login = () => {
         <div
           className="fixed inset-0 z-[9999] flex flex-col items-center justify-center"
           style={{
-            backgroundImage: `url(${loginBackground})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
+            background: 'linear-gradient(135deg, hsl(174, 60%, 90%) 0%, hsl(174, 50%, 95%) 40%, hsl(0, 0%, 100%) 100%)',
             opacity: preloaderFading ? 0 : 1,
-            transition: 'opacity 0.7s ease-in-out',
+            transition: 'opacity 0.8s ease-in-out',
           }}
         >
-          {/* Logo with shine sweep */}
-          <div className="relative mb-10 overflow-hidden rounded-2xl" style={{ padding: '8px' }}>
-            <img
-              src={logoAtiva}
-              alt="Logo Grupo Ativa"
-              className="w-40 sm:w-48 md:w-56 h-auto relative z-10"
-              style={{
-                filter: 'drop-shadow(0 4px 24px rgba(30,180,170,0.3))',
-                animation: 'preloader-logo-breathe 2s ease-in-out infinite',
-              }}
-            />
-            {/* Shine sweep overlay */}
-            <div
-              style={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                width: '100%',
-                height: '100%',
-                overflow: 'hidden',
-                borderRadius: '1rem',
-                zIndex: 20,
-                pointerEvents: 'none',
-              }}
-            >
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '-20%',
-                  left: '-60%',
-                  width: '40%',
-                  height: '140%',
-                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 20%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0.08) 80%, transparent 100%)',
-                  transform: 'skewX(-18deg)',
-                  animation: 'preloader-shine 2.5s ease-in-out infinite',
-                }}
+          <img
+            src={logoAtiva}
+            alt="Logo Grupo Ativa"
+            className="w-36 sm:w-44 md:w-52 h-auto"
+            style={{
+              animation: 'pl-fade-in 0.6s ease-out forwards, pl-breathe 2.5s ease-in-out 0.6s infinite',
+              opacity: 0,
+            }}
+          />
+
+          {/* Spinner circular */}
+          <div style={{ marginTop: '32px' }}>
+            <svg width="36" height="36" viewBox="0 0 36 36" style={{ animation: 'pl-rotate 1.2s linear infinite' }}>
+              <circle
+                cx="18" cy="18" r="15"
+                fill="none"
+                stroke="hsl(174, 50%, 88%)"
+                strokeWidth="2.5"
               />
-            </div>
+              <circle
+                cx="18" cy="18" r="15"
+                fill="none"
+                stroke="hsl(174, 72%, 50%)"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeDasharray="70 30"
+                style={{ animation: 'pl-dash 1.2s ease-in-out infinite' }}
+              />
+            </svg>
           </div>
-
-          {/* Loading bar */}
-          <div
-            style={{
-              width: '180px',
-              height: '3px',
-              borderRadius: '2px',
-              background: 'rgba(255,255,255,0.2)',
-              overflow: 'hidden',
-            }}
-          >
-            <div
-              style={{
-                width: '40%',
-                height: '100%',
-                borderRadius: '2px',
-                background: 'linear-gradient(90deg, hsl(174, 72%, 56%), hsl(174, 72%, 70%))',
-                animation: 'preloader-bar 1.4s ease-in-out infinite',
-              }}
-            />
-          </div>
-
-          <p
-            style={{
-              marginTop: '16px',
-              color: 'hsl(174, 40%, 25%)',
-              fontSize: '13px',
-              fontFamily: 'Arial, sans-serif',
-              letterSpacing: '0.04em',
-              opacity: 0.7,
-            }}
-          >
-            Carregando sistema...
-          </p>
 
           <style>{`
-            @keyframes preloader-logo-breathe {
-              0%, 100% { opacity: 0.85; transform: scale(1); }
-              50% { opacity: 1; transform: scale(1.02); }
+            @keyframes pl-fade-in {
+              from { opacity: 0; transform: translateY(8px); }
+              to { opacity: 1; transform: translateY(0); }
             }
-            @keyframes preloader-shine {
-              0% { left: -60%; }
-              100% { left: 120%; }
+            @keyframes pl-breathe {
+              0%, 100% { transform: scale(1); }
+              50% { transform: scale(1.03); }
             }
-            @keyframes preloader-bar {
-              0% { transform: translateX(-100%); }
-              50% { transform: translateX(200%); }
-              100% { transform: translateX(200%); }
+            @keyframes pl-rotate {
+              from { transform: rotate(0deg); }
+              to { transform: rotate(360deg); }
+            }
+            @keyframes pl-dash {
+              0% { stroke-dasharray: 10 90; }
+              50% { stroke-dasharray: 70 30; }
+              100% { stroke-dasharray: 10 90; }
             }
           `}</style>
         </div>
@@ -191,9 +150,7 @@ const Login = () => {
                   type="text"
                   placeholder="admin"
                   value={loginData.email}
-                  onChange={(e) =>
-                    setLoginData({ ...loginData, email: e.target.value })
-                  }
+                  onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                   required
                   autoComplete="username"
                   aria-required="true"
@@ -206,9 +163,7 @@ const Login = () => {
                   id="login-password"
                   type="password"
                   value={loginData.password}
-                  onChange={(e) =>
-                    setLoginData({ ...loginData, password: e.target.value })
-                  }
+                  onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                   required
                   autoComplete="current-password"
                   aria-required="true"
