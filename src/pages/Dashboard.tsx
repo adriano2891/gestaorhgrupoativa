@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 import logoAtiva from "@/assets/logo-ativa-3d.png";
+import { DashboardPreloader } from "@/components/DashboardPreloader";
 import iconHr from "@/assets/icon-rh-new-v3.png";
 import iconClients from "@/assets/icon-clients-new.png";
 import iconSuppliers from "@/assets/icon-suppliers-new-v3.png";
@@ -53,6 +54,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { signOut, roles, loading, user } = useAuth();
   const isMobile = useIsMobile();
+  const [showPreloader, setShowPreloader] = useState(true);
+  const handlePreloaderFinish = useCallback(() => setShowPreloader(false), []);
 
   // Prefetch module chunks on hover for instant navigation
   const prefetchMap: Record<string, () => void> = useMemo(() => ({
@@ -179,6 +182,8 @@ const Dashboard = () => {
   // Mobile layout - Grid based
   if (isMobile) {
     return (
+      <>
+      {showPreloader && <DashboardPreloader onFinish={handlePreloaderFinish} />}
       <div className="min-h-[100dvh] relative overflow-x-hidden overflow-y-auto flex flex-col safe-top safe-bottom">
         {/* Background */}
         <div
@@ -259,6 +264,7 @@ const Dashboard = () => {
           </div>
         </main>
       </div>
+      </>
     );
   }
 
@@ -297,6 +303,8 @@ const Dashboard = () => {
   };
 
   return (
+    <>
+    {showPreloader && <DashboardPreloader onFinish={handlePreloaderFinish} />}
     <div className="min-h-screen relative overflow-x-hidden overflow-y-auto flex flex-col">
       {/* Background image */}
       <div
@@ -361,6 +369,7 @@ const Dashboard = () => {
 
       </div>
     </div>
+    </>
   );
 };
 
