@@ -9,14 +9,29 @@ interface RelogioTurnoProps {
 export const RelogioTurno = ({ registroHoje }: RelogioTurnoProps) => {
   const [tempoTotal, setTempoTotal] = useState<string>("00:00:00");
   const registroRef = useRef<any>(null);
+  const entradaRef = useRef<string | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Keep ref in sync without restarting the interval
   useEffect(() => {
     registroRef.current = registroHoje;
   }, [registroHoje]);
 
+  // Track the entrada value separately to avoid restarting on every registroHoje update
+  const currentEntrada = registroHoje?.entrada || null;
+
   useEffect(() => {
-    if (!registroHoje?.entrada) {
+    // Only restart interval if entrada actually changed value
+    if (currentEntrada === entradaRef.current) return;
+    entradaRef.current = currentEntrada;
+
+    // Clear previous interval
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
+    if (!currentEntrada) {
       setTempoTotal("00:00:00");
       return;
     }
@@ -61,12 +76,15 @@ export const RelogioTurno = ({ registroHoje }: RelogioTurnoProps) => {
     };
 
     calcularTempo();
-    const intervalo = setInterval(calcularTempo, 1000);
+    intervalRef.current = setInterval(calcularTempo, 1000);
 
-    return () => clearInterval(intervalo);
-    // Only restart interval when entrada changes, not on every registroHoje update
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [registroHoje?.entrada]);
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [currentEntrada]);
 
   if (!registroHoje?.entrada) {
     return null;
