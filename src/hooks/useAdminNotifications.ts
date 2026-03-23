@@ -14,8 +14,6 @@ export interface AdminNotification {
   fonte?: string;
 }
 
-const WEB_DISMISSED_KEY = "admin-web-notifs-dismissed";
-
 export function useAdminNotifications() {
   const queryClient = useQueryClient();
   const [webDismissed, setWebDismissed] = useState(() => {
