@@ -6,15 +6,24 @@ const corsHeaders = {
 async function isUrlValid(url: string): Promise<boolean> {
   if (!url || url === '#') return false;
   try {
-    const res = await fetch(url, { method: 'HEAD', redirect: 'follow' });
-    return res.ok;
-  } catch {
-    try {
-      const res = await fetch(url, { method: 'GET', redirect: 'follow' });
-      return res.ok;
-    } catch {
-      return false;
+    const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+    if (!res.ok) return false;
+    const body = await res.text();
+    const lower = body.toLowerCase();
+    // Detect soft-404 pages that return 200 but show "not found" content
+    const errorPatterns = [
+      'não encontrado', 'nao encontrado', 'not found',
+      'página não existe', 'pagina nao existe',
+      'recurso requisitado não foi encontrado',
+      'o conteúdo que você procura não está disponível',
+      '404', 'page not found',
+    ];
+    for (const pattern of errorPatterns) {
+      if (lower.includes(pattern)) return false;
     }
+    return true;
+  } catch {
+    return false;
   }
 }
 
