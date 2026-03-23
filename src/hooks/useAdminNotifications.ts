@@ -16,9 +16,6 @@ export interface AdminNotification {
 
 export function useAdminNotifications() {
   const queryClient = useQueryClient();
-  const [webDismissed, setWebDismissed] = useState(() => {
-    return localStorage.getItem(WEB_DISMISSED_KEY) === "true";
-  });
 
   const { data: feriasPendentes = [] } = useQuery({
     queryKey: ["admin-notif-ferias"],
@@ -77,6 +74,21 @@ export function useAdminNotifications() {
     },
   });
 
+  const marcarTodasWebComoLidas = useMutation({
+    mutationFn: async () => {
+      if (!webNotifs || webNotifs.length === 0) return;
+      const ids = webNotifs.map((w: any) => w.id);
+      const { error } = await (supabase as any)
+        .from("notificacoes_web")
+        .update({ lida: true })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-notif-web"] });
+    },
+  });
+
   const buscarAtualizacoesWeb = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("monitor-web-updates", {
@@ -87,9 +99,6 @@ export function useAdminNotifications() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-notif-web"] });
-      // Reset dismissed state when new updates are fetched
-      setWebDismissed(false);
-      localStorage.removeItem(WEB_DISMISSED_KEY);
     },
   });
 
