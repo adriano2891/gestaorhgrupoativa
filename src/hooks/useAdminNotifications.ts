@@ -103,8 +103,7 @@ export function useAdminNotifications() {
   });
 
   const dismissWebNotifications = () => {
-    setWebDismissed(true);
-    localStorage.setItem(WEB_DISMISSED_KEY, "true");
+    marcarTodasWebComoLidas.mutate();
   };
 
   // Realtime listeners with fallback polling
