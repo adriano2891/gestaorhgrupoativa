@@ -121,16 +121,21 @@ Deno.serve(async (req) => {
     try { updates = JSON.parse(content); } catch { updates = []; }
     if (!Array.isArray(updates)) updates = [];
 
-    // 4. Validate URLs before inserting
+    // 4. Validate URLs before inserting - allow entries without URL but skip fake URLs
     const inserted: string[] = [];
     for (const u of updates) {
       if (!u.titulo || !u.resumo) continue;
 
-      const urlToCheck = u.url || '';
-      const urlValid = await isUrlValid(urlToCheck);
-      if (!urlValid) {
-        console.log('Skipping invalid URL:', urlToCheck);
-        continue;
+      const urlToCheck = (u.url || '').trim();
+      let finalUrl = '';
+      if (urlToCheck) {
+        const urlValid = await isUrlValid(urlToCheck);
+        if (!urlValid) {
+          console.log('Invalid URL removed:', urlToCheck);
+          finalUrl = ''; // Keep the notification but remove the bad link
+        } else {
+          finalUrl = urlToCheck;
+        }
       }
 
       const enc = new TextEncoder();
