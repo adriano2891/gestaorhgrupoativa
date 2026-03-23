@@ -129,8 +129,6 @@ export function useAdminNotifications() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notificacoes_web" }, () => {
         playNotificationSound("success");
         queryClient.invalidateQueries({ queryKey: ["admin-notif-web"] });
-        setWebDismissed(false);
-        localStorage.removeItem(WEB_DISMISSED_KEY);
       })
       .subscribe((status) => {
         realtimeActive = status === "SUBSCRIBED";
