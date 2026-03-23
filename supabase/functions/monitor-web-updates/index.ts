@@ -6,15 +6,24 @@ const corsHeaders = {
 async function isUrlValid(url: string): Promise<boolean> {
   if (!url || url === '#') return false;
   try {
-    const res = await fetch(url, { method: 'HEAD', redirect: 'follow' });
-    return res.ok;
-  } catch {
-    try {
-      const res = await fetch(url, { method: 'GET', redirect: 'follow' });
-      return res.ok;
-    } catch {
-      return false;
+    const res = await fetch(url, { method: 'GET', redirect: 'follow' });
+    if (!res.ok) return false;
+    const body = await res.text();
+    const lower = body.toLowerCase();
+    // Detect soft-404 pages that return 200 but show "not found" content
+    const errorPatterns = [
+      'não encontrado', 'nao encontrado', 'not found',
+      'página não existe', 'pagina nao existe',
+      'recurso requisitado não foi encontrado',
+      'o conteúdo que você procura não está disponível',
+      '404', 'page not found',
+    ];
+    for (const pattern of errorPatterns) {
+      if (lower.includes(pattern)) return false;
     }
+    return true;
+  } catch {
+    return false;
   }
 }
 
@@ -74,9 +83,13 @@ Deno.serve(async (req) => {
       '- Decretos ou portarias que impactam empresas',
       '- Receita Federal, normas contabeis',
       'NAO inclua legislacao trabalhista/CLT.',
-      'IMPORTANTE: Inclua APENAS noticias com URLs reais e validas de fontes oficiais como gov.br, receita.fazenda.gov.br, planalto.gov.br, etc.',
+      'REGRA CRITICA SOBRE URLs:',
+      '- NAO INVENTE URLs. Se voce nao tem certeza absoluta de que a URL existe, coloque o campo url como string vazia "".',
+      '- Prefira URLs de dominios como gov.br, planalto.gov.br, receita.fazenda.gov.br, bcb.gov.br.',
+      '- NUNCA gere URLs com numeros aleatorios ou IDs inventados.',
+      '- E melhor retornar url vazia do que retornar uma URL falsa.',
       'Responda APENAS JSON array:',
-      '[{"titulo":"...","resumo":"...","fonte":"...","url":"...","categoria":"tributario|contabil|regulatorio|financeiro|obrigacao_acessoria"}]',
+      '[{"titulo":"...","resumo":"...","fonte":"nome da fonte","url":"URL real ou vazio","categoria":"tributario|contabil|regulatorio|financeiro|obrigacao_acessoria"}]',
     ].join('\n');
 
     const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -108,16 +121,21 @@ Deno.serve(async (req) => {
     try { updates = JSON.parse(content); } catch { updates = []; }
     if (!Array.isArray(updates)) updates = [];
 
-    // 4. Validate URLs before inserting
+    // 4. Validate URLs before inserting - allow entries without URL but skip fake URLs
     const inserted: string[] = [];
     for (const u of updates) {
       if (!u.titulo || !u.resumo) continue;
 
-      const urlToCheck = u.url || '';
-      const urlValid = await isUrlValid(urlToCheck);
-      if (!urlValid) {
-        console.log('Skipping invalid URL:', urlToCheck);
-        continue;
+      const urlToCheck = (u.url || '').trim();
+      let finalUrl = '';
+      if (urlToCheck) {
+        const urlValid = await isUrlValid(urlToCheck);
+        if (!urlValid) {
+          console.log('Invalid URL removed:', urlToCheck);
+          finalUrl = ''; // Keep the notification but remove the bad link
+        } else {
+          finalUrl = urlToCheck;
+        }
       }
 
       const enc = new TextEncoder();
@@ -134,7 +152,7 @@ Deno.serve(async (req) => {
           titulo: u.titulo.substring(0, 200),
           resumo: u.resumo.substring(0, 500),
           fonte: u.fonte || 'Fonte oficial',
-          url_fonte: urlToCheck,
+          url_fonte: finalUrl,
           hash_conteudo: hash,
           categoria: u.categoria || 'regulatorio',
           relevancia: 'importante',
