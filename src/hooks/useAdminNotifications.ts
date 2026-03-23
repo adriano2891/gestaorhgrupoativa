@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { playNotificationSound } from "@/utils/notificationSound";
@@ -14,13 +14,8 @@ export interface AdminNotification {
   fonte?: string;
 }
 
-const WEB_DISMISSED_KEY = "admin-web-notifs-dismissed";
-
 export function useAdminNotifications() {
   const queryClient = useQueryClient();
-  const [webDismissed, setWebDismissed] = useState(() => {
-    return localStorage.getItem(WEB_DISMISSED_KEY) === "true";
-  });
 
   const { data: feriasPendentes = [] } = useQuery({
     queryKey: ["admin-notif-ferias"],
@@ -79,6 +74,21 @@ export function useAdminNotifications() {
     },
   });
 
+  const marcarTodasWebComoLidas = useMutation({
+    mutationFn: async () => {
+      if (!webNotifs || webNotifs.length === 0) return;
+      const ids = webNotifs.map((w: any) => w.id);
+      const { error } = await (supabase as any)
+        .from("notificacoes_web")
+        .update({ lida: true })
+        .in("id", ids);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-notif-web"] });
+    },
+  });
+
   const buscarAtualizacoesWeb = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.functions.invoke("monitor-web-updates", {
@@ -89,15 +99,11 @@ export function useAdminNotifications() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-notif-web"] });
-      // Reset dismissed state when new updates are fetched
-      setWebDismissed(false);
-      localStorage.removeItem(WEB_DISMISSED_KEY);
     },
   });
 
   const dismissWebNotifications = () => {
-    setWebDismissed(true);
-    localStorage.setItem(WEB_DISMISSED_KEY, "true");
+    marcarTodasWebComoLidas.mutate();
   };
 
   // Realtime listeners with fallback polling
@@ -123,8 +129,6 @@ export function useAdminNotifications() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "notificacoes_web" }, () => {
         playNotificationSound("success");
         queryClient.invalidateQueries({ queryKey: ["admin-notif-web"] });
-        setWebDismissed(false);
-        localStorage.removeItem(WEB_DISMISSED_KEY);
       })
       .subscribe((status) => {
         realtimeActive = status === "SUBSCRIBED";
@@ -195,8 +199,7 @@ export function useAdminNotifications() {
     };
   }, [feriasPendentes, chamadosAbertos, webNotifs]);
 
-  // Badge count: only internal notifications (web excluded after dismissed)
-  const badgeCount = webDismissed ? internalCount : internalCount + (webNotifs?.length || 0);
+  const badgeCount = internalCount + (webNotifs?.length || 0);
 
   return {
     notifications,
@@ -206,6 +209,5 @@ export function useAdminNotifications() {
     marcarWebComoLida: marcarWebComoLida.mutate,
     buscarAtualizacoesWeb: buscarAtualizacoesWeb.mutate,
     dismissWebNotifications,
-    webDismissed,
   };
 }
