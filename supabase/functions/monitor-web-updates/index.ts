@@ -83,9 +83,13 @@ Deno.serve(async (req) => {
       '- Decretos ou portarias que impactam empresas',
       '- Receita Federal, normas contabeis',
       'NAO inclua legislacao trabalhista/CLT.',
-      'IMPORTANTE: Inclua APENAS noticias com URLs reais e validas de fontes oficiais como gov.br, receita.fazenda.gov.br, planalto.gov.br, etc.',
+      'REGRA CRITICA SOBRE URLs:',
+      '- NAO INVENTE URLs. Se voce nao tem certeza absoluta de que a URL existe, coloque o campo url como string vazia "".',
+      '- Prefira URLs de dominios como gov.br, planalto.gov.br, receita.fazenda.gov.br, bcb.gov.br.',
+      '- NUNCA gere URLs com numeros aleatorios ou IDs inventados.',
+      '- E melhor retornar url vazia do que retornar uma URL falsa.',
       'Responda APENAS JSON array:',
-      '[{"titulo":"...","resumo":"...","fonte":"...","url":"...","categoria":"tributario|contabil|regulatorio|financeiro|obrigacao_acessoria"}]',
+      '[{"titulo":"...","resumo":"...","fonte":"nome da fonte","url":"URL real ou vazio","categoria":"tributario|contabil|regulatorio|financeiro|obrigacao_acessoria"}]',
     ].join('\n');
 
     const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
