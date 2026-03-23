@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
           titulo: u.titulo.substring(0, 200),
           resumo: u.resumo.substring(0, 500),
           fonte: u.fonte || 'Fonte oficial',
-          url_fonte: urlToCheck,
+          url_fonte: finalUrl,
           hash_conteudo: hash,
           categoria: u.categoria || 'regulatorio',
           relevancia: 'importante',
