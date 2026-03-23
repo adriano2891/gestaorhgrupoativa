@@ -199,8 +199,7 @@ export function useAdminNotifications() {
     };
   }, [feriasPendentes, chamadosAbertos, webNotifs]);
 
-  // Badge count: only internal notifications (web excluded after dismissed)
-  const badgeCount = webDismissed ? internalCount : internalCount + (webNotifs?.length || 0);
+  const badgeCount = internalCount + (webNotifs?.length || 0);
 
   return {
     notifications,
@@ -210,6 +209,5 @@ export function useAdminNotifications() {
     marcarWebComoLida: marcarWebComoLida.mutate,
     buscarAtualizacoesWeb: buscarAtualizacoesWeb.mutate,
     dismissWebNotifications,
-    webDismissed,
   };
 }
