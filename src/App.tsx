@@ -53,6 +53,7 @@ const DocumentacoesSistema = lazy(() => import("./pages/DocumentacoesSistema"));
 
 const PortalCursoPlayerLazy = lazy(() => import("./components/ponto/PortalCursoPlayer").then(m => ({ default: m.PortalCursoPlayer })));
 const VerificarComprovante = lazy(() => import("./pages/VerificarComprovante"));
+const RotaFacilAI = lazy(() => import("./pages/RotaFacilAI"));
 
 // Eagerly loaded layout (used on most routes, no reason to lazy-load)
 import { Layout } from "./components/Layout";
@@ -118,7 +119,8 @@ const App = () => {
                     <Route path="/portal-funcionario/cursos/:cursoId" element={<PortalCursoPlayerLazy />} />
                     <Route path="/public/:publicId" element={<OrcamentosPublic />} />
                     <Route path="/verificar-comprovante/:id" element={<VerificarComprovante />} />
-                    <Route path="/" element={<Navigate to="/login" replace />} />
+                    <Route path="/" element={<Navigate to="/rota-facil-ai" replace />} />
+                    <Route path="/rota-facil-ai" element={<RotaFacilAI />} />
                     <Route
                       path="/dashboard"
                       element={
