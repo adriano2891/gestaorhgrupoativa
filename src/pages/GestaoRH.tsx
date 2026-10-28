@@ -313,7 +313,7 @@ const GestaoRH = () => {
         {/* Título */}
         <div className={`text-center py-2 sm:py-3 px-3 sm:px-4 ${isAnimating ? 'rh-animate-title' : ''}`}>
           <h1 
-            className="text-xl sm:text-2xl md:text-3xl text-white font-bold"
+            className="text-xl sm:text-2xl md:text-3xl text-purple-400 font-bold"
             style={{ 
               fontFamily: "Arial, sans-serif",
               textShadow: '1px 1px 2px rgba(0,0,0,0.2)'
@@ -365,7 +365,7 @@ const GestaoRH = () => {
         <div className="flex flex-col items-start min-w-0">
           {/* Título */}
           <h1 
-            className={`text-2xl md:text-3xl lg:text-4xl xl:text-5xl text-white font-bold truncate ${isAnimating ? 'rh-animate-title' : ''}`}
+            className={`text-2xl md:text-3xl lg:text-4xl xl:text-5xl text-purple-400 font-bold truncate ${isAnimating ? 'rh-animate-title' : ''}`}
             style={{ 
               fontFamily: "Arial, sans-serif",
               textShadow: '2px 2px 4px rgba(0,0,0,0.1)'
